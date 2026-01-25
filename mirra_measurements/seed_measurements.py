@@ -5,6 +5,7 @@ Seed script to populate the measurements collection with test data.
 from datetime import datetime
 from mirra_measurements.db import get_measurements_collection, close_connection
 from mirra_measurements.models import create_measurement_doc, validate_measurement_doc
+from mirra_measurements.golden_users import GOLDEN_USER_IDS, GOLDEN_USER_PRIORITY
 
 
 def get_seed_data():
@@ -16,7 +17,7 @@ def get_seed_data():
     
     # MALE MEASUREMENTS
     # Male 1 - Fully filled, accurate
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_m_001",
         gender="male",
         accuracy="accurate",
@@ -29,10 +30,13 @@ def get_seed_data():
         chest_circumference_cm=100.0,
         body_shape_type="rectangle",
         skin_tone_hex="#8D5524"
-    ))
+    )
+    doc['is_golden'] = True
+    doc['golden_priority'] = 1
+    measurements.append(doc)
     
     # Male 2 - Fully filled, approx
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_m_002",
         gender="male",
         accuracy="approx",
@@ -45,10 +49,13 @@ def get_seed_data():
         chest_circumference_cm=105.0,
         body_shape_type="inverted_triangle",
         skin_tone_hex="#C58C85"
-    ))
+    )
+    doc['is_golden'] = True
+    doc['golden_priority'] = 2
+    measurements.append(doc)
     
     # Male 3 - Missing hip, leg_length, skin_tone
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_m_003",
         gender="male",
         accuracy="accurate",
@@ -58,10 +65,13 @@ def get_seed_data():
         waist_circumference_cm=82.0,
         chest_circumference_cm=96.0,
         body_shape_type="rectangle"
-    ))
+    )
+    doc['is_golden'] = False
+    doc['golden_priority'] = None
+    measurements.append(doc)
     
     # Male 4 - Missing chest, body_shape_type, shoulder_width
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_m_004",
         gender="male",
         accuracy="accurate",
@@ -71,20 +81,26 @@ def get_seed_data():
         hip_circumference_cm=100.0,
         leg_length_cm=91.5,
         skin_tone_hex="#F1C27D"
-    ))
+    )
+    doc['is_golden'] = False
+    doc['golden_priority'] = None
+    measurements.append(doc)
     
     # Male 5 - Minimal (only height and weight)
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_m_005",
         gender="male",
         accuracy="accurate",
         height_cm=177.0,
         weight_kg=73.0
-    ))
+    )
+    doc['is_golden'] = False
+    doc['golden_priority'] = None
+    measurements.append(doc)
     
     # FEMALE MEASUREMENTS
     # Female 1 - Fully filled, accurate
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_f_001",
         gender="female",
         accuracy="accurate",
@@ -98,10 +114,13 @@ def get_seed_data():
         under_bust_circumference_cm=75.0,
         body_shape_type="hourglass",
         skin_tone_hex="#FFDFC4"
-    ))
+    )
+    doc['is_golden'] = True
+    doc['golden_priority'] = 3
+    measurements.append(doc)
     
     # Female 2 - Fully filled, approx
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_f_002",
         gender="female",
         accuracy="approx",
@@ -115,10 +134,13 @@ def get_seed_data():
         under_bust_circumference_cm=76.0,
         body_shape_type="pear",
         skin_tone_hex="#E0AC69"
-    ))
+    )
+    doc['is_golden'] = True
+    doc['golden_priority'] = 4
+    measurements.append(doc)
     
     # Female 3 - Missing under_bust, skin_tone, leg_length
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_f_003",
         gender="female",
         accuracy="accurate",
@@ -129,10 +151,13 @@ def get_seed_data():
         hip_circumference_cm=92.0,
         bust_circumference_cm=88.0,
         body_shape_type="rectangle"
-    ))
+    )
+    doc['is_golden'] = False
+    doc['golden_priority'] = None
+    measurements.append(doc)
     
     # Female 4 - Missing bust measurements, body_shape_type
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_f_004",
         gender="female",
         accuracy="accurate",
@@ -143,16 +168,22 @@ def get_seed_data():
         hip_circumference_cm=98.0,
         leg_length_cm=87.0,
         skin_tone_hex="#5C4033"
-    ))
+    )
+    doc['is_golden'] = False
+    doc['golden_priority'] = None
+    measurements.append(doc)
     
     # Female 5 - Minimal (only height and weight)
-    measurements.append(create_measurement_doc(
+    doc = create_measurement_doc(
         user_id="user_f_005",
         gender="female",
         accuracy="accurate",
         height_cm=163.0,
         weight_kg=56.0
-    ))
+    )
+    doc['is_golden'] = False
+    doc['golden_priority'] = None
+    measurements.append(doc)
     
     return measurements
 
@@ -172,6 +203,7 @@ def seed_database():
     upserted_ids = []
     inserted_count = 0
     updated_count = 0
+    golden_users = []
     
     for doc in measurements:
         # Validate before inserting
@@ -189,12 +221,17 @@ def seed_database():
         
         upserted_ids.append(doc["user_id"])
         
+        if doc.get('is_golden'):
+            golden_users.append((doc['user_id'], doc.get('golden_priority')))
+        
+        golden_tag = f" [GOLDEN-{doc.get('golden_priority')}]" if doc.get('is_golden') else ""
+        
         if result.upserted_id:
             inserted_count += 1
-            print(f"✓ Inserted: {doc['user_id']} ({doc['gender']}, {doc['accuracy']})")
+            print(f"✓ Inserted: {doc['user_id']} ({doc['gender']}, {doc['accuracy']}){golden_tag}")
         else:
             updated_count += 1
-            print(f"↻ Updated:  {doc['user_id']} ({doc['gender']}, {doc['accuracy']})")
+            print(f"↻ Updated:  {doc['user_id']} ({doc['gender']}, {doc['accuracy']}){golden_tag}")
     
     print("=" * 60)
     print(f"Summary:")
@@ -202,6 +239,9 @@ def seed_database():
     print(f"  - Newly inserted: {inserted_count}")
     print(f"  - Updated existing: {updated_count}")
     print(f"  - User IDs: {', '.join(upserted_ids)}")
+    print(f"  - Golden users: {len(golden_users)}")
+    for user_id, priority in golden_users:
+        print(f"    • {user_id} (priority: {priority})")
     print("=" * 60)
     print(f"\nDatabase: mirratest")
     print(f"Collection: measurements")

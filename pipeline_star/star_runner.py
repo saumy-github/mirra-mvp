@@ -9,6 +9,7 @@ if workspace_root not in sys.path:
     sys.path.insert(0, workspace_root)
 
 from star.ch.star import STAR  # type: ignore
+from pipeline_star.pose_catalog import get_apose_thetas
 
 
 # Module-level cache to avoid re-instantiating STAR models (expensive)
@@ -58,7 +59,7 @@ def generate_apose_mesh(
         _MODEL_CACHE[cache_key] = STAR(gender=gender, num_betas=num_betas)
     
     pose_size = _MODEL_CACHE[cache_key].pose.size
-    pose = np.zeros(pose_size)
+    pose = get_apose_thetas(pose_size)
     
     return generate_mesh(gender, betas, pose, scale, num_betas)
 
