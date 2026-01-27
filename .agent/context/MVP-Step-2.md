@@ -13,12 +13,14 @@ Step 2 sits between:
 
 **Goal:** Populate the **Virtual Closet** quickly *without* full AI automation yet.
 
-### 1) Sourcing Strategy (API Scraping)
+### 1. Sourcing Strategy (API Scraping)
+
 - Build a targeted scraper for selected seller websites (e.g., **Amazon**, brand sites) to fetch:
   - Product images
   - Product metadata (where available)
 
-### 2) Sort Logic (Image Classification Scripts)
+### 2. Sort Logic (Image Classification Scripts)
+
 - Write scripts to classify downloaded images into:
   - **Front View**
   - **Back View**
@@ -27,8 +29,10 @@ Step 2 sits between:
   - Ensure clean source images for asset creation
   - Avoid low-signal/duplicate/irrelevant images
 
-### 3) Asset Processing (Manual / Semi-Auto)
+### 3. Asset Processing (Manual / Semi-Auto)
+
 #### Phase 1: Curated Manual Catalog
+
 - Start with a curated set of **~50–100** garments (e.g., T-shirts, dresses)
 - Manually verify:
   - Image clarity
@@ -37,6 +41,7 @@ Step 2 sits between:
   - Adequate lighting and texture visibility
 
 #### MVP 2D-to-3D Logic (Baseline)
+
 - For MVP, **do not** build full cloth physics conversion.
 - Use **basic texture mapping**:
   - Map 2D garment imagery onto the avatar/garment proxy as textures
@@ -49,6 +54,7 @@ Step 2 sits between:
 **Goal:** Build a scalable **Virtual Inventory** of clothing assets so users can pick from a catalog without recreating assets each time.
 
 ### Inputs
+
 - **2D Images:** Multiple views of a garment (minimum: **Front + Back**)  
   - Source can be anything for MVP (scraped / manual / brand-provided)
 - **Metadata:**
@@ -57,21 +63,26 @@ Step 2 sits between:
   - Color
 
 ### Outputs
+
 - A **3D asset file** compatible with the avatar/try-on system
 - Stored inside a **Product Inventory database**
 
 ### Key Requirements
-#### 1) Visual Fidelity
+
+#### 1. Visual Fidelity
+
 - Must retain from 2D sources:
   - **Color**
   - **Texture / prints / patterns**
 
-#### 2) Flexibility / Deformability
+#### 2. Flexibility / Deformability
+
 - Asset **must be deformable** (fabric-like), **not** a rigid shell
 - Rationale:
   - Same garment behaves differently across different bodies
 
-#### 3) Sizing Logic
+#### 3. Sizing Logic
+
 - Must account for real-world sizing behavior:
   - XS vs XL should not be identical with uniform scaling only
 - Expected behavior examples:
@@ -82,6 +93,7 @@ Step 2 sits between:
   - Single base asset + **size-specific scaling parameters**
 
 ### MVP Scope (Strict)
+
 - Clothing only:
   - **Upper wear**
   - **Lower wear**
@@ -90,6 +102,7 @@ Step 2 sits between:
 ---
 
 ## Future Scope (Post-MVP)
+
 - Expand inventory types:
   - Accessories (watches, bags)
   - Makeup
@@ -104,6 +117,7 @@ Step 2 sits between:
 ---
 
 ## Summary (What Step 2 Must Deliver for MVP)
+
 - A working **Product Ingestion Engine (V1)** to populate a Virtual Closet fast
 - A repeatable **Asset Ingestion workflow** that produces:
   - Visually correct clothing assets

@@ -55,7 +55,7 @@ The MVP (Minimum Viable Product) direction focuses strictly on silhouette and fi
 
 ### Aesthetic
 
-- **Visual Style**: A featureless, pure black silhouette with a matte finish
+- **Visual Style**: A featureless, skin colour silhouette with a matte finish
 - **Detailing**: No skin texture, no face, and no hair details
 
 ### Mesh Exclusions
@@ -80,8 +80,7 @@ This visual style highlights the fit of the garment rather than the look of the 
 Instead of creating a fully rigged, animation-ready character with bones and skin weights (which is computationally expensive), the system will generate a **Static 3D Mesh**.
 
 - **Morphing Logic**: The base mesh vertices are displaced/morphed to become an exact replica of the input numbers (e.g., expanding the chest vertices to match the chest circumference input)
-- **Pose**: The avatar stands in a single, static standard pose optimized for clothing attachment. This will be either:
-  - **A-Pose**: Arms roughly 45 degrees downward (generally preferred for natural cloth drape)
+- **Pose**: The avatar stands in a single, static **T-pose** (arms extended horizontally, forming a "T" shape) optimized for clothing attachment and measurement consistency
 
 ### B. Persistence & Storage
 
