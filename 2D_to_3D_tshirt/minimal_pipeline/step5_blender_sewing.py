@@ -202,12 +202,8 @@ def setup_seams_from_definitions(panels: dict, seam_defs: list):
     
     print("→ Setting up seams from definitions...")
     
-    # Map piece names to objects
-    piece_map = {
-        "front": panels.get("front"),
-        "back": panels.get("back"),
-        "sleeve": panels.get("left_sleeve"),  # We'll mirror for right
-    }
+    # Map piece names to objects - use the panel dictionary keys directly
+    piece_map = panels  # panels dict already has "Front_Panel", "Back_Panel", etc.
     
     # Edge direction mapping based on seam names
     # This translates pattern edges to mesh positions
@@ -233,39 +229,38 @@ def setup_seams_from_definitions(panels: dict, seam_defs: list):
     
     for seam in seam_defs:
         seam_name = seam.get("name", f"seam_{seam_count}")
-        edge1 = seam.get("edge1", {})
-        edge2 = seam.get("edge2", {})
         
-        piece1_name = edge1.get("piece", "")
-        piece2_name = edge2.get("piece", "")
-        edge1_name = edge1.get("edge_name", "")
-        edge2_name = edge2.get("edge_name", "")
+        # NEW FORMAT: panel_a, panel_b, edge_a, edge_b
+        panel_a_name = seam.get("panel_a", "")
+        panel_b_name = seam.get("panel_b", "")
+        edge_a_name = seam.get("edge_a", "")
+        edge_b_name = seam.get("edge_b", "")
         
         # Get mesh objects
-        obj1 = piece_map.get(piece1_name)
-        obj2 = piece_map.get(piece2_name)
+        obj_a = piece_map.get(panel_a_name)
+        obj_b = piece_map.get(panel_b_name)
         
-        if not obj1 or not obj2:
-            print(f"    ⚠ Skipping {seam_name}: piece not found")
+        if not obj_a or not obj_b:
+            print(f"    ⚠ Skipping {seam_name}: piece not found (panel_a={panel_a_name}, panel_b={panel_b_name})")
             continue
         
         # Get edge directions
-        dir1 = edge_to_direction.get(edge1_name, "left")
-        dir2 = edge_to_direction.get(edge2_name, "left")
+        dir_a = edge_to_direction.get(edge_a_name, "left")
+        dir_b = edge_to_direction.get(edge_b_name, "left")
         
         # Find vertices on each edge
-        verts1 = get_edge_vertices_by_direction(obj1, dir1)
-        verts2 = get_edge_vertices_by_direction(obj2, dir2)
+        verts_a = get_edge_vertices_by_direction(obj_a, dir_a)
+        verts_b = get_edge_vertices_by_direction(obj_b, dir_b)
         
-        if verts1 and verts2:
+        if verts_a and verts_b:
             # Create vertex groups
             group_name = f"sew_{seam_name}"
-            create_vertex_group_for_edge(obj1, group_name, verts1)
-            create_vertex_group_for_edge(obj2, group_name, verts2)
-            print(f"    ✓ {seam_name}: {len(verts1)} ↔ {len(verts2)} vertices")
+            create_vertex_group_for_edge(obj_a, group_name, verts_a)
+            create_vertex_group_for_edge(obj_b, group_name, verts_b)
+            print(f"    ✓ {seam_name}: {len(verts_a)} ↔ {len(verts_b)} vertices")
             seam_count += 1
         else:
-            print(f"    ⚠ {seam_name}: no vertices found (v1={len(verts1)}, v2={len(verts2)})")
+            print(f"    ⚠ {seam_name}: no vertices found (v_a={len(verts_a)}, v_b={len(verts_b)})")
     
     print(f"  ✓ Created {seam_count} seam vertex groups")
 
