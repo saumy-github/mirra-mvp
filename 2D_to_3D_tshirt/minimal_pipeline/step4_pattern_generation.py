@@ -23,8 +23,9 @@ import json
 # CONFIGURATION
 # ============================================================
 
-# Output directory
-OUTPUT_DIR = Path("pattern_output")
+# Output directory (absolute path)
+SCRIPT_DIR = Path(__file__).parent
+OUTPUT_DIR = SCRIPT_DIR / "pattern_output"
 
 # Default measurements (in centimeters)
 # These can be overridden when calling the functions
@@ -211,13 +212,15 @@ def generate_front_panel(measurements: Dict[str, float]) -> Dict:
         "notes": "Cut 1 on fold. Grainline parallel to fold.",
         # NEW: Edge labels for sewing - maps edge name to vertex indices
         # These indices refer to positions in the outline array
+        # SCHEMA: left, right, armhole_L, armhole_R for body panels
         "edges": {
             "neckline": {"start": 0, "end": 16},           # Neckline curve (indices 0-16)
             "shoulder": {"start": 16, "end": 17},          # Shoulder line
-            "armhole": {"start": 17, "end": 38},           # Armhole curve (indices 17-38)
-            "side_seam": {"start": 38, "end": 39},         # Side seam (straight down)
+            "armhole_R": {"start": 17, "end": 27},         # Right armhole curve
+            "armhole_L": {"start": 27, "end": 38},         # Left armhole curve
+            "right": {"start": 38, "end": 39},             # Right side seam
             "hem": {"start": 39, "end": 40},               # Hem line
-            "center_front": {"start": 40, "end": 41}       # Center fold line
+            "left": {"start": 40, "end": 41}               # Left side / center fold
         }
     }
 
@@ -314,13 +317,15 @@ def generate_back_panel(measurements: Dict[str, float]) -> Dict:
         "height": length,
         "notes": "Cut 1 on fold. Grainline parallel to fold.",
         # NEW: Edge labels for sewing - maps edge name to vertex indices
+        # SCHEMA: left, right, armhole_L, armhole_R for body panels
         "edges": {
             "neckline": {"start": 0, "end": 13},           # Back neckline curve
             "shoulder": {"start": 13, "end": 14},          # Shoulder line
-            "armhole": {"start": 14, "end": 35},           # Armhole curve
-            "side_seam": {"start": 35, "end": 36},         # Side seam
+            "armhole_R": {"start": 14, "end": 24},         # Right armhole curve
+            "armhole_L": {"start": 24, "end": 35},         # Left armhole curve
+            "right": {"start": 35, "end": 36},             # Right side seam
             "hem": {"start": 36, "end": 37},               # Hem line
-            "center_back": {"start": 37, "end": 38}        # Center fold line
+            "left": {"start": 37, "end": 38}               # Left side / center fold
         }
     }
 
@@ -409,7 +414,9 @@ def generate_sleeve(measurements: Dict[str, float]) -> Dict:
         "height": sleeve_length,
         "notes": "Cut 2 (mirror for left/right). Grainline runs vertically.",
         # NEW: Edge labels for sewing - maps edge name to vertex indices
+        # SCHEMA: "curve" for sleeve cap (attaches to body armhole)
         "edges": {
+            "curve": {"start": 0, "end": 34},              # Full sleeve cap curve (for armhole attachment)
             "cap_left": {"start": 0, "end": 16},           # Left side of sleeve cap
             "underarm_left": {"start": 16, "end": 17},     # Left underarm seam
             "hem": {"start": 17, "end": 18},               # Sleeve hem
@@ -672,9 +679,36 @@ def save_patterns(patterns: Dict[str, Dict], measurements: Dict[str, float]):
     save_seam_definitions(patterns)
 
 
+def extract_edge_vertices(outline: List[Tuple], edge_def: Dict) -> List[Tuple]:
+    """
+    Extract vertex coordinates for a specific edge from the outline.
+    
+    Args:
+        outline: Full outline point list
+        edge_def: Dictionary with "start" and "end" indices
+    
+    Returns:
+        List of (x, y) coordinates for the edge vertices
+    """
+    start_idx = edge_def.get("start", 0)
+    end_idx = edge_def.get("end", len(outline))
+    
+    # Handle wrap-around for closed outlines
+    if end_idx >= len(outline):
+        end_idx = len(outline) - 1
+    
+    # Extract vertices in range
+    return [outline[i] for i in range(start_idx, end_idx + 1)]
+
+
 def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
     """
     Generate seam definitions that tell Blender which edges to sew together.
+    
+    ENHANCED FORMAT with vertex coordinates:
+    - Each panel contains edge labels with actual vertex positions
+    - Seam pairs reference panel:edge_name for matching
+    - Blender can use positions to find nearest mesh vertices
     
     Seam Format:
     Each seam is a pair: ["panel1:edge_name", "panel2:edge_name"]
@@ -688,96 +722,111 @@ def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
     for the full garment by specifying left and right versions.
     
     Returns:
-        Dictionary with seam definitions
+        Dictionary with seam definitions including vertex coordinates
     """
     seams = {
+        # Seam pairs in simplified format: ["Panel:edge", "Panel:edge"]
+        # This format is easier for Blender to parse
+        # SCHEMA: ["PanelName:edge_name", "PanelName:edge_name"]
         "seams": [
+            # ========================================
+            # SIDE SEAMS: Front <-> Back at left/right sides
+            # ========================================
+            ["Front_Panel:left", "Back_Panel:left"],
+            ["Front_Panel:right", "Back_Panel:right"],
+            
+            # ========================================
+            # SHOULDER SEAMS: Front <-> Back at top
+            # ========================================
+            ["Front_Panel:shoulder", "Back_Panel:shoulder"],
+            
+            # ========================================
+            # ARMHOLE SEAMS: Body armholes <-> Sleeve caps
+            # ========================================
+            ["Front_Panel:armhole_L", "Left_Sleeve:curve"],
+            ["Back_Panel:armhole_L", "Left_Sleeve:curve"],
+            ["Front_Panel:armhole_R", "Right_Sleeve:curve"],
+            ["Back_Panel:armhole_R", "Right_Sleeve:curve"],
+        ],
+        
+        # Detailed seam definitions with metadata (for complex operations)
+        "seam_details": [
             # Side seams: Front and Back are sewn at the sides
-            # Left side (when garment is worn)
             {
-                "name": "left_side_seam",
-                "panel_a": "front",
-                "edge_a": "side_seam",
-                "panel_b": "back", 
-                "edge_b": "side_seam",
-                "side": "left"
-            },
-            # Right side
-            {
-                "name": "right_side_seam",
-                "panel_a": "front",
-                "edge_a": "side_seam",
-                "panel_b": "back",
-                "edge_b": "side_seam", 
-                "side": "right"
+                "name": "side_seam",
+                "edge1": {"piece": "front", "edge_name": "side_seam"},
+                "edge2": {"piece": "back", "edge_name": "side_seam"},
+                "type": "straight",
+                "priority": 1  # Sew first
             },
             
             # Shoulder seams: Front and Back shoulder edges
             {
-                "name": "left_shoulder_seam",
-                "panel_a": "front",
-                "edge_a": "shoulder",
-                "panel_b": "back",
-                "edge_b": "shoulder",
-                "side": "left"
-            },
-            {
-                "name": "right_shoulder_seam",
-                "panel_a": "front",
-                "edge_a": "shoulder",
-                "panel_b": "back",
-                "edge_b": "shoulder",
-                "side": "right"
+                "name": "shoulder_seam",
+                "edge1": {"piece": "front", "edge_name": "shoulder"},
+                "edge2": {"piece": "back", "edge_name": "shoulder"},
+                "type": "straight",
+                "priority": 2
             },
             
-            # Sleeve seams: Armhole to Sleeve cap
+            # Sleeve seams: Armhole to Sleeve cap (left)
             {
-                "name": "left_sleeve_seam",
-                "panel_a": "front",
-                "edge_a": "armhole",
-                "panel_b": "sleeve_left",
-                "edge_b": "cap_left",
-                "side": "left"
+                "name": "left_sleeve_attachment",
+                "edge1": {"piece": "front", "edge_name": "armhole"},
+                "edge2": {"piece": "sleeve", "edge_name": "cap_left"},
+                "type": "curved",
+                "priority": 3
             },
+            
+            # Sleeve seams: Armhole to Sleeve cap (right - uses back panel)
             {
-                "name": "right_sleeve_seam",
-                "panel_a": "front",
-                "edge_a": "armhole",
-                "panel_b": "sleeve_right",
-                "edge_b": "cap_right",
-                "side": "right"
+                "name": "right_sleeve_attachment",
+                "edge1": {"piece": "back", "edge_name": "armhole"},
+                "edge2": {"piece": "sleeve", "edge_name": "cap_right"},
+                "type": "curved",
+                "priority": 3
             },
             
             # Sleeve underarm seams (sleeve tube)
             {
-                "name": "left_sleeve_underarm",
-                "panel_a": "sleeve_left",
-                "edge_a": "underarm_left",
-                "panel_b": "sleeve_left",
-                "edge_b": "underarm_right",
-                "side": "left"
-            },
-            {
-                "name": "right_sleeve_underarm",
-                "panel_a": "sleeve_right",
-                "edge_a": "underarm_left",
-                "panel_b": "sleeve_right",
-                "edge_b": "underarm_right",
-                "side": "right"
+                "name": "sleeve_underarm",
+                "edge1": {"piece": "sleeve", "edge_name": "underarm_left"},
+                "edge2": {"piece": "sleeve", "edge_name": "underarm_right"},
+                "type": "straight",
+                "priority": 4
             }
         ],
         
-        # Edge metadata for each panel (copied from patterns)
+        # Panel data with edge vertex coordinates
+        # This is the KEY enhancement - actual geometry for each edge
         "panels": {}
     }
     
-    # Copy edge definitions from each pattern
+    # Build panel data with vertex coordinates for each edge
     for panel_name, pattern in patterns.items():
-        if "edges" in pattern:
-            seams["panels"][panel_name] = {
-                "edges": pattern["edges"],
-                "vertex_count": len(pattern["outline"])
+        outline = pattern.get("outline", [])
+        edges_def = pattern.get("edges", {})
+        
+        panel_data = {
+            "display_name": pattern.get("name", panel_name),
+            "width_cm": pattern.get("width", 0),
+            "height_cm": pattern.get("height", 0),
+            "vertex_count": len(outline),
+            "edges": {}
+        }
+        
+        # Extract vertex coordinates for each labeled edge
+        for edge_name, edge_indices in edges_def.items():
+            edge_vertices = extract_edge_vertices(outline, edge_indices)
+            panel_data["edges"][edge_name] = {
+                "start_index": edge_indices.get("start", 0),
+                "end_index": edge_indices.get("end", 0),
+                "vertex_count": len(edge_vertices),
+                # Store actual coordinates (in cm) - Blender will convert to meters
+                "vertices": [[round(x, 3), round(y, 3)] for x, y in edge_vertices]
             }
+        
+        seams["panels"][panel_name] = panel_data
     
     return seams
 
@@ -787,6 +836,10 @@ def save_seam_definitions(patterns: Dict[str, Dict]):
     Save seam definitions to seams.json file.
     
     This file tells Blender which edges to sew together.
+    Enhanced format includes:
+    - Simple seam pairs for easy parsing
+    - Detailed seam metadata for advanced operations
+    - Actual vertex coordinates for each panel edge
     """
     print("\n→ Generating seam definitions...")
     
@@ -797,7 +850,12 @@ def save_seam_definitions(patterns: Dict[str, Dict]):
         json.dump(seams, f, indent=2)
     
     print(f"  ✓ {seams_path}")
-    print(f"  ✓ Defined {len(seams['seams'])} seams for sewing")
+    print(f"  ✓ Defined {len(seams['seams'])} seam pairs for sewing")
+    print(f"  ✓ Panel edge data for {len(seams['panels'])} panels:")
+    
+    for panel_name, panel_data in seams["panels"].items():
+        edge_count = len(panel_data.get("edges", {}))
+        print(f"      - {panel_name}: {edge_count} labeled edges")
 
 
 def run_pattern_generation_pipeline(measurements: Dict[str, float] = None):

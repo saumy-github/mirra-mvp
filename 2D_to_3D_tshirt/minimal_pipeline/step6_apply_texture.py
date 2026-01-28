@@ -90,6 +90,64 @@ def load_fabric_color() -> tuple:
         return DEFAULT_FABRIC_COLOR
 
 
+# ============================================================
+# UV UNWRAPPING
+# ============================================================
+
+import bmesh
+
+def unwrap_garment_uv(obj: bpy.types.Object):
+    """
+    Create UV mapping for the garment using headless-safe methods.
+    
+    This function uses bmesh and headless-compatible operators to ensure
+    it works in both interactive and headless (--background) mode.
+    
+    Args:
+        obj: The garment mesh object
+    """
+    print(f"→ Creating UV unwrap for {obj.name}...")
+    
+    # Ensure object is active
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    
+    # Switch to edit mode
+    bpy.ops.object.mode_set(mode='EDIT')
+    
+    # Use bmesh to select all faces
+    bm = bmesh.from_edit_mesh(obj.data)
+    bm.faces.ensure_lookup_table()
+    
+    # Select all faces
+    for face in bm.faces:
+        face.select = True
+    
+    # Update mesh with selection
+    bmesh.update_edit_mesh(obj.data)
+    
+    # Unwrap using angle-based method (headless-safe)
+    try:
+        bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0.02)
+        print("  ✓ UV unwrap completed (angle-based method)")
+    except Exception as e:
+        print(f"  ⚠ Angle-based unwrap failed: {e}")
+        print("  Trying conformal method...")
+        try:
+            bpy.ops.uv.unwrap(method='CONFORMAL', margin=0.02)
+            print("  ✓ UV unwrap completed (conformal method)")
+        except Exception as e2:
+            print(f"  ⚠ Conformal unwrap also failed: {e2}")
+            print("  Using smart UV project as fallback...")
+            bpy.ops.uv.smart_project(angle_limit=66.0, island_margin=0.02)
+            print("  ✓ UV unwrap completed (smart project fallback)")
+    
+    # Return to object mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    print("  ✓ UV mapping created successfully")
+
+
 def load_design_texture() -> bpy.types.Image:
     """
     Load the extracted design image from Step 2.
@@ -303,11 +361,7 @@ def unwrap_garment_uv(obj: bpy.types.Object):
     
     # Project from view (front view gives good UV for front of shirt)
     # First, set view to front
-    bpy.ops.uv.project_from_view(
-        orthographic=True,
-        correct_aspect=True,
-        scale_to_bounds=True
-    )
+
     
     # Alternative: Smart UV Project (automatic, works for complex shapes)
     bpy.ops.uv.smart_project(
@@ -351,11 +405,7 @@ def project_design_to_front(obj: bpy.types.Object):
     
     # Project from front (negative Y in Blender = front view)
     # This assumes the garment is oriented with front facing -Y
-    bpy.ops.uv.project_from_view(
-        camera_bounds=False,
-        correct_aspect=True,
-        scale_to_bounds=True
-    )
+
     
     bpy.ops.object.mode_set(mode='OBJECT')
     
@@ -393,23 +443,48 @@ def find_garment_object() -> bpy.types.Object:
     Find the T-shirt garment object in the scene.
     
     Looks for an object named "TShirt_Garment" (created in Step 5)
-    or any object with a Cloth modifier.
+    or any object with "Garment" or "Joined" in its name.
+    Falls back to cloth modifier search.
     
     Returns:
         The garment object, or None if not found
-    """
-    # First, try to find by name
-    if "TShirt_Garment" in bpy.data.objects:
-        return bpy.data.objects["TShirt_Garment"]
     
-    # Otherwise, find any object with cloth modifier
+    Raises:
+        RuntimeError: If no suitable garment mesh is found
+    """
+    print("→ Searching for garment object...")
+    
+    # First, try exact name match
+    garment = bpy.data.objects.get("TShirt_Garment")
+    if garment:
+        print(f"  ✓ Found by exact name: {garment.name}")
+        return garment
+    
+    # Second, search for objects with "Garment" in name
+    print("  ⚠ Exact name not found, searching for 'Garment' pattern...")
+    for obj in bpy.data.objects:
+        if obj.type == 'MESH' and ("Garment" in obj.name or "garment" in obj.name):
+            print(f"  ✓ Found by pattern match: {obj.name}")
+            return obj
+    
+    # Third, search for objects with "Joined" in name
+    print("  ⚠ No 'Garment' found, searching for 'Joined' pattern...")
+    for obj in bpy.data.objects:
+        if obj.type == 'MESH' and ("Joined" in obj.name or "joined" in obj.name):
+            print(f"  ✓ Found by pattern match: {obj.name}")
+            return obj
+    
+    # Fourth, find any object with cloth modifier
+    print("  ⚠ No named match, searching for cloth modifier...")
     for obj in bpy.data.objects:
         if obj.type == 'MESH':
             for mod in obj.modifiers:
                 if mod.type == 'CLOTH':
+                    print(f"  ✓ Found by cloth modifier: {obj.name}")
                     return obj
     
     # Last resort: find largest mesh
+    print("  ⚠ No cloth modifier found, using largest mesh...")
     largest = None
     largest_verts = 0
     for obj in bpy.data.objects:
@@ -419,7 +494,21 @@ def find_garment_object() -> bpy.types.Object:
                 largest = obj
                 largest_verts = vert_count
     
-    return largest
+    if largest:
+        print(f"  ✓ Found largest mesh: {largest.name} ({largest_verts} vertices)")
+        return largest
+    
+    # Nothing found - raise clear error
+    print("  ✗ No garment mesh found in scene!")
+    print("  Available objects:")
+    for obj in bpy.data.objects:
+        print(f"    - {obj.name} ({obj.type})")
+    
+    raise RuntimeError(
+        "ERROR: No garment object found!\\n"
+        "Make sure step5_blender_sewing.py ran successfully and created 'TShirt_Garment'.\\n"
+        "Available meshes: " + ", ".join([o.name for o in bpy.data.objects if o.type == 'MESH'])
+    )
 
 
 # ============================================================
