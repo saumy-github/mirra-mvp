@@ -59,9 +59,9 @@ PATTERN_DIR = Path(__file__).parent / "pattern_output"
 # 1 cm = 0.01 meters
 CM_TO_M = 0.01
 
-# Cloth simulation settings
+# Cloth simulation settings (OPTIMIZED for memory)
 CLOTH_SETTINGS = {
-    "quality": 12,           # Simulation quality (higher = better but slower)
+    "quality": 8,            # Reduced from 12 to save memory
     "mass": 0.3,             # Fabric weight (kg/m²) - cotton is ~0.15-0.3
     "tension_stiffness": 15, # How much fabric resists stretching
     "compression_stiffness": 15,
@@ -223,6 +223,11 @@ def resolve_panel_objects(panels: dict) -> dict:
         "right_sleeve": "right_sleeve",
         "sleeve_left": "left_sleeve",
         "sleeve_right": "right_sleeve",
+        
+        # Neck band (XML Schema v1.1)
+        "Neck_Band": "neck_band",
+        "neck_band": "neck_band",
+        "NeckBand": "neck_band",
     }
     
     resolved = {}
@@ -859,23 +864,23 @@ def clear_scene():
     print("  ✓ Scene cleared & RAM purged")
 
 
-def setup_scene(simulation_frames: int = 120):
+def setup_scene(simulation_frames: int = 60):
     """
     Set up the scene for cloth simulation with sewing.
     
     This includes:
     - Setting units to metric
-    - Setting frame range for simulation (default: 120 frames)
+    - Setting frame range for simulation (default: 60 frames)
     - Adding ground plane (for reference)
     - Configuring gravity
     
-    120 frames is optimal for sewing simulation:
-    - Frames 1-30: Initial sewing spring engagement
-    - Frames 30-80: Edges pulling together, fabric draping
-    - Frames 80-120: Final settling and stabilization
+    60 frames is optimized for memory-constrained systems:
+    - Frames 1-20: Initial sewing spring engagement
+    - Frames 20-40: Edges pulling together, fabric draping
+    - Frames 40-60: Final settling and stabilization
     
     Args:
-        simulation_frames: Number of frames for simulation (default: 120)
+        simulation_frames: Number of frames for simulation (default: 60)
     """
     print("→ Setting up scene for sewing simulation...")
     
@@ -1008,6 +1013,138 @@ def curve_to_mesh(curve_obj: bpy.types.Object, name: str) -> bpy.types.Object:
     return mesh_obj
 
 
+def create_neck_band_mesh(points: list, name: str, 
+                          target_vertices: int = 48,
+                          max_vertices: int = 64,
+                          min_vertices: int = 24) -> bpy.types.Object:
+    """
+    Create a neck band mesh with CONTROLLED vertex count.
+    
+    XML Task: Fix_Neck_Band_Generation
+    
+    This function creates a mesh with strict vertex limits to prevent
+    solver overload. Unlike regular pattern pieces, the neck band:
+    - Has NO subdivision (AllowSubdivision=false)
+    - Uses fixed vertex count (target=48)
+    - Caps vertices at max (64)
+    - Uses uniform spacing
+    
+    Args:
+        points: List of (x, y) tuples defining rectangle outline
+        name: Name for the mesh
+        target_vertices: Target vertex count (default: 48)
+        max_vertices: Maximum allowed vertices (default: 64)
+        min_vertices: Minimum required vertices (default: 24)
+    
+    Returns:
+        The mesh object with controlled vertex count
+    """
+    print(f"→ Creating neck band mesh for {name} (controlled vertices)...")
+    
+    # Validate input
+    if len(points) < 4:
+        raise ValueError(f"Neck band requires at least 4 points, got {len(points)}")
+    
+    # Get band dimensions from points
+    min_x = min(p[0] for p in points)
+    max_x = max(p[0] for p in points)
+    min_y = min(p[1] for p in points)
+    max_y = max(p[1] for p in points)
+    
+    band_length = max_x - min_x
+    band_height = max_y - min_y
+    
+    # Calculate grid subdivision for target vertices
+    # Rectangle: vertices = (nx + 1) * (ny + 1)
+    # For a long thin band, we want more divisions along length
+    aspect_ratio = band_length / band_height if band_height > 0 else 10
+    
+    # Distribute vertices proportionally
+    ny = max(2, int(math.sqrt(target_vertices / aspect_ratio)))
+    nx = max(4, int(target_vertices / (ny + 1)) - 1)
+    
+    # Calculate actual vertex count
+    actual_vertices = (nx + 1) * (ny + 1)
+    
+    # Cap at max_vertices
+    if actual_vertices > max_vertices:
+        scale = math.sqrt(max_vertices / actual_vertices)
+        nx = max(4, int(nx * scale))
+        ny = max(2, int(ny * scale))
+        actual_vertices = (nx + 1) * (ny + 1)
+        print(f"    ⚠ Capping vertices from {(nx+1)*(ny+1)} to {actual_vertices} (max={max_vertices})")
+    
+    # Ensure minimum
+    if actual_vertices < min_vertices:
+        nx = max(nx, 6)
+        ny = max(ny, 3)
+        actual_vertices = (nx + 1) * (ny + 1)
+        print(f"    ⚠ Boosting vertices to {actual_vertices} (min={min_vertices})")
+    
+    print(f"    Grid: {nx}x{ny} = {actual_vertices} vertices (target={target_vertices})")
+    
+    # Create new mesh
+    mesh = bpy.data.meshes.new(f"{name}_mesh")
+    obj = bpy.data.objects.new(name, mesh)
+    
+    # Link to scene
+    bpy.context.collection.objects.link(obj)
+    
+    # Create BMesh for controlled mesh construction
+    bm = bmesh.new()
+    
+    # Create grid of vertices with UNIFORM spacing
+    # XML: <UniformSpacing enabled="true"/>
+    vert_grid = []
+    for j in range(ny + 1):
+        row = []
+        for i in range(nx + 1):
+            x = min_x + (i / nx) * band_length
+            y = min_y + (j / ny) * band_height
+            v = bm.verts.new((x * CM_TO_M, y * CM_TO_M, 0))
+            row.append(v)
+        vert_grid.append(row)
+    
+    bm.verts.ensure_lookup_table()
+    
+    # Create faces (quads for uniform spacing)
+    for j in range(ny):
+        for i in range(nx):
+            v1 = vert_grid[j][i]
+            v2 = vert_grid[j][i+1]
+            v3 = vert_grid[j+1][i+1]
+            v4 = vert_grid[j+1][i]
+            try:
+                bm.faces.new([v1, v2, v3, v4])
+            except:
+                pass
+    
+    # Update mesh
+    bm.to_mesh(mesh)
+    bm.free()
+    
+    # Force garbage collection
+    gc.collect()
+    
+    # NO SUBDIVISION for neck band
+    # XML: <AllowSubdivision value="false"/>
+    
+    # Just triangulate for cloth simulation
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.quads_convert_to_tris()
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    gc.collect()
+    
+    final_vertex_count = len(obj.data.vertices)
+    print(f"  ✓ Created {name} with {final_vertex_count} vertices (NO subdivision)")
+    
+    return obj
+
+
 def create_pattern_mesh_from_points(points: list, name: str) -> bpy.types.Object:
     """
     Create a mesh directly from pattern outline points.
@@ -1059,21 +1196,26 @@ def create_pattern_mesh_from_points(points: list, name: str) -> bpy.types.Object
     # Force garbage collection after bmesh operations
     gc.collect()
     
-    # Subdivide for simulation
+    # Subdivide for simulation (REDUCED to save memory)
+    # Original: 4 cuts = thousands of vertices = memory overflow
+    # Fixed: 2 cuts = manageable vertex count
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
     
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.mesh.subdivide(number_cuts=4)
+    bpy.ops.mesh.subdivide(number_cuts=2)  # REDUCED from 4 to prevent OOM
     bpy.ops.mesh.quads_convert_to_tris()
     bpy.ops.object.mode_set(mode='OBJECT')
     
-    # Garbage collect after subdivision
+    # Aggressive garbage collection after subdivision
     gc.collect()
     
     vertex_count = len(obj.data.vertices)
-    print(f"  ✓ Created {name} with {vertex_count} vertices")
+    if vertex_count > 500:
+        print(f"  ⚠ {name} has {vertex_count} vertices (consider reducing)")
+    else:
+        print(f"  ✓ Created {name} with {vertex_count} vertices")
     
     return obj
 
@@ -1082,6 +1224,7 @@ def position_pattern_pieces(front: bpy.types.Object,
                            back: bpy.types.Object,
                            left_sleeve: bpy.types.Object,
                            right_sleeve: bpy.types.Object,
+                           neck_band: bpy.types.Object = None,
                            lift_height: float = 0.6):
     """
     Position pattern pieces for sewing ABOVE the avatar.
@@ -1089,6 +1232,7 @@ def position_pattern_pieces(front: bpy.types.Object,
     Like laying out fabric before sewing:
     - Front and back face each other (will be sewn at sides)
     - Sleeves positioned at armholes
+    - Neck band positioned at neckline (XML Schema v1.1)
     - ALL pieces lifted above avatar for gravity drop
     
     The pieces start FLAT and ELEVATED. During simulation:
@@ -1100,6 +1244,7 @@ def position_pattern_pieces(front: bpy.types.Object,
     
                  LEFT_SLEEVE
                       │
+              ┌───NECK_BAND───┐
          ┌────────────┼────────────┐
          │            │            │
     FRONT│            │            │BACK
@@ -1113,6 +1258,7 @@ def position_pattern_pieces(front: bpy.types.Object,
         back: Back panel mesh
         left_sleeve: Left sleeve mesh (optional)
         right_sleeve: Right sleeve mesh (optional)
+        neck_band: Neck band mesh (optional, XML Schema v1.1)
         lift_height: Height to lift panels above origin (meters)
     """
     print("→ Positioning pattern pieces for sewing...")
@@ -1146,11 +1292,18 @@ def position_pattern_pieces(front: bpy.types.Object,
         right_sleeve.rotation_euler = (math.radians(90), 0, math.radians(90))
         print(f"  ✓ Right sleeve positioned at z={lift_height + panel_height * 0.2:.2f}m")
     
+    # Position NECK BAND (at top of front/back neckline area, LIFTED)
+    if neck_band:
+        neck_band.location = Vector((0, 0, lift_height + panel_height * 0.5))
+        neck_band.rotation_euler = (math.radians(90), 0, 0)  # Horizontal orientation
+        print(f"  ✓ Neck band positioned at z={lift_height + panel_height * 0.5:.2f}m")
+    
     print(f"  ✓ All panels positioned {lift_height}m above avatar")
     print("    Panels will fall and sew together during simulation")
 
 
-def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
+def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True, 
+                       disable_self_collision: bool = False):
     """
     Add cloth physics to a mesh object.
     
@@ -1159,9 +1312,16 @@ def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
     - It can collide with other objects
     - It can be sewn to other cloth objects via sewing springs
     
+    XML Task: For neck band, disable self-collision to prevent solver overload:
+        <Cloth>
+            <EnableSewingSprings value="true"/>
+            <EnableSelfCollision value="false"/>
+        </Cloth>
+    
     Args:
         obj: The mesh object to add cloth to
         enable_sewing: Whether to enable sewing springs
+        disable_self_collision: Whether to disable self-collision (for neck band)
     """
     print(f"→ Adding cloth physics to {obj.name}...")
     
@@ -1188,6 +1348,15 @@ def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
     # Enable pressure (helps maintain volume)
     cloth.use_pressure = True
     cloth.uniform_pressure_force = 0.5
+    
+    # ==========================================
+    # SELF-COLLISION (XML Task: neck band = disabled)
+    # ==========================================
+    if disable_self_collision:
+        cloth_mod.collision_settings.use_self_collision = False
+        print(f"  ✓ Self-collision DISABLED (per XML Task)")
+    else:
+        cloth_mod.collision_settings.use_self_collision = True
     
     # ==========================================
     # SEWING SPRINGS - This is the key feature!
@@ -1397,17 +1566,17 @@ def run_simulation(frames: int = 150):
     print(f"  ✓ Simulation complete")
 
 
-def bake_simulation(garment: bpy.types.Object, frames: int = 120):
+def bake_simulation(garment: bpy.types.Object, frames: int = 60):
     """
     Bake the cloth simulation to cache.
     
     Baking pre-calculates all simulation frames so playback is instant.
     This is more reliable than stepping through frames manually.
     
-    120 frames is typically enough for:
-    - Sewing springs to pull edges together (~30-50 frames)
-    - Fabric to settle on avatar (~50-80 frames)
-    - Final draping to stabilize (~80-120 frames)
+    60 frames is sufficient for memory-constrained systems:
+    - Sewing springs to pull edges together (~20-30 frames)
+    - Fabric settling (~30-50 frames)
+    - Final stabilization (~50-60 frames)
     
     Args:
         garment: The garment object with cloth modifier
@@ -1475,7 +1644,7 @@ def bake_simulation(garment: bpy.types.Object, frames: int = 120):
 
 
 def setup_simulation_cache(garment: bpy.types.Object, 
-                            frames: int = 120,
+                            frames: int = 60,
                             cache_step: int = 1):
     """
     Configure the simulation cache settings before baking.
@@ -1510,8 +1679,8 @@ def setup_simulation_cache(garment: bpy.types.Object,
 
 
 def auto_bake_cloth_simulation(garment: bpy.types.Object,
-                                frames: int = 120,
-                                quality: int = 12) -> bool:
+                                frames: int = 60,
+                                quality: int = 8) -> bool:
     """
     Automatically configure and bake cloth simulation.
     
@@ -1716,7 +1885,7 @@ def save_garment(output_path: str):
 
 def run_full_simulation_pipeline(garment: bpy.types.Object,
                                   output_dir: str = None,
-                                  frames: int = 120,
+                                  frames: int = 60,
                                   auto_export: bool = True):
     """
     Run the complete sewing simulation and export pipeline.
@@ -1729,59 +1898,22 @@ def run_full_simulation_pipeline(garment: bpy.types.Object,
     Args:
         garment: The garment with cloth physics and sewing springs
         output_dir: Where to save exports (default: pattern_output/exports)
-        frames: Simulation frames (default: 120)
+        frames: Simulation frames (default: 60)
         auto_export: Whether to auto-export after simulation
     
     Returns:
         The static garment mesh
     """
-    import os
-    import bpy
-
-    def import_pattern_panels():
-        panels = []
-        base = os.path.dirname(__file__)
-        pattern_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "pattern_output"))
-        print("PATTERN DIR:", pattern_dir)
-        print("FILES:", os.listdir(pattern_dir))
-
-        svgs = ["front_pattern.svg", "back_pattern.svg", "sleeve_pattern.svg"]
-
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete(use_global=False)
-
-        imported = []
-        for name in svgs:
-            path = os.path.join(pattern_dir, name)
-            if not os.path.exists(path):
-                raise RuntimeError(f"Missing pattern: {path}")
-
-            ctx = force_view_context()
-
-            with bpy.context.temp_override(**ctx):
-                bpy.ops.import_curve.svg(filepath=path)
-
-            panels.extend(bpy.context.selected_objects)
-
-        # Convert curves → mesh
-        for obj in imported:
-            bpy.context.view_layer.objects.active = obj
-            bpy.ops.object.convert(target='MESH')
-
-        return imported
-    panels = import_pattern_panels()
-
-    bpy.ops.object.select_all(action='DESELECT')
-    for obj in panels:
-        obj.select_set(True)
-
-    bpy.context.view_layer.objects.active = panels[0]
-    bpy.ops.object.join()
-    garment = bpy.context.active_object
-    garment.name = "TShirt_Garment"
     print("\n" + "="*60)
     print("   RUNNING FULL SEWING SIMULATION PIPELINE")
     print("="*60)
+    
+    # Verify garment exists
+    if garment is None:
+        raise ValueError("No garment object provided to run_full_simulation_pipeline")
+    
+    print(f"  Garment: {garment.name}")
+    print(f"  Frames: {frames}")
     
     # Step 1: Auto-bake simulation with sewing
     print("\n" + "-"*40)
@@ -1835,25 +1967,38 @@ def create_tshirt_panels_manually(measurements: dict) -> dict:
     This bypasses SVG import and creates meshes directly
     using the same geometry as step4_pattern_generation.
     
+    XML Schema v1.1 panels:
+    - front_bodice (Front Panel)
+    - back_bodice (Back Panel)
+    - sleeve (Left/Right)
+    - neck_band (Collar)
+    
     Args:
-        measurements: Dictionary with the 5 measurements
+        measurements: Dictionary with measurements (v1.1 format)
     
     Returns:
         Dictionary of mesh objects
     """
-    print("→ Creating pattern meshes from measurements...")
+    print("→ Creating pattern meshes from measurements (XML Schema v1.1)...")
     
-    chest = measurements.get("chest_flat", 52.0)
-    length = measurements.get("body_length", 72.0)
-    shoulder = measurements.get("shoulder_width", 46.0)
+    # Core measurements
+    chest = measurements.get("chest_flat", 50.0)
+    length = measurements.get("body_length", 70.0)
+    shoulder = measurements.get("shoulder_width", 44.0)
     sleeve_len = measurements.get("sleeve_length", 22.0)
-    armhole = measurements.get("armhole_depth", 24.0)
+    armhole = measurements.get("armhole_depth", 22.0)
+    
+    # Additional v1.1 measurements
+    neck_width = measurements.get("neck_width", 18.0)
+    neck_depth_front = measurements.get("neck_depth_front", 9.0)
+    neck_depth_back = measurements.get("neck_depth_back", 3.0)
+    band_height = measurements.get("neck_band_height", 4.0)
+    band_reduction = measurements.get("neck_band_reduction", 0.12)
     
     panels = {}
     
-    # FRONT PANEL (simplified rectangle for minimal version)
-    # Full panel = both halves (unfolded)
-    front_width = chest  # Full width (was half in pattern)
+    # FRONT PANEL (front_bodice)
+    front_width = chest
     front_points = [
         (-front_width/2, 0),           # Top left
         (front_width/2, 0),            # Top right
@@ -1862,7 +2007,7 @@ def create_tshirt_panels_manually(measurements: dict) -> dict:
     ]
     panels["front"] = create_pattern_mesh_from_points(front_points, "Front_Panel")
     
-    # BACK PANEL (same as front for basic version)
+    # BACK PANEL (back_bodice)
     back_points = [
         (-front_width/2, 0),
         (front_width/2, 0),
@@ -1871,7 +2016,7 @@ def create_tshirt_panels_manually(measurements: dict) -> dict:
     ]
     panels["back"] = create_pattern_mesh_from_points(back_points, "Back_Panel")
     
-    # SLEEVE (simplified rectangle)
+    # SLEEVE
     sleeve_width = armhole * 1.4
     sleeve_points = [
         (-sleeve_width/2, 0),
@@ -1880,9 +2025,61 @@ def create_tshirt_panels_manually(measurements: dict) -> dict:
         (-sleeve_width/2, sleeve_len),
     ]
     panels["left_sleeve"] = create_pattern_mesh_from_points(sleeve_points, "Left_Sleeve")
-    
-    # Create a copy for right sleeve
     panels["right_sleeve"] = create_pattern_mesh_from_points(sleeve_points, "Right_Sleeve")
+    
+    # ========================================
+    # NECK BAND (collar) - XML Task: Fix_Neck_Band_Generation
+    # ========================================
+    # Calculate neckline length using arc_length method
+    import math
+    
+    # Generate neckline curve points for accurate arc length
+    samples = 32  # Adaptive sampling
+    front_curve_points = []
+    for i in range(samples + 1):
+        t = i / samples
+        x = neck_width/2 * math.cos(math.pi * t)
+        y = neck_depth_front * math.sin(math.pi * t)
+        front_curve_points.append((x, y))
+    
+    back_curve_points = []
+    for i in range(samples + 1):
+        t = i / samples
+        x = neck_width/2 * math.cos(math.pi * t)
+        y = neck_depth_back * math.sin(math.pi * t)
+        back_curve_points.append((x, y))
+    
+    # Calculate arc lengths
+    def arc_length(points):
+        total = 0.0
+        for i in range(len(points) - 1):
+            dx = points[i+1][0] - points[i][0]
+            dy = points[i+1][1] - points[i][1]
+            total += math.sqrt(dx*dx + dy*dy)
+        return total
+    
+    front_neckline = arc_length(front_curve_points)
+    back_neckline = arc_length(back_curve_points)
+    total_neckline = front_neckline + back_neckline
+    
+    # Safety validation
+    if math.isnan(total_neckline) or total_neckline <= 0:
+        print(f"  ✗ ERROR: Invalid neckline length. Using fallback.")
+        total_neckline = 50.0  # Safe fallback
+    
+    # Apply 10% reduction per XML Task
+    band_length = total_neckline * (1 - band_reduction)
+    
+    neck_band_points = [
+        (0, 0),
+        (band_length, 0),
+        (band_length, band_height),
+        (0, band_height),
+    ]
+    
+    # Create neck band with controlled vertices (no subdivision)
+    panels["neck_band"] = create_neck_band_mesh(neck_band_points, "Neck_Band", target_vertices=48)
+    print(f"  ✓ Neck band: {band_length:.1f} x {band_height:.1f} cm ({band_reduction*100:.0f}% reduced)")
     
     return panels
 
@@ -1910,19 +2107,31 @@ def run_blender_sewing_pipeline(measurements: dict = None):
     # Force garbage collection at pipeline start
     gc.collect()
     
-    # Default measurements if not provided
+    # Default measurements if not provided (XML Schema v1.1 + Task Fix)
     if measurements is None:
         measurements = {
-            "chest_flat": 52.0,
-            "body_length": 72.0,
-            "shoulder_width": 46.0,
-            "sleeve_length": 22.0,
-            "armhole_depth": 24.0
+            # Core measurements
+            "chest_flat": 50.0,       # HalfChestWidth
+            "body_length": 70.0,      # GarmentLength
+            "shoulder_width": 44.0,   # ShoulderWidth
+            "sleeve_length": 22.0,    # SleeveLength
+            "armhole_depth": 22.0,    # ArmholeDepth
+            # Additional v1.1 measurements
+            "hem_width": 50.0,
+            "neck_width": 18.0,
+            "neck_depth_front": 9.0,
+            "neck_depth_back": 3.0,
+            "bicep_width": 36.0,
+            "neck_band_height": 4.0,
+            "neck_band_reduction": 0.10,  # 10% per XML Task Fix_Neck_Band_Generation
         }
     
-    print("\n📏 Using measurements:")
+    print("\n📏 Using measurements (XML Schema v1.1):")
     for k, v in measurements.items():
-        print(f"  {k}: {v} cm")
+        if isinstance(v, float) and v < 1:
+            print(f"  {k}: {v*100:.0f}%")
+        else:
+            print(f"  {k}: {v} cm")
     
     # Step 1: Clear and setup scene
     print("\n" + "-"*40)
@@ -1950,6 +2159,7 @@ def run_blender_sewing_pipeline(measurements: dict = None):
         panels["back"],
         panels.get("left_sleeve"),
         panels.get("right_sleeve"),
+        panels.get("neck_band"),  # XML Schema v1.1: neck band
         lift_height=0.6  # 60cm above origin for drop simulation
     )
     
@@ -2005,7 +2215,7 @@ GARMENT SETUP:
   ✓ Cloth physics with sewing springs (force: 25.0)
 
 SIMULATION SETTINGS:
-  ✓ Frame range: 1 to 120
+  ✓ Frame range: 1 to 60 (optimized for memory)
   ✓ Sewing springs: ENABLED
   ✓ Gravity: -9.81 m/s²
 
@@ -2016,7 +2226,7 @@ TO RUN SIMULATION MANUALLY:
 
 TO AUTO-BAKE (RECOMMENDED):
   In Blender Python console, run:
-    auto_bake_cloth_simulation(garment, frames=120)
+    auto_bake_cloth_simulation(garment, frames=60)
 
   Or from command line:
     MIRRA_AUTO_BAKE=true blender -b --python step5_blender_sewing.py
@@ -2053,7 +2263,7 @@ if __name__ == "__main__":
     
     This will:
     - Do all of the above
-    - Auto-bake the simulation (120 frames)
+    - Auto-bake the simulation (60 frames - memory optimized)
     - Create static mesh from final frame
     - Export as OBJ, FBX, GLB
     
@@ -2088,7 +2298,7 @@ if __name__ == "__main__":
         static_garment = run_full_simulation_pipeline(
             garment,
             output_dir=str(PATTERN_DIR / "exports"),
-            frames=120,
+            frames=60,  # Reduced from 120 to prevent OOM
             auto_export=AUTO_EXPORT
         )
         

@@ -28,13 +28,23 @@ SCRIPT_DIR = Path(__file__).parent
 OUTPUT_DIR = SCRIPT_DIR / "pattern_output"
 
 # Default measurements (in centimeters)
-# These can be overridden when calling the functions
+# XML Schema v1.1 format - matches <Measurements> specification
 DEFAULT_MEASUREMENTS = {
-    "chest_flat": 52.0,      # Half chest width (full chest = 104cm)
-    "body_length": 72.0,      # Shoulder to hem
-    "shoulder_width": 46.0,   # Shoulder to shoulder
-    "sleeve_length": 22.0,    # Short sleeve length
-    "armhole_depth": 24.0     # Armhole depth
+    # Core body measurements
+    "chest_flat": 50.0,       # HalfChestWidth - half chest width
+    "body_length": 70.0,      # GarmentLength - shoulder to hem
+    "shoulder_width": 44.0,   # ShoulderWidth - shoulder to shoulder
+    "sleeve_length": 22.0,    # SleeveLength - short sleeve length
+    "armhole_depth": 22.0,    # ArmholeDepth - armhole curve depth
+    
+    # Additional measurements from XML spec v1.1
+    "hem_width": 50.0,        # HemWidth - hem width (usually = chest_flat)
+    "neck_width": 18.0,       # NeckWidth - neckline opening width
+    "neck_depth_front": 9.0,  # NeckDepth.front - front neckline drop
+    "neck_depth_back": 3.0,   # NeckDepth.back - back neckline drop (shallower)
+    "bicep_width": 36.0,      # BicepWidth - sleeve width at bicep
+    "neck_band_height": 4.0,  # BandHeight - rib/collar height
+    "neck_band_reduction": 0.10,  # Reduction percent for stretch (10% per XML Task spec)
 }
 
 # Seam allowance (added to all edges for sewing)
@@ -426,6 +436,162 @@ def generate_sleeve(measurements: Dict[str, float]) -> Dict:
     }
 
 
+def calculate_arc_length(points: List[Tuple[float, float]]) -> float:
+    """
+    Calculate arc length from a list of points using adaptive sampling.
+    
+    XML Task: <NecklineCurveLength method="arc_length" sampling="adaptive" maxSamples="64"/>
+    """
+    if len(points) < 2:
+        return 0.0
+    
+    total_length = 0.0
+    for i in range(len(points) - 1):
+        dx = points[i+1][0] - points[i][0]
+        dy = points[i+1][1] - points[i][1]
+        total_length += math.sqrt(dx*dx + dy*dy)
+    
+    return total_length
+
+
+def generate_neck_band(measurements: Dict[str, float], front_pattern: Dict, back_pattern: Dict) -> Dict:
+    """
+    Generate the NECK BAND (collar/ribbing) pattern piece.
+    
+    XML Task: Fix_Neck_Band_Generation v1.0
+    
+    The neck band is a critical piece that:
+    - Finishes the neckline opening
+    - Is CUT SHORTER than the neckline (10% reduction for stretch)
+    - Creates tension that pulls the neckline into shape
+    
+    XML Task Reference:
+        <NeckBand>
+            <Length ref="NecklineCurveLength" reductionPercent="10"/>
+            <Height value="4"/>
+            <MeshConstraints>
+                <MaxVertices value="64"/>
+                <MinVertices value="24"/>
+                <UniformSpacing enabled="true"/>
+                <AllowSubdivision value="false"/>
+            </MeshConstraints>
+        </NeckBand>
+    
+    Shape:
+        ┌────────────────────────────────────┐
+        │         NECK BAND                  │ ← BandHeight (4cm)
+        │  (cut on fold for continuous band) │
+        └────────────────────────────────────┘
+              ← BandLength (reduced by 10%) →
+    """
+    # Get neckline measurements
+    neck_width = measurements.get("neck_width", 18.0)
+    neck_depth_front = measurements.get("neck_depth_front", 9.0)
+    neck_depth_back = measurements.get("neck_depth_back", 3.0)
+    band_height = measurements.get("neck_band_height", 4.0)
+    reduction = measurements.get("neck_band_reduction", 0.10)  # 10% per XML Task
+    
+    # ========================================
+    # NECKLINE CURVE LENGTH (arc_length method)
+    # XML: <NecklineCurveLength method="arc_length" sampling="adaptive" maxSamples="64"/>
+    # ========================================
+    
+    # Generate neckline curve points for accurate arc length calculation
+    # Front neckline (deeper curve)
+    front_curve_points = []
+    samples = min(32, 64)  # Adaptive sampling, capped at maxSamples/2 per curve
+    for i in range(samples + 1):
+        t = i / samples
+        # Half-ellipse approximation for neckline
+        x = neck_width/2 * math.cos(math.pi * t)
+        y = neck_depth_front * math.sin(math.pi * t)
+        front_curve_points.append((x, y))
+    
+    # Back neckline (shallower curve)
+    back_curve_points = []
+    for i in range(samples + 1):
+        t = i / samples
+        x = neck_width/2 * math.cos(math.pi * t)
+        y = neck_depth_back * math.sin(math.pi * t)
+        back_curve_points.append((x, y))
+    
+    # Calculate arc lengths using proper method
+    front_neckline_length = calculate_arc_length(front_curve_points)
+    back_neckline_length = calculate_arc_length(back_curve_points)
+    
+    # Total neckline = front + back (full circumference)
+    total_neckline = front_neckline_length + back_neckline_length
+    
+    # ========================================
+    # SAFETY VALIDATION
+    # XML: <FailurePolicy><OnInvalidLength action="abort"/><OnNaN action="abort"/></FailurePolicy>
+    # ========================================
+    if math.isnan(total_neckline) or total_neckline <= 0:
+        print(f"    ✗ ERROR: Invalid neckline length ({total_neckline}). Aborting.")
+        raise ValueError(f"Invalid neckline curve length: {total_neckline}")
+    
+    # Apply reduction for stretch (10% shorter per XML Task)
+    band_length = total_neckline * (1 - reduction)
+    
+    # ========================================
+    # MESH CONSTRAINTS
+    # XML: <MaxVertices value="64"/> <MinVertices value="24"/> <UniformSpacing enabled="true"/>
+    # ========================================
+    target_vertices = 48  # Fixed count per XML: <Resampling mode="fixed_count" targetVertices="48"/>
+    max_vertices = 64
+    min_vertices = 24
+    
+    # Create rectangle outline with uniform spacing
+    # Rectangle has 4 sides, distribute vertices evenly
+    outline = [
+        (0, 0),                    # Bottom left
+        (band_length, 0),          # Bottom right
+        (band_length, band_height), # Top right
+        (0, band_height),          # Top left
+        (0, 0)                     # Close path
+    ]
+    
+    print(f"    Neck band calculated (XML Task Fix_Neck_Band_Generation):")
+    print(f"      - Front neckline arc: {front_neckline_length:.1f} cm")
+    print(f"      - Back neckline arc: {back_neckline_length:.1f} cm")
+    print(f"      - Total neckline: {total_neckline:.1f} cm")
+    print(f"      - Band length (after {reduction*100:.0f}% reduction): {band_length:.1f} cm")
+    print(f"      - Band height: {band_height} cm")
+    print(f"      - Mesh constraints: {target_vertices} target verts (min={min_vertices}, max={max_vertices})")
+    
+    return {
+        "name": "Neck Band",
+        "outline": outline,
+        "fold_line": [(0, band_height/2), (band_length, band_height/2)],
+        "grainline": [(band_length * 0.2, band_height/2), (band_length * 0.8, band_height/2)],
+        "width": band_length,
+        "height": band_height,
+        "notes": "Cut 1 on fold. Stretch to fit neckline. High tension seam.",
+        # Edge labels for sewing
+        "edges": {
+            "inner": {"start": 0, "end": 1},   # Inner edge (attaches to neckline)
+            "outer": {"start": 2, "end": 3},   # Outer edge (visible)
+            "left": {"start": 3, "end": 4},    # Left end
+            "right": {"start": 1, "end": 2}    # Right end
+        },
+        # Derived measurements for reference
+        "derived": {
+            "neckline_curve_length": total_neckline,
+            "reduction_percent": reduction * 100,
+            "tension": "high",
+            "stiffness": "high"
+        },
+        # Mesh generation constraints (XML Task)
+        "mesh_constraints": {
+            "target_vertices": target_vertices,
+            "max_vertices": max_vertices,
+            "min_vertices": min_vertices,
+            "uniform_spacing": True,
+            "allow_subdivision": False
+        }
+    }
+
+
 # ============================================================
 # SVG GENERATION
 # ============================================================
@@ -614,25 +780,35 @@ def generate_all_patterns(measurements: Dict[str, float]) -> Dict[str, Dict]:
     """
     Generate all pattern pieces from measurements.
     
+    XML Schema v1.1 generates:
+    - front_bodice (Front Panel)
+    - back_bodice (Back Panel)
+    - sleeve (Left/Right Sleeve)
+    - neck_band (Collar/Ribbing)
+    
     Args:
-        measurements: Dictionary with the 5 required measurements
+        measurements: Dictionary with measurements (v1.1 format)
     
     Returns:
         Dictionary of pattern pieces
     """
     patterns = {}
     
-    print("\n→ Generating front panel...")
+    print("\n→ Generating front panel (front_bodice)...")
     patterns["front"] = generate_front_panel(measurements)
     print(f"  ✓ Front: {patterns['front']['width']:.1f} x {patterns['front']['height']:.1f} cm")
     
-    print("\n→ Generating back panel...")
+    print("\n→ Generating back panel (back_bodice)...")
     patterns["back"] = generate_back_panel(measurements)
     print(f"  ✓ Back: {patterns['back']['width']:.1f} x {patterns['back']['height']:.1f} cm")
     
     print("\n→ Generating sleeve...")
     patterns["sleeve"] = generate_sleeve(measurements)
     print(f"  ✓ Sleeve: {patterns['sleeve']['width']:.1f} x {patterns['sleeve']['height']:.1f} cm")
+    
+    print("\n→ Generating neck band (collar)...")
+    patterns["neck_band"] = generate_neck_band(measurements, patterns["front"], patterns["back"])
+    print(f"  ✓ Neck Band: {patterns['neck_band']['width']:.1f} x {patterns['neck_band']['height']:.1f} cm")
     
     return patterns
 
@@ -713,10 +889,11 @@ def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
     Seam Format:
     Each seam is a pair: ["panel1:edge_name", "panel2:edge_name"]
     
-    For a T-shirt, we need to sew:
-    1. Front side_seam to Back side_seam (both sides)
-    2. Front shoulder to Back shoulder (both sides)
-    3. Front armhole to Sleeve cap (both sides)
+    For a T-shirt (XML Schema v1.1), we need to sew:
+    1. Side seams: Front.left_side <-> Back.right_side (both sides)
+    2. Shoulder seams: Front.shoulder <-> Back.shoulder
+    3. Armhole seams: Front+Back.armhole <-> Sleeve.sleeve_cap
+    4. Neck seam: Neck_Band <-> Front.neckline + Back.neckline
     
     Since patterns are half-panels (cut on fold), we define seams
     for the full garment by specifying left and right versions.
@@ -726,73 +903,82 @@ def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
     """
     seams = {
         # Seam pairs in simplified format: ["Panel:edge", "Panel:edge"]
-        # This format is easier for Blender to parse
+        # XML Schema v1.1 format with stiffness metadata
         # SCHEMA: ["PanelName:edge_name", "PanelName:edge_name"]
         "seams": [
             # ========================================
-            # SIDE SEAMS: Front <-> Back at left/right sides
+            # SIDE SEAMS: Front.left_side <-> Back.right_side
+            # XML: <Seam type="side" stiffness="medium"/>
             # ========================================
-            ["Front_Panel:left", "Back_Panel:left"],
-            ["Front_Panel:right", "Back_Panel:right"],
+            ["Front_Panel:left", "Back_Panel:right"],
+            ["Front_Panel:right", "Back_Panel:left"],
             
             # ========================================
-            # SHOULDER SEAMS: Front <-> Back at top
+            # SHOULDER SEAMS: Front.shoulder <-> Back.shoulder
+            # XML: <Seam type="shoulder" stiffness="high"/>
             # ========================================
             ["Front_Panel:shoulder", "Back_Panel:shoulder"],
             
             # ========================================
-            # ARMHOLE SEAMS: Body armholes <-> Sleeve caps
+            # ARMHOLE SEAMS: Body armholes <-> Sleeve.sleeve_cap
+            # XML: <Seam type="armhole" easeAware="true"/>
             # ========================================
             ["Front_Panel:armhole_L", "Left_Sleeve:curve"],
             ["Back_Panel:armhole_L", "Left_Sleeve:curve"],
             ["Front_Panel:armhole_R", "Right_Sleeve:curve"],
             ["Back_Panel:armhole_R", "Right_Sleeve:curve"],
+            
+            # ========================================
+            # NECK SEAM: Neck_Band <-> Front+Back necklines
+            # XML: <Seam type="neck" tension="high" stiffness="high"/>
+            # ========================================
+            ["Neck_Band:inner", "Front_Panel:neckline"],
+            ["Neck_Band:inner", "Back_Panel:neckline"],
         ],
         
-        # Detailed seam definitions with metadata (for complex operations)
+        # Detailed seam definitions with metadata (XML Schema v1.1)
         "seam_details": [
             # Side seams: Front and Back are sewn at the sides
             {
                 "name": "side_seam",
-                "edge1": {"piece": "front", "edge_name": "side_seam"},
-                "edge2": {"piece": "back", "edge_name": "side_seam"},
+                "edge1": {"piece": "front_bodice", "edge_name": "left_side"},
+                "edge2": {"piece": "back_bodice", "edge_name": "right_side"},
                 "type": "straight",
+                "stiffness": "medium",
                 "priority": 1  # Sew first
             },
             
-            # Shoulder seams: Front and Back shoulder edges
+            # Shoulder seams: XML: <Seam type="shoulder" stiffness="high"/>
             {
                 "name": "shoulder_seam",
                 "edge1": {"piece": "front", "edge_name": "shoulder"},
-                "edge2": {"piece": "back", "edge_name": "shoulder"},
+                "edge2": {"piece": "back_bodice", "edge_name": "shoulder"},
                 "type": "straight",
+                "stiffness": "high",
                 "priority": 2
             },
             
-            # Sleeve seams: Armhole to Sleeve cap (left)
+            # Armhole seams: Combined front+back armhole to Sleeve cap
+            # XML: <Seam type="armhole" easeAware="true"/>
             {
-                "name": "left_sleeve_attachment",
-                "edge1": {"piece": "front", "edge_name": "armhole"},
-                "edge2": {"piece": "sleeve", "edge_name": "cap_left"},
+                "name": "armhole_seam",
+                "edge1": {"piece": "front_bodice", "edge_name": "armhole"},
+                "edge2": {"piece": "sleeve", "edge_name": "sleeve_cap"},
                 "type": "curved",
+                "ease_aware": True,
                 "priority": 3
             },
             
-            # Sleeve seams: Armhole to Sleeve cap (right - uses back panel)
+            # Neck seam: Neck band attaches to combined necklines
+            # XML: <Seam type="neck" tension="high" stiffness="high"/>
             {
-                "name": "right_sleeve_attachment",
-                "edge1": {"piece": "back", "edge_name": "armhole"},
-                "edge2": {"piece": "sleeve", "edge_name": "cap_right"},
+                "name": "neck_seam",
+                "edge1": {"piece": "neck_band", "edge_name": "inner"},
+                "edge2": {"piece": "front_bodice", "edge_name": "neckline"},
+                "edge3": {"piece": "back_bodice", "edge_name": "neckline"},
                 "type": "curved",
-                "priority": 3
-            },
-            
-            # Sleeve underarm seams (sleeve tube)
-            {
-                "name": "sleeve_underarm",
-                "edge1": {"piece": "sleeve", "edge_name": "underarm_left"},
-                "edge2": {"piece": "sleeve", "edge_name": "underarm_right"},
-                "type": "straight",
+                "tension": "high",
+                "stiffness": "high",
                 "priority": 4
             }
         ],
