@@ -1,0 +1,595 @@
+{
+  "pipeline_start": "2026-02-05T15:45:22.165976",
+  "steps": [
+    {
+      "time": 0.002685546875,
+      "level": "INFO",
+      "message": "\n================================================================================",
+      "data": null
+    },
+    {
+      "time": 0.0032873153686523438,
+      "level": "INFO",
+      "message": "   STEP 2: DESIGN EXTRACTION PIPELINE (ENHANCED)",
+      "data": null
+    },
+    {
+      "time": 0.0037364959716796875,
+      "level": "INFO",
+      "message": "================================================================================\n",
+      "data": null
+    },
+    {
+      "time": 0.004891395568847656,
+      "level": "SUCCESS",
+      "message": "Output directories ready: design_output",
+      "data": null
+    },
+    {
+      "time": 0.005891323089599609,
+      "level": "INFO",
+      "message": "\n--------------------------------------------------------------------------------",
+      "data": null
+    },
+    {
+      "time": 0.007278919219970703,
+      "level": "INFO",
+      "message": "PROCESSING FRONT IMAGE (REQUIRED)",
+      "data": null
+    },
+    {
+      "time": 0.00817251205444336,
+      "level": "INFO",
+      "message": "--------------------------------------------------------------------------------\n",
+      "data": null
+    },
+    {
+      "time": 0.008697986602783203,
+      "level": "INFO",
+      "message": "Loading masked image: front_masked.png",
+      "data": null
+    },
+    {
+      "time": 0.009324312210083008,
+      "level": "INFO",
+      "message": "  File size: 1.06 MB",
+      "data": null
+    },
+    {
+      "time": 0.1019887924194336,
+      "level": "INFO",
+      "message": "  Image shape: (1772, 1772, 4), dtype: uint8",
+      "data": null
+    },
+    {
+      "time": 0.10320138931274414,
+      "level": "SUCCESS",
+      "message": "  Extracted BGR and alpha channel",
+      "data": null
+    },
+    {
+      "time": 0.10425448417663574,
+      "level": "SUCCESS",
+      "message": "Loaded front image: 1772x1772 pixels",
+      "data": null
+    },
+    {
+      "time": 0.10481548309326172,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 0.10537028312683105,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 0.1059565544128418,
+      "level": "INFO",
+      "message": "EXTRACTING DESIGN: FRONT",
+      "data": null
+    },
+    {
+      "time": 0.10651469230651855,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 0.11053800582885742,
+      "level": "INFO",
+      "message": "Total garment pixels: 1837403",
+      "data": null
+    },
+    {
+      "time": 0.11120271682739258,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 0.11162757873535156,
+      "level": "INFO",
+      "message": "STEP 1: Edge Detection",
+      "data": null
+    },
+    {
+      "time": 0.11217665672302246,
+      "level": "INFO",
+      "message": "----------------------------------------",
+      "data": null
+    },
+    {
+      "time": 0.11274886131286621,
+      "level": "INFO",
+      "message": "Detecting edges (Canny algorithm)...",
+      "data": null
+    },
+    {
+      "time": 0.15841460227966309,
+      "level": "INFO",
+      "message": "  Converted to grayscale",
+      "data": null
+    },
+    {
+      "time": 0.1601862907409668,
+      "level": "INFO",
+      "message": "  Applied Gaussian blur: kernel=(5, 5), sigma=1.5",
+      "data": null
+    },
+    {
+      "time": 0.16076135635375977,
+      "level": "INFO",
+      "message": "  Canny thresholds: low=50, high=150",
+      "data": null
+    },
+    {
+      "time": 0.18915009498596191,
+      "level": "SUCCESS",
+      "message": "  Edge detection complete in 0.076s",
+      "data": null
+    },
+    {
+      "time": 0.20326566696166992,
+      "level": "INFO",
+      "message": "  Debug image saved: edges.png",
+      "data": null
+    },
+    {
+      "time": 0.20598268508911133,
+      "level": "INFO",
+      "message": "  edge_detection detected: 20573 pixels (1.12%)",
+      "data": {
+        "detected_pixels": 20573,
+        "total_pixels": 1837403,
+        "coverage_percent": 1.119678154438629
+      }
+    },
+    {
+      "time": 0.20729613304138184,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 0.20857453346252441,
+      "level": "INFO",
+      "message": "STEP 2: Texture Variation Analysis",
+      "data": null
+    },
+    {
+      "time": 0.20977520942687988,
+      "level": "INFO",
+      "message": "----------------------------------------",
+      "data": null
+    },
+    {
+      "time": 0.2110273838043213,
+      "level": "INFO",
+      "message": "Analyzing texture variation...",
+      "data": null
+    },
+    {
+      "time": 0.26120853424072266,
+      "level": "INFO",
+      "message": "  Local variance kernel size: 15x15",
+      "data": null
+    },
+    {
+      "time": 0.33173060417175293,
+      "level": "INFO",
+      "message": "  Variance stats: max=13464.81, mean=1004.89",
+      "data": null
+    },
+    {
+      "time": 0.3641977310180664,
+      "level": "SUCCESS",
+      "message": "  Texture analysis complete in 0.152s",
+      "data": null
+    },
+    {
+      "time": 0.3827948570251465,
+      "level": "INFO",
+      "message": "  Debug image saved: texture_variance.png",
+      "data": null
+    },
+    {
+      "time": 0.38986968994140625,
+      "level": "INFO",
+      "message": "  texture_variation detected: 285980 pixels (15.56%)",
+      "data": {
+        "detected_pixels": 285980,
+        "total_pixels": 1837403,
+        "coverage_percent": 15.564359043715505
+      }
+    },
+    {
+      "time": 0.3913865089416504,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 0.3922233581542969,
+      "level": "INFO",
+      "message": "STEP 3: Color Outlier Detection",
+      "data": null
+    },
+    {
+      "time": 0.3930349349975586,
+      "level": "INFO",
+      "message": "----------------------------------------",
+      "data": null
+    },
+    {
+      "time": 0.3941831588745117,
+      "level": "INFO",
+      "message": "Detecting color outliers...",
+      "data": null
+    },
+    {
+      "time": 0.6567466259002686,
+      "level": "INFO",
+      "message": "  Converted to LAB color space",
+      "data": null
+    },
+    {
+      "time": 0.7907562255859375,
+      "level": "INFO",
+      "message": "  Sampled 282544 fabric pixels",
+      "data": null
+    },
+    {
+      "time": 0.806743860244751,
+      "level": "INFO",
+      "message": "  Fabric color (LAB): L=87.7, A=128.0, B=128.0",
+      "data": null
+    },
+    {
+      "time": 0.8073883056640625,
+      "level": "INFO",
+      "message": "  Fabric std dev: L=103.8, A=0.1, B=0.0",
+      "data": null
+    },
+    {
+      "time": 1.05476713180542,
+      "level": "INFO",
+      "message": "  Outlier threshold: 3.0 std deviations",
+      "data": null
+    },
+    {
+      "time": 1.077254056930542,
+      "level": "SUCCESS",
+      "message": "  Color outlier detection complete in 0.682s",
+      "data": null
+    },
+    {
+      "time": 1.0780901908874512,
+      "level": "INFO",
+      "message": "  Outliers: 33261/1837403 pixels (1.81%)",
+      "data": null
+    },
+    {
+      "time": 1.1038527488708496,
+      "level": "INFO",
+      "message": "  Debug image saved: color_outliers.png",
+      "data": null
+    },
+    {
+      "time": 1.118363857269287,
+      "level": "INFO",
+      "message": "  color_outliers detected: 33261 pixels (1.81%)",
+      "data": {
+        "detected_pixels": 33261,
+        "total_pixels": 1837403,
+        "coverage_percent": 1.8102180087874027
+      }
+    },
+    {
+      "time": 1.119109869003296,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.11991286277771,
+      "level": "INFO",
+      "message": "STEP 4: Combining Detection Methods",
+      "data": null
+    },
+    {
+      "time": 1.120823621749878,
+      "level": "INFO",
+      "message": "----------------------------------------",
+      "data": null
+    },
+    {
+      "time": 1.2068355083465576,
+      "level": "SUCCESS",
+      "message": "Final design coverage: 13.6% (249896/1837403 pixels)",
+      "data": null
+    },
+    {
+      "time": 1.2077090740203857,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.2122375965118408,
+      "level": "INFO",
+      "message": "Fabric-only coverage: 86.4% (1587507/1837403 pixels)",
+      "data": null
+    },
+    {
+      "time": 1.2155554294586182,
+      "level": "SUCCESS",
+      "message": "Design bounding box: x=58, y=94, w=1652, h=1587",
+      "data": null
+    },
+    {
+      "time": 1.2162494659423828,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.2167081832885742,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 1.2175755500793457,
+      "level": "SUCCESS",
+      "message": "FRONT EXTRACTION COMPLETE in 1.109s",
+      "data": null
+    },
+    {
+      "time": 1.218418836593628,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 1.21962308883667,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.220221757888794,
+      "level": "INFO",
+      "message": "Saving front results...",
+      "data": null
+    },
+    {
+      "time": 1.2547426223754883,
+      "level": "SUCCESS",
+      "message": "  \u2713 front_design_mask.png (31.9 KB)",
+      "data": null
+    },
+    {
+      "time": 1.2750163078308105,
+      "level": "SUCCESS",
+      "message": "  \u2713 front_fabric_mask.png (38.5 KB)",
+      "data": null
+    },
+    {
+      "time": 1.4151723384857178,
+      "level": "SUCCESS",
+      "message": "  \u2713 front_design.png (1084.7 KB)",
+      "data": null
+    },
+    {
+      "time": 1.4205982685089111,
+      "level": "SUCCESS",
+      "message": "  \u2713 NumPy arrays saved",
+      "data": null
+    },
+    {
+      "time": 1.6996126174926758,
+      "level": "SUCCESS",
+      "message": "  \u2713 front_visualization.png (955.9 KB)",
+      "data": null
+    },
+    {
+      "time": 1.7010471820831299,
+      "level": "SUCCESS",
+      "message": "All front files validated successfully",
+      "data": null
+    },
+    {
+      "time": 1.7036006450653076,
+      "level": "INFO",
+      "message": "\n--------------------------------------------------------------------------------",
+      "data": null
+    },
+    {
+      "time": 1.7046656608581543,
+      "level": "INFO",
+      "message": "PROCESSING BACK IMAGE (OPTIONAL)",
+      "data": null
+    },
+    {
+      "time": 1.7054860591888428,
+      "level": "INFO",
+      "message": "--------------------------------------------------------------------------------\n",
+      "data": null
+    },
+    {
+      "time": 1.7067196369171143,
+      "level": "INFO",
+      "message": "Loading masked image: back_masked.png",
+      "data": null
+    },
+    {
+      "time": 1.7078027725219727,
+      "level": "ERROR",
+      "message": "  File not found: segmentation_output\\back_masked.png",
+      "data": null
+    },
+    {
+      "time": 1.708756446838379,
+      "level": "INFO",
+      "message": "No back image available (optional)",
+      "data": null
+    },
+    {
+      "time": 1.7098052501678467,
+      "level": "INFO",
+      "message": "\n================================================================================",
+      "data": null
+    },
+    {
+      "time": 1.7113268375396729,
+      "level": "INFO",
+      "message": "   DESIGN EXTRACTION SUMMARY",
+      "data": null
+    },
+    {
+      "time": 1.7124195098876953,
+      "level": "INFO",
+      "message": "================================================================================\n",
+      "data": null
+    },
+    {
+      "time": 1.7134349346160889,
+      "level": "SUCCESS",
+      "message": "Total pipeline time: 1.706s",
+      "data": null
+    },
+    {
+      "time": 1.7146339416503906,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.715547800064087,
+      "level": "SUCCESS",
+      "message": "\u2705 FRONT DESIGN EXTRACTED",
+      "data": null
+    },
+    {
+      "time": 1.7171330451965332,
+      "level": "INFO",
+      "message": "   - Design mask: design_output/front_design_mask.png",
+      "data": null
+    },
+    {
+      "time": 1.7181708812713623,
+      "level": "INFO",
+      "message": "   - Design image: design_output/front_design.png",
+      "data": null
+    },
+    {
+      "time": 1.7195932865142822,
+      "level": "INFO",
+      "message": "   - Fabric mask: design_output/front_fabric_mask.png",
+      "data": null
+    },
+    {
+      "time": 1.7209744453430176,
+      "level": "INFO",
+      "message": "   - Visualization: design_output/front_visualization.png",
+      "data": null
+    },
+    {
+      "time": 1.722154140472412,
+      "level": "INFO",
+      "message": "   - Debug images: design_output\\debug_visualizations/",
+      "data": null
+    },
+    {
+      "time": 1.7232606410980225,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.7245843410491943,
+      "level": "INFO",
+      "message": "\u25cb BACK IMAGE: NOT PROVIDED",
+      "data": null
+    },
+    {
+      "time": 1.7261137962341309,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.727757215499878,
+      "level": "INFO",
+      "message": "\ud83d\udcca Detailed logs: design_output\\step2_detailed_log.txt",
+      "data": null
+    },
+    {
+      "time": 1.7293472290039062,
+      "level": "INFO",
+      "message": "\ud83d\udcc8 Metrics JSON: design_output\\step2_metrics.json",
+      "data": null
+    },
+    {
+      "time": 1.7305772304534912,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 1.732074499130249,
+      "level": "INFO",
+      "message": "================================================================================",
+      "data": null
+    }
+  ],
+  "detections": {
+    "edge_detection": {
+      "detected_pixels": 20573,
+      "total_pixels": 1837403,
+      "coverage_percent": 1.119678154438629
+    },
+    "texture_variation": {
+      "detected_pixels": 285980,
+      "total_pixels": 1837403,
+      "coverage_percent": 15.564359043715505
+    },
+    "color_outliers": {
+      "detected_pixels": 33261,
+      "total_pixels": 1837403,
+      "coverage_percent": 1.8102180087874027
+    }
+  },
+  "errors": [
+    {
+      "time": 1.7078027725219727,
+      "message": "  File not found: segmentation_output\\back_masked.png"
+    }
+  ],
+  "warnings": [],
+  "pipeline_end": "2026-02-05T15:45:23.899351",
+  "total_time_seconds": 1.733398675918579
+}

@@ -1,0 +1,576 @@
+{
+  "pipeline_start": "2026-02-05T15:45:15.275085",
+  "steps": [
+    {
+      "time": 0.0029430389404296875,
+      "level": "INFO",
+      "message": "\n================================================================================",
+      "data": null
+    },
+    {
+      "time": 0.0037615299224853516,
+      "level": "INFO",
+      "message": "   STEP 1: T-SHIRT SEGMENTATION PIPELINE (ENHANCED)",
+      "data": null
+    },
+    {
+      "time": 0.004625797271728516,
+      "level": "INFO",
+      "message": "================================================================================\n",
+      "data": null
+    },
+    {
+      "time": 0.0063092708587646484,
+      "level": "SUCCESS",
+      "message": "Output directories ready: segmentation_output",
+      "data": null
+    },
+    {
+      "time": 0.023243427276611328,
+      "level": "INFO",
+      "message": "\n--------------------------------------------------------------------------------",
+      "data": null
+    },
+    {
+      "time": 0.02458500862121582,
+      "level": "INFO",
+      "message": "PROCESSING FRONT IMAGE (REQUIRED)",
+      "data": null
+    },
+    {
+      "time": 0.025703907012939453,
+      "level": "INFO",
+      "message": "--------------------------------------------------------------------------------\n",
+      "data": null
+    },
+    {
+      "time": 0.027264118194580078,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 0.02822422981262207,
+      "level": "INFO",
+      "message": "SEGMENTING: FRONT",
+      "data": null
+    },
+    {
+      "time": 0.029083251953125,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 0.0302731990814209,
+      "level": "INFO",
+      "message": "Loading front from: input_images/front.png",
+      "data": null
+    },
+    {
+      "time": 0.031412363052368164,
+      "level": "INFO",
+      "message": "front file size: 0.06 MB",
+      "data": null
+    },
+    {
+      "time": 0.03306841850280762,
+      "level": "INFO",
+      "message": "front MD5 checksum: 6fb7b4b00b7a312a2be81e2f0f523afd",
+      "data": null
+    },
+    {
+      "time": 0.0755453109741211,
+      "level": "SUCCESS",
+      "message": "Loaded front: 1772x1772x3 in 0.042s",
+      "data": null
+    },
+    {
+      "time": 0.16176700592041016,
+      "level": "INFO",
+      "message": "  Image front: (1772, 1772, 3) uint8",
+      "data": {
+        "shape": [
+          1772,
+          1772,
+          3
+        ],
+        "dtype": "uint8",
+        "size_bytes": 9419952,
+        "min": 0.0,
+        "max": 255.0,
+        "mean": 137.22317534102083,
+        "std": 114.02246080233314
+      }
+    },
+    {
+      "time": 0.1625356674194336,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 0.16344928741455078,
+      "level": "INFO",
+      "message": "METHOD 1: Trying AI-based segmentation (rembg)...",
+      "data": null
+    },
+    {
+      "time": 0.16429400444030762,
+      "level": "INFO",
+      "message": "Attempting AI-based segmentation with rembg...",
+      "data": null
+    },
+    {
+      "time": 3.374704599380493,
+      "level": "SUCCESS",
+      "message": "  rembg library loaded successfully",
+      "data": null
+    },
+    {
+      "time": 3.3848657608032227,
+      "level": "INFO",
+      "message": "  Converted image to RGB",
+      "data": null
+    },
+    {
+      "time": 3.3862438201904297,
+      "level": "INFO",
+      "message": "  Running U2-Net neural network...",
+      "data": null
+    },
+    {
+      "time": 5.267793416976929,
+      "level": "SUCCESS",
+      "message": "  U2-Net processing completed in 1.892s",
+      "data": null
+    },
+    {
+      "time": 5.268488645553589,
+      "level": "SUCCESS",
+      "message": "  Extracted alpha channel as mask",
+      "data": null
+    },
+    {
+      "time": 5.271319150924683,
+      "level": "INFO",
+      "message": "  rembg coverage: 58.4% foreground",
+      "data": null
+    },
+    {
+      "time": 5.272545099258423,
+      "level": "SUCCESS",
+      "message": "rembg segmentation successful!",
+      "data": null
+    },
+    {
+      "time": 5.273090600967407,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.273556470870972,
+      "level": "SUCCESS",
+      "message": "Segmentation method used: rembg (AI)",
+      "data": null
+    },
+    {
+      "time": 5.310802459716797,
+      "level": "INFO",
+      "message": "  Image front_mask_initial: (1772, 1772) uint8",
+      "data": {
+        "shape": [
+          1772,
+          1772
+        ],
+        "dtype": "uint8",
+        "size_bytes": 3139984,
+        "min": 0.0,
+        "max": 255.0,
+        "mean": 143.16648237698027,
+        "std": 125.22860816885536,
+        "non_zero_pixels": 1832202,
+        "coverage_percent": 58.35067949390825
+      }
+    },
+    {
+      "time": 5.312171936035156,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.313251495361328,
+      "level": "INFO",
+      "message": "Refining mask...",
+      "data": null
+    },
+    {
+      "time": 5.335129261016846,
+      "level": "INFO",
+      "message": "  Filled 5415 hole pixels",
+      "data": null
+    },
+    {
+      "time": 5.3386170864105225,
+      "level": "INFO",
+      "message": "  Pixel change: +5201 (+0.28%)",
+      "data": null
+    },
+    {
+      "time": 5.339261293411255,
+      "level": "SUCCESS",
+      "message": "Mask refinement completed in 0.025s",
+      "data": null
+    },
+    {
+      "time": 5.379093170166016,
+      "level": "INFO",
+      "message": "  Image front_mask_refined: (1772, 1772) uint8",
+      "data": {
+        "shape": [
+          1772,
+          1772
+        ],
+        "dtype": "uint8",
+        "size_bytes": 3139984,
+        "min": 0.0,
+        "max": 255.0,
+        "mean": 149.2166090655239,
+        "std": 125.63693282906586,
+        "non_zero_pixels": 1837403,
+        "coverage_percent": 58.516317280597605
+      }
+    },
+    {
+      "time": 5.379988193511963,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.4733803272247314,
+      "level": "INFO",
+      "message": "Mask quality for front:",
+      "data": {
+        "coverage_percent": 58.516317280597605,
+        "edge_smoothness": 0.0,
+        "compactness": 13.592852177802062,
+        "foreground_pixels": 1837403,
+        "total_pixels": 3139984,
+        "overall_score": 24.036389819466553
+      }
+    },
+    {
+      "time": 5.474141597747803,
+      "level": "ERROR",
+      "message": "  Quality: POOR (24.0/100)",
+      "data": null
+    },
+    {
+      "time": 5.47875452041626,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.479365110397339,
+      "level": "INFO",
+      "message": "Creating masked image with transparency...",
+      "data": null
+    },
+    {
+      "time": 5.593462705612183,
+      "level": "INFO",
+      "message": "  Image front_masked: (1772, 1772, 4) uint8",
+      "data": {
+        "shape": [
+          1772,
+          1772,
+          4
+        ],
+        "dtype": "uint8",
+        "size_bytes": 12559936,
+        "min": 0.0,
+        "max": 255.0,
+        "mean": 140.2215337721466,
+        "std": 117.14935491961964
+      }
+    },
+    {
+      "time": 5.594654083251953,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.69588303565979,
+      "level": "INFO",
+      "message": "Saved debug visualization: front_overlay.png",
+      "data": null
+    },
+    {
+      "time": 5.6980140209198,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.698626279830933,
+      "level": "INFO",
+      "message": "Saving results for front...",
+      "data": null
+    },
+    {
+      "time": 5.780601739883423,
+      "level": "SUCCESS",
+      "message": "  \u2713 Saved front_original.png (934.9 KB)",
+      "data": null
+    },
+    {
+      "time": 5.790398359298706,
+      "level": "SUCCESS",
+      "message": "  \u2713 Saved front_mask.png (18.8 KB)",
+      "data": null
+    },
+    {
+      "time": 5.879754066467285,
+      "level": "SUCCESS",
+      "message": "  \u2713 Saved front_masked.png (1082.1 KB)",
+      "data": null
+    },
+    {
+      "time": 5.885401248931885,
+      "level": "SUCCESS",
+      "message": "  \u2713 Saved front_mask.npy (3066.5 KB)",
+      "data": null
+    },
+    {
+      "time": 5.887232542037964,
+      "level": "SUCCESS",
+      "message": "All files saved successfully for front",
+      "data": null
+    },
+    {
+      "time": 5.888296604156494,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.889397859573364,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 5.890693426132202,
+      "level": "SUCCESS",
+      "message": "FRONT SEGMENTATION COMPLETE in 5.858s",
+      "data": null
+    },
+    {
+      "time": 5.89183235168457,
+      "level": "SUCCESS",
+      "message": "Method: rembg (AI) | Quality: 24.0/100",
+      "data": null
+    },
+    {
+      "time": 5.8929383754730225,
+      "level": "INFO",
+      "message": "============================================================",
+      "data": null
+    },
+    {
+      "time": 5.981333255767822,
+      "level": "INFO",
+      "message": "Mask quality for front_final:",
+      "data": {
+        "coverage_percent": 58.516317280597605,
+        "edge_smoothness": 0.0,
+        "compactness": 13.592852177802062,
+        "foreground_pixels": 1837403,
+        "total_pixels": 3139984,
+        "overall_score": 24.036389819466553
+      }
+    },
+    {
+      "time": 5.982507228851318,
+      "level": "ERROR",
+      "message": "  Quality: POOR (24.0/100)",
+      "data": null
+    },
+    {
+      "time": 5.989658355712891,
+      "level": "INFO",
+      "message": "\n\u2192 No back image provided (this is optional)",
+      "data": null
+    },
+    {
+      "time": 5.991011619567871,
+      "level": "INFO",
+      "message": "\n================================================================================",
+      "data": null
+    },
+    {
+      "time": 5.992141485214233,
+      "level": "INFO",
+      "message": "   SEGMENTATION PIPELINE SUMMARY",
+      "data": null
+    },
+    {
+      "time": 5.9930384159088135,
+      "level": "INFO",
+      "message": "================================================================================\n",
+      "data": null
+    },
+    {
+      "time": 5.994300603866577,
+      "level": "SUCCESS",
+      "message": "Total pipeline time: 5.985s",
+      "data": null
+    },
+    {
+      "time": 5.995370626449585,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 5.996189832687378,
+      "level": "SUCCESS",
+      "message": "\u2705 FRONT IMAGE: PROCESSED (Quality: 24.0/100)",
+      "data": null
+    },
+    {
+      "time": 5.997187376022339,
+      "level": "INFO",
+      "message": "   - Mask: segmentation_output/front_mask.png",
+      "data": null
+    },
+    {
+      "time": 5.998161315917969,
+      "level": "INFO",
+      "message": "   - Masked: segmentation_output/front_masked.png",
+      "data": null
+    },
+    {
+      "time": 5.999081373214722,
+      "level": "INFO",
+      "message": "   - Debug: segmentation_output\\debug_visualizations/front_overlay.png",
+      "data": null
+    },
+    {
+      "time": 6.000028848648071,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 6.001781463623047,
+      "level": "INFO",
+      "message": "\u25cb BACK IMAGE: NOT PROVIDED",
+      "data": null
+    },
+    {
+      "time": 6.003234148025513,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 6.004439353942871,
+      "level": "INFO",
+      "message": "\ud83d\udcca Detailed logs: segmentation_output\\step1_detailed_log.txt",
+      "data": null
+    },
+    {
+      "time": 6.005674600601196,
+      "level": "INFO",
+      "message": "\ud83d\udcc8 Metrics JSON: segmentation_output\\step1_metrics.json",
+      "data": null
+    },
+    {
+      "time": 6.0068581104278564,
+      "level": "INFO",
+      "message": "",
+      "data": null
+    },
+    {
+      "time": 6.008144378662109,
+      "level": "INFO",
+      "message": "================================================================================",
+      "data": null
+    }
+  ],
+  "images": {
+    "front": {
+      "shape": [
+        1772,
+        1772,
+        3
+      ],
+      "dtype": "uint8",
+      "size_bytes": 9419952,
+      "min": 0.0,
+      "max": 255.0,
+      "mean": 137.22317534102083,
+      "std": 114.02246080233314
+    },
+    "front_mask_initial": {
+      "shape": [
+        1772,
+        1772
+      ],
+      "dtype": "uint8",
+      "size_bytes": 3139984,
+      "min": 0.0,
+      "max": 255.0,
+      "mean": 143.16648237698027,
+      "std": 125.22860816885536,
+      "non_zero_pixels": 1832202,
+      "coverage_percent": 58.35067949390825
+    },
+    "front_mask_refined": {
+      "shape": [
+        1772,
+        1772
+      ],
+      "dtype": "uint8",
+      "size_bytes": 3139984,
+      "min": 0.0,
+      "max": 255.0,
+      "mean": 149.2166090655239,
+      "std": 125.63693282906586,
+      "non_zero_pixels": 1837403,
+      "coverage_percent": 58.516317280597605
+    },
+    "front_masked": {
+      "shape": [
+        1772,
+        1772,
+        4
+      ],
+      "dtype": "uint8",
+      "size_bytes": 12559936,
+      "min": 0.0,
+      "max": 255.0,
+      "mean": 140.2215337721466,
+      "std": 117.14935491961964
+    }
+  },
+  "errors": [
+    {
+      "time": 5.474141597747803,
+      "message": "  Quality: POOR (24.0/100)"
+    },
+    {
+      "time": 5.982507228851318,
+      "message": "  Quality: POOR (24.0/100)"
+    }
+  ],
+  "warnings": [],
+  "pipeline_end": "2026-02-05T15:45:21.284283",
+  "total_time_seconds": 6.00922155380249
+}

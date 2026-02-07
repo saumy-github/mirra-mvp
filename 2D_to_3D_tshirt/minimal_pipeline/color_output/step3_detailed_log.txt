@@ -1,0 +1,132 @@
+[15:45:26.597] [INFO   ] 
+================================================================================
+[15:45:26.597] [INFO   ]    STEP 3: FABRIC COLOR EXTRACTION PIPELINE (ENHANCED)
+[15:45:26.597] [INFO   ] ================================================================================
+
+[15:45:26.599] [SUCCESS] Output directory ready: color_output
+[15:45:26.599] [SUCCESS] Debug directory ready: color_output\debug_visualizations
+[15:45:26.599] [INFO   ] 
+--------------------------------------------------------------------------------
+[15:45:26.599] [INFO   ] PROCESSING FRONT FABRIC COLOR (REQUIRED)
+[15:45:26.599] [INFO   ] --------------------------------------------------------------------------------
+
+[15:45:26.600] [INFO   ] Loading image: front_masked.png
+[15:45:26.644] [SUCCESS]   Image loaded: (1772, 1772, 4), 1082.1 KB
+[15:45:26.644] [INFO   ]   Extracted BGR from BGRA image
+[15:45:26.681] [SUCCESS]   Mask loaded: (1772, 1772), 1,587,507 active pixels
+[15:45:26.682] [INFO   ] 
+[15:45:26.682] [INFO   ] Extracting fabric pixels...
+[15:45:26.730] [INFO   ]   Converted BGR to RGB
+[15:45:26.780] [SUCCESS]   Extracted 1,587,507 fabric pixels in 0.098s
+[15:45:26.781] [INFO   ] Clustering into 3 color groups...
+[15:45:26.858] [INFO   ]   Sampling 100,000 pixels from 1,587,507 total (for performance)
+[15:45:26.858] [INFO   ]   Running K-means (n_init=10)...
+[15:45:30.572] [SUCCESS]   K-means completed in 3.714s
+[15:45:30.572] [INFO   ]   Inertia (sum of squared distances): 1285790.14
+[15:45:30.573] [INFO   ]   Cluster distribution:
+[15:45:30.574] [INFO   ]     Cluster 0: 54.08%
+[15:45:30.574] [INFO   ]     Cluster 1: 6.73%
+[15:45:30.574] [INFO   ]     Cluster 2: 39.18%
+[15:45:30.574] [SUCCESS] Color clustering complete in 3.793s
+[15:45:30.575] [INFO   ] 
+[15:45:30.575] [INFO   ] ============================================================
+[15:45:30.575] [INFO   ] EXTRACTING FABRIC COLOR: FRONT
+[15:45:30.575] [INFO   ] ============================================================
+[15:45:30.575] [INFO   ] 
+[15:45:30.576] [INFO   ] STEP 1: Extract Fabric Pixels
+[15:45:30.576] [INFO   ] ----------------------------------------
+[15:45:30.576] [INFO   ] Extracting fabric pixels...
+[15:45:30.604] [INFO   ]   Converted BGR to RGB
+[15:45:30.650] [SUCCESS]   Extracted 1,587,507 fabric pixels in 0.075s
+[15:45:30.652] [INFO   ] 
+[15:45:30.652] [INFO   ] STEP 2: K-Means Color Clustering
+[15:45:30.652] [INFO   ] ----------------------------------------
+[15:45:30.652] [INFO   ] Clustering into 3 color groups...
+[15:45:30.710] [INFO   ]   Sampling 100,000 pixels from 1,587,507 total (for performance)
+[15:45:30.710] [INFO   ]   Running K-means (n_init=10)...
+[15:45:30.904] [SUCCESS]   K-means completed in 0.194s
+[15:45:30.905] [INFO   ]   Inertia (sum of squared distances): 1274291.52
+[15:45:30.906] [INFO   ]   Cluster distribution:
+[15:45:30.906] [INFO   ]     Cluster 0: 54.29%
+[15:45:30.906] [INFO   ]     Cluster 1: 6.78%
+[15:45:30.906] [INFO   ]     Cluster 2: 38.93%
+[15:45:30.906] [SUCCESS] Color clustering complete in 0.254s
+[15:45:30.907] [INFO   ] 
+[15:45:30.907] [INFO   ] STEP 3: Identify Dominant Color
+[15:45:30.907] [INFO   ] ----------------------------------------
+[15:45:30.907] [SUCCESS] 
+DOMINANT FABRIC COLOR:
+[15:45:30.908] [SUCCESS]   RGB: (28, 28, 28)
+[15:45:30.908] [SUCCESS]   HEX: #1C1C1C
+[15:45:30.908] [SUCCESS]   Name: Black
+[15:45:30.908] [SUCCESS]   Coverage: 54.29% of fabric
+[15:45:30.908] [INFO   ] 
+[15:45:30.908] [INFO   ] STEP 4: Analyze Color Distribution
+[15:45:30.908] [INFO   ] ----------------------------------------
+[15:45:30.908] [INFO   ] Analyzing color distribution...
+[15:45:30.937] [INFO   ]   Mean RGB: [41, 41, 41]
+[15:45:31.007] [INFO   ]   Std RGB: [57.68, 57.68, 57.68]
+[15:45:31.075] [INFO   ]   Min RGB: [0, 0, 0]
+[15:45:31.075] [INFO   ]   Max RGB: [255, 255, 255]
+[15:45:31.076] [INFO   ]   Total variance: 173.03 (lower = more uniform)
+[15:45:31.076] [INFO   ] 
+[15:45:31.076] [INFO   ] ALL DETECTED COLOR CLUSTERS:
+[15:45:31.076] [INFO   ]   Cluster #1:
+[15:45:31.077] [INFO   ]     RGB: (28, 28, 28)
+[15:45:31.077] [INFO   ]     HEX: #1C1C1C
+[15:45:31.077] [INFO   ]     Name: Black
+[15:45:31.077] [INFO   ]     Coverage: 54.29% of fabric pixels
+[15:45:31.077] [INFO   ]   Cluster #2:
+[15:45:31.077] [INFO   ]     RGB: (22, 22, 22)
+[15:45:31.078] [INFO   ]     HEX: #161616
+[15:45:31.078] [INFO   ]     Name: Black
+[15:45:31.078] [INFO   ]     Coverage: 38.93% of fabric pixels
+[15:45:31.078] [INFO   ]   Cluster #3:
+[15:45:31.078] [INFO   ]     RGB: (254, 254, 254)
+[15:45:31.078] [INFO   ]     HEX: #FEFEFE
+[15:45:31.079] [INFO   ]     Name: White
+[15:45:31.079] [INFO   ]     Coverage: 6.78% of fabric pixels
+[15:45:31.079] [INFO   ] 
+[15:45:31.080] [INFO   ] ============================================================
+[15:45:31.080] [SUCCESS] WHITE COLOR EXTRACTION COMPLETE in 0.504s
+[15:45:31.080] [INFO   ] ============================================================
+[15:45:31.080] [INFO   ] 
+[15:45:31.080] [INFO   ] Saving front color results...
+[15:45:31.082] [SUCCESS]   ✓ front_fabric_color.json (1056 bytes)
+[15:45:31.083] [SUCCESS]   ✓ front_dominant_color.txt (46 bytes)
+[15:45:31.085] [SUCCESS]   ✓ front_color_swatch.png (1.0 KB)
+[15:45:31.086] [SUCCESS]   ✓ front_dominant_color.png (0.7 KB)
+[15:45:31.087] [SUCCESS] All front color files validated successfully
+[15:45:31.087] [INFO   ] 
+--------------------------------------------------------------------------------
+[15:45:31.087] [INFO   ] PROCESSING BACK FABRIC COLOR (OPTIONAL)
+[15:45:31.088] [INFO   ] --------------------------------------------------------------------------------
+
+[15:45:31.088] [INFO   ] Loading image: back_masked.png
+[15:45:31.088] [ERROR  ]   Image file not found: segmentation_output\back_masked.png
+[15:45:31.088] [INFO   ] No back image available (optional)
+[15:45:31.088] [INFO   ] 
+================================================================================
+[15:45:31.089] [INFO   ]    FABRIC COLOR EXTRACTION SUMMARY
+[15:45:31.089] [INFO   ] ================================================================================
+
+[15:45:31.089] [SUCCESS] Total pipeline time: 4.491s
+[15:45:31.089] [INFO   ] 
+[15:45:31.090] [SUCCESS] ✅ FRONT FABRIC COLOR EXTRACTED
+[15:45:31.090] [INFO   ]    RGB: (28, 28, 28)
+[15:45:31.090] [INFO   ]    HEX: #1C1C1C
+[15:45:31.090] [INFO   ]    Name: Black
+[15:45:31.090] [INFO   ]    Coverage: 54.29%
+[15:45:31.091] [INFO   ] 
+[15:45:31.091] [INFO   ]    Output files:
+[15:45:31.091] [INFO   ]    - color_output/front_fabric_color.json
+[15:45:31.091] [INFO   ]    - color_output/front_dominant_color.txt
+[15:45:31.092] [INFO   ]    - color_output/front_color_swatch.png
+[15:45:31.092] [INFO   ]    - color_output/front_dominant_color.png
+[15:45:31.092] [INFO   ] 
+[15:45:31.093] [INFO   ] ○ BACK IMAGE: NOT PROVIDED
+[15:45:31.093] [INFO   ] 
+[15:45:31.093] [INFO   ] ?? Detailed logs: color_output\step3_detailed_log.txt
+[15:45:31.093] [INFO   ] ?? Metrics JSON: color_output\step3_metrics.json
+[15:45:31.094] [INFO   ] 
+[15:45:31.094] [INFO   ] ================================================================================

@@ -24,6 +24,8 @@ import os
 import json
 from pathlib import Path
 from mathutils import Vector
+import time
+from datetime import datetime
 
 # ============================================================
 # CONFIGURATION
@@ -32,6 +34,10 @@ from mathutils import Vector
 # Input directories
 COLOR_DIR = Path(__file__).parent / "color_output"
 DESIGN_DIR = Path(__file__).parent / "design_output"
+
+# Logging directory
+LOG_DIR = Path(__file__).parent / "blender_logs"
+LOG_FILE = LOG_DIR / "step6_detailed_log.txt"
 
 # File paths
 FABRIC_COLOR_JSON = COLOR_DIR / "front_fabric_color.json"
@@ -42,12 +48,44 @@ DEFAULT_FABRIC_COLOR = (0.2, 0.3, 0.5, 1.0)  # Navy blue RGBA
 
 
 # ============================================================
+# LOGGING SYSTEM (works in Blender environment)
+# ============================================================
+
+class BlenderTextureLogger:
+    """Logger for Blender texture operations"""
+    
+    def __init__(self):
+        self.log_entries = []
+        self.start_time = time.time()
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+    
+    def log(self, message: str, level: str = "INFO"):
+        """Log a message with timestamp"""
+        elapsed = time.time() - self.start_time
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        entry = f"[{timestamp}] [{elapsed:7.3f}s] [{level:7}] {message}"
+        self.log_entries.append(entry)
+        print(message)  # Also print to Blender console
+    
+    def save_log(self):
+        """Save log to file"""
+        try:
+            with open(LOG_FILE, 'w', encoding='utf-8') as f:
+                f.write("\n".join(self.log_entries))
+            self.log(f"Log saved to: {LOG_FILE}", "SUCCESS")
+        except Exception as e:
+            print(f"Failed to save log: {e}")
+
+logger = BlenderTextureLogger()
+
+
+# ============================================================
 # COLOR LOADING
 # ============================================================
 
 def load_fabric_color() -> tuple:
     """
-    Load the extracted fabric color from Step 3.
+    Load the extracted fabric color from Step 3 with logging.
     
     The color was saved as RGB values (0-255) in a JSON file.
     We convert to Blender's format (0.0-1.0).
@@ -55,11 +93,11 @@ def load_fabric_color() -> tuple:
     Returns:
         Tuple of (R, G, B, A) with values 0.0-1.0
     """
-    print("→ Loading fabric color...")
+    logger.log("Loading fabric color...", "INFO")
     
     if not FABRIC_COLOR_JSON.exists():
-        print(f"  ⚠ Color file not found: {FABRIC_COLOR_JSON}")
-        print(f"  Using default color: {DEFAULT_FABRIC_COLOR[:3]}")
+        logger.log(f"  Color file not found: {FABRIC_COLOR_JSON}", "WARNING")
+        logger.log(f"  Using default color: RGB{DEFAULT_FABRIC_COLOR[:3]}", "WARNING")
         return DEFAULT_FABRIC_COLOR
     
     try:
@@ -79,20 +117,21 @@ def load_fabric_color() -> tuple:
         color_name = data["dominant"].get("name", "Unknown")
         hex_code = data["dominant"].get("hex", "#???")
         
-        print(f"  ✓ Loaded color: {color_name} ({hex_code})")
-        print(f"    RGB: ({rgb[0]}, {rgb[1]}, {rgb[2]})")
+        logger.log(f"  \u2713 Loaded color: {color_name} ({hex_code})", "SUCCESS")
+        logger.log(f"    RGB (0-255): ({rgb[0]}, {rgb[1]}, {rgb[2]})", "INFO")
+        logger.log(f"    RGB (0-1): ({r:.3f}, {g:.3f}, {b:.3f})", "INFO")
         
         return color
         
     except Exception as e:
-        print(f"  ⚠ Error loading color: {e}")
-        print(f"  Using default color")
+        logger.log(f"  Error loading color: {e}", "ERROR")
+        logger.log(f"  Using default color", "WARNING")
         return DEFAULT_FABRIC_COLOR
 
 
 def load_design_texture() -> bpy.types.Image:
     """
-    Load the extracted design image from Step 2.
+    Load the extracted design image from Step 2 with logging.
     
     The design is a PNG with transparency:
     - Design pixels are opaque
@@ -101,11 +140,11 @@ def load_design_texture() -> bpy.types.Image:
     Returns:
         Blender Image object, or None if not found
     """
-    print("→ Loading design texture...")
+    logger.log("Loading design texture...", "INFO")
     
     if not DESIGN_IMAGE.exists():
-        print(f"  ⚠ Design image not found: {DESIGN_IMAGE}")
-        print(f"  Garment will have solid color only (no print)")
+        logger.log(f"  Design image not found: {DESIGN_IMAGE}", "WARNING")
+        logger.log("  Proceeding with solid fabric color only", "INFO")
         return None
     
     try:
@@ -113,13 +152,16 @@ def load_design_texture() -> bpy.types.Image:
         img = bpy.data.images.load(str(DESIGN_IMAGE))
         img.name = "TShirt_Design"
         
-        print(f"  ✓ Loaded design: {img.name}")
-        print(f"    Size: {img.size[0]} x {img.size[1]} pixels")
+        logger.log(f"  ✓ Loaded design: {img.name}", "SUCCESS")
+        logger.log(f"    Size: {img.size[0]}x{img.size[1]} pixels", "INFO")
+        logger.log(f"    Color space: {img.colorspace_settings.name}", "INFO")
+        logger.log(f"    Has alpha: {img.alpha_mode != 'NONE'}", "INFO")
         
         return img
         
     except Exception as e:
-        print(f"  ⚠ Error loading design: {e}")
+        logger.log(f"  Error loading design: {e}", "ERROR")
+        logger.log("  Proceeding with solid fabric color only", "WARNING")
         return None
 
 
@@ -165,7 +207,7 @@ def create_fabric_material(
     Returns:
         The created material
     """
-    print(f"→ Creating material: {name}...")
+    logger.log(f"Creating material: {name}...", "INFO")
     
     # Create new material
     mat = bpy.data.materials.new(name=name)
@@ -178,6 +220,8 @@ def create_fabric_material(
     # Clear default nodes
     nodes.clear()
     
+    logger.log("  Setting up material nodes...", "INFO")
+    
     # Create output node
     output_node = nodes.new(type='ShaderNodeOutputMaterial')
     output_node.location = (600, 0)
@@ -189,10 +233,12 @@ def create_fabric_material(
     fabric_shader.inputs['Roughness'].default_value = 0.8  # Fabric is not shiny
     fabric_shader.inputs['Specular IOR Level'].default_value = 0.3
     
+    logger.log(f"  Fabric color set: RGBA{base_color}", "INFO")
+    
     if design_image is None:
         # No design - just use fabric color
         links.new(fabric_shader.outputs['BSDF'], output_node.inputs['Surface'])
-        print("  ✓ Material created (solid color, no design)")
+        logger.log("  ✓ Material created (solid color, no design)", "SUCCESS")
         return mat
     
     # === ADD DESIGN TEXTURE ===
@@ -237,14 +283,15 @@ def create_fabric_material(
     # Connect to output
     links.new(mix_shader.outputs['Shader'], output_node.inputs['Surface'])
     
-    print("  ✓ Material created with design texture overlay")
+    logger.log("  ✓ Material created with design texture overlay", "SUCCESS")
+    logger.log(f"    Total nodes: {len(nodes)}", "INFO")
     
     return mat
 
 
 def create_simple_fabric_material(name: str, base_color: tuple) -> bpy.types.Material:
     """
-    Create a simple fabric material without node complexity.
+    Create a simple fabric material without node complexity with logging.
     
     This is a simpler version that just sets the base color.
     Use when you don't need the design overlay.
@@ -256,6 +303,8 @@ def create_simple_fabric_material(name: str, base_color: tuple) -> bpy.types.Mat
     Returns:
         The created material
     """
+    logger.log(f"Creating simple material: {name}...", "INFO")
+    
     mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     
@@ -265,6 +314,9 @@ def create_simple_fabric_material(name: str, base_color: tuple) -> bpy.types.Mat
     if principled:
         principled.inputs['Base Color'].default_value = base_color
         principled.inputs['Roughness'].default_value = 0.8
+        logger.log(f"  ✓ Simple material created: RGBA{base_color}", "SUCCESS")
+    else:
+        logger.log("  WARNING: No Principled BSDF found", "WARNING")
     
     return mat
 
@@ -275,7 +327,7 @@ def create_simple_fabric_material(name: str, base_color: tuple) -> bpy.types.Mat
 
 def unwrap_garment_uv(obj: bpy.types.Object):
     """
-    Create UV coordinates for the garment mesh.
+    Create UV coordinates for the garment mesh with logging.
     
     UV mapping is like flattening the 3D surface back to 2D:
     - U = horizontal position on texture (0-1)
@@ -288,7 +340,10 @@ def unwrap_garment_uv(obj: bpy.types.Object):
     Args:
         obj: The garment mesh object
     """
-    print(f"→ Creating UV map for {obj.name}...")
+    logger.log(f"Creating UV map for {obj.name}...", "INFO")
+    
+    face_count = len(obj.data.polygons)
+    logger.log(f"  Unwrapping {face_count} faces...", "INFO")
     
     # Select the object
     bpy.ops.object.select_all(action='DESELECT')
@@ -301,30 +356,41 @@ def unwrap_garment_uv(obj: bpy.types.Object):
     # Select all faces
     bpy.ops.mesh.select_all(action='SELECT')
     
-    # Project from view (front view gives good UV for front of shirt)
-    # First, set view to front
-    bpy.ops.uv.project_from_view(
-        orthographic=True,
-        correct_aspect=True,
-        scale_to_bounds=True
-    )
-    
-    # Alternative: Smart UV Project (automatic, works for complex shapes)
-    bpy.ops.uv.smart_project(
-        angle_limit=66.0,
-        island_margin=0.02,
-        correct_aspect=True
-    )
+    try:
+        # Project from view (front view gives good UV for front of shirt)
+        # First, set view to front
+        bpy.ops.uv.project_from_view(
+            orthographic=True,
+            correct_aspect=True,
+            scale_to_bounds=True
+        )
+        logger.log("  Applied view projection", "INFO")
+        
+        # Alternative: Smart UV Project (automatic, works for complex shapes)
+        bpy.ops.uv.smart_project(
+            angle_limit=66.0,
+            island_margin=0.02,
+            correct_aspect=True
+        )
+        logger.log("  Applied smart UV projection", "INFO")
+        
+    except Exception as e:
+        logger.log(f"  Error during UV unwrapping: {e}", "ERROR")
     
     # Exit edit mode
     bpy.ops.object.mode_set(mode='OBJECT')
     
-    print(f"  ✓ UV map created")
+    # Check UV layers
+    if obj.data.uv_layers:
+        uv_layer_count = len(obj.data.uv_layers)
+        logger.log(f"  ✓ UV map created ({uv_layer_count} layers)", "SUCCESS")
+    else:
+        logger.log("  WARNING: No UV layers created!", "WARNING")
 
 
 def project_design_to_front(obj: bpy.types.Object):
     """
-    Project texture specifically onto the front of the garment.
+    Project texture specifically onto the front of the garment with logging.
     
     For T-shirt designs, we typically want:
     - Design appears on the FRONT panel
@@ -336,7 +402,7 @@ def project_design_to_front(obj: bpy.types.Object):
     Args:
         obj: The garment mesh object
     """
-    print(f"→ Projecting design to front panel...")
+    logger.log("Projecting design to front panel...", "INFO")
     
     # This is a simplified approach
     # In production, you'd identify front faces by normal direction
@@ -349,17 +415,19 @@ def project_design_to_front(obj: bpy.types.Object):
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
     
-    # Project from front (negative Y in Blender = front view)
-    # This assumes the garment is oriented with front facing -Y
-    bpy.ops.uv.project_from_view(
-        camera_bounds=False,
-        correct_aspect=True,
-        scale_to_bounds=True
-    )
+    try:
+        # Project from front (negative Y in Blender = front view)
+        # This assumes the garment is oriented with front facing -Y
+        bpy.ops.uv.project_from_view(
+            camera_bounds=False,
+            correct_aspect=True,
+            scale_to_bounds=True
+        )
+        logger.log("  ✓ Front projection applied", "SUCCESS")
+    except Exception as e:
+        logger.log(f"  Error during front projection: {e}", "ERROR")
     
     bpy.ops.object.mode_set(mode='OBJECT')
-    
-    print(f"  ✓ Front projection complete")
 
 
 # ============================================================
@@ -368,7 +436,7 @@ def project_design_to_front(obj: bpy.types.Object):
 
 def apply_material_to_object(obj: bpy.types.Object, material: bpy.types.Material):
     """
-    Apply a material to an object.
+    Apply a material to an object with logging.
     
     In Blender, each object can have multiple material slots.
     We assign our fabric material to the first slot.
@@ -377,20 +445,24 @@ def apply_material_to_object(obj: bpy.types.Object, material: bpy.types.Material
         obj: The object to apply material to
         material: The material to apply
     """
-    print(f"→ Applying material to {obj.name}...")
+    logger.log(f"Applying material to {obj.name}...", "INFO")
     
     # Clear existing materials
+    old_count = len(obj.data.materials)
     obj.data.materials.clear()
+    
+    if old_count > 0:
+        logger.log(f"  Cleared {old_count} existing materials", "INFO")
     
     # Add our material
     obj.data.materials.append(material)
     
-    print(f"  ✓ Material applied: {material.name}")
+    logger.log(f"  ✓ Material applied: {material.name}", "SUCCESS")
 
 
 def find_garment_object() -> bpy.types.Object:
     """
-    Find the T-shirt garment object in the scene.
+    Find the T-shirt garment object in the scene with logging.
     
     Looks for an object named "TShirt_Garment" (created in Step 5)
     or any object with a Cloth modifier.
@@ -398,16 +470,30 @@ def find_garment_object() -> bpy.types.Object:
     Returns:
         The garment object, or None if not found
     """
+    logger.log("Searching for garment object...", "INFO")
+    
+    total_objects = len(bpy.data.objects)
+    logger.log(f"  Total objects in scene: {total_objects}", "INFO")
+    
     # First, try to find by name
     if "TShirt_Garment" in bpy.data.objects:
-        return bpy.data.objects["TShirt_Garment"]
+        obj = bpy.data.objects["TShirt_Garment"]
+        face_count = len(obj.data.polygons)
+        logger.log(f"  ✓ Found TShirt_Garment ({face_count} faces)", "SUCCESS")
+        return obj
+    
+    logger.log("  TShirt_Garment not found, searching for cloth modifier...", "WARNING")
     
     # Otherwise, find any object with cloth modifier
     for obj in bpy.data.objects:
         if obj.type == 'MESH':
             for mod in obj.modifiers:
                 if mod.type == 'CLOTH':
+                    face_count = len(obj.data.polygons)
+                    logger.log(f"  ✓ Found object with cloth modifier: {obj.name} ({face_count} faces)", "SUCCESS")
                     return obj
+    
+    logger.log("  No cloth modifier found, searching for largest mesh...", "WARNING")
     
     # Last resort: find largest mesh
     largest = None
@@ -419,6 +505,16 @@ def find_garment_object() -> bpy.types.Object:
                 largest = obj
                 largest_verts = vert_count
     
+    if largest:
+        face_count = len(largest.data.polygons)
+        logger.log(f"  Using largest mesh: {largest.name} ({largest_verts} vertices, {face_count} faces)", "WARNING")
+        
+        if face_count == 0:
+            logger.log("    ⚠️ WARNING: Garment has 0 faces!", "ERROR")
+            logger.log("    This suggests Step 5 mesh creation failed", "ERROR")
+    else:
+        logger.log("  ERROR: No mesh objects found in scene!", "ERROR")
+    
     return largest
 
 
@@ -428,68 +524,84 @@ def find_garment_object() -> bpy.types.Object:
 
 def setup_preview_lighting():
     """
-    Set up lighting for a nice preview render.
+    Set up lighting for a nice preview render with logging.
     """
-    print("→ Setting up preview lighting...")
+    logger.log("Setting up preview lighting...", "INFO")
     
-    # Add sun light
-    bpy.ops.object.light_add(type='SUN', location=(2, -2, 3))
-    sun = bpy.context.active_object
-    sun.name = "Preview_Sun"
-    sun.data.energy = 3
-    
-    # Add fill light
-    bpy.ops.object.light_add(type='AREA', location=(-2, -1, 2))
-    fill = bpy.context.active_object
-    fill.name = "Preview_Fill"
-    fill.data.energy = 100
-    fill.data.size = 2
-    
-    print("  ✓ Lighting set up")
+    try:
+        # Add sun light
+        bpy.ops.object.light_add(type='SUN', location=(2, -2, 3))
+        sun = bpy.context.active_object
+        sun.name = "Preview_Sun"
+        sun.data.energy = 3
+        logger.log(f"  Added sun light at (2, -2, 3)", "INFO")
+        
+        # Add fill light
+        bpy.ops.object.light_add(type='AREA', location=(-2, -1, 2))
+        fill = bpy.context.active_object
+        fill.name = "Preview_Fill"
+        fill.data.energy = 100
+        fill.data.size = 2
+        logger.log(f"  Added area fill light at (-2, -1, 2)", "INFO")
+        
+        logger.log("  ✓ Lighting setup complete", "SUCCESS")
+    except Exception as e:
+        logger.log(f"  Error setting up lighting: {e}", "ERROR")
 
 
 def setup_camera():
     """
-    Set up camera for preview render.
+    Set up camera for preview render with logging.
     """
-    print("→ Setting up camera...")
+    logger.log("Setting up camera...", "INFO")
     
-    # Add camera
-    bpy.ops.object.camera_add(location=(0, -2, 0.5))
-    camera = bpy.context.active_object
-    camera.name = "Preview_Camera"
-    
-    # Point at origin (where garment is)
-    camera.rotation_euler = (1.4, 0, 0)  # ~80 degrees
-    
-    # Set as active camera
-    bpy.context.scene.camera = camera
-    
-    print("  ✓ Camera set up")
+    try:
+        # Add camera
+        bpy.ops.object.camera_add(location=(0, -2, 0.5))
+        camera = bpy.context.active_object
+        camera.name = "Preview_Camera"
+        logger.log(f"  Camera added at (0, -2, 0.5)", "INFO")
+        
+        # Point at origin (where garment is)
+        camera.rotation_euler = (1.4, 0, 0)  # ~80 degrees
+        logger.log(f"  Camera rotation: {camera.rotation_euler}", "INFO")
+        
+        # Set as active camera
+        bpy.context.scene.camera = camera
+        
+        logger.log("  ✓ Camera setup complete", "SUCCESS")
+    except Exception as e:
+        logger.log(f"  Error setting up camera: {e}", "ERROR")
 
 
 def render_preview(output_path: str = None):
     """
-    Render a preview image of the garment.
+    Render a preview image of the garment with logging.
     
     Args:
         output_path: Where to save the render (optional)
     """
-    print("→ Rendering preview...")
+    logger.log("Rendering preview...", "INFO")
     
-    # Set render settings
-    bpy.context.scene.render.engine = 'BLENDER_EEVEE_NEXT'  # Fast preview
-    bpy.context.scene.render.resolution_x = 1920
-    bpy.context.scene.render.resolution_y = 1080
-    
-    if output_path:
-        bpy.context.scene.render.filepath = output_path
-        bpy.ops.render.render(write_still=True)
-        print(f"  ✓ Saved render to: {output_path}")
-    else:
-        # Just render to viewer
-        bpy.ops.render.render()
-        print("  ✓ Render complete (view in Image Editor)")
+    try:
+        # Set render settings
+        bpy.context.scene.render.engine = 'BLENDER_EEVEE_NEXT'  # Fast preview
+        bpy.context.scene.render.resolution_x = 1920
+        bpy.context.scene.render.resolution_y = 1080
+        
+        logger.log(f"  Render engine: {bpy.context.scene.render.engine}", "INFO")
+        logger.log(f"  Resolution: 1920x1080", "INFO")
+        
+        if output_path:
+            bpy.context.scene.render.filepath = output_path
+            bpy.ops.render.render(write_still=True)
+            logger.log(f"  ✓ Saved render to: {output_path}", "SUCCESS")
+        else:
+            # Just render to viewer
+            bpy.ops.render.render()
+            logger.log("  ✓ Render complete (view in Image Editor)", "SUCCESS")
+    except Exception as e:
+        logger.log(f"  Error during rendering: {e}", "ERROR")
 
 
 # ============================================================
@@ -498,7 +610,7 @@ def render_preview(output_path: str = None):
 
 def run_texture_application_pipeline():
     """
-    Main function to apply color and design to the garment.
+    Main function to apply color and design to the garment with comprehensive logging.
     
     Steps:
     1. Load fabric color from Step 3
@@ -508,60 +620,96 @@ def run_texture_application_pipeline():
     5. Create material with color and design
     6. Apply material to garment
     """
-    print("\n" + "="*60)
-    print("   STEP 6: APPLY COLOR AND DESIGN")
-    print("="*60)
+    logger.log("="*60, "INFO")
+    logger.log("STEP 6: APPLY COLOR AND DESIGN", "INFO")
+    logger.log("="*60, "INFO")
+    
+    pipeline_start = time.time()
     
     # Step 1: Load fabric color
-    print("\n" + "-"*40)
+    logger.log("-"*40, "INFO")
+    step1_start = time.time()
     fabric_color = load_fabric_color()
+    step1_time = time.time() - step1_start
+    logger.log(f"Step 1 complete ({step1_time:.2f}s)", "INFO")
     
     # Step 2: Load design texture
-    print("\n" + "-"*40)
+    logger.log("-"*40, "INFO")
+    step2_start = time.time()
     design_image = load_design_texture()
+    step2_time = time.time() - step2_start
+    logger.log(f"Step 2 complete ({step2_time:.2f}s)", "INFO")
     
     # Step 3: Find garment object
-    print("\n" + "-"*40)
-    print("→ Finding garment object...")
+    logger.log("-"*40, "INFO")
+    step3_start = time.time()
     garment = find_garment_object()
     
     if garment is None:
-        print("  ✗ No garment found in scene!")
-        print("  Run step5_blender_sewing.py first.")
+        logger.log("⛔ No garment found in scene!", "ERROR")
+        logger.log("Run step5_blender_sewing.py first.", "ERROR")
+        logger.save_log()
         return False
     
-    print(f"  ✓ Found garment: {garment.name}")
+    step3_time = time.time() - step3_start
+    logger.log(f"Step 3 complete ({step3_time:.2f}s)", "INFO")
     
     # Step 4: Create UV mapping
-    print("\n" + "-"*40)
+    logger.log("-"*40, "INFO")
+    step4_start = time.time()
     unwrap_garment_uv(garment)
+    step4_time = time.time() - step4_start
+    logger.log(f"Step 4 complete ({step4_time:.2f}s)", "INFO")
     
     # Step 5: Create material
-    print("\n" + "-"*40)
+    logger.log("-"*40, "INFO")
+    step5_start = time.time()
     material = create_fabric_material(
         name="TShirt_Material",
         base_color=fabric_color,
         design_image=design_image
     )
+    step5_time = time.time() - step5_start
+    logger.log(f"Step 5 complete ({step5_time:.2f}s)", "INFO")
     
     # Step 6: Apply material
-    print("\n" + "-"*40)
+    logger.log("-"*40, "INFO")
+    step6_start = time.time()
     apply_material_to_object(garment, material)
+    step6_time = time.time() - step6_start
+    logger.log(f"Step 6 complete ({step6_time:.2f}s)", "INFO")
     
     # Optional: Set up preview
-    print("\n" + "-"*40)
+    logger.log("-"*40, "INFO")
+    setup_start = time.time()
     setup_preview_lighting()
     setup_camera()
+    setup_time = time.time() - setup_start
+    logger.log(f"Preview setup complete ({setup_time:.2f}s)", "INFO")
+    
+    pipeline_time = time.time() - pipeline_start
     
     # Summary
-    print("\n" + "="*60)
-    print("   TEXTURE APPLICATION COMPLETE")
-    print("="*60)
-    print(f"""
-✓ Fabric color applied: {fabric_color[:3]}
+    logger.log("="*60, "INFO")
+    logger.log("TEXTURE APPLICATION COMPLETE", "SUCCESS")
+    logger.log("="*60, "INFO")
+    
+    summary = f"""
+✓ Fabric color applied: RGB{fabric_color[:3]}
 ✓ Design texture: {"Applied" if design_image else "None (solid color)"}
 ✓ UV mapping created
-✓ Material assigned to garment
+✓ Material assigned to {garment.name}
+
+TIMING BREAKDOWN:
+  Step 1 (Load color): {step1_time:.2f}s
+  Step 2 (Load design): {step2_time:.2f}s
+  Step 3 (Find garment): {step3_time:.2f}s
+  Step 4 (UV mapping): {step4_time:.2f}s
+  Step 5 (Create material): {step5_time:.2f}s
+  Step 6 (Apply material): {step6_time:.2f}s
+  Preview setup: {setup_time:.2f}s
+  -------------------------
+  TOTAL: {pipeline_time:.2f}s
 
 TO VIEW:
 - Switch to "Rendered" viewport shading (Z > 8)
@@ -577,7 +725,12 @@ NEXT STEPS:
 - Press F12 to render final image
 - File > Export to save as OBJ/FBX/GLB
 - File > Save to keep .blend file
-""")
+"""
+    
+    logger.log(summary, "INFO")
+    
+    # Save log file
+    logger.save_log()
     
     return True
 

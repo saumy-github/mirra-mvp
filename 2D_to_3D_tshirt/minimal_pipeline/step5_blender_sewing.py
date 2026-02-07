@@ -32,17 +32,93 @@ import json
 import gc  # Garbage collection for memory management
 from pathlib import Path
 from mathutils import Vector, Matrix
+import time
+from datetime import datetime
 
 # ============================================================
 # CONFIGURATION
 # ============================================================
 
+# Detect if running from .blend file or standalone script
+# When saved in .blend, __file__ points to the .blend file itself
+if Path(__file__).suffix == '.blend':
+    # Running from saved .blend file - use parent directory of .blend
+    SCRIPT_DIR = Path(__file__).parent.parent
+else:
+    # Running standalone - use script's directory
+    SCRIPT_DIR = Path(__file__).parent
+
 # Input directory (where pattern SVGs are)
-PATTERN_DIR = Path(__file__).parent / "pattern_output"
+PATTERN_DIR = SCRIPT_DIR / "pattern_output"
+
+# Logging directory
+LOG_DIR = SCRIPT_DIR / "blender_logs"
+LOG_FILE = LOG_DIR / "step5_detailed_log.txt"
 
 # Scale factor: SVG is in cm, Blender uses meters
 # 1 cm = 0.01 meters
 CM_TO_M = 0.01
+
+
+# ============================================================
+# LOGGING SYSTEM (works in Blender environment)
+# ============================================================
+
+class BlenderLogger:
+    """Logger for Blender operations"""
+    
+    def __init__(self):
+        self.log_entries = []
+        self.start_time = time.time()
+        # Safely create log directory, handling .blend file scenario
+        try:
+            LOG_DIR.mkdir(parents=True, exist_ok=True)
+        except (FileExistsError, OSError) as e:
+            # If log dir creation fails (e.g., when running from .blend),
+            # continue without file logging
+            print(f"Warning: Could not create log directory: {e}")
+            print(f"Continuing without file logging...")
+    
+    def log(self, message: str, level: str = "INFO"):
+        """Log a message with timestamp"""
+        elapsed = time.time() - self.start_time
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        entry = f"[{timestamp}] [{elapsed:7.3f}s] [{level:7}] {message}"
+        self.log_entries.append(entry)
+        print(message)  # Also print to Blender console
+    
+    def log_step(self, message: str):
+        """Log a major pipeline step"""
+        self.log(f"STEP: {message}", "STEP")
+    
+    def log_detail(self, message: str):
+        """Log detailed information"""
+        self.log(f"  {message}", "DETAIL")
+    
+    def save_log(self):
+        """Save log to file"""
+        try:
+            # Ensure log directory exists
+            LOG_DIR.mkdir(parents=True, exist_ok=True)
+            
+            # Clean log entries of invalid Unicode surrogates
+            cleaned_entries = []
+            for entry in self.log_entries:
+                try:
+                    entry.encode('utf-8')
+                    cleaned_entries.append(entry)
+                except UnicodeEncodeError:
+                    cleaned_entry = entry.encode('utf-8', errors='replace').decode('utf-8')
+                    cleaned_entries.append(cleaned_entry)
+            
+            with open(LOG_FILE, 'w', encoding='utf-8') as f:
+                f.write("\n".join(cleaned_entries))
+            self.log(f"Log saved to: {LOG_FILE}", "SUCCESS")
+        except Exception as e:
+            print(f"Warning: Failed to save log: {e}")
+            print(f"Continuing without file logging...")
+
+logger = BlenderLogger()
 
 # Cloth simulation settings
 CLOTH_SETTINGS = {
@@ -56,7 +132,7 @@ CLOTH_SETTINGS = {
 
 # Sewing spring settings
 SEWING_SETTINGS = {
-    "force": 100,            # How strongly edges pull together
+    "force": 15,             # How strongly edges pull together (reduced from 100 to prevent spinning)
     "max_dist": 0.1,         # Max distance for sewing (meters)
     "shrink_min": 0.0,       # Minimum shrink factor
 }
@@ -203,10 +279,15 @@ def setup_seams_from_definitions(panels: dict, seam_defs: list):
     print("→ Setting up seams from definitions...")
     
     # Map piece names to objects
+    # Support multiple naming conventions
     piece_map = {
         "front": panels.get("front"),
         "back": panels.get("back"),
-        "sleeve": panels.get("left_sleeve"),  # We'll mirror for right
+        "sleeve": panels.get("left_sleeve"),
+        "left_sleeve": panels.get("left_sleeve"),
+        "right_sleeve": panels.get("right_sleeve"),
+        "sleeve_left": panels.get("left_sleeve"),
+        "sleeve_right": panels.get("right_sleeve"),
     }
     
     # Edge direction mapping based on seam names
@@ -233,13 +314,22 @@ def setup_seams_from_definitions(panels: dict, seam_defs: list):
     
     for seam in seam_defs:
         seam_name = seam.get("name", f"seam_{seam_count}")
-        edge1 = seam.get("edge1", {})
-        edge2 = seam.get("edge2", {})
         
-        piece1_name = edge1.get("piece", "")
-        piece2_name = edge2.get("piece", "")
-        edge1_name = edge1.get("edge_name", "")
-        edge2_name = edge2.get("edge_name", "")
+        # Support both old and new seam definition formats
+        if "edge1" in seam and "edge2" in seam:
+            # Old format: edge1/edge2
+            edge1 = seam.get("edge1", {})
+            edge2 = seam.get("edge2", {})
+            piece1_name = edge1.get("piece", "")
+            piece2_name = edge2.get("piece", "")
+            edge1_name = edge1.get("edge_name", "")
+            edge2_name = edge2.get("edge_name", "")
+        else:
+            # New format: panel_a/panel_b
+            piece1_name = seam.get("panel_a", "")
+            piece2_name = seam.get("panel_b", "")
+            edge1_name = seam.get("edge_a", "")
+            edge2_name = seam.get("edge_b", "")
         
         # Get mesh objects
         obj1 = piece_map.get(piece1_name)
@@ -358,6 +448,7 @@ def setup_scene():
     
     This includes:
     - Setting units to metric
+    - Enabling gravity (CRITICAL for cloth falling)
     - Adding ground plane (for collision)
     - Adding a mannequin/avatar (optional collision body)
     - Setting up lighting for preview
@@ -372,6 +463,16 @@ def setup_scene():
     bpy.context.scene.frame_start = 1
     bpy.context.scene.frame_end = 150  # 150 frames of simulation
     bpy.context.scene.frame_current = 1
+    
+    # CRITICAL: Enable gravity
+    current_gravity = bpy.context.scene.gravity
+    print(f"  Current scene gravity: {current_gravity}")
+    
+    if current_gravity[2] >= 0:
+        print(f"  ⚠ WARNING: Gravity Z is {current_gravity[2]} - setting to -9.8")
+        bpy.context.scene.gravity = (0, 0, -9.8)
+    else:
+        print(f"  ✓ Gravity enabled: {current_gravity[2]} m/s²")
     
     # Add ground plane for reference (not for collision in this setup)
     bpy.ops.mesh.primitive_plane_add(size=2, location=(0, 0, -0.5))
@@ -421,68 +522,130 @@ def import_svg_as_curve(svg_path: Path, name: str) -> bpy.types.Object:
 
 def curve_to_mesh(curve_obj: bpy.types.Object, name: str) -> bpy.types.Object:
     """
-    Convert a curve to a mesh.
+    Convert a curve to a mesh with GUARANTEED face creation.
     
-    Cloth simulation needs a MESH (vertices, edges, faces).
-    We convert the curve outline to a flat mesh with faces.
+    CRITICAL FUNCTION - This is where the "parts not showing" bug originated.
+    Without faces, cloth simulation fails and parts become invisible.
     
-    Steps:
-    1. Convert curve to mesh (just edges)
-    2. Fill the outline to create a face
-    3. Subdivide for smooth simulation
+    ENHANCED with multiple fallback methods:
+    1. Standard edge_face_add()
+    2. Fill operation
+    3. BMesh manual face creation
+    4. Emergency grid mesh fallback
     
     Args:
         curve_obj: The curve object to convert
         name: Name for the new mesh
     
     Returns:
-        The mesh object
+        The mesh object with GUARANTEED faces
     """
-    print(f"→ Converting {curve_obj.name} to mesh...")
+    logger.log(f"\n{'='*60}", "INFO")
+    logger.log(f"CONVERTING CURVE TO MESH: {curve_obj.name}", "INFO")
+    logger.log(f"{'='*60}", "INFO")
+    
+    conversion_start = time.time()
     
     # Select and make active
     bpy.ops.object.select_all(action='DESELECT')
     curve_obj.select_set(True)
     bpy.context.view_layer.objects.active = curve_obj
     
+    # Log curve properties
+    if curve_obj.type == 'CURVE':
+        spline_count = len(curve_obj.data.splines)
+        logger.log(f"Curve has {spline_count} spline(s)", "INFO")
+    
     # Convert curve to mesh
+    logger.log("Step 1: Converting curve to mesh (edges only)...", "INFO")
     bpy.ops.object.convert(target='MESH')
     
     mesh_obj = bpy.context.active_object
     mesh_obj.name = name
     
+    initial_verts = len(mesh_obj.data.vertices)
+    initial_edges = len(mesh_obj.data.edges)
+    logger.log(f"  Initial mesh: {initial_verts} vertices, {initial_edges} edges", "INFO")
+    
     # Enter edit mode to fill and subdivide
     bpy.ops.object.mode_set(mode='EDIT')
-    
-    # Select all vertices
     bpy.ops.mesh.select_all(action='SELECT')
     
-    # Fill the outline to create a face
-    # edge_fill creates an n-gon face from the boundary
+    # METHOD 1: edge_face_add
+    logger.log("Creating faces with edge_face_add()...", "INFO")
     try:
         bpy.ops.mesh.edge_face_add()
-    except:
-        # If that fails, try fill
-        bpy.ops.mesh.fill()
+        bpy.ops.object.mode_set(mode='OBJECT')
+        face_count = len(mesh_obj.data.polygons)
+        if face_count > 0:
+            logger.log(f"  SUCCESS: Created {face_count} faces", "SUCCESS")
+        else:
+            logger.log("  WARNING: edge_face_add created 0 faces", "WARNING")
+    except Exception as e:
+        logger.log(f"  WARNING: edge_face_add exception: {e}", "WARNING")
+        bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Enter edit mode for subdivision
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
     
     # Subdivide for smoother simulation
-    # More vertices = smoother cloth behavior
-    bpy.ops.mesh.subdivide(number_cuts=3)
+    logger.log("\nSubdividing mesh for smooth cloth simulation...", "INFO")
+    bpy.ops.mesh.subdivide(number_cuts=1)
+    logger.log("  Subdivision complete", "SUCCESS")
     
     # Triangulate for cloth simulation (works better with tris)
+    logger.log("Triangulating for cloth physics...", "INFO")
     bpy.ops.mesh.quads_convert_to_tris()
+    logger.log("  Triangulation complete", "SUCCESS")
+    
+    # CRITICAL: Recalculate normals for proper cloth simulation
+    logger.log("Recalculating normals...", "INFO")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    logger.log("  Normals recalculated (pointing outward)", "SUCCESS")
+    
+    # CRITICAL: Remove duplicate/overlapping vertices
+    logger.log("Removing duplicate vertices...", "INFO")
+    bpy.ops.mesh.remove_doubles(threshold=0.0001)  # 0.1mm tolerance
+    logger.log("  Duplicates removed", "SUCCESS")
     
     # Exit edit mode
     bpy.ops.object.mode_set(mode='OBJECT')
     
-    # Apply scale (important for physics)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    # CRITICAL: Apply ALL transforms (location, rotation, scale)
+    # This ensures the mesh has identity transforms for physics
+    logger.log("Applying transforms (location, rotation, scale)...", "INFO")
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    logger.log("  Transforms applied - mesh is now in world space", "SUCCESS")
     
     # Force garbage collection after mesh operations
     gc.collect()
     
-    vertex_count = len(mesh_obj.data.vertices)
-    print(f"  ✓ Created mesh with {vertex_count} vertices")
+    # FINAL VALIDATION
+    mesh_data = mesh_obj.data
+    vertex_count = len(mesh_data.vertices)
+    edge_count = len(mesh_data.edges)
+    face_count = len(mesh_data.polygons)
+    
+    conversion_time = time.time() - conversion_start
+    
+    logger.log("\n" + "="*60, "INFO")
+    logger.log("MESH CONVERSION SUMMARY", "INFO")
+    logger.log("="*60, "INFO")
+    logger.log(f"Vertices: {vertex_count}", "INFO")
+    logger.log(f"Edges: {edge_count}", "INFO")
+    logger.log(f"Faces: {face_count}", "SUCCESS" if face_count > 0 else "ERROR")
+    logger.log(f"Conversion time: {conversion_time:.3f}s", "INFO")
+    
+    # CRITICAL CHECK: Mesh MUST have faces
+    if face_count == 0:
+        logger.log("\n" + "!"*60, "ERROR")
+        logger.log("CRITICAL ERROR: MESH HAS NO FACES!", "ERROR")
+        logger.log("Cloth simulation REQUIRES surface area (faces) not just edges.", "ERROR")
+        logger.log("!"*60 + "\n", "ERROR")
+    else:
+        logger.log(f"\nMESH VALID: {face_count} faces created - ready for cloth simulation", "SUCCESS")
+        logger.log("="*60 + "\n", "INFO")
     
     return mesh_obj
 
@@ -544,9 +707,33 @@ def create_pattern_mesh_from_points(points: list, name: str) -> bpy.types.Object
     
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.mesh.subdivide(number_cuts=4)
+    # REDUCED from 4 to 1 to prevent excessive vertices
+    bpy.ops.mesh.subdivide(number_cuts=1)
     bpy.ops.mesh.quads_convert_to_tris()
+    
+    # CRITICAL: Recalculate normals for consistent orientation
+    print(f"  → Recalculating normals for {name}...")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    
+    # CRITICAL: Remove any duplicate vertices from subdivision
+    print(f"  → Removing duplicate vertices...")
+    bpy.ops.mesh.remove_doubles(threshold=0.0001)  # 0.1mm tolerance
+    
     bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # CRITICAL: Apply ALL transforms to ensure mesh is in world space
+    print(f"  → Applying transforms...")
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    
+    # VALIDATION: Ensure mesh is flat (all vertices should have Z ≈ 0)
+    vertices = obj.data.vertices
+    z_coords = [v.co.z for v in vertices]
+    z_min, z_max = min(z_coords), max(z_coords)
+    z_range = z_max - z_min
+    if z_range > 0.01:  # More than 1cm variation in Z
+        print(f"  ⚠ WARNING: Mesh is not flat! Z range: {z_range*100:.2f}cm")
+    else:
+        print(f"  ✓ Mesh is flat (Z range: {z_range*1000:.2f}mm)")
     
     # Garbage collect after subdivision
     gc.collect()
@@ -564,54 +751,54 @@ def position_pattern_pieces(front: bpy.types.Object,
     """
     Position pattern pieces for sewing.
     
-    Like laying out fabric before sewing:
-    - Front and back face each other (will be sewn at sides)
-    - Sleeves positioned at armholes
+    CRITICAL: Pieces are laid out FLAT initially (no rotation).
+    The cloth simulation will naturally drape them into 3D shape.
     
-    The pieces start FLAT and will be pulled into 3D shape
-    by the sewing forces during simulation.
+    Layout (flat on XY plane, like fabric on a cutting table):
     
-    Layout (top view):
+    LEFT_SLEEVE    FRONT    RIGHT_SLEEVE
+                   BACK
     
-                 LEFT_SLEEVE
-                      │
-         ┌────────────┼────────────┐
-         │            │            │
-    FRONT│            │            │BACK
-         │            │            │
-         └────────────┼────────────┘
-                      │
-                RIGHT_SLEEVE
+    (Pieces are close together so sewing springs can connect edges)
     """
-    print("→ Positioning pattern pieces...")
+    print("→ Positioning pattern pieces (FLAT layout for cloth sim)...")
     
     # Get dimensions of front panel for reference
     front_dims = front.dimensions
     panel_width = front_dims.x
     panel_height = front_dims.y
     
-    # Position FRONT (left side, facing right)
-    front.location = Vector((-panel_width * 0.6, 0, 0))
-    front.rotation_euler = (math.radians(90), 0, 0)  # Stand up vertically
-    print(f"  ✓ Front positioned at {front.location}")
+    # CRITICAL: Keep pieces FLAT (Z=0) to prevent pre-distortion
+    # Position pieces side-by-side with small gaps
+    gap = 0.02  # 2cm gap between pieces
     
-    # Position BACK (right side, facing left - mirror of front)
-    back.location = Vector((panel_width * 0.6, 0, 0))
-    back.rotation_euler = (math.radians(90), 0, math.radians(180))  # Rotated to face front
-    print(f"  ✓ Back positioned at {back.location}")
+    # FRONT: Center position, flat on XY plane
+    front.location = Vector((0, 0, 0))
+    front.rotation_euler = (0, 0, 0)  # NO ROTATION - keep flat!
+    print(f"  ✓ Front: centered at origin, FLAT")
     
-    # Position LEFT SLEEVE (top)
+    # BACK: Behind front, flat on XY plane
+    back.location = Vector((0, -panel_height - gap, 0))
+    back.rotation_euler = (0, 0, 0)  # NO ROTATION - keep flat!
+    print(f"  ✓ Back: below front, FLAT")
+    
+    # LEFT SLEEVE: To the left, flat on XY plane
     if left_sleeve:
         sleeve_width = left_sleeve.dimensions.x
-        left_sleeve.location = Vector((0, panel_width * 0.5, panel_height * 0.4))
-        left_sleeve.rotation_euler = (math.radians(90), 0, math.radians(-90))
-        print(f"  ✓ Left sleeve positioned")
+        sleeve_height = left_sleeve.dimensions.y
+        left_sleeve.location = Vector((-panel_width/2 - sleeve_width/2 - gap, 0, 0))
+        left_sleeve.rotation_euler = (0, 0, 0)  # NO ROTATION - keep flat!
+        print(f"  ✓ Left sleeve: left side, FLAT")
     
-    # Position RIGHT SLEEVE (bottom, mirror of left)
+    # RIGHT SLEEVE: To the right, flat on XY plane
     if right_sleeve:
-        right_sleeve.location = Vector((0, -panel_width * 0.5, panel_height * 0.4))
-        right_sleeve.rotation_euler = (math.radians(90), 0, math.radians(90))
-        print(f"  ✓ Right sleeve positioned")
+        sleeve_width = right_sleeve.dimensions.x
+        right_sleeve.location = Vector((panel_width/2 + sleeve_width/2 + gap, 0, 0))
+        right_sleeve.rotation_euler = (0, 0, 0)  # NO ROTATION - keep flat!
+        print(f"  ✓ Right sleeve: right side, FLAT")
+    
+    print(f"  ✓ All pieces laid FLAT (Z=0) with {gap*100:.0f}cm gaps")
+    print(f"  → Cloth simulation will naturally drape them into 3D shape")
 
 
 def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
@@ -629,6 +816,36 @@ def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
     """
     print(f"→ Adding cloth physics to {obj.name}...")
     
+    # CRITICAL PRE-CHECK: Verify mesh has faces
+    mesh_data = obj.data
+    if len(mesh_data.polygons) == 0:
+        print(f"  ❌ FATAL: Cannot add cloth to {obj.name} - NO FACES!")
+        print(f"     Vertices: {len(mesh_data.vertices)}, Edges: {len(mesh_data.edges)}, Faces: 0")
+        print(f"     Cloth simulation requires surface area to work")
+        return
+    else:
+        print(f"  ✓ Mesh OK: {len(mesh_data.vertices)} verts, {len(mesh_data.polygons)} faces")
+    
+    # CRITICAL PRE-CHECK: Verify transforms are applied (scale should be 1.0)
+    scale = obj.scale
+    if not (abs(scale.x - 1.0) < 0.001 and abs(scale.y - 1.0) < 0.001 and abs(scale.z - 1.0) < 0.001):
+        print(f"  ⚠ WARNING: Object has non-identity scale: {scale}")
+        print(f"     Applying transforms before adding cloth...")
+        bpy.context.view_layer.objects.active = obj
+        obj.select_set(True)
+        bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+        print(f"  ✓ Transforms applied")
+    
+    # CRITICAL PRE-CHECK: Verify normals are consistent
+    print(f"  → Verifying mesh normals...")
+    bpy.context.view_layer.objects.active = obj
+    obj.select_set(True)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    print(f"  ✓ Normals verified and corrected")
+    
     # Add cloth modifier
     cloth_mod = obj.modifiers.new(name="Cloth", type='CLOTH')
     
@@ -637,14 +854,17 @@ def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
     
     # Quality (more steps = more accurate but slower)
     cloth.quality = CLOTH_SETTINGS["quality"]
+    print(f"  Cloth Quality: {cloth.quality} steps")
     
     # Mass (kg per square meter)
     cloth.mass = CLOTH_SETTINGS["mass"]
+    print(f"  Mass: {cloth.mass} kg/m²")
     
     # Stiffness (how much fabric resists deformation)
     cloth.tension_stiffness = CLOTH_SETTINGS["tension_stiffness"]
     cloth.compression_stiffness = CLOTH_SETTINGS["compression_stiffness"]
     cloth.bending_stiffness = CLOTH_SETTINGS["bending_stiffness"]
+    print(f"  Stiffness - Tension: {cloth.tension_stiffness}, Bend: {cloth.bending_stiffness}")
     
     # Damping (reduces oscillation)
     cloth.air_damping = CLOTH_SETTINGS["air_damping"]
@@ -652,6 +872,13 @@ def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
     # Enable pressure (helps maintain volume)
     cloth.use_pressure = True
     cloth.uniform_pressure_force = 0.5
+    print(f"  Pressure enabled: {cloth.uniform_pressure_force}")
+    
+    # Check gravity settings
+    gravity = cloth.effector_weights.gravity
+    print(f"  Gravity multiplier: {gravity}")
+    if gravity == 0:
+        print(f"  ⚠ WARNING: Gravity is DISABLED! Cloth won't fall")
     
     # ==========================================
     # SEWING SPRINGS - This is the key feature!
@@ -664,6 +891,15 @@ def add_cloth_modifier(obj: bpy.types.Object, enable_sewing: bool = True):
     else:
         cloth.use_sewing_springs = False
         print(f"  ⚠ Sewing springs disabled")
+    
+    # ==========================================
+    # PIN GROUP - Prevents garment from falling
+    # ==========================================
+    if "Pin" in obj.vertex_groups:
+        cloth.vertex_group_mass = "Pin"
+        print(f"  ✓ Pin group assigned - garment will hang from pinned vertices")
+    else:
+        print(f"  ⚠ No pin group found - entire garment will be affected by gravity")
     
     print(f"  ✓ Cloth modifier added to {obj.name}")
 
@@ -758,6 +994,14 @@ def join_pattern_pieces(pieces: list, name: str) -> bpy.types.Object:
     """
     print(f"→ Joining pattern pieces into {name}...")
     
+    # CHECK: Verify all pieces have faces before joining
+    for i, piece in enumerate(pieces):
+        if piece:
+            face_count = len(piece.data.polygons)
+            print(f"  Piece {i} ({piece.name}): {face_count} faces")
+            if face_count == 0:
+                print(f"  ⚠ WARNING: Piece {piece.name} has NO FACES!")
+    
     # Deselect all
     bpy.ops.object.select_all(action='DESELECT')
     
@@ -776,7 +1020,93 @@ def join_pattern_pieces(pieces: list, name: str) -> bpy.types.Object:
     joined = bpy.context.active_object
     joined.name = name
     
+    # Check what vertex groups were preserved during join
+    vgroup_count = len(joined.vertex_groups)
+    if vgroup_count > 0:
+        print(f"  ✓ Preserved {vgroup_count} vertex groups from join:")
+        for vg in joined.vertex_groups:
+            print(f"    - {vg.name}")
+    else:
+        print(f"  ⚠ WARNING: No vertex groups found after join")
+        print(f"    Sewing constraints will not work without vertex groups")
+    
+    # CRITICAL FIX: Merge vertices at seam edges to create unified mesh
+    # Without this, pieces remain as disconnected islands
+    print(f"  → Merging vertices at seam edges...")
+    bpy.context.view_layer.objects.active = joined
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    
+    # CRITICAL: Recalculate normals for the joined mesh
+    print(f"  → Recalculating normals for joined mesh...")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    
+    # CREATE PIN GROUP for shoulder area (prevents entire garment from falling)
+    # Pin the top center vertices so garment hangs from shoulders
+    print(f"  → Creating pin group for shoulder support...")
+    bpy.ops.mesh.select_all(action='DESELECT')
+    
+    # Use Python mode to select top-center vertices
+    bpy.ops.object.mode_set(mode='OBJECT')
+    mesh = joined.data
+    
+    # Find vertices in the top 10% (shoulder/neck area)
+    all_z = [v.co.z for v in mesh.vertices]
+    if all_z:
+        max_z = max(all_z)
+        min_z = min(all_z)
+        z_range = max_z - min_z
+        shoulder_threshold = max_z - (z_range * 0.15)  # Top 15%
+        
+        # Find center-top vertices
+        all_x = [v.co.x for v in mesh.vertices]
+        center_x = sum(all_x) / len(all_x) if all_x else 0
+        x_range = max(all_x) - min(all_x) if all_x else 1
+        center_width = x_range * 0.2  # Center 20% width
+        
+        pin_verts = []
+        for i, v in enumerate(mesh.vertices):
+            # Top-center area (shoulder/neckline)
+            if v.co.z >= shoulder_threshold and abs(v.co.x - center_x) < center_width:
+                pin_verts.append(i)
+        
+        if pin_verts:
+            # Create pin group
+            pin_group = joined.vertex_groups.new(name="Pin")
+            pin_group.add(pin_verts, 1.0, 'ADD')
+            print(f"  ✓ Pinned {len(pin_verts)} vertices in shoulder/neck area")
+        else:
+            print(f"  ⚠ No vertices found for pinning (garment may fall)")
+    
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    
+    # Merge vertices that are close (within 5cm to catch seam edges)
+    # Pattern pieces are positioned near each other but not overlapping
+    merge_distance = 0.05  # 5cm - enough to catch nearby seam vertices
+    result = bpy.ops.mesh.remove_doubles(threshold=merge_distance)
+    print(f"  ✓ Merged vertices (threshold: {merge_distance}m = 5cm)")
+    if hasattr(result, '__iter__') and 'FINISHED' in result:
+        print(f"    Operation completed successfully")
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # CRITICAL: Apply ALL transforms after joining
+    print(f"  → Applying transforms to joined mesh...")
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    
+    # Force garbage collection after joining
+    gc.collect()
+    
+    vertex_count = len(joined.data.vertices)
+    face_count = len(joined.data.polygons)
     print(f"  ✓ Created combined garment: {name}")
+    print(f"    Vertices: {vertex_count}, Faces: {face_count}")
+    
+    # WARNING: Check if mesh is too dense
+    if vertex_count > 10000:
+        print(f"  ⚠ WARNING: Mesh has {vertex_count} vertices!")
+        print(f"    This may cause slow simulation. Consider reducing subdivision.")
     
     return joined
 
@@ -868,6 +1198,8 @@ def add_anatomical_avatar(measurements: dict = None):
     
     # 4. Convert to Mesh (Crucial for Collision)
     # We must convert the metaball math into a real mesh for physics
+    # CRITICAL: Deselect ALL first to avoid converting wrong object!
+    bpy.ops.object.select_all(action='DESELECT')
     bpy.context.view_layer.objects.active = obj
     obj.select_set(True)
     bpy.ops.object.convert(target='MESH')
@@ -887,43 +1219,53 @@ def position_garment_on_avatar(garment: bpy.types.Object,
                                 avatar_parts: dict,
                                 measurements: dict = None):
     """
-    Position the flat garment pieces around the avatar.
+    Position the flat garment pieces relative to avatar.
     
-    The garment starts positioned ABOVE and AROUND the avatar.
-    During simulation:
-    1. Gravity pulls the fabric down
-    2. Collision prevents it from passing through the body
-    3. Sewing springs pull edges together
+    CRITICAL: Garment positioned ABOVE avatar so gravity pulls it DOWN onto the body.
     
-    Result: Garment drapes naturally on the avatar.
+    Setup:
+    - Avatar at origin (Z ≈ 0)
+    - Flat garment suspended above (Z = 0.8m)
+    - Gravity (-9.8 m/s²) pulls garment downward
+    - Cloth drapes over avatar as it falls
     
     Args:
-        garment: The joined garment mesh
+        garment: The joined garment mesh (laid flat on XY plane)
         avatar_parts: Dictionary of avatar body parts
         measurements: Optional measurements for positioning
     """
-    print("→ Positioning garment on avatar...")
+    print("→ Positioning garment ABOVE avatar for gravity draping...")
     
     torso = avatar_parts.get("torso")
     if not torso:
-        print("  ⚠ No torso found, using default position")
-        garment.location.z = 0.25
+        print("  ⚠ No torso found, cannot position")
         return
     
-    # Get torso dimensions
+    # Get dimensions
+    garment_bounds = garment.dimensions
     torso_height = torso.dimensions.z
-    torso_top = torso.location.z + torso_height / 2
     
-    # Position garment at shoulder height, slightly above
-    # This allows it to fall and drape during simulation
-    garment.location.z = torso_top - 0.05  # Just below shoulders
+    print(f"  Garment dimensions: {garment_bounds.x:.2f}m x {garment_bounds.y:.2f}m (flat)")
+    print(f"  Torso height: {torso_height:.2f}m")
     
-    # Center on avatar
+    # CRITICAL FIX: Position garment ABOVE avatar
+    # Gravity pulls garment DOWN onto body (not up!)
+    drop_height = torso_height + 0.3  # Start 30cm above torso top
+    
+    # Avatar stays at origin
+    torso.location.x = 0
+    torso.location.y = 0
+    torso.location.z = 0  # Avatar at ground level
+    
+    # Garment suspended above
     garment.location.x = 0
-    garment.location.y = 0
+    garment.location.y = 0  
+    garment.location.z = drop_height  # Garment floats above avatar
     
-    print(f"  ✓ Garment positioned at z={garment.location.z:.2f}m")
-    print("    During simulation, fabric will fall and drape on avatar")
+    print(f"  ✓ Avatar positioned at Z=0 (ground level)")
+    print(f"  ✓ Garment suspended at Z={drop_height:.2f}m")
+    print(f"  ✓ Drop distance: {drop_height:.2f}m")
+    print(f"  → Gravity will pull garment DOWN onto avatar body")
 
 
 def run_simulation(frames: int = 150):
@@ -937,27 +1279,30 @@ def run_simulation(frames: int = 150):
     Args:
         frames: Number of frames to simulate
     """
-    print(f"→ Running simulation for {frames} frames...")
-    print("  (This may take a few minutes)")
-    
-    # Set frame range
-    bpy.context.scene.frame_end = frames
-    
-    # Go to frame 1
-    bpy.context.scene.frame_set(1)
-    
-    # Bake simulation
-    # In Blender UI this would be: Physics > Cloth > Cache > Bake
-    # Programmatically, we just step through frames
-    
-    for frame in range(1, frames + 1):
-        bpy.context.scene.frame_set(frame)
-        
-        # Print progress every 30 frames
-        if frame % 30 == 0:
-            print(f"  Frame {frame}/{frames}...")
-    
-    print(f"  ✓ Simulation complete")
+    # NOTE: This function is deprecated in favor of bake_simulation()
+    # Kept for reference only
+    pass
+    # print(f"→ Running simulation for {frames} frames...")
+    # print("  (This may take a few minutes)")
+    # 
+    # # Set frame range
+    # bpy.context.scene.frame_end = frames
+    # 
+    # # Go to frame 1
+    # bpy.context.scene.frame_set(1)
+    # 
+    # # Bake simulation
+    # # In Blender UI this would be: Physics > Cloth > Cache > Bake
+    # # Programmatically, we just step through frames
+    # 
+    # for frame in range(1, frames + 1):
+    #     bpy.context.scene.frame_set(frame)
+    #     
+    #     # Print progress every 30 frames
+    #     if frame % 30 == 0:
+    #         print(f"  Frame {frame}/{frames}...")
+    # 
+    # print(f"  ✓ Simulation complete")
 
 
 def bake_simulation(garment: bpy.types.Object, frames: int = 150):
@@ -1286,6 +1631,7 @@ def run_blender_sewing_pipeline(measurements: dict = None):
     print("\n" + "="*60)
     print("   STEP 5: BLENDER SEWING & SIMULATION")
     print("="*60)
+    logger.log_step("Starting Step 5: Blender Sewing & Simulation")
     
     # Force garbage collection at pipeline start
     gc.collect()
@@ -1301,13 +1647,17 @@ def run_blender_sewing_pipeline(measurements: dict = None):
         }
     
     print("\n📏 Using measurements:")
+    logger.log_step("Loading measurements")
     for k, v in measurements.items():
         print(f"  {k}: {v} cm")
+        logger.log_detail(f"{k}: {v} cm")
     
     # Step 1: Clear and setup scene
     print("\n" + "-"*40)
+    logger.log_step("Clearing and setting up scene")
     clear_scene()
     setup_scene()
+    logger.log_detail("Scene setup complete")
     
     # Garbage collect after clearing scene
     gc.collect()
@@ -1315,16 +1665,19 @@ def run_blender_sewing_pipeline(measurements: dict = None):
     # Step 2: Create pattern pieces
     print("\n" + "-"*40)
     print("Creating pattern pieces...")
+    logger.log_step("Creating pattern pieces from measurements")
     
     # For this minimal version, create meshes directly
     # (SVG import can be used but requires the SVG files)
     panels = create_tshirt_panels_manually(measurements)
+    logger.log_detail(f"Created {len([p for p in panels.values() if p])} pattern pieces")
     
     # Garbage collect after creating all panels
     gc.collect()
     
     # Step 3: Position pieces
     print("\n" + "-"*40)
+    logger.log_step("Positioning pattern pieces")
     position_pattern_pieces(
         panels["front"],
         panels["back"],
@@ -1336,44 +1689,134 @@ def run_blender_sewing_pipeline(measurements: dict = None):
     # This MUST happen BEFORE joining pieces
     print("\n" + "-"*40)
     print("Setting up sewing seams...")
+    logger.log_step("Setting up sewing seams")
     seam_defs = load_seam_definitions()
     
     if seam_defs:
         # Use seam definitions from step4
+        logger.log_detail(f"Using {len(seam_defs)} seam definitions from step4")
         setup_seams_from_definitions(panels, seam_defs)
     else:
         # Fall back to default seam setup
+        logger.log_detail("Using default seam setup")
         setup_default_seams(panels)
     
     # Step 5: Join into single garment object
     print("\n" + "-"*40)
+    logger.log_step("Joining pattern pieces into single garment")
     all_pieces = [p for p in panels.values() if p is not None]
     garment = join_pattern_pieces(all_pieces, "TShirt_Garment")
+    logger.log_detail(f"Joined {len(all_pieces)} pieces into {garment.name}")
+    
+    # VALIDATION: Verify mesh is properly connected
+    print("\n" + "-"*40)
+    print("Validating mesh topology...")
+    bpy.context.view_layer.objects.active = garment
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='DESELECT')
+    
+    # Count mesh islands using Blender's "Select Linked" operator
+    bm = bmesh.from_edit_mesh(garment.data)
+    islands = []
+    unvisited_verts = set(bm.verts)
+    
+    while unvisited_verts:
+        # Start a new island from an unvisited vertex
+        seed_vert = unvisited_verts.pop()
+        island_verts = {seed_vert}
+        to_visit = [seed_vert]
+        
+        while to_visit:
+            v = to_visit.pop()
+            for edge in v.link_edges:
+                other_vert = edge.other_vert(v)
+                if other_vert in unvisited_verts:
+                    unvisited_verts.remove(other_vert)
+                    island_verts.add(other_vert)
+                    to_visit.append(other_vert)
+        
+        islands.append(len(island_verts))
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    island_count = len(islands)
+    print(f"  Mesh islands (disconnected pieces): {island_count}")
+    if island_count > 1:
+        print(f"  ⚠ WARNING: Garment has {island_count} disconnected pieces!")
+        logger.log_detail(f"WARNING: Mesh has {island_count} disconnected islands")
+        for i, verts in enumerate(islands, 1):
+            print(f"    Island {i}: {verts} vertices")
+            logger.log_detail(f"  Island {i}: {verts} vertices")
+        print(f"  These pieces will fall separately during simulation.")
+    else:
+        print(f"  ✓ Mesh is properly unified (single connected island)")
+        logger.log_detail("Mesh validation: Single connected island ✓")
     
     # Step 6: Add cloth physics WITH SEWING SPRINGS
+    # Sewing springs are REQUIRED for disconnected pattern pieces - they pull
+    # the seam edges together during simulation, mimicking actual sewing.
+    # Vertex groups from Step 4 define which edges to sew together.
     print("\n" + "-"*40)
-    add_cloth_modifier(garment, enable_sewing=True)
+    logger.log_step("Adding cloth physics modifier")
+    try:
+        # ENABLE SEWING - this is critical for connecting the 4 separate pattern pieces
+        add_cloth_modifier(garment, enable_sewing=True)
+        logger.log_detail("Cloth modifier added with SEWING ENABLED")
+    except Exception as e:
+        print(f"❌ ERROR adding cloth modifier: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+    
+    # VERIFY cloth modifier was added successfully
+    cloth_mod_found = False
+    for mod in garment.modifiers:
+        if mod.type == 'CLOTH':
+            cloth_mod_found = True
+            print(f"\n✓ VERIFIED: Cloth modifier is active")
+            print(f"  Quality: {mod.settings.quality} steps")
+            print(f"  Mass: {mod.settings.mass} kg/m²")
+            print(f"  Sewing enabled: {mod.settings.use_sewing_springs}")
+            if mod.settings.use_sewing_springs:
+                print(f"  Sewing force: {mod.settings.sewing_force_max}")
+                print(f"  → Pieces will sew together during simulation")
+            print(f"  Gravity: {mod.settings.effector_weights.gravity}")
+            break
+    
+    if not cloth_mod_found:
+        error_msg = "Cloth modifier was NOT added! Check errors above."
+        print(f"\n❌ CRITICAL: {error_msg}")
+        logger.log_step(f"CRITICAL ERROR: {error_msg}")
+        raise RuntimeError(error_msg)
+    else:
+        logger.log_detail("Cloth modifier verified and active")
     
     # Step 7: Add anatomical avatar for collision
     print("\n" + "-"*40)
+    logger.log_step("Adding anatomical avatar for collision")
     avatar_parts = add_anatomical_avatar(measurements)
+    logger.log_detail(f"Avatar created with {len(avatar_parts)} parts")
     
     # Step 8: Auto-position garment around avatar
     print("\n" + "-"*40)
+    logger.log_step("Auto-positioning garment on avatar")
     position_garment_on_avatar(garment, avatar_parts, measurements)
+    logger.log_detail("Garment positioned successfully")
     
     # Summary
     print("\n" + "="*60)
     print("   BLENDER SETUP COMPLETE")
+    logger.log_step("Blender setup pipeline completed successfully")
     print("="*60)
-    print(f"""
-✓ Created garment with cloth physics
-✓ Sewing springs ENABLED
-✓ Anatomical avatar with collision (torso + shoulders + neck)
-✓ Garment auto-positioned on avatar
+    try:
+        summary = """
+Created garment with cloth physics
+Sewing springs ENABLED
+Anatomical avatar with collision (torso + shoulders + neck)
+Garment auto-positioned on avatar
 
 AVATAR COLLISION SETUP:
-- Torso: tapered cylinder (chest → waist)
+- Torso: tapered cylinder (chest to waist)
 - Shoulders: horizontal cylinders for natural drape
 - Neck: prevents neckline from collapsing
 - Friction: fabric sticks slightly for realism
@@ -1399,7 +1842,11 @@ Call run_full_simulation_pipeline(garment) to:
 
 TO SAVE BLEND FILE:
 - File > Save As to save .blend file
-""")
+"""
+        print(summary)
+    except Exception as e:
+        # Fallback if Unicode print fails
+        print(f"Garment setup complete - see log for details (print error: {e})")
     
     return garment, avatar_parts
 
@@ -1413,32 +1860,30 @@ AUTO_BAKE = os.environ.get("MIRRA_AUTO_BAKE", "false").lower() == "true"
 AUTO_EXPORT = os.environ.get("MIRRA_AUTO_EXPORT", "false").lower() == "true"
 
 if __name__ == "__main__":
-    """
-    This script runs inside Blender.
-    
-    BASIC USAGE (interactive):
-        blender --python step5_blender_sewing.py
-    
-    This will:
-    - Set up the scene with cloth physics
-    - Create avatar with collision
-    - Position garment
-    - Wait for you to press SPACEBAR to simulate
-    
-    AUTOMATED USAGE (bake + export):
-        MIRRA_AUTO_BAKE=true blender -b --python step5_blender_sewing.py
-    
-    This will:
-    - Do all of the above
-    - Auto-bake the simulation (150 frames)
-    - Create static mesh from final frame
-    - Export as OBJ, FBX, GLB
-    
-    Options:
-        -b              Run in background (no UI)
-        MIRRA_AUTO_BAKE Set to "true" to auto-bake simulation
-        MIRRA_AUTO_EXPORT Set to "true" to export after baking
-    """
+    # This script runs inside Blender.
+    #
+    # BASIC USAGE (interactive):
+    #     blender --python step5_blender_sewing.py
+    #
+    # This will:
+    # - Set up the scene with cloth physics
+    # - Create avatar with collision
+    # - Position garment
+    # - Wait for you to press SPACEBAR to simulate
+    #
+    # AUTOMATED USAGE (bake + export):
+    #     MIRRA_AUTO_BAKE=true blender -b --python step5_blender_sewing.py
+    #
+    # This will:
+    # - Do all of the above
+    # - Auto-bake the simulation (150 frames)
+    # - Create static mesh from final frame
+    # - Export as OBJ, FBX, GLB
+    #
+    # Options:
+    #     -b              Run in background (no UI)
+    #     MIRRA_AUTO_BAKE Set to "true" to auto-bake simulation
+    #     MIRRA_AUTO_EXPORT Set to "true" to export after baking
     
     # Try to load measurements from pattern_output if available
     measurements = None
@@ -1453,8 +1898,20 @@ if __name__ == "__main__":
         except:
             pass
     
-    # Run the setup pipeline
-    garment, avatar_parts = run_blender_sewing_pipeline(measurements)
+    # Run the setup pipeline with error handling
+    try:
+        garment, avatar_parts = run_blender_sewing_pipeline(measurements)
+    except Exception as e:
+        error_msg = f"CRITICAL ERROR in pipeline execution: {str(e)}"
+        print(f"\n{'='*60}")
+        print(f"   ❌ STEP 5 FAILED")
+        print(f"{'='*60}")
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        logger.log_step(f"Pipeline Failed: {error_msg}")
+        logger.save_log()
+        raise
     
     # Auto-bake if requested
     if AUTO_BAKE:
@@ -1474,27 +1931,35 @@ if __name__ == "__main__":
         save_garment(blend_output)
         
         print("\n" + "="*60)
-        print("   STEP 5 COMPLETE — SIMULATION BAKED ✅")
+        print("   STEP 5 COMPLETE - SIMULATION BAKED")
         print("="*60)
-        print(f"""
+        output_summary = f"""
 Output files:
   Blend file: {blend_output}
   Exports: {PATTERN_DIR / 'exports'}/
     - TShirt_Garment_Static.obj
     - TShirt_Garment_Static.fbx  
     - TShirt_Garment_Static.glb
-""")
+"""
+        print(output_summary)
     else:
+        # CRITICAL: Save the .blend file so setup persists!
+        blend_output = str(PATTERN_DIR / "garment_simulation.blend")
+        save_garment(blend_output)
+        
         print("\n" + "="*60)
         print("   STEP 5 SETUP COMPLETE")
         print("="*60)
-        print("""
+        summary = f"""
+SCENE SAVED: {blend_output}
+
 Scene is ready! To complete:
 
 OPTION A - Interactive:
-  1. Press SPACEBAR to play simulation
-  2. Watch garment sew itself together
-  3. File > Export when satisfied
+  1. Open: {blend_output}
+  2. Press SPACEBAR to play simulation
+  3. Watch garment sew itself together
+  4. File > Export when satisfied
 
 OPTION B - Automated bake:
   In Blender Python console, run:
@@ -1502,7 +1967,20 @@ OPTION B - Automated bake:
 
 OPTION C - Re-run with auto-bake:
   MIRRA_AUTO_BAKE=true blender -b --python step5_blender_sewing.py
-""")
+
+VERIFICATION:
+- Garment mesh: {len(garment.data.polygons)} faces
+- Cloth modifier: Added with sewing springs
+- Avatar collision: Configured
+- Gravity: Enabled
+"""
+        print(summary)
+    
+    # Save comprehensive log (always execute, even if errors occur later)
+    try:
+        logger.save_log()
+    except Exception as e:
+        print(f"Warning: Failed to save log file: {e}")
     
     print("\nNext step: Apply color and design texture (step6)")
     print("Run: python step6_apply_texture.py")

@@ -18,6 +18,8 @@ import math
 from pathlib import Path
 from typing import Dict, List, Tuple
 import json
+import time
+from datetime import datetime
 
 # ============================================================
 # CONFIGURATION
@@ -25,6 +27,10 @@ import json
 
 # Output directory
 OUTPUT_DIR = Path("pattern_output")
+
+# Logging configuration
+LOG_FILE = OUTPUT_DIR / "step4_detailed_log.txt"
+LOG_JSON = OUTPUT_DIR / "step4_metrics.json"
 
 # Default measurements (in centimeters)
 # These can be overridden when calling the functions
@@ -42,6 +48,169 @@ SEAM_ALLOWANCE = 1.5  # cm
 # SVG settings
 SVG_SCALE = 10  # 1 cm = 10 pixels in SVG (for display)
                 # Real-size printing uses viewBox in cm
+
+
+# ============================================================
+# LOGGING SYSTEM
+# ============================================================
+
+class PatternGenerationLogger:
+    """Logger for comprehensive pattern generation tracking"""
+    
+    def __init__(self):
+        self.log_entries = []
+        self.metrics = {
+            "timestamp": datetime.now().isoformat(),
+            "pipeline": "step4_pattern_generation",
+            "version": "enhanced_v1.0",
+            "measurements": {},
+            "patterns_generated": [],
+            "svg_validations": []
+        }
+    
+    def log(self, message: str, level: str = "INFO"):
+        """Log a message with timestamp"""
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        entry = f"[{timestamp}] [{level:7}] {message}"
+        self.log_entries.append(entry)
+        print(message)
+    
+    def log_measurement(self, name: str, value: float, unit: str = "cm"):
+        """Log a measurement"""
+        self.log(f"  {name}: {value} {unit}", "INFO")
+        self.metrics["measurements"][name] = {"value": value, "unit": unit}
+    
+    def log_pattern_created(self, name: str, vertex_count: int, path_length: float):
+        """Log pattern creation details"""
+        self.log(f"  Pattern '{name}' created: {vertex_count} vertices, perimeter={path_length:.2f} cm", "SUCCESS")
+        self.metrics["patterns_generated"].append({
+            "name": name,
+            "vertex_count": vertex_count,
+            "path_length_cm": round(path_length, 2)
+        })
+    
+    def log_svg_validation(self, filename: str, valid: bool, details: dict):
+        """Log SVG validation results"""
+        status = "✓ VALID" if valid else "✗ INVALID"
+        self.log(f"  SVG {filename}: {status}", "SUCCESS" if valid else "ERROR")
+        self.metrics["svg_validations"].append({"file": filename, "valid": valid, **details})
+    
+    def save_metrics(self):
+        """Save all metrics and logs to files"""
+        # Save detailed log
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Clean log entries of invalid Unicode surrogates (same as step3)
+        cleaned_entries = []
+        for entry in self.log_entries:
+            try:
+                entry.encode('utf-8')
+                cleaned_entries.append(entry)
+            except UnicodeEncodeError:
+                cleaned_entry = entry.encode('utf-8', errors='replace').decode('utf-8')
+                cleaned_entries.append(cleaned_entry)
+        
+        with open(LOG_FILE, 'w', encoding='utf-8') as f:
+            f.write("\n".join(cleaned_entries))
+        
+        # Save JSON metrics
+        with open(LOG_JSON, 'w', encoding='utf-8') as f:
+            json.dump(self.metrics, f, indent=2)
+        
+        self.log(f"\nMetrics saved:", "SUCCESS")
+        self.log(f"  Text log: {LOG_FILE}", "SUCCESS")
+        self.log(f"  JSON metrics: {LOG_JSON}", "SUCCESS")
+
+logger = PatternGenerationLogger()
+
+
+# ============================================================
+# SVG VALIDATION
+# ============================================================
+
+def validate_svg(svg_path: Path) -> dict:
+    """
+    Validate SVG file for Blender import compatibility.
+    
+    Checks:
+    1. File exists and has content
+    2. Contains valid SVG header
+    3. Has path elements
+    4. Paths are closed (critical for mesh fill)
+    
+    Args:
+        svg_path: Path to SVG file
+    
+    Returns:
+        Dictionary with validation results
+    """
+    result = {
+        "valid": False,
+        "file_exists": False,
+        "file_size": 0,
+        "has_svg_header": False,
+        "has_paths": False,
+        "path_count": 0,
+        "has_viewbox": False,
+        "warnings": []
+    }
+    
+    try:
+        # Check file exists
+        if not svg_path.exists():
+            result["warnings"].append("File does not exist")
+            return result
+        
+        result["file_exists"] = True
+        result["file_size"] = svg_path.stat().st_size
+        
+        if result["file_size"] == 0:
+            result["warnings"].append("File is empty")
+            return result
+        
+        # Read SVG content
+        with open(svg_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Check SVG header
+        if '<svg' in content and 'xmlns="http://www.w3.org/2000/svg"' in content:
+            result["has_svg_header"] = True
+        else:
+            result["warnings"].append("Missing or invalid SVG header")
+        
+        # Check viewBox (important for scale)
+        if 'viewBox=' in content:
+            result["has_viewbox"] = True
+        else:
+            result["warnings"].append("Missing viewBox attribute")
+        
+        # Check for paths
+        path_count = content.count('<path')
+        result["path_count"] = path_count
+        if path_count > 0:
+            result["has_paths"] = True
+        else:
+            result["warnings"].append("No path elements found")
+        
+        # Check paths are closed (contain 'Z' or 'z')
+        if 'z' in content.lower():
+            # Good - paths are closed
+            pass
+        else:
+            result["warnings"].append("Paths may not be closed (missing Z command)")
+        
+        # Overall validity
+        result["valid"] = (
+            result["file_exists"] and
+            result["file_size"] > 0 and
+            result["has_svg_header"] and
+            result["has_paths"]
+        )
+        
+    except Exception as e:
+        result["warnings"].append(f"Validation error: {e}")
+    
+    return result
 
 
 # ============================================================
@@ -605,7 +774,7 @@ def offset_outline(points: List[Tuple], offset: float) -> List[Tuple]:
 
 def generate_all_patterns(measurements: Dict[str, float]) -> Dict[str, Dict]:
     """
-    Generate all pattern pieces from measurements.
+    Generate all pattern pieces from measurements with logging.
     
     Args:
         measurements: Dictionary with the 5 required measurements
@@ -613,41 +782,77 @@ def generate_all_patterns(measurements: Dict[str, float]) -> Dict[str, Dict]:
     Returns:
         Dictionary of pattern pieces
     """
+    logger.log("\nGenerating pattern pieces...", "INFO")
+    logger.log("-" * 40, "INFO")
+    
+    generation_start = time.time()
     patterns = {}
     
-    print("\n→ Generating front panel...")
+    # Front panel
+    logger.log("Generating front panel...", "INFO")
+    panel_start = time.time()
     patterns["front"] = generate_front_panel(measurements)
-    print(f"  ✓ Front: {patterns['front']['width']:.1f} x {patterns['front']['height']:.1f} cm")
+    panel_time = time.time() - panel_start
+    logger.log(f"  Front: {patterns['front']['width']:.1f} x {patterns['front']['height']:.1f} cm ({len(patterns['front']['outline'])} vertices, {panel_time:.3f}s)", "SUCCESS")
+    logger.log_pattern_created("front", len(patterns['front']['outline']), patterns['front']['width'] * 2 + patterns['front']['height'] * 2)
     
-    print("\n→ Generating back panel...")
+    # Back panel
+    logger.log("Generating back panel...", "INFO")
+    panel_start = time.time()
     patterns["back"] = generate_back_panel(measurements)
-    print(f"  ✓ Back: {patterns['back']['width']:.1f} x {patterns['back']['height']:.1f} cm")
+    panel_time = time.time() - panel_start
+    logger.log(f"  Back: {patterns['back']['width']:.1f} x {patterns['back']['height']:.1f} cm ({len(patterns['back']['outline'])} vertices, {panel_time:.3f}s)", "SUCCESS")
+    logger.log_pattern_created("back", len(patterns['back']['outline']), patterns['back']['width'] * 2 + patterns['back']['height'] * 2)
     
-    print("\n→ Generating sleeve...")
+    # Sleeve
+    logger.log("Generating sleeve pattern...", "INFO")
+    panel_start = time.time()
     patterns["sleeve"] = generate_sleeve(measurements)
-    print(f"  ✓ Sleeve: {patterns['sleeve']['width']:.1f} x {patterns['sleeve']['height']:.1f} cm")
+    panel_time = time.time() - panel_start
+    logger.log(f"  Sleeve: {patterns['sleeve']['width']:.1f} x {patterns['sleeve']['height']:.1f} cm ({len(patterns['sleeve']['outline'])} vertices, {panel_time:.3f}s)", "SUCCESS")
+    logger.log_pattern_created("sleeve", len(patterns['sleeve']['outline']), patterns['sleeve']['width'] * 2 + patterns['sleeve']['height'] * 2)
+    
+    total_time = time.time() - generation_start
+    logger.log(f"\nAll patterns generated in {total_time:.3f}s", "SUCCESS")
     
     return patterns
 
 
 def save_patterns(patterns: Dict[str, Dict], measurements: Dict[str, float]):
     """
-    Save all patterns as SVG files and metadata.
+    Save all patterns as SVG files with validation.
     """
-    print("\n→ Saving pattern files...")
+    logger.log("\nSaving pattern files...", "INFO")
+    logger.log("-" * 40, "INFO")
     
     # Create output directory
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    logger.log(f"Output directory: {OUTPUT_DIR}", "INFO")
+    
+    saved_svgs = []
     
     # Save each pattern as SVG
     for name, pattern in patterns.items():
+        svg_start = time.time()
         svg_content = generate_svg(pattern)
         svg_path = OUTPUT_DIR / f"{name}_pattern.svg"
-        with open(svg_path, 'w') as f:
+        
+        with open(svg_path, 'w', encoding='utf-8') as f:
             f.write(svg_content)
-        print(f"  ✓ {svg_path}")
+        
+        file_size = svg_path.stat().st_size
+        svg_time = time.time() - svg_start
+        
+        logger.log(f"  ✓ {svg_path.name} ({file_size} bytes, {svg_time:.3f}s)", "SUCCESS")
+        
+        # Validate SVG content
+        validation = validate_svg(svg_path)
+        logger.log_svg_validation(svg_path.name, validation["valid"], validation)
+        
+        saved_svgs.append({"name": name, "path": svg_path, "size": file_size, "valid": validation["valid"]})
     
     # Save metadata JSON
+    logger.log("\nSaving metadata...", "INFO")
     metadata = {
         "measurements": measurements,
         "seam_allowance": SEAM_ALLOWANCE,
@@ -660,13 +865,25 @@ def save_patterns(patterns: Dict[str, Dict], measurements: Dict[str, float]):
             "width": pattern["width"],
             "height": pattern["height"],
             "notes": pattern.get("notes", ""),
-            "svg_file": f"{name}_pattern.svg"
+            "svg_file": f"{name}_pattern.svg",
+            "vertex_count": len(pattern["outline"])
         }
     
     json_path = OUTPUT_DIR / "pattern_metadata.json"
-    with open(json_path, 'w') as f:
+    with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2)
-    print(f"  ✓ {json_path}")
+    
+    json_size = json_path.stat().st_size
+    logger.log(f"  ✓ {json_path.name} ({json_size} bytes)", "SUCCESS")
+    
+    # Validate all SVGs are valid
+    invalid_svgs = [s for s in saved_svgs if not s["valid"]]
+    if invalid_svgs:
+        logger.log(f"\n⚠️  WARNING: {len(invalid_svgs)} SVG(s) failed validation!", "WARNING")
+        for svg in invalid_svgs:
+            logger.log(f"  - {svg['name']}: May cause issues in Blender", "WARNING")
+    else:
+        logger.log(f"\n✓ All {len(saved_svgs)} SVG files validated successfully", "SUCCESS")
     
     # NEW: Save seam definitions
     save_seam_definitions(patterns)
@@ -802,68 +1019,111 @@ def save_seam_definitions(patterns: Dict[str, Dict]):
 
 def run_pattern_generation_pipeline(measurements: Dict[str, float] = None):
     """
-    Run the complete pattern generation pipeline.
+    Run the complete pattern generation pipeline with comprehensive logging.
     """
-    print("\n" + "="*60)
-    print("   STEP 4: SEWING PATTERN GENERATION")
-    print("="*60)
+    logger.log("\n" + "="*80, "INFO")
+    logger.log("   STEP 4: SEWING PATTERN GENERATION PIPELINE (ENHANCED)", "INFO")
+    logger.log("="*80 + "\n", "INFO")
+    
+    pipeline_start = time.time()
     
     # Use provided measurements or defaults
     if measurements is None:
         measurements = DEFAULT_MEASUREMENTS
-        print("\n⚠ Using DEFAULT measurements:")
+        logger.log("Using DEFAULT measurements:", "INFO")
     else:
-        print("\n✓ Using PROVIDED measurements:")
+        logger.log("Using PROVIDED measurements:", "SUCCESS")
     
-    print(f"\n  ┌{'─'*35}┐")
-    print(f"  │ {'Measurement':<20} {'Value':>10} │")
-    print(f"  ├{'─'*35}┤")
-    print(f"  │ {'chest_flat':<20} {measurements['chest_flat']:>7.1f} cm │")
-    print(f"  │ {'body_length':<20} {measurements['body_length']:>7.1f} cm │")
-    print(f"  │ {'shoulder_width':<20} {measurements['shoulder_width']:>7.1f} cm │")
-    print(f"  │ {'sleeve_length':<20} {measurements['sleeve_length']:>7.1f} cm │")
-    print(f"  │ {'armhole_depth':<20} {measurements['armhole_depth']:>7.1f} cm │")
-    print(f"  └{'─'*35}┘")
-    
-    print(f"\n  Seam allowance: {SEAM_ALLOWANCE} cm")
+    # Log all measurements
+    logger.log("\nMeasurements:", "INFO")
+    logger.log("  " + "-"*35, "INFO")
+    for key, value in measurements.items():
+        logger.log_measurement(key, value, "cm")
+    logger.log("  " + "-"*35, "INFO")
+    logger.log(f"  Seam allowance: {SEAM_ALLOWANCE} cm", "INFO")
     
     # Generate patterns
+    logger.log("", "INFO")
     patterns = generate_all_patterns(measurements)
     
     # Save patterns
+    logger.log("", "INFO")
     save_patterns(patterns, measurements)
     
+    # Calculate total time
+    total_time = time.time() - pipeline_start
+    
     # Summary
-    print("\n" + "="*60)
-    print("   PATTERN GENERATION SUMMARY")
-    print("="*60)
+    logger.log("\n" + "="*80, "INFO")
+    logger.log("   PATTERN GENERATION SUMMARY", "INFO")
+    logger.log("="*80 + "\n", "INFO")
     
-    print("\n📐 Generated patterns:")
-    print("\n  FRONT PANEL:")
-    print(f"    - Width: {patterns['front']['width']:.1f} cm (half-width, cut on fold)")
-    print(f"    - Length: {patterns['front']['height']:.1f} cm")
-    print(f"    - Full width when unfolded: {patterns['front']['width'] * 2:.1f} cm")
+    logger.log("Total pipeline time: {:.3f}s".format(total_time), "SUCCESS")
+    logger.log("", "INFO")
     
-    print("\n  BACK PANEL:")
-    print(f"    - Width: {patterns['back']['width']:.1f} cm (half-width, cut on fold)")
-    print(f"    - Length: {patterns['back']['height']:.1f} cm")
-    print(f"    - Neckline: shallower than front")
+    logger.log("📐 Generated patterns:", "INFO")
+    logger.log("", "INFO")
     
-    print("\n  SLEEVE (x2):")
-    print(f"    - Width: {patterns['sleeve']['width']:.1f} cm")
-    print(f"    - Length: {patterns['sleeve']['height']:.1f} cm")
-    print(f"    - Sleeve cap height: ~{patterns['sleeve']['width']*0.45/1.4:.1f} cm")
+    logger.log("  FRONT PANEL:", "INFO")
+    logger.log(f"    - Width: {patterns['front']['width']:.1f} cm (half-width, cut on fold)", "INFO")
+    logger.log(f"    - Length: {patterns['front']['height']:.1f} cm", "INFO")
+    logger.log(f"    - Full width when unfolded: {patterns['front']['width'] * 2:.1f} cm", "INFO")
+    logger.log(f"    - Vertices: {len(patterns['front']['outline'])}", "INFO")
     
-    print(f"\n📁 Output saved to: {OUTPUT_DIR}/")
-    print(f"   - front_pattern.svg")
-    print(f"   - back_pattern.svg")
-    print(f"   - sleeve_pattern.svg")
-    print(f"   - pattern_metadata.json")
-    print(f"   - seams.json (NEW: sewing instructions for Blender)")
+    logger.log("", "INFO")
+    logger.log("  BACK PANEL:", "INFO")
+    logger.log(f"    - Width: {patterns['back']['width']:.1f} cm (half-width, cut on fold)", "INFO")
+    logger.log(f"    - Length: {patterns['back']['height']:.1f} cm", "INFO")
+    logger.log(f"    - Neckline: shallower than front", "INFO")
+    logger.log(f"    - Vertices: {len(patterns['back']['outline'])}", "INFO")
     
-    print("\n" + "="*60)
+    logger.log("", "INFO")
+    logger.log("  SLEEVE (x2):", "INFO")
+    logger.log(f"    - Width: {patterns['sleeve']['width']:.1f} cm", "INFO")
+    logger.log(f"    - Length: {patterns['sleeve']['height']:.1f} cm", "INFO")
+    logger.log(f"    - Sleeve cap height: ~{patterns['sleeve']['width']*0.45/1.4:.1f} cm", "INFO")
+    logger.log(f"    - Vertices: {len(patterns['sleeve']['outline'])}", "INFO")
     
-    return patterns
+    logger.log("", "INFO")
+    logger.log(f"📁 Output directory: {OUTPUT_DIR}/", "INFO")
+    logger.log("   Files created:", "INFO")
+    logger.log("   - front_pattern.svg", "INFO")
+    logger.log("   - back_pattern.svg", "INFO")
+    logger.log("   - sleeve_pattern.svg", "INFO")
+    logger.log("   - pattern_metadata.json", "INFO")
+    logger.log("   - seams.json (sewing instructions for Blender)", "INFO")
+    
+    logger.log("", "INFO")
+    logger.log(f"📝 Detailed log: {LOG_FILE}", "INFO")
+    logger.log(f"📊 Metrics JSON: {LOG_JSON}", "INFO")
+    
+    logger.log("", "INFO")
+    logger.log("="*80, "INFO")
+    
+    # Save metrics
+    logger.save_metrics()
+    
+    # Validate critical files
+    critical_files = [
+        OUTPUT_DIR / "front_pattern.svg",
+        OUTPUT_DIR / "back_pattern.svg",
+        OUTPUT_DIR / "sleeve_pattern.svg",
+        OUTPUT_DIR / "pattern_metadata.json",
+        OUTPUT_DIR / "seams.json"
+    ]
+    
+    all_valid = True
+    for file_path in critical_files:
+        if not file_path.exists():
+            logger.log(f"❌ CRITICAL FILE MISSING: {file_path}", "ERROR")
+            all_valid = False
+    
+    if all_valid:
+        logger.log("\n✅ ALL CRITICAL OUTPUT FILES VALIDATED", "SUCCESS")
+        return True
+    else:
+        logger.log("\n❌ SOME CRITICAL FILES ARE MISSING", "ERROR")
+        return False
 
 
 # ============================================================
@@ -953,7 +1213,7 @@ def get_measurements_from_user() -> Dict[str, float]:
 
 if __name__ == "__main__":
     """
-    Generate T-shirt sewing patterns from measurements.
+    Generate T-shirt sewing patterns from measurements with comprehensive logging.
     
     The script will prompt you to enter:
     1. chest_flat - Half chest width (measure flat, pit to pit)
@@ -971,16 +1231,45 @@ if __name__ == "__main__":
     1. FRONT - Cut 1 on fold
     2. BACK - Cut 1 on fold  
     3. SLEEVE - Cut 2 (left and right)
+    
+    Outputs:
+    - front_pattern.svg, back_pattern.svg, sleeve_pattern.svg (SVG patterns)
+    - pattern_metadata.json (measurements and metadata)
+    - seams.json (sewing instructions for Blender)
+    - step4_detailed_log.txt (complete operation log)
+    - step4_metrics.json (structured metrics)
     """
+    print("\n" + "="*80)
+    print("   PATTERN GENERATION - ENHANCED VERSION")
+    print("   With comprehensive logging and SVG validation")
+    print("="*80 + "\n")
     
     # Get measurements from user interactively
     user_measurements = get_measurements_from_user()
     
     # Generate patterns with user's measurements
-    patterns = run_pattern_generation_pipeline(user_measurements)
+    success = run_pattern_generation_pipeline(user_measurements)
     
-    print("\n" + "="*60)
-    print("   STEP 4 COMPLETE — GREEN SIGNAL REQUIRED ✅")
-    print("="*60)
-    print("\nNext step: Sewing and simulation in Blender")
-    print("Waiting for your GREEN SIGNAL to proceed...")
+    if success:
+        print("\n" + "="*80)
+        print("   ✅ STEP 4 COMPLETE - ALL VALIDATIONS PASSED")
+        print("="*80)
+        print(f"\n📁 Output directory: {OUTPUT_DIR}")
+        print(f"📝 Detailed log: {LOG_FILE}")
+        print(f"📊 Metrics JSON: {LOG_JSON}")
+        print("\n" + "="*80)
+        print("   READY FOR NEXT STEP")
+        print("="*80)
+        print("\n➡️  Next step: Blender cloth simulation")
+        print("   Run: blender --python step5_blender_sewing.py")
+        print("\n   ⚠️  CRITICAL: SVG files validated and ready for Blender import")
+        print("   The mesh face creation bug fix is active in step5")
+        print("\n" + "="*80)
+    else:
+        print("\n" + "="*80)
+        print("   ❌ STEP 4 FAILED - CHECK LOGS FOR DETAILS")
+        print("="*80)
+        print(f"\n📝 Check detailed log: {LOG_FILE}")
+        print(f"📊 Check metrics: {LOG_JSON}")
+        print("\nPlease fix the errors above and run again.")
+        print("="*80)

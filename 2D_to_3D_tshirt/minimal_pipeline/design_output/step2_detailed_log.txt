@@ -1,0 +1,123 @@
+================================================================================
+STEP 2: DESIGN EXTRACTION - DETAILED LOG
+Started: 2026-02-05 15:45:22
+================================================================================
+
+[  0.003s] [INFO   ] 
+================================================================================
+[  0.003s] [INFO   ]    STEP 2: DESIGN EXTRACTION PIPELINE (ENHANCED)
+[  0.004s] [INFO   ] ================================================================================
+
+[  0.005s] [SUCCESS] Output directories ready: design_output
+[  0.006s] [INFO   ] 
+--------------------------------------------------------------------------------
+[  0.007s] [INFO   ] PROCESSING FRONT IMAGE (REQUIRED)
+[  0.008s] [INFO   ] --------------------------------------------------------------------------------
+
+[  0.009s] [INFO   ] Loading masked image: front_masked.png
+[  0.009s] [INFO   ]   File size: 1.06 MB
+[  0.102s] [INFO   ]   Image shape: (1772, 1772, 4), dtype: uint8
+[  0.103s] [SUCCESS]   Extracted BGR and alpha channel
+[  0.104s] [SUCCESS] Loaded front image: 1772x1772 pixels
+[  0.105s] [INFO   ] 
+[  0.105s] [INFO   ] ============================================================
+[  0.106s] [INFO   ] EXTRACTING DESIGN: FRONT
+[  0.107s] [INFO   ] ============================================================
+[  0.111s] [INFO   ] Total garment pixels: 1837403
+[  0.111s] [INFO   ] 
+[  0.112s] [INFO   ] STEP 1: Edge Detection
+[  0.112s] [INFO   ] ----------------------------------------
+[  0.113s] [INFO   ] Detecting edges (Canny algorithm)...
+[  0.158s] [INFO   ]   Converted to grayscale
+[  0.160s] [INFO   ]   Applied Gaussian blur: kernel=(5, 5), sigma=1.5
+[  0.161s] [INFO   ]   Canny thresholds: low=50, high=150
+[  0.189s] [SUCCESS]   Edge detection complete in 0.076s
+[  0.203s] [INFO   ]   Debug image saved: edges.png
+[  0.206s] [INFO   ]   edge_detection detected: 20573 pixels (1.12%)
+    Data: {
+    "detected_pixels": 20573,
+    "total_pixels": 1837403,
+    "coverage_percent": 1.119678154438629
+}
+[  0.207s] [INFO   ] 
+[  0.209s] [INFO   ] STEP 2: Texture Variation Analysis
+[  0.210s] [INFO   ] ----------------------------------------
+[  0.211s] [INFO   ] Analyzing texture variation...
+[  0.261s] [INFO   ]   Local variance kernel size: 15x15
+[  0.332s] [INFO   ]   Variance stats: max=13464.81, mean=1004.89
+[  0.364s] [SUCCESS]   Texture analysis complete in 0.152s
+[  0.383s] [INFO   ]   Debug image saved: texture_variance.png
+[  0.390s] [INFO   ]   texture_variation detected: 285980 pixels (15.56%)
+    Data: {
+    "detected_pixels": 285980,
+    "total_pixels": 1837403,
+    "coverage_percent": 15.564359043715505
+}
+[  0.391s] [INFO   ] 
+[  0.392s] [INFO   ] STEP 3: Color Outlier Detection
+[  0.393s] [INFO   ] ----------------------------------------
+[  0.394s] [INFO   ] Detecting color outliers...
+[  0.657s] [INFO   ]   Converted to LAB color space
+[  0.791s] [INFO   ]   Sampled 282544 fabric pixels
+[  0.807s] [INFO   ]   Fabric color (LAB): L=87.7, A=128.0, B=128.0
+[  0.807s] [INFO   ]   Fabric std dev: L=103.8, A=0.1, B=0.0
+[  1.055s] [INFO   ]   Outlier threshold: 3.0 std deviations
+[  1.077s] [SUCCESS]   Color outlier detection complete in 0.682s
+[  1.078s] [INFO   ]   Outliers: 33261/1837403 pixels (1.81%)
+[  1.104s] [INFO   ]   Debug image saved: color_outliers.png
+[  1.118s] [INFO   ]   color_outliers detected: 33261 pixels (1.81%)
+    Data: {
+    "detected_pixels": 33261,
+    "total_pixels": 1837403,
+    "coverage_percent": 1.8102180087874027
+}
+[  1.119s] [INFO   ] 
+[  1.120s] [INFO   ] STEP 4: Combining Detection Methods
+[  1.121s] [INFO   ] ----------------------------------------
+[  1.207s] [SUCCESS] Final design coverage: 13.6% (249896/1837403 pixels)
+[  1.208s] [INFO   ] 
+[  1.212s] [INFO   ] Fabric-only coverage: 86.4% (1587507/1837403 pixels)
+[  1.216s] [SUCCESS] Design bounding box: x=58, y=94, w=1652, h=1587
+[  1.216s] [INFO   ] 
+[  1.217s] [INFO   ] ============================================================
+[  1.218s] [SUCCESS] FRONT EXTRACTION COMPLETE in 1.109s
+[  1.218s] [INFO   ] ============================================================
+[  1.220s] [INFO   ] 
+[  1.220s] [INFO   ] Saving front results...
+[  1.255s] [SUCCESS]   ✓ front_design_mask.png (31.9 KB)
+[  1.275s] [SUCCESS]   ✓ front_fabric_mask.png (38.5 KB)
+[  1.415s] [SUCCESS]   ✓ front_design.png (1084.7 KB)
+[  1.421s] [SUCCESS]   ✓ NumPy arrays saved
+[  1.700s] [SUCCESS]   ✓ front_visualization.png (955.9 KB)
+[  1.701s] [SUCCESS] All front files validated successfully
+[  1.704s] [INFO   ] 
+--------------------------------------------------------------------------------
+[  1.705s] [INFO   ] PROCESSING BACK IMAGE (OPTIONAL)
+[  1.705s] [INFO   ] --------------------------------------------------------------------------------
+
+[  1.707s] [INFO   ] Loading masked image: back_masked.png
+[  1.708s] [ERROR  ]   File not found: segmentation_output\back_masked.png
+[  1.709s] [INFO   ] No back image available (optional)
+[  1.710s] [INFO   ] 
+================================================================================
+[  1.711s] [INFO   ]    DESIGN EXTRACTION SUMMARY
+[  1.712s] [INFO   ] ================================================================================
+
+[  1.713s] [SUCCESS] Total pipeline time: 1.706s
+[  1.715s] [INFO   ] 
+[  1.716s] [SUCCESS] ✅ FRONT DESIGN EXTRACTED
+[  1.717s] [INFO   ]    - Design mask: design_output/front_design_mask.png
+[  1.718s] [INFO   ]    - Design image: design_output/front_design.png
+[  1.720s] [INFO   ]    - Fabric mask: design_output/front_fabric_mask.png
+[  1.721s] [INFO   ]    - Visualization: design_output/front_visualization.png
+[  1.722s] [INFO   ]    - Debug images: design_output\debug_visualizations/
+[  1.723s] [INFO   ] 
+[  1.725s] [INFO   ] ○ BACK IMAGE: NOT PROVIDED
+[  1.726s] [INFO   ] 
+[  1.728s] [INFO   ] 📊 Detailed logs: design_output\step2_detailed_log.txt
+[  1.729s] [INFO   ] 📈 Metrics JSON: design_output\step2_metrics.json
+[  1.731s] [INFO   ] 
+[  1.732s] [INFO   ] ================================================================================
+[  1.736s] [SUCCESS] Metrics saved to: step2_metrics.json
+[  1.739s] [SUCCESS] 
+✅ ALL CRITICAL OUTPUT FILES VALIDATED

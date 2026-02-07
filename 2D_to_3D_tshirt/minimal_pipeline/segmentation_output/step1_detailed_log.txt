@@ -1,0 +1,158 @@
+================================================================================
+STEP 1: T-SHIRT SEGMENTATION - DETAILED LOG
+Started: 2026-02-05 15:45:15
+================================================================================
+
+[  0.003s] [INFO   ] 
+================================================================================
+[  0.004s] [INFO   ]    STEP 1: T-SHIRT SEGMENTATION PIPELINE (ENHANCED)
+[  0.005s] [INFO   ] ================================================================================
+
+[  0.006s] [SUCCESS] Output directories ready: segmentation_output
+[  0.023s] [INFO   ] 
+--------------------------------------------------------------------------------
+[  0.025s] [INFO   ] PROCESSING FRONT IMAGE (REQUIRED)
+[  0.026s] [INFO   ] --------------------------------------------------------------------------------
+
+[  0.027s] [INFO   ] ============================================================
+[  0.028s] [INFO   ] SEGMENTING: FRONT
+[  0.029s] [INFO   ] ============================================================
+[  0.030s] [INFO   ] Loading front from: input_images/front.png
+[  0.031s] [INFO   ] front file size: 0.06 MB
+[  0.033s] [INFO   ] front MD5 checksum: 6fb7b4b00b7a312a2be81e2f0f523afd
+[  0.076s] [SUCCESS] Loaded front: 1772x1772x3 in 0.042s
+[  0.162s] [INFO   ]   Image front: (1772, 1772, 3) uint8
+    Data: {
+    "shape": [
+        1772,
+        1772,
+        3
+    ],
+    "dtype": "uint8",
+    "size_bytes": 9419952,
+    "min": 0.0,
+    "max": 255.0,
+    "mean": 137.22317534102083,
+    "std": 114.02246080233314
+}
+[  0.163s] [INFO   ] 
+[  0.163s] [INFO   ] METHOD 1: Trying AI-based segmentation (rembg)...
+[  0.164s] [INFO   ] Attempting AI-based segmentation with rembg...
+[  3.375s] [SUCCESS]   rembg library loaded successfully
+[  3.385s] [INFO   ]   Converted image to RGB
+[  3.386s] [INFO   ]   Running U2-Net neural network...
+[  5.268s] [SUCCESS]   U2-Net processing completed in 1.892s
+[  5.268s] [SUCCESS]   Extracted alpha channel as mask
+[  5.271s] [INFO   ]   rembg coverage: 58.4% foreground
+[  5.273s] [SUCCESS] rembg segmentation successful!
+[  5.273s] [INFO   ] 
+[  5.274s] [SUCCESS] Segmentation method used: rembg (AI)
+[  5.311s] [INFO   ]   Image front_mask_initial: (1772, 1772) uint8
+    Data: {
+    "shape": [
+        1772,
+        1772
+    ],
+    "dtype": "uint8",
+    "size_bytes": 3139984,
+    "min": 0.0,
+    "max": 255.0,
+    "mean": 143.16648237698027,
+    "std": 125.22860816885536,
+    "non_zero_pixels": 1832202,
+    "coverage_percent": 58.35067949390825
+}
+[  5.312s] [INFO   ] 
+[  5.313s] [INFO   ] Refining mask...
+[  5.335s] [INFO   ]   Filled 5415 hole pixels
+[  5.339s] [INFO   ]   Pixel change: +5201 (+0.28%)
+[  5.339s] [SUCCESS] Mask refinement completed in 0.025s
+[  5.379s] [INFO   ]   Image front_mask_refined: (1772, 1772) uint8
+    Data: {
+    "shape": [
+        1772,
+        1772
+    ],
+    "dtype": "uint8",
+    "size_bytes": 3139984,
+    "min": 0.0,
+    "max": 255.0,
+    "mean": 149.2166090655239,
+    "std": 125.63693282906586,
+    "non_zero_pixels": 1837403,
+    "coverage_percent": 58.516317280597605
+}
+[  5.380s] [INFO   ] 
+[  5.473s] [INFO   ] Mask quality for front:
+    Data: {
+    "coverage_percent": 58.516317280597605,
+    "edge_smoothness": 0.0,
+    "compactness": 13.592852177802062,
+    "foreground_pixels": 1837403,
+    "total_pixels": 3139984,
+    "overall_score": 24.036389819466553
+}
+[  5.474s] [ERROR  ]   Quality: POOR (24.0/100)
+[  5.479s] [INFO   ] 
+[  5.479s] [INFO   ] Creating masked image with transparency...
+[  5.593s] [INFO   ]   Image front_masked: (1772, 1772, 4) uint8
+    Data: {
+    "shape": [
+        1772,
+        1772,
+        4
+    ],
+    "dtype": "uint8",
+    "size_bytes": 12559936,
+    "min": 0.0,
+    "max": 255.0,
+    "mean": 140.2215337721466,
+    "std": 117.14935491961964
+}
+[  5.595s] [INFO   ] 
+[  5.696s] [INFO   ] Saved debug visualization: front_overlay.png
+[  5.698s] [INFO   ] 
+[  5.699s] [INFO   ] Saving results for front...
+[  5.781s] [SUCCESS]   ✓ Saved front_original.png (934.9 KB)
+[  5.790s] [SUCCESS]   ✓ Saved front_mask.png (18.8 KB)
+[  5.880s] [SUCCESS]   ✓ Saved front_masked.png (1082.1 KB)
+[  5.885s] [SUCCESS]   ✓ Saved front_mask.npy (3066.5 KB)
+[  5.887s] [SUCCESS] All files saved successfully for front
+[  5.888s] [INFO   ] 
+[  5.889s] [INFO   ] ============================================================
+[  5.891s] [SUCCESS] FRONT SEGMENTATION COMPLETE in 5.858s
+[  5.892s] [SUCCESS] Method: rembg (AI) | Quality: 24.0/100
+[  5.893s] [INFO   ] ============================================================
+[  5.981s] [INFO   ] Mask quality for front_final:
+    Data: {
+    "coverage_percent": 58.516317280597605,
+    "edge_smoothness": 0.0,
+    "compactness": 13.592852177802062,
+    "foreground_pixels": 1837403,
+    "total_pixels": 3139984,
+    "overall_score": 24.036389819466553
+}
+[  5.983s] [ERROR  ]   Quality: POOR (24.0/100)
+[  5.990s] [INFO   ] 
+→ No back image provided (this is optional)
+[  5.991s] [INFO   ] 
+================================================================================
+[  5.992s] [INFO   ]    SEGMENTATION PIPELINE SUMMARY
+[  5.993s] [INFO   ] ================================================================================
+
+[  5.994s] [SUCCESS] Total pipeline time: 5.985s
+[  5.995s] [INFO   ] 
+[  5.996s] [SUCCESS] ✅ FRONT IMAGE: PROCESSED (Quality: 24.0/100)
+[  5.997s] [INFO   ]    - Mask: segmentation_output/front_mask.png
+[  5.998s] [INFO   ]    - Masked: segmentation_output/front_masked.png
+[  5.999s] [INFO   ]    - Debug: segmentation_output\debug_visualizations/front_overlay.png
+[  6.000s] [INFO   ] 
+[  6.002s] [INFO   ] ○ BACK IMAGE: NOT PROVIDED
+[  6.003s] [INFO   ] 
+[  6.004s] [INFO   ] 📊 Detailed logs: segmentation_output\step1_detailed_log.txt
+[  6.006s] [INFO   ] 📈 Metrics JSON: segmentation_output\step1_metrics.json
+[  6.007s] [INFO   ] 
+[  6.008s] [INFO   ] ================================================================================
+[  6.012s] [SUCCESS] Metrics saved to: step1_metrics.json
+[  6.014s] [SUCCESS] 
+✅ ALL CRITICAL OUTPUT FILES VALIDATED

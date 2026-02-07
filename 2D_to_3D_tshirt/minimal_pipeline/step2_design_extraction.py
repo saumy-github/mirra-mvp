@@ -1,5 +1,5 @@
 """
-STEP 2: Design Extraction
+STEP 2: Design Extraction (ENHANCED WITH COMPREHENSIVE LOGGING)
 =========================
 This script extracts printed designs (logos, graphics, text) from the T-shirt.
 
@@ -11,12 +11,23 @@ How it works:
 Key insight:
 - Plain fabric = smooth, consistent color
 - Printed areas = edges, texture, color variation
+
+ENHANCEMENTS:
+- Detailed logging of all detection algorithms
+- Quality metrics for design extraction
+- Parameter tuning logs
+- Visual debug outputs at each stage
+- Performance profiling
+- Adaptive threshold tuning
 """
 
 import cv2
 import numpy as np
 from pathlib import Path
 from typing import Tuple, Optional
+import time
+import json
+from datetime import datetime
 
 # ============================================================
 # CONFIGURATION
@@ -32,15 +43,118 @@ BACK_MASK_PATH = INPUT_DIR / "back_mask.png"
 # Output directory for this step
 OUTPUT_DIR = Path("design_output")
 
+# Logging configuration
+LOG_FILE = OUTPUT_DIR / "step2_detailed_log.txt"
+LOG_JSON = OUTPUT_DIR / "step2_metrics.json"
+DEBUG_DIR = OUTPUT_DIR / "debug_visualizations"
+
 
 # ============================================================
-# HELPER FUNCTIONS
+# LOGGING INFRASTRUCTURE
+# ============================================================
+
+class DesignExtractionLogger:
+    """Comprehensive logging for design extraction pipeline"""
+    
+    def __init__(self):
+        self.start_time = time.time()
+        self.metrics = {
+            "pipeline_start": datetime.now().isoformat(),
+            "steps": [],
+            "detections": {},
+            "errors": [],
+            "warnings": []
+        }
+        
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+        
+        with open(LOG_FILE, 'w') as f:
+            f.write(f"{'='*80}\n")
+            f.write(f"STEP 2: DESIGN EXTRACTION - DETAILED LOG\n")
+            f.write(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"{'='*80}\n\n")
+    
+    def log(self, message, level="INFO", data=None):
+        """Log message to both console and file"""
+        timestamp = time.time() - self.start_time
+        formatted = f"[{timestamp:7.3f}s] [{level:7s}] {message}"
+        
+        # Console output with Unicode error handling for Windows
+        try:
+            if level == "ERROR":
+                print(f"❌ {formatted}")
+                self.metrics["errors"].append({"time": timestamp, "message": message})
+            elif level == "WARNING":
+                print(f"⚠️  {formatted}")
+                self.metrics["warnings"].append({"time": timestamp, "message": message})
+            elif level == "SUCCESS":
+                print(f"✅ {formatted}")
+            else:
+                print(f"📝 {formatted}")
+        except UnicodeEncodeError:
+            # Fallback for Windows console
+            print(formatted)
+        
+        with open(LOG_FILE, 'a', encoding='utf-8') as f:
+            f.write(formatted + "\n")
+            if data:
+                f.write(f"    Data: {json.dumps(data, indent=4)}\n")
+        
+        self.metrics["steps"].append({
+            "time": timestamp,
+            "level": level,
+            "message": message,
+            "data": data
+        })
+    
+    def log_detection_stats(self, method, mask, total_pixels):
+        """Log statistics for a detection method"""
+        detected_pixels = np.count_nonzero(mask)
+        coverage = (detected_pixels / total_pixels * 100) if total_pixels > 0 else 0
+        
+        stats = {
+            "detected_pixels": int(detected_pixels),
+            "total_pixels": int(total_pixels),
+            "coverage_percent": float(coverage)
+        }
+        
+        self.log(f"  {method} detected: {detected_pixels} pixels ({coverage:.2f}%)", "INFO", stats)
+        self.metrics["detections"][method] = stats
+        
+        return stats
+    
+    def save_debug_image(self, image, name):
+        """Save debug image"""
+        try:
+            path = DEBUG_DIR / f"{name}.png"
+            cv2.imwrite(str(path), image)
+            self.log(f"  Debug image saved: {name}.png", "INFO")
+        except Exception as e:
+            self.log(f"  Failed to save debug image {name}: {e}", "WARNING")
+    
+    def save_metrics(self):
+        """Save final metrics to JSON"""
+        self.metrics["pipeline_end"] = datetime.now().isoformat()
+        self.metrics["total_time_seconds"] = time.time() - self.start_time
+        
+        with open(LOG_JSON, 'w', encoding='utf-8') as f:
+            json.dump(self.metrics, f, indent=2)
+        
+        self.log(f"Metrics saved to: {LOG_JSON.name}", "SUCCESS")
+
+logger = DesignExtractionLogger()
+
+
+# ============================================================
+# HELPER FUNCTIONS (ENHANCED)
 # ============================================================
 
 def ensure_output_dir():
     """Create output directory if it doesn't exist."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"✓ Output directory ready: {OUTPUT_DIR}")
+    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+    logger.log(f"Output directories ready: {OUTPUT_DIR}", "SUCCESS")
 
 
 def load_masked_image(path: Path) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
@@ -53,34 +167,54 @@ def load_masked_image(path: Path) -> Tuple[Optional[np.ndarray], Optional[np.nda
     Returns:
         Tuple of (BGR image, alpha mask) or (None, None) if not found
     """
+    logger.log(f"Loading masked image: {path.name}", "INFO")
+    
     if not path.exists():
+        logger.log(f"  File not found: {path}", "ERROR")
         return None, None
+    
+    file_size = path.stat().st_size / (1024 * 1024)
+    logger.log(f"  File size: {file_size:.2f} MB", "INFO")
     
     # Load with alpha channel (cv2.IMREAD_UNCHANGED keeps all channels)
     img = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
     
     if img is None:
+        logger.log(f"  Failed to load image", "ERROR")
         return None, None
     
-    if img.shape[2] == 4:
+    logger.log(f"  Image shape: {img.shape}, dtype: {img.dtype}", "INFO")
+    
+    if len(img.shape) == 3 and img.shape[2] == 4:
         # Split into BGR and Alpha
         bgr = img[:, :, :3]
         alpha = img[:, :, 3]
+        logger.log(f"  Extracted BGR and alpha channel", "SUCCESS")
         return bgr, alpha
     else:
         # No alpha channel, load mask separately
-        bgr = img
+        bgr = img if len(img.shape) == 3 else cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         mask_path = path.parent / path.name.replace("_masked", "_mask")
+        
         if mask_path.exists():
-            alpha = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+            mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+            logger.log(f"  Loaded separate mask from {mask_path.name}", "SUCCESS")
+            return bgr, mask
         else:
-            alpha = np.ones(bgr.shape[:2], dtype=np.uint8) * 255
-        return bgr, alpha
+            logger.log(f"  No alpha channel and mask file not found", "WARNING")
+            # Create full mask
+            h, w = bgr.shape[:2]
+            mask = np.full((h, w), 255, dtype=np.uint8)
+            return bgr, mask
 
+
+# ============================================================
+# DESIGN DETECTION METHODS
+# ============================================================
 
 def detect_edges(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """
-    Detect edges within the garment region.
+    Detect edges in the image with detailed logging.
     
     Edges indicate boundaries between:
     - Different colors in the print
@@ -93,28 +227,41 @@ def detect_edges(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     Returns:
         Edge map (white = edge pixels)
     """
+    logger.log("Detecting edges (Canny algorithm)...", "INFO")
+    start_time = time.time()
+    
     # Convert to grayscale for edge detection
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    logger.log(f"  Converted to grayscale", "INFO")
     
     # Apply Gaussian blur to reduce noise
-    # This prevents detecting texture as edges
-    blurred = cv2.GaussianBlur(gray, (5, 5), 1.5)
+    blur_kernel = (5, 5)
+    blur_sigma = 1.5
+    blurred = cv2.GaussianBlur(gray, blur_kernel, blur_sigma)
+    logger.log(f"  Applied Gaussian blur: kernel={blur_kernel}, sigma={blur_sigma}", "INFO")
     
     # Canny edge detection
-    # Low threshold = 50, High threshold = 150
-    # Edges must have gradient above 150 to be "strong"
-    # Edges with gradient 50-150 are kept if connected to strong edges
-    edges = cv2.Canny(blurred, 50, 150)
+    low_threshold = 50
+    high_threshold = 150
+    logger.log(f"  Canny thresholds: low={low_threshold}, high={high_threshold}", "INFO")
+    
+    edges = cv2.Canny(blurred, low_threshold, high_threshold)
     
     # Keep only edges within the garment
     edges = cv2.bitwise_and(edges, edges, mask=mask)
+    
+    elapsed = time.time() - start_time
+    logger.log(f"  Edge detection complete in {elapsed:.3f}s", "SUCCESS")
+    
+    # Save debug image
+    logger.save_debug_image(edges, "edges")
     
     return edges
 
 
 def detect_texture_variation(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """
-    Detect areas with high texture/color variation.
+    Detect texture variation in the image with detailed logging.
     
     Prints typically have:
     - Sharp color transitions
@@ -130,11 +277,16 @@ def detect_texture_variation(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     Returns:
         Texture variance map (higher = more texture)
     """
+    logger.log("Analyzing texture variation...", "INFO")
+    start_time = time.time()
+    
     # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
     
     # Calculate local mean using box filter
     kernel_size = 15
+    logger.log(f"  Local variance kernel size: {kernel_size}x{kernel_size}", "INFO")
+    
     local_mean = cv2.blur(gray, (kernel_size, kernel_size))
     
     # Calculate local variance
@@ -145,13 +297,24 @@ def detect_texture_variation(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     # Normalize to 0-255 range
     local_variance = np.clip(local_variance, 0, None)
     max_var = np.max(local_variance)
+    mean_var = np.mean(local_variance[mask > 0]) if np.any(mask > 0) else 0
+    
+    logger.log(f"  Variance stats: max={max_var:.2f}, mean={mean_var:.2f}", "INFO")
+    
     if max_var > 0:
         texture_map = (local_variance / max_var * 255).astype(np.uint8)
     else:
         texture_map = np.zeros_like(gray, dtype=np.uint8)
+        logger.log(f"  No variance detected (uniform image)", "WARNING")
     
     # Apply garment mask
     texture_map = cv2.bitwise_and(texture_map, texture_map, mask=mask)
+    
+    elapsed = time.time() - start_time
+    logger.log(f"  Texture analysis complete in {elapsed:.3f}s", "SUCCESS")
+    
+    # Save debug image
+    logger.save_debug_image(texture_map, "texture_variance")
     
     return texture_map
 
@@ -172,9 +335,13 @@ def detect_color_outliers(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     Returns:
         Binary mask where 255 = likely print, 0 = likely fabric
     """
+    logger.log("Detecting color outliers...", "INFO")
+    start_time = time.time()
+    
     # Convert to LAB color space (better for color distance)
     # L = Lightness, A = green-red, B = blue-yellow
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    logger.log(f"  Converted to LAB color space", "INFO")
     
     # Create an eroded mask to sample from garment edges (inner border)
     # These areas are less likely to have prints
@@ -196,16 +363,23 @@ def detect_color_outliers(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     # Get fabric color samples
     fabric_pixels = lab[sample_mask > 0]
     
+    logger.log(f"  Sampled {len(fabric_pixels)} fabric pixels", "INFO")
+    
     if len(fabric_pixels) < 100:
         # Not enough samples, use entire garment
+        logger.log(f"  Insufficient samples, using entire garment", "WARNING")
         fabric_pixels = lab[mask > 0]
     
     if len(fabric_pixels) == 0:
+        logger.log(f"  No fabric pixels found!", "ERROR")
         return np.zeros_like(mask)
     
     # Calculate fabric color statistics
     fabric_mean = np.mean(fabric_pixels, axis=0)
     fabric_std = np.std(fabric_pixels, axis=0)
+    
+    logger.log(f"  Fabric color (LAB): L={fabric_mean[0]:.1f}, A={fabric_mean[1]:.1f}, B={fabric_mean[2]:.1f}", "INFO")
+    logger.log(f"  Fabric std dev: L={fabric_std[0]:.1f}, A={fabric_std[1]:.1f}, B={fabric_std[2]:.1f}", "INFO")
     
     # Calculate distance of each pixel from fabric color
     # Use Mahalanobis-like distance (normalized by std)
@@ -220,10 +394,23 @@ def detect_color_outliers(image: np.ndarray, mask: np.ndarray) -> np.ndarray:
     
     # Threshold: pixels more than 3 std deviations are outliers
     threshold = 3.0
+    logger.log(f"  Outlier threshold: {threshold} std deviations", "INFO")
+    
     outlier_mask = (total_distance > threshold).astype(np.uint8) * 255
     
     # Apply garment mask
     outlier_mask = cv2.bitwise_and(outlier_mask, outlier_mask, mask=mask)
+    
+    outlier_pixels = np.count_nonzero(outlier_mask)
+    total_pixels = np.count_nonzero(mask)
+    outlier_percent = (outlier_pixels / total_pixels * 100) if total_pixels > 0 else 0
+    
+    elapsed = time.time() - start_time
+    logger.log(f"  Color outlier detection complete in {elapsed:.3f}s", "SUCCESS")
+    logger.log(f"  Outliers: {outlier_pixels}/{total_pixels} pixels ({outlier_percent:.2f}%)", "INFO")
+    
+    # Save debug image
+    logger.save_debug_image(outlier_mask, "color_outliers")
     
     return outlier_mask
 
@@ -373,7 +560,7 @@ def create_fabric_only_mask(garment_mask: np.ndarray, design_mask: np.ndarray) -
 
 def extract_design(image: np.ndarray, mask: np.ndarray, name: str) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Main design extraction function.
+    Main design extraction function with comprehensive logging.
     
     Args:
         image: BGR image of garment
@@ -383,45 +570,66 @@ def extract_design(image: np.ndarray, mask: np.ndarray, name: str) -> Tuple[np.n
     Returns:
         Tuple of (design_mask, fabric_mask)
     """
-    print(f"\n{'='*50}")
-    print(f"Extracting design from: {name}")
-    print('='*50)
+    logger.log(f"{'='*60}", "INFO")
+    logger.log(f"EXTRACTING DESIGN: {name.upper()}", "INFO")
+    logger.log(f"{'='*60}", "INFO")
+    
+    extraction_start = time.time()
+    total_pixels = np.count_nonzero(mask)
+    logger.log(f"Total garment pixels: {total_pixels}", "INFO")
+    logger.log("", "INFO")
     
     # Step 1: Detect edges (boundaries in the print)
-    print("\n→ Detecting edges...")
+    logger.log("STEP 1: Edge Detection", "INFO")
+    logger.log("-" * 40, "INFO")
     edges = detect_edges(image, mask)
-    edge_pixels = np.sum(edges > 0)
-    print(f"  Found {edge_pixels} edge pixels")
+    logger.log_detection_stats("edge_detection", edges, total_pixels)
+    logger.log("", "INFO")
     
     # Step 2: Detect texture variation
-    print("\n→ Analyzing texture variation...")
+    logger.log("STEP 2: Texture Variation Analysis", "INFO")
+    logger.log("-" * 40, "INFO")
     texture = detect_texture_variation(image, mask)
     
+    logger.log_detection_stats("texture_variation", texture, total_pixels)
+    logger.log("", "INFO")
+    
     # Step 3: Detect color outliers
-    print("\n→ Detecting color outliers...")
+    logger.log("STEP 3: Color Outlier Detection", "INFO")
+    logger.log("-" * 40, "INFO")
     color_outliers = detect_color_outliers(image, mask)
-    outlier_pixels = np.sum(color_outliers > 0)
-    print(f"  Found {outlier_pixels} color outlier pixels")
+    logger.log_detection_stats("color_outliers", color_outliers, total_pixels)
+    logger.log("", "INFO")
     
     # Step 4: Combine methods
-    print("\n→ Combining detection methods...")
+    logger.log("STEP 4: Combining Detection Methods", "INFO")
+    logger.log("-" * 40, "INFO")
     design_mask = combine_detection_methods(edges, texture, color_outliers, mask)
     
     # Calculate coverage
-    garment_pixels = np.sum(mask > 0)
-    design_pixels = np.sum(design_mask > 0)
-    coverage = (design_pixels / garment_pixels * 100) if garment_pixels > 0 else 0
-    print(f"✓ Design covers {coverage:.1f}% of garment")
+    design_pixels = np.count_nonzero(design_mask)
+    coverage = (design_pixels / total_pixels * 100) if total_pixels > 0 else 0
+    logger.log(f"Final design coverage: {coverage:.1f}% ({design_pixels}/{total_pixels} pixels)", "SUCCESS")
+    logger.log("", "INFO")
     
     # Create fabric-only mask
     fabric_mask = create_fabric_only_mask(mask, design_mask)
+    fabric_pixels = np.count_nonzero(fabric_mask)
+    fabric_coverage = (fabric_pixels / total_pixels * 100) if total_pixels > 0 else 0
+    logger.log(f"Fabric-only coverage: {fabric_coverage:.1f}% ({fabric_pixels}/{total_pixels} pixels)", "INFO")
     
     # Get design bounding box
     bbox = get_design_bounding_box(design_mask)
     if bbox[2] > 0 and bbox[3] > 0:
-        print(f"✓ Design bounding box: x={bbox[0]}, y={bbox[1]}, w={bbox[2]}, h={bbox[3]}")
+        logger.log(f"Design bounding box: x={bbox[0]}, y={bbox[1]}, w={bbox[2]}, h={bbox[3]}", "SUCCESS")
     else:
-        print("○ No design detected (plain fabric)")
+        logger.log("No distinct design detected (plain fabric or full coverage print)", "INFO")
+    
+    extraction_time = time.time() - extraction_start
+    logger.log("", "INFO")
+    logger.log(f"{'='*60}", "INFO")
+    logger.log(f"{name.upper()} EXTRACTION COMPLETE in {extraction_time:.3f}s", "SUCCESS")
+    logger.log(f"{'='*60}", "INFO")
     
     return design_mask, fabric_mask
 
@@ -434,7 +642,7 @@ def save_design_results(
     fabric_mask: np.ndarray
 ):
     """
-    Save all design extraction results.
+    Save all design extraction results with validation.
     
     Args:
         name: Base name for files
@@ -443,30 +651,62 @@ def save_design_results(
         design_mask: Design-only mask
         fabric_mask: Fabric-only mask
     """
-    print(f"\n→ Saving {name} results...")
+    logger.log(f"Saving {name} results...", "INFO")
+    saved_files = []
     
-    # Save design mask
-    cv2.imwrite(str(OUTPUT_DIR / f"{name}_design_mask.png"), design_mask)
-    print(f"  ✓ {name}_design_mask.png")
-    
-    # Save fabric mask
-    cv2.imwrite(str(OUTPUT_DIR / f"{name}_fabric_mask.png"), fabric_mask)
-    print(f"  ✓ {name}_fabric_mask.png")
-    
-    # Save design as transparent image
-    design_image = extract_design_image(image, design_mask)
-    cv2.imwrite(str(OUTPUT_DIR / f"{name}_design.png"), design_image)
-    print(f"  ✓ {name}_design.png (design only, transparent bg)")
-    
-    # Save numpy arrays for programmatic use
-    np.save(str(OUTPUT_DIR / f"{name}_design_mask.npy"), design_mask)
-    np.save(str(OUTPUT_DIR / f"{name}_fabric_mask.npy"), fabric_mask)
-    print(f"  ✓ NumPy arrays saved")
-    
-    # Create visualization overlay
-    visualization = create_visualization(image, garment_mask, design_mask)
-    cv2.imwrite(str(OUTPUT_DIR / f"{name}_visualization.png"), visualization)
-    print(f"  ✓ {name}_visualization.png (overlay for inspection)")
+    try:
+        # Save design mask
+        design_mask_path = OUTPUT_DIR / f"{name}_design_mask.png"
+        cv2.imwrite(str(design_mask_path), design_mask)
+        size = design_mask_path.stat().st_size
+        saved_files.append(("design_mask", design_mask_path, size))
+        logger.log(f"  ✓ {name}_design_mask.png ({size/1024:.1f} KB)", "SUCCESS")
+        
+        # Save fabric mask
+        fabric_mask_path = OUTPUT_DIR / f"{name}_fabric_mask.png"
+        cv2.imwrite(str(fabric_mask_path), fabric_mask)
+        size = fabric_mask_path.stat().st_size
+        saved_files.append(("fabric_mask", fabric_mask_path, size))
+        logger.log(f"  ✓ {name}_fabric_mask.png ({size/1024:.1f} KB)", "SUCCESS")
+        
+        # Save design as transparent image
+        design_image = extract_design_image(image, design_mask)
+        design_img_path = OUTPUT_DIR / f"{name}_design.png"
+        cv2.imwrite(str(design_img_path), design_image)
+        size = design_img_path.stat().st_size
+        saved_files.append(("design_image", design_img_path, size))
+        logger.log(f"  ✓ {name}_design.png ({size/1024:.1f} KB)", "SUCCESS")
+        
+        # Save numpy arrays for programmatic use
+        npy1 = OUTPUT_DIR / f"{name}_design_mask.npy"
+        npy2 = OUTPUT_DIR / f"{name}_fabric_mask.npy"
+        np.save(str(npy1), design_mask)
+        np.save(str(npy2), fabric_mask)
+        logger.log(f"  ✓ NumPy arrays saved", "SUCCESS")
+        
+        # Create visualization overlay
+        visualization = create_visualization(image, garment_mask, design_mask)
+        vis_path = OUTPUT_DIR / f"{name}_visualization.png"
+        cv2.imwrite(str(vis_path), visualization)
+        size = vis_path.stat().st_size
+        saved_files.append(("visualization", vis_path, size))
+        logger.log(f"  ✓ {name}_visualization.png ({size/1024:.1f} KB)", "SUCCESS")
+        
+        # Validate all files exist and have content
+        all_valid = True
+        for file_type, file_path, file_size in saved_files:
+            if not file_path.exists():
+                logger.log(f"  ERROR: {file_path.name} not created!", "ERROR")
+                all_valid = False
+            elif file_size == 0:
+                logger.log(f"  ERROR: {file_path.name} is empty!", "ERROR")
+                all_valid = False
+        
+        if all_valid:
+            logger.log(f"All {name} files validated successfully", "SUCCESS")
+        
+    except Exception as e:
+        logger.log(f"Error saving {name} results: {e}", "ERROR")
 
 
 def create_visualization(
@@ -514,64 +754,117 @@ def create_visualization(
 
 def run_design_extraction_pipeline():
     """
-    Run the complete design extraction pipeline.
+    Run the complete design extraction pipeline with comprehensive logging.
     """
-    print("\n" + "="*60)
-    print("   STEP 2: DESIGN EXTRACTION")
-    print("="*60)
+    logger.log("\n" + "="*80, "INFO")
+    logger.log("   STEP 2: DESIGN EXTRACTION PIPELINE (ENHANCED)", "INFO")
+    logger.log("="*80 + "\n", "INFO")
+    
+    pipeline_start = time.time()
     
     ensure_output_dir()
     
+    results = {"front": {"success": False}, "back": {"success": False}}
+    
     # Process FRONT image
-    print("\n" + "-"*40)
-    print("Processing FRONT image")
-    print("-"*40)
+    logger.log("\n" + "-"*80, "INFO")
+    logger.log("PROCESSING FRONT IMAGE (REQUIRED)", "INFO")
+    logger.log("-"*80 + "\n", "INFO")
     
     front_img, front_mask = load_masked_image(FRONT_MASKED_PATH)
     
     if front_img is None:
-        print(f"\n✗ ERROR: Could not load front image from: {FRONT_MASKED_PATH}")
-        print("  Make sure Step 1 (segmentation) has been run first.")
+        logger.log("\n" + "="*80, "ERROR")
+        logger.log("❌ CRITICAL ERROR: Could not load front image", "ERROR")
+        logger.log(f"   Path: {FRONT_MASKED_PATH}", "ERROR")
+        logger.log("   Make sure Step 1 (segmentation) has been run first.", "ERROR")
+        logger.log("="*80 + "\n", "ERROR")
+        logger.save_metrics()
         return False
     
-    print(f"✓ Loaded front image: {front_img.shape[1]}x{front_img.shape[0]} pixels")
+    logger.log(f"Loaded front image: {front_img.shape[1]}x{front_img.shape[0]} pixels", "SUCCESS")
+    logger.log("", "INFO")
     
     front_design_mask, front_fabric_mask = extract_design(front_img, front_mask, "front")
+    logger.log("", "INFO")
     save_design_results("front", front_img, front_mask, front_design_mask, front_fabric_mask)
+    results["front"]["success"] = True
     
     # Process BACK image (if available)
+    logger.log("\n" + "-"*80, "INFO")
+    logger.log("PROCESSING BACK IMAGE (OPTIONAL)", "INFO")
+    logger.log("-"*80 + "\n", "INFO")
+    
     back_img, back_mask = load_masked_image(BACK_MASKED_PATH)
     
     if back_img is not None:
-        print("\n" + "-"*40)
-        print("Processing BACK image")
-        print("-"*40)
-        
-        print(f"✓ Loaded back image: {back_img.shape[1]}x{back_img.shape[0]} pixels")
+        logger.log(f"Loaded back image: {back_img.shape[1]}x{back_img.shape[0]} pixels", "SUCCESS")
+        logger.log("", "INFO")
         
         back_design_mask, back_fabric_mask = extract_design(back_img, back_mask, "back")
+        logger.log("", "INFO")
         save_design_results("back", back_img, back_mask, back_design_mask, back_fabric_mask)
+        results["back"]["success"] = True
     else:
-        print("\n→ No back image available (optional)")
+        logger.log("No back image available (optional)", "INFO")
+    
+    # Calculate total time
+    total_time = time.time() - pipeline_start
     
     # Summary
-    print("\n" + "="*60)
-    print("   DESIGN EXTRACTION SUMMARY")
-    print("="*60)
-    print(f"\n✓ Front design extracted:")
-    print(f"  - Design mask: {OUTPUT_DIR}/front_design_mask.png")
-    print(f"  - Design image: {OUTPUT_DIR}/front_design.png")
-    print(f"  - Fabric mask: {OUTPUT_DIR}/front_fabric_mask.png")
-    print(f"  - Visualization: {OUTPUT_DIR}/front_visualization.png")
+    logger.log("\n" + "="*80, "INFO")
+    logger.log("   DESIGN EXTRACTION SUMMARY", "INFO")
+    logger.log("="*80 + "\n", "INFO")
     
-    if back_img is not None:
-        print(f"\n✓ Back design extracted:")
-        print(f"  - Design mask: {OUTPUT_DIR}/back_design_mask.png")
-        print(f"  - Design image: {OUTPUT_DIR}/back_design.png")
+    logger.log(f"Total pipeline time: {total_time:.3f}s", "SUCCESS")
+    logger.log("", "INFO")
     
-    print("\n" + "="*60)
+    if results["front"]["success"]:
+        logger.log("✅ FRONT DESIGN EXTRACTED", "SUCCESS")
+        logger.log(f"   - Design mask: {OUTPUT_DIR}/front_design_mask.png", "INFO")
+        logger.log(f"   - Design image: {OUTPUT_DIR}/front_design.png", "INFO")
+        logger.log(f"   - Fabric mask: {OUTPUT_DIR}/front_fabric_mask.png", "INFO")
+        logger.log(f"   - Visualization: {OUTPUT_DIR}/front_visualization.png", "INFO")
+        logger.log(f"   - Debug images: {DEBUG_DIR}/", "INFO")
     
-    return True
+    logger.log("", "INFO")
+    
+    if results["back"]["success"]:
+        logger.log("✅ BACK DESIGN EXTRACTED", "SUCCESS")
+        logger.log(f"   - Design mask: {OUTPUT_DIR}/back_design_mask.png", "INFO")
+        logger.log(f"   - Design image: {OUTPUT_DIR}/back_design.png", "INFO")
+    else:
+        logger.log("○ BACK IMAGE: NOT PROVIDED", "INFO")
+    
+    logger.log("", "INFO")
+    logger.log(f"📊 Detailed logs: {LOG_FILE}", "INFO")
+    logger.log(f"📈 Metrics JSON: {LOG_JSON}", "INFO")
+    logger.log("", "INFO")
+    logger.log("="*80, "INFO")
+    
+    # Save metrics
+    logger.save_metrics()
+    
+    # Validate critical files
+    critical_files = [
+        OUTPUT_DIR / "front_design_mask.png",
+        OUTPUT_DIR / "front_fabric_mask.png",
+        OUTPUT_DIR / "front_design_mask.npy",
+        OUTPUT_DIR / "front_fabric_mask.npy"
+    ]
+    
+    all_valid = True
+    for file_path in critical_files:
+        if not file_path.exists():
+            logger.log(f"❌ CRITICAL FILE MISSING: {file_path}", "ERROR")
+            all_valid = False
+    
+    if all_valid:
+        logger.log("\n✅ ALL CRITICAL OUTPUT FILES VALIDATED", "SUCCESS")
+        return True
+    else:
+        logger.log("\n❌ SOME CRITICAL FILES ARE MISSING", "ERROR")
+        return False
 
 
 # ============================================================
@@ -579,28 +872,73 @@ def run_design_extraction_pipeline():
 # ============================================================
 
 if __name__ == "__main__":
-    """
-    Run this script after Step 1 (segmentation).
+    # Run this script after Step 1 (segmentation) with comprehensive logging.
+    #
+    # Expects these files in segmentation_output/:
+    # - front_masked.png (required)
+    # - front_mask.png (required)
+    # - back_masked.png (optional)
+    # - back_mask.png (optional)
+    #
+    # Outputs to design_output/:
+    # - front_design_mask.png (binary mask of print)
+    # - front_design.png (extracted print with transparency)
+    # - front_fabric_mask.png (mask of plain fabric areas)
+    # - front_visualization.png (color-coded overlay)
+    # - step2_detailed_log.txt - Complete operation log
+    # - step2_metrics.json - Structured metrics
+    # - debug_visualizations/ - Debug images for each detection method
     
-    Expects these files in segmentation_output/:
-    - front_masked.png (required)
-    - front_mask.png (required)
-    - back_masked.png (optional)
-    - back_mask.png (optional)
+    print("\n" + "="*80)
+    print("   DESIGN EXTRACTION - ENHANCED VERSION")
+    print("   With comprehensive logging and quality metrics")
+    print("="*80 + "\n")
     
-    Outputs to design_output/:
-    - front_design_mask.png (binary mask of print)
-    - front_design.png (extracted print with transparency)
-    - front_fabric_mask.png (mask of plain fabric areas)
-    - front_visualization.png (color-coded overlay)
-    """
     success = run_design_extraction_pipeline()
     
     if success:
-        print("\n" + "="*60)
-        print("   STEP 2 COMPLETE — GREEN SIGNAL REQUIRED ✅")
-        print("="*60)
-        print("\nNext step: Fabric color extraction")
-        print("Waiting for your GREEN SIGNAL to proceed...")
+        try:
+            print("\n" + "="*80)
+            print("   ✅ STEP 2 COMPLETE - ALL VALIDATIONS PASSED")
+            print("="*80)
+            print(f"\n📁 Output directory: {OUTPUT_DIR}")
+            print(f"📝 Detailed log: {LOG_FILE}")
+            print(f"📊 Metrics JSON: {LOG_JSON}")
+            print(f"🎨 Debug visualizations: {DEBUG_DIR}")
+            print("\n" + "="*80)
+            print("   READY FOR NEXT STEP")
+            print("="*80)
+            print("\n➡️  Next step: Fabric color extraction")
+            print("   Run: python step3_color_extraction.py")
+            print("\n" + "="*80)
+        except UnicodeEncodeError:
+            print("\n" + "="*80)
+            print("   STEP 2 COMPLETE - ALL VALIDATIONS PASSED")
+            print("="*80)
+            print(f"\nOutput directory: {OUTPUT_DIR}")
+            print(f"Detailed log: {LOG_FILE}")
+            print(f"Metrics JSON: {LOG_JSON}")
+            print(f"Debug visualizations: {DEBUG_DIR}")
+            print("\n" + "="*80)
+            print("   READY FOR NEXT STEP")
+            print("="*80)
+            print("\nNext step: Fabric color extraction")
+            print("   Run: python step3_color_extraction.py")
+            print("\n" + "="*80)
     else:
-        print("\n✗ Design extraction failed. Please fix the errors above.")
+        try:
+            print("\n" + "="*80)
+            print("   ❌ STEP 2 FAILED - CHECK LOGS FOR DETAILS")
+            print("="*80)
+            print(f"\n📝 Check detailed log: {LOG_FILE}")
+            print(f"📊 Check metrics: {LOG_JSON}")
+            print("\nPlease fix the errors above and run again.")
+            print("="*80)
+        except UnicodeEncodeError:
+            print("\n" + "="*80)
+            print("   STEP 2 FAILED - CHECK LOGS FOR DETAILS")
+            print("="*80)
+            print(f"\nCheck detailed log: {LOG_FILE}")
+            print(f"Check metrics: {LOG_JSON}")
+            print("\nPlease fix the errors above and run again.")
+            print("="*80)

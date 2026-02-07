@@ -19,6 +19,8 @@ from pathlib import Path
 from typing import Tuple, List, Dict, Optional
 from sklearn.cluster import KMeans
 import json
+import time
+from datetime import datetime
 
 # ============================================================
 # CONFIGURATION
@@ -37,8 +39,94 @@ BACK_FABRIC_MASK_PATH = DESIGN_DIR / "back_fabric_mask.png"
 # Output directory
 OUTPUT_DIR = Path("color_output")
 
+# Logging configuration
+LOG_FILE = OUTPUT_DIR / "step3_detailed_log.txt"
+LOG_JSON = OUTPUT_DIR / "step3_metrics.json"
+DEBUG_DIR = OUTPUT_DIR / "debug_visualizations"
+
 # Number of color clusters to find
 N_CLUSTERS = 3  # Find top 3 colors (dominant + variations)
+
+
+# ============================================================
+# LOGGING SYSTEM
+# ============================================================
+
+class ColorExtractionLogger:
+    """Logger for comprehensive color extraction tracking"""
+    
+    def __init__(self):
+        self.log_entries = []
+        self.metrics = {
+            "timestamp": datetime.now().isoformat(),
+            "pipeline": "step3_color_extraction",
+            "version": "enhanced_v1.0",
+            "operations": []
+        }
+    
+    def log(self, message: str, level: str = "INFO"):
+        """Log a message with timestamp"""
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        entry = f"[{timestamp}] [{level:7}] {message}"
+        self.log_entries.append(entry)
+        try:
+            print(message)
+        except UnicodeEncodeError:
+            # Fallback for Windows console that doesn't support emojis
+            print(message.encode('ascii', 'replace').decode('ascii'))
+    
+    def log_color_cluster(self, rank: int, rgb: tuple, hex_code: str, name: str, percentage: float):
+        """Log a color cluster with all details"""
+        self.log(f"  Cluster #{rank}:", "INFO")
+        self.log(f"    RGB: {rgb}", "INFO")
+        self.log(f"    HEX: {hex_code}", "INFO")
+        self.log(f"    Name: {name}", "INFO")
+        self.log(f"    Coverage: {percentage:.2f}% of fabric pixels", "INFO")
+    
+    def log_statistics(self, stats: dict):
+        """Log color distribution statistics"""
+        self.log(f"  Pixel count: {stats['num_pixels']:,}", "INFO")
+        self.log(f"  Mean RGB: {stats['mean_rgb']}", "INFO")
+        self.log(f"  Std RGB: [{stats['std_rgb'][0]:.2f}, {stats['std_rgb'][1]:.2f}, {stats['std_rgb'][2]:.2f}]", "INFO")
+        self.log(f"  Min RGB: {stats['min_rgb']}", "INFO")
+        self.log(f"  Max RGB: {stats['max_rgb']}", "INFO")
+    
+    def save_debug_image(self, image: np.ndarray, name: str):
+        """Save a debug visualization image"""
+        DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+        path = DEBUG_DIR / f"{name}.png"
+        cv2.imwrite(str(path), image)
+        self.log(f"  Debug image saved: {path.name}", "SUCCESS")
+    
+    def save_metrics(self):
+        """Save all metrics and logs to files"""
+        # Save detailed log
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Clean log entries of invalid Unicode surrogates
+        cleaned_entries = []
+        for entry in self.log_entries:
+            try:
+                # Try to encode/decode to find invalid characters
+                entry.encode('utf-8')
+                cleaned_entries.append(entry)
+            except UnicodeEncodeError:
+                # Remove surrogates by encoding with 'replace' error handler
+                cleaned_entry = entry.encode('utf-8', errors='replace').decode('utf-8')
+                cleaned_entries.append(cleaned_entry)
+        
+        with open(LOG_FILE, 'w', encoding='utf-8') as f:
+            f.write("\n".join(cleaned_entries))
+        
+        # Save JSON metrics
+        with open(LOG_JSON, 'w', encoding='utf-8') as f:
+            json.dump(self.metrics, f, indent=2)
+        
+        self.log(f"\nMetrics saved:", "SUCCESS")
+        self.log(f"  Text log: {LOG_FILE}", "SUCCESS")
+        self.log(f"  JSON metrics: {LOG_JSON}", "SUCCESS")
+
+logger = ColorExtractionLogger()
 
 
 # ============================================================
@@ -48,7 +136,9 @@ N_CLUSTERS = 3  # Find top 3 colors (dominant + variations)
 def ensure_output_dir():
     """Create output directory if it doesn't exist."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"✓ Output directory ready: {OUTPUT_DIR}")
+    DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+    logger.log(f"Output directory ready: {OUTPUT_DIR}", "SUCCESS")
+    logger.log(f"Debug directory ready: {DEBUG_DIR}", "SUCCESS")
 
 
 def load_image_and_mask(
@@ -56,7 +146,7 @@ def load_image_and_mask(
     mask_path: Path
 ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
     """
-    Load image and its corresponding mask.
+    Load image and its corresponding mask with validation logging.
     
     Args:
         image_path: Path to the image file
@@ -65,29 +155,43 @@ def load_image_and_mask(
     Returns:
         Tuple of (BGR image, grayscale mask) or (None, None)
     """
+    logger.log(f"Loading image: {image_path.name}", "INFO")
+    
     if not image_path.exists():
+        logger.log(f"  Image file not found: {image_path}", "ERROR")
         return None, None
     
     # Load image (with alpha if present)
     img = cv2.imread(str(image_path), cv2.IMREAD_UNCHANGED)
     if img is None:
+        logger.log(f"  Failed to read image file: {image_path}", "ERROR")
         return None, None
     
+    file_size = image_path.stat().st_size / 1024
+    logger.log(f"  Image loaded: {img.shape}, {file_size:.1f} KB", "SUCCESS")
+    
     # Extract BGR channels (ignore alpha if present)
-    if img.shape[2] == 4:
+    if len(img.shape) == 3 and img.shape[2] == 4:
         bgr = img[:, :, :3]
+        logger.log(f"  Extracted BGR from BGRA image", "INFO")
     else:
         bgr = img
+        logger.log(f"  Using BGR image directly", "INFO")
     
     # Load mask
     if mask_path.exists():
         mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)
+        mask_pixels = np.count_nonzero(mask)
+        logger.log(f"  Mask loaded: {mask.shape}, {mask_pixels:,} active pixels", "SUCCESS")
     else:
         # Fallback: use alpha channel as mask
-        if img.shape[2] == 4:
+        logger.log(f"  Mask file not found: {mask_path}", "WARNING")
+        if len(img.shape) == 3 and img.shape[2] == 4:
             mask = img[:, :, 3]
+            logger.log(f"  Using alpha channel as mask", "INFO")
         else:
             mask = np.ones(bgr.shape[:2], dtype=np.uint8) * 255
+            logger.log(f"  Created full white mask (no masking)", "WARNING")
     
     return bgr, mask
 
@@ -187,7 +291,7 @@ def extract_fabric_pixels(
     fabric_mask: np.ndarray
 ) -> np.ndarray:
     """
-    Extract all pixels from fabric regions.
+    Extract all pixels from fabric regions with logging.
     
     Args:
         image: BGR image
@@ -196,11 +300,21 @@ def extract_fabric_pixels(
     Returns:
         Array of shape (N, 3) containing RGB values of fabric pixels
     """
+    start_time = time.time()
+    logger.log("Extracting fabric pixels...", "INFO")
+    
     # Convert BGR to RGB
     rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    logger.log(f"  Converted BGR to RGB", "INFO")
     
     # Get pixels where mask is non-zero
     fabric_pixels = rgb[fabric_mask > 0]
+    
+    elapsed = time.time() - start_time
+    logger.log(f"  Extracted {len(fabric_pixels):,} fabric pixels in {elapsed:.3f}s", "SUCCESS")
+    
+    if len(fabric_pixels) == 0:
+        logger.log("  WARNING: No fabric pixels found!", "WARNING")
     
     return fabric_pixels
 
@@ -210,7 +324,7 @@ def cluster_colors(
     n_clusters: int = 3
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Cluster pixels to find dominant colors.
+    Cluster pixels to find dominant colors with detailed logging.
     
     K-means clustering groups similar colors together.
     The center of the largest cluster is the dominant color.
@@ -224,7 +338,11 @@ def cluster_colors(
         - cluster_centers: RGB values of each cluster center
         - cluster_percentages: What % of pixels belong to each cluster
     """
+    start_time = time.time()
+    logger.log(f"Clustering into {n_clusters} color groups...", "INFO")
+    
     if len(pixels) == 0:
+        logger.log("  No pixels to cluster!", "ERROR")
         return np.array([]), np.array([])
     
     # Limit sample size for performance (100k pixels is plenty)
@@ -232,13 +350,21 @@ def cluster_colors(
     if len(pixels) > max_samples:
         indices = np.random.choice(len(pixels), max_samples, replace=False)
         pixels_sample = pixels[indices]
+        logger.log(f"  Sampling {max_samples:,} pixels from {len(pixels):,} total (for performance)", "INFO")
     else:
         pixels_sample = pixels
+        logger.log(f"  Using all {len(pixels):,} pixels for clustering", "INFO")
     
     # Run K-means clustering
     # n_init=10 means we run it 10 times and pick the best result
+    logger.log(f"  Running K-means (n_init=10)...", "INFO")
+    kmeans_start = time.time()
     kmeans = KMeans(n_clusters=n_clusters, n_init=10, random_state=42)
     labels = kmeans.fit_predict(pixels_sample)
+    kmeans_time = time.time() - kmeans_start
+    
+    logger.log(f"  K-means completed in {kmeans_time:.3f}s", "SUCCESS")
+    logger.log(f"  Inertia (sum of squared distances): {kmeans.inertia_:.2f}", "INFO")
     
     # Get cluster centers (these are our colors)
     centers = kmeans.cluster_centers_.astype(np.uint8)
@@ -248,17 +374,24 @@ def cluster_colors(
     total = len(labels)
     percentages = (counts / total) * 100
     
+    logger.log(f"  Cluster distribution:", "INFO")
+    for i, pct in enumerate(percentages):
+        logger.log(f"    Cluster {i}: {pct:.2f}%", "INFO")
+    
     # Sort by percentage (most common first)
     sort_idx = np.argsort(percentages)[::-1]
     centers = centers[sort_idx]
     percentages = percentages[sort_idx]
+    
+    elapsed = time.time() - start_time
+    logger.log(f"Color clustering complete in {elapsed:.3f}s", "SUCCESS")
     
     return centers, percentages
 
 
 def analyze_color_distribution(pixels: np.ndarray) -> Dict:
     """
-    Analyze the color distribution of fabric pixels.
+    Analyze the color distribution of fabric pixels with logging.
     
     This gives us statistics about the fabric color:
     - Mean: average color
@@ -271,25 +404,37 @@ def analyze_color_distribution(pixels: np.ndarray) -> Dict:
     Returns:
         Dictionary with color statistics
     """
+    logger.log("Analyzing color distribution...", "INFO")
+    
     if len(pixels) == 0:
+        logger.log("  No pixels to analyze!", "ERROR")
         return {}
     
     # Calculate mean RGB
     mean_rgb = np.mean(pixels, axis=0).astype(np.uint8)
+    logger.log(f"  Mean RGB: {mean_rgb.tolist()}", "INFO")
     
     # Calculate standard deviation
     std_rgb = np.std(pixels, axis=0)
+    logger.log(f"  Std RGB: [{std_rgb[0]:.2f}, {std_rgb[1]:.2f}, {std_rgb[2]:.2f}]", "INFO")
     
     # Calculate min/max
     min_rgb = np.min(pixels, axis=0)
     max_rgb = np.max(pixels, axis=0)
+    logger.log(f"  Min RGB: {min_rgb.tolist()}", "INFO")
+    logger.log(f"  Max RGB: {max_rgb.tolist()}", "INFO")
+    
+    # Calculate color variance (fabric uniformity metric)
+    total_variance = np.sum(std_rgb)
+    logger.log(f"  Total variance: {total_variance:.2f} (lower = more uniform)", "INFO")
     
     return {
         "mean_rgb": mean_rgb.tolist(),
         "std_rgb": std_rgb.tolist(),
         "min_rgb": min_rgb.tolist(),
         "max_rgb": max_rgb.tolist(),
-        "num_pixels": len(pixels)
+        "num_pixels": len(pixels),
+        "total_variance": round(total_variance, 2)
     }
 
 
@@ -368,7 +513,7 @@ def extract_fabric_color(
     name: str
 ) -> Dict:
     """
-    Main fabric color extraction function.
+    Main fabric color extraction function with comprehensive logging.
     
     Args:
         image: BGR image
@@ -378,53 +523,65 @@ def extract_fabric_color(
     Returns:
         Dictionary with color information
     """
-    print(f"\n{'='*50}")
-    print(f"Extracting fabric color from: {name}")
-    print('='*50)
+    logger.log(f"{'='*60}", "INFO")
+    logger.log(f"EXTRACTING FABRIC COLOR: {name.upper()}", "INFO")
+    logger.log(f"{'='*60}", "INFO")
+    
+    extraction_start = time.time()
     
     # Step 1: Extract fabric pixels
-    print("\n→ Extracting fabric pixels...")
+    logger.log("", "INFO")
+    logger.log("STEP 1: Extract Fabric Pixels", "INFO")
+    logger.log("-" * 40, "INFO")
     fabric_pixels = extract_fabric_pixels(image, fabric_mask)
-    print(f"  Found {len(fabric_pixels):,} fabric pixels")
     
     if len(fabric_pixels) == 0:
-        print("✗ No fabric pixels found!")
+        logger.log("No fabric pixels found!", "ERROR")
         return {}
     
     # Step 2: Cluster to find dominant colors
-    print(f"\n→ Clustering into {N_CLUSTERS} color groups...")
+    logger.log("", "INFO")
+    logger.log("STEP 2: K-Means Color Clustering", "INFO")
+    logger.log("-" * 40, "INFO")
     centers, percentages = cluster_colors(fabric_pixels, N_CLUSTERS)
     
     # Step 3: Identify dominant color
+    logger.log("", "INFO")
+    logger.log("STEP 3: Identify Dominant Color", "INFO")
+    logger.log("-" * 40, "INFO")
     dominant_rgb = tuple(centers[0].tolist())
     dominant_hex = rgb_to_hex(dominant_rgb)
     dominant_name = get_color_name(dominant_rgb)
     dominant_pct = percentages[0]
     
-    print(f"\n✓ DOMINANT FABRIC COLOR:")
-    print(f"  RGB: {dominant_rgb}")
-    print(f"  HEX: {dominant_hex}")
-    print(f"  Name: {dominant_name}")
-    print(f"  Coverage: {dominant_pct:.1f}% of fabric")
+    logger.log(f"\nDOMINANT FABRIC COLOR:", "SUCCESS")
+    logger.log(f"  RGB: {dominant_rgb}", "SUCCESS")
+    logger.log(f"  HEX: {dominant_hex}", "SUCCESS")
+    logger.log(f"  Name: {dominant_name}", "SUCCESS")
+    logger.log(f"  Coverage: {dominant_pct:.2f}% of fabric", "SUCCESS")
     
     # Step 4: Analyze color distribution
-    print("\n→ Analyzing color distribution...")
+    logger.log("", "INFO")
+    logger.log("STEP 4: Analyze Color Distribution", "INFO")
+    logger.log("-" * 40, "INFO")
     stats = analyze_color_distribution(fabric_pixels)
-    print(f"  Mean RGB: {stats['mean_rgb']}")
-    print(f"  Std Dev: [{stats['std_rgb'][0]:.1f}, {stats['std_rgb'][1]:.1f}, {stats['std_rgb'][2]:.1f}]")
     
-    # Build result dictionary
+    # Step 5: Log all detected colors
+    logger.log("", "INFO")
+    logger.log("ALL DETECTED COLOR CLUSTERS:", "INFO")
     all_colors = []
     for i, (center, pct) in enumerate(zip(centers, percentages)):
         rgb = tuple(center.tolist())
+        hex_code = rgb_to_hex(rgb)
+        name = get_color_name(rgb)
+        logger.log_color_cluster(i+1, rgb, hex_code, name, pct)
         all_colors.append({
             "rank": i + 1,
             "rgb": rgb,
-            "hex": rgb_to_hex(rgb),
-            "name": get_color_name(rgb),
+            "hex": hex_code,
+            "name": name,
             "percentage": round(pct, 2)
         })
-        print(f"\n  Color #{i+1}: {rgb_to_hex(rgb)} ({get_color_name(rgb)}) - {pct:.1f}%")
     
     result = {
         "dominant": {
@@ -437,12 +594,18 @@ def extract_fabric_color(
         "statistics": stats
     }
     
+    extraction_time = time.time() - extraction_start
+    logger.log("", "INFO")
+    logger.log(f"{'='*60}", "INFO")
+    logger.log(f"{name.upper()} COLOR EXTRACTION COMPLETE in {extraction_time:.3f}s", "SUCCESS")
+    logger.log(f"{'='*60}", "INFO")
+    
     return result
 
 
 def save_color_results(name: str, color_info: Dict, centers: np.ndarray, percentages: np.ndarray):
     """
-    Save color extraction results.
+    Save color extraction results with validation.
     
     Args:
         name: Base name for files
@@ -450,117 +613,209 @@ def save_color_results(name: str, color_info: Dict, centers: np.ndarray, percent
         centers: Array of color centers (RGB)
         percentages: Percentage for each color
     """
-    print(f"\n→ Saving {name} color results...")
+    logger.log(f"Saving {name} color results...", "INFO")
+    saved_files = []
     
-    # Save JSON with all color information
-    json_path = OUTPUT_DIR / f"{name}_fabric_color.json"
-    with open(json_path, 'w') as f:
-        json.dump(color_info, f, indent=2)
-    print(f"  ✓ {name}_fabric_color.json")
-    
-    # Save dominant color as simple text file (easy to read)
-    txt_path = OUTPUT_DIR / f"{name}_dominant_color.txt"
-    with open(txt_path, 'w') as f:
-        f.write(f"RGB: {color_info['dominant']['rgb']}\n")
-        f.write(f"HEX: {color_info['dominant']['hex']}\n")
-        f.write(f"Name: {color_info['dominant']['name']}\n")
-    print(f"  ✓ {name}_dominant_color.txt")
-    
-    # Create and save color swatch visualization
-    colors = [tuple(c.tolist()) for c in centers]
-    swatch = create_color_swatch(colors, percentages.tolist())
-    swatch_path = OUTPUT_DIR / f"{name}_color_swatch.png"
-    cv2.imwrite(str(swatch_path), swatch)
-    print(f"  ✓ {name}_color_swatch.png")
-    
-    # Create dominant color image
-    dominant_img = create_dominant_color_image(color_info['dominant']['rgb'])
-    dominant_path = OUTPUT_DIR / f"{name}_dominant_color.png"
-    cv2.imwrite(str(dominant_path), dominant_img)
-    print(f"  ✓ {name}_dominant_color.png")
+    try:
+        # Save JSON with all color information
+        json_path = OUTPUT_DIR / f"{name}_fabric_color.json"
+        with open(json_path, 'w') as f:
+            json.dump(color_info, f, indent=2)
+        size = json_path.stat().st_size
+        saved_files.append(("json", json_path, size))
+        logger.log(f"  ✓ {name}_fabric_color.json ({size} bytes)", "SUCCESS")
+        
+        # Save dominant color as simple text file (easy to read)
+        txt_path = OUTPUT_DIR / f"{name}_dominant_color.txt"
+        with open(txt_path, 'w') as f:
+            f.write(f"RGB: {color_info['dominant']['rgb']}\n")
+            f.write(f"HEX: {color_info['dominant']['hex']}\n")
+            f.write(f"Name: {color_info['dominant']['name']}\n")
+        size = txt_path.stat().st_size
+        saved_files.append(("txt", txt_path, size))
+        logger.log(f"  ✓ {name}_dominant_color.txt ({size} bytes)", "SUCCESS")
+        
+        # Create and save color swatch visualization
+        colors = [tuple(c.tolist()) for c in centers]
+        swatch = create_color_swatch(colors, percentages.tolist())
+        swatch_path = OUTPUT_DIR / f"{name}_color_swatch.png"
+        cv2.imwrite(str(swatch_path), swatch)
+        size = swatch_path.stat().st_size
+        saved_files.append(("swatch", swatch_path, size))
+        logger.log(f"  ✓ {name}_color_swatch.png ({size/1024:.1f} KB)", "SUCCESS")
+        
+        # Create dominant color image
+        dominant_img = create_dominant_color_image(color_info['dominant']['rgb'])
+        dominant_path = OUTPUT_DIR / f"{name}_dominant_color.png"
+        cv2.imwrite(str(dominant_path), dominant_img)
+        size = dominant_path.stat().st_size
+        saved_files.append(("dominant", dominant_path, size))
+        logger.log(f"  ✓ {name}_dominant_color.png ({size/1024:.1f} KB)", "SUCCESS")
+        
+        # Validate all files
+        all_valid = True
+        for file_type, file_path, file_size in saved_files:
+            if not file_path.exists():
+                logger.log(f"  ERROR: {file_path.name} not created!", "ERROR")
+                all_valid = False
+            elif file_size == 0:
+                logger.log(f"  ERROR: {file_path.name} is empty!", "ERROR")
+                all_valid = False
+        
+        if all_valid:
+            logger.log(f"All {name} color files validated successfully", "SUCCESS")
+        
+    except Exception as e:
+        logger.log(f"Error saving {name} color results: {e}", "ERROR")
 
 
 def run_color_extraction_pipeline():
     """
-    Run the complete color extraction pipeline.
+    Run the complete color extraction pipeline with comprehensive logging.
     """
-    print("\n" + "="*60)
-    print("   STEP 3: FABRIC COLOR EXTRACTION")
-    print("="*60)
+    logger.log("\n" + "="*80, "INFO")
+    logger.log("   STEP 3: FABRIC COLOR EXTRACTION PIPELINE (ENHANCED)", "INFO")
+    logger.log("="*80 + "\n", "INFO")
+    
+    pipeline_start = time.time()
     
     ensure_output_dir()
     
+    results = {"front": {"success": False}, "back": {"success": False}}
+    
     # Process FRONT
-    print("\n" + "-"*40)
-    print("Processing FRONT fabric")
-    print("-"*40)
+    logger.log("\n" + "-"*80, "INFO")
+    logger.log("PROCESSING FRONT FABRIC COLOR (REQUIRED)", "INFO")
+    logger.log("-"*80 + "\n", "INFO")
     
     front_img, front_mask = load_image_and_mask(FRONT_IMAGE_PATH, FRONT_FABRIC_MASK_PATH)
     
     if front_img is None:
-        print(f"\n✗ ERROR: Could not load front image from: {FRONT_IMAGE_PATH}")
+        logger.log("\n" + "="*80, "ERROR")
+        logger.log("❌ CRITICAL ERROR: Could not load front image", "ERROR")
+        logger.log(f"   Path: {FRONT_IMAGE_PATH}", "ERROR")
+        logger.log("="*80 + "\n", "ERROR")
+        logger.save_metrics()
         return False
     
     if front_mask is None:
-        print(f"\n✗ ERROR: Could not load fabric mask from: {FRONT_FABRIC_MASK_PATH}")
-        print("  Make sure Step 2 (design extraction) has been run first.")
+        logger.log("\n" + "="*80, "ERROR")
+        logger.log("❌ CRITICAL ERROR: Could not load front fabric mask", "ERROR")
+        logger.log(f"   Path: {FRONT_FABRIC_MASK_PATH}", "ERROR")
+        logger.log("   Make sure Step 2 (design extraction) has been run first.", "ERROR")
+        logger.log("="*80 + "\n", "ERROR")
+        logger.save_metrics()
         return False
     
-    print(f"✓ Loaded front image: {front_img.shape[1]}x{front_img.shape[0]} pixels")
-    print(f"✓ Loaded fabric mask: {np.sum(front_mask > 0):,} fabric pixels")
+    logger.log("", "INFO")
     
     # Extract fabric pixels and cluster
     fabric_pixels = extract_fabric_pixels(front_img, front_mask)
+    if len(fabric_pixels) == 0:
+        logger.log("No fabric pixels found in front image!", "ERROR")
+        logger.save_metrics()
+        return False
+    
     centers, percentages = cluster_colors(fabric_pixels, N_CLUSTERS)
     
+    logger.log("", "INFO")
     front_color_info = extract_fabric_color(front_img, front_mask, "front")
     if front_color_info:
+        logger.log("", "INFO")
         save_color_results("front", front_color_info, centers, percentages)
+        results["front"]["success"] = True
+        results["front"]["color"] = front_color_info["dominant"]
     
     # Process BACK (if available)
+    logger.log("\n" + "-"*80, "INFO")
+    logger.log("PROCESSING BACK FABRIC COLOR (OPTIONAL)", "INFO")
+    logger.log("-"*80 + "\n", "INFO")
+    
     back_img, back_mask = load_image_and_mask(BACK_IMAGE_PATH, BACK_FABRIC_MASK_PATH)
     
     if back_img is not None and back_mask is not None:
-        print("\n" + "-"*40)
-        print("Processing BACK fabric")
-        print("-"*40)
-        
         back_fabric_pixels = extract_fabric_pixels(back_img, back_mask)
-        back_centers, back_percentages = cluster_colors(back_fabric_pixels, N_CLUSTERS)
         
-        back_color_info = extract_fabric_color(back_img, back_mask, "back")
-        if back_color_info:
-            save_color_results("back", back_color_info, back_centers, back_percentages)
+        if len(back_fabric_pixels) > 0:
+            back_centers, back_percentages = cluster_colors(back_fabric_pixels, N_CLUSTERS)
+            
+            logger.log("", "INFO")
+            back_color_info = extract_fabric_color(back_img, back_mask, "back")
+            if back_color_info:
+                logger.log("", "INFO")
+                save_color_results("back", back_color_info, back_centers, back_percentages)
+                results["back"]["success"] = True
+                results["back"]["color"] = back_color_info["dominant"]
+        else:
+            logger.log("No fabric pixels found in back image", "WARNING")
     else:
-        print("\n→ No back image available (optional)")
+        logger.log("No back image available (optional)", "INFO")
+    
+    # Calculate total time
+    total_time = time.time() - pipeline_start
     
     # Summary
-    print("\n" + "="*60)
-    print("   FABRIC COLOR SUMMARY")
-    print("="*60)
+    logger.log("\n" + "="*80, "INFO")
+    logger.log("   FABRIC COLOR EXTRACTION SUMMARY", "INFO")
+    logger.log("="*80 + "\n", "INFO")
     
-    if front_color_info:
-        d = front_color_info['dominant']
-        print(f"\n🎨 FRONT FABRIC COLOR:")
-        print(f"   ┌────────────────────────────┐")
-        print(f"   │  RGB: {d['rgb']}".ljust(30) + "│")
-        print(f"   │  HEX: {d['hex']}".ljust(30) + "│")
-        print(f"   │  Name: {d['name']}".ljust(30) + "│")
-        print(f"   └────────────────────────────┘")
+    logger.log(f"Total pipeline time: {total_time:.3f}s", "SUCCESS")
+    logger.log("", "INFO")
     
-    if back_img is not None and back_color_info:
-        d = back_color_info['dominant']
-        print(f"\n🎨 BACK FABRIC COLOR:")
-        print(f"   ┌────────────────────────────┐")
-        print(f"   │  RGB: {d['rgb']}".ljust(30) + "│")
-        print(f"   │  HEX: {d['hex']}".ljust(30) + "│")
-        print(f"   │  Name: {d['name']}".ljust(30) + "│")
-        print(f"   └────────────────────────────┘")
+    if results["front"]["success"]:
+        d = results["front"]["color"]
+        logger.log("\u2705 FRONT FABRIC COLOR EXTRACTED", "SUCCESS")
+        logger.log(f"   RGB: {d['rgb']}", "INFO")
+        logger.log(f"   HEX: {d['hex']}", "INFO")
+        logger.log(f"   Name: {d['name']}", "INFO")
+        logger.log(f"   Coverage: {d['percentage']}%", "INFO")
+        logger.log("", "INFO")
+        logger.log(f"   Output files:", "INFO")
+        logger.log(f"   - {OUTPUT_DIR}/front_fabric_color.json", "INFO")
+        logger.log(f"   - {OUTPUT_DIR}/front_dominant_color.txt", "INFO")
+        logger.log(f"   - {OUTPUT_DIR}/front_color_swatch.png", "INFO")
+        logger.log(f"   - {OUTPUT_DIR}/front_dominant_color.png", "INFO")
     
-    print(f"\nOutput files saved to: {OUTPUT_DIR}/")
-    print("\n" + "="*60)
+    logger.log("", "INFO")
     
-    return True
+    if results["back"]["success"]:
+        d = results["back"]["color"]
+        logger.log("\u2705 BACK FABRIC COLOR EXTRACTED", "SUCCESS")
+        logger.log(f"   RGB: {d['rgb']}", "INFO")
+        logger.log(f"   HEX: {d['hex']}", "INFO")
+        logger.log(f"   Name: {d['name']}", "INFO")
+    else:
+        logger.log("\u25cb BACK IMAGE: NOT PROVIDED", "INFO")
+    
+    logger.log("", "INFO")
+    logger.log(f"\ud83d\udcca Detailed logs: {LOG_FILE}", "INFO")
+    logger.log(f"\ud83d\udcc8 Metrics JSON: {LOG_JSON}", "INFO")
+    logger.log("", "INFO")
+    logger.log("="*80, "INFO")
+    
+    # Save metrics
+    logger.save_metrics()
+    
+    # Validate critical files
+    critical_files = [
+        OUTPUT_DIR / "front_fabric_color.json",
+        OUTPUT_DIR / "front_dominant_color.txt",
+        OUTPUT_DIR / "front_color_swatch.png",
+        OUTPUT_DIR / "front_dominant_color.png"
+    ]
+    
+    all_valid = True
+    for file_path in critical_files:
+        if not file_path.exists():
+            logger.log(f"\u274c CRITICAL FILE MISSING: {file_path}", "ERROR")
+            all_valid = False
+    
+    if all_valid:
+        logger.log("\n\u2705 ALL CRITICAL OUTPUT FILES VALIDATED", "SUCCESS")
+        return True
+    else:
+        logger.log("\n\u274c SOME CRITICAL FILES ARE MISSING", "ERROR")
+        return False
 
 
 # ============================================================
@@ -569,7 +824,7 @@ def run_color_extraction_pipeline():
 
 if __name__ == "__main__":
     """
-    Run this script after Steps 1 and 2.
+    Run this script after Steps 1 and 2 with comprehensive logging.
     
     Requires:
     - segmentation_output/front_masked.png
@@ -582,16 +837,67 @@ if __name__ == "__main__":
     
     The result is the TRUE fabric color!
     
+    Outputs to color_output/:
+    - front_fabric_color.json (all color data)
+    - front_dominant_color.txt (simple text format)
+    - front_color_swatch.png (visual color distribution)
+    - front_dominant_color.png (solid color preview)
+    - step3_detailed_log.txt - Complete operation log
+    - step3_metrics.json - Structured metrics
+    
     Install with:
         pip install scikit-learn
     """
+    print("\n" + "="*80)
+    print("   FABRIC COLOR EXTRACTION - ENHANCED VERSION")
+    print("   With K-means clustering and comprehensive logging")
+    print("="*80 + "\n")
+    
     success = run_color_extraction_pipeline()
     
     if success:
-        print("\n" + "="*60)
-        print("   STEP 3 COMPLETE — GREEN SIGNAL REQUIRED ✅")
-        print("="*60)
-        print("\nNext step: Pattern generation from measurements")
-        print("Waiting for your GREEN SIGNAL to proceed...")
+        try:
+            print("\n" + "="*80)
+            print("   ✅ STEP 3 COMPLETE - ALL VALIDATIONS PASSED")
+            print("="*80)
+            print(f"\n📁 Output directory: {OUTPUT_DIR}")
+            print(f"📝 Detailed log: {LOG_FILE}")
+            print(f"📊 Metrics JSON: {LOG_JSON}")
+            print("\n" + "="*80)
+            print("   READY FOR NEXT STEP")
+            print("="*80)
+            print("\n➡️  Next step: Pattern generation from measurements")
+            print("   Run: python step4_pattern_generation.py")
+            print("\n" + "="*80)
+        except UnicodeEncodeError:
+            # Fallback for Windows console
+            print("\n" + "="*80)
+            print("   STEP 3 COMPLETE - ALL VALIDATIONS PASSED")
+            print("="*80)
+            print(f"\nOutput directory: {OUTPUT_DIR}")
+            print(f"Detailed log: {LOG_FILE}")
+            print(f"Metrics JSON: {LOG_JSON}")
+            print("\n" + "="*80)
+            print("   READY FOR NEXT STEP")
+            print("="*80)
+            print("\nNext step: Pattern generation from measurements")
+            print("   Run: python step4_pattern_generation.py")
+            print("\n" + "="*80)
     else:
-        print("\n✗ Color extraction failed. Please fix the errors above.")
+        try:
+            print("\n" + "="*80)
+            print("   ❌ STEP 3 FAILED - CHECK LOGS FOR DETAILS")
+            print("="*80)
+            print(f"\n📝 Check detailed log: {LOG_FILE}")
+            print(f"📊 Check metrics: {LOG_JSON}")
+            print("\nPlease fix the errors above and run again.")
+            print("="*80)
+        except UnicodeEncodeError:
+            # Fallback for Windows console
+            print("\n" + "="*80)
+            print("   STEP 3 FAILED - CHECK LOGS FOR DETAILS")
+            print("="*80)
+            print(f"\nCheck detailed log: {LOG_FILE}")
+            print(f"Check metrics: {LOG_JSON}")
+            print("\nPlease fix the errors above and run again.")
+            print("="*80)
