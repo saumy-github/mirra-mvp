@@ -7,14 +7,14 @@ import subprocess
 from typing import Optional
 
 # Add workspace root to path for imports
-workspace_root = os.path.dirname(os.path.abspath(__file__))
+workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if workspace_root not in sys.path:
     sys.path.insert(0, workspace_root)
 
 
 def get_next_run_number(user_id: str) -> int:
     """Auto-detect next available run number for a user by scanning generated folder."""
-    generated_dir = os.path.join(workspace_root, 'pipeline_star', 'generated')
+    generated_dir = os.path.join(os.path.dirname(__file__), 'generated')
     
     if not os.path.exists(generated_dir):
         return 1
@@ -92,7 +92,7 @@ def main():
         
         cmd = [
             sys.executable,
-            os.path.join(workspace_root, 'pipeline_star', 'first.py'),
+            os.path.join(os.path.dirname(__file__), 'first.py'),
             '--user_id', user_id,
             '--mode', 'generate_avatar',
             '--run_number', str(next_number)

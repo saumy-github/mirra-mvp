@@ -21,7 +21,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Python executable (from venv)
-PYTHON="../.venv/bin/python"
+PYTHON="../../.venv/bin/python"
 
 # Blender executable
 if [[ "$OSTYPE" == "darwin"* ]]; then

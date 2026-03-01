@@ -1,14 +1,14 @@
-# MVP Step 1: 3D Avatar Generation System
+# MVP Step 1: 3D digital twin Generation System
 
 ## Executive Summary
 
 ### Core Objective & Scope
 
-**Goal**: To create a unique, reusable, and anatomically accurate 3D avatar which is representation of a specific user based on manual measurements.
+**Goal**: To create a unique, reusable, and anatomically accurate 3D digital twin which is representation of a specific user based on manual measurements.
 
-**Purpose**: This avatar serves as the persistent "mannequin" for all future virtual try-on sessions. It acts as the foundational body block upon which clothing will be simulated.
+**Purpose**: This digital twin serves as the persistent "mannequin" for all future virtual try-on sessions. It acts as the foundational body block upon which clothing will be simulated.
 
-**Key Characteristic**: The system prioritizes dimensional accuracy (fit) over aesthetic realism (face/hair). The avatar is generated once, stored permanently, and retrieved for every session to ensure consistency and minimize processing overhead.
+**Key Characteristic**: The system prioritizes dimensional accuracy (fit) over aesthetic realism (face/hair). The digital twin is generated once, stored permanently, and retrieved for every session to ensure consistency and minimize processing overhead.
 
 ---
 
@@ -55,7 +55,7 @@ The MVP (Minimum Viable Product) direction focuses strictly on silhouette and fi
 
 ### Aesthetic
 
-- **Visual Style**: A featureless, pure black silhouette with a matte finish
+- **Visual Style**: A featureless, skin colour silhouette with a matte finish
 - **Detailing**: No skin texture, no face, and no hair details
 
 ### Mesh Exclusions
@@ -80,12 +80,11 @@ This visual style highlights the fit of the garment rather than the look of the 
 Instead of creating a fully rigged, animation-ready character with bones and skin weights (which is computationally expensive), the system will generate a **Static 3D Mesh**.
 
 - **Morphing Logic**: The base mesh vertices are displaced/morphed to become an exact replica of the input numbers (e.g., expanding the chest vertices to match the chest circumference input)
-- **Pose**: The avatar stands in a single, static standard pose optimized for clothing attachment. This will be either:
-  - **A-Pose**: Arms roughly 45 degrees downward (generally preferred for natural cloth drape)
+- **Pose**: The digital twin stands in a single, static **T-pose** (arms extended horizontally, forming a "T" shape) optimized for clothing attachment and measurement consistency
 
 ### B. Persistence & Storage
 
-- **Creation Frequency**: The avatar is generated once. It is not recreated every session
+- **Creation Frequency**: The digital twin is generated once. It is not recreated every session
 - **Storage**: The resulting 3D model file (likely `.glb` or `.obj`) is stored in the database/cloud storage bucket
 - **Retrieval**: The file path is linked to the User ID. When the user logs in, the existing file is fetched. This ensures immediate availability without re-processing
 
@@ -95,7 +94,7 @@ Instead of creating a fully rigged, animation-ready character with bones and ski
 
 ### Interaction
 
-The user can inspect their digital body using a **360-degree camera rotation control**. The avatar remains static; the camera moves around it.
+The user can inspect their digital body using a **360-degree camera rotation control**. The digital twin remains static; the camera moves around it.
 
 ### Performance Optimization
 
@@ -118,6 +117,6 @@ While the current requirements are specific, the system architecture allows for 
 
 This document describes **Step 1** of the 3-step MVP:
 
-- **Step 1** (This Document): Clean 3D Avatar Generation for AI Usage
+- **Step 1** (This Document): Clean 3D digital twin Generation for AI Usage
 - **Step 2**: TBD
 - **Step 3**: TBD

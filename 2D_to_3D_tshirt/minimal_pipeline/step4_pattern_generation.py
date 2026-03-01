@@ -616,16 +616,20 @@ def generate_all_patterns(measurements: Dict[str, float]) -> Dict[str, Dict]:
     patterns = {}
     
     print("\n→ Generating front panel...")
-    patterns["front"] = generate_front_panel(measurements)
-    print(f"  ✓ Front: {patterns['front']['width']:.1f} x {patterns['front']['height']:.1f} cm")
+    patterns["Front_Panel"] = generate_front_panel(measurements)
+    print(f"  ✓ Front: {patterns['Front_Panel']['width']:.1f} x {patterns['Front_Panel']['height']:.1f} cm")
     
     print("\n→ Generating back panel...")
-    patterns["back"] = generate_back_panel(measurements)
-    print(f"  ✓ Back: {patterns['back']['width']:.1f} x {patterns['back']['height']:.1f} cm")
+    patterns["Back_Panel"] = generate_back_panel(measurements)
+    print(f"  ✓ Back: {patterns['Back_Panel']['width']:.1f} x {patterns['Back_Panel']['height']:.1f} cm")
     
-    print("\n→ Generating sleeve...")
-    patterns["sleeve"] = generate_sleeve(measurements)
-    print(f"  ✓ Sleeve: {patterns['sleeve']['width']:.1f} x {patterns['sleeve']['height']:.1f} cm")
+    print("\n→ Generating left sleeve...")
+    patterns["Left_Sleeve"] = generate_sleeve(measurements)
+    print(f"  ✓ Left Sleeve: {patterns['Left_Sleeve']['width']:.1f} x {patterns['Left_Sleeve']['height']:.1f} cm")
+    
+    print("\n→ Generating right sleeve...")
+    patterns["Right_Sleeve"] = generate_sleeve(measurements)
+    print(f"  ✓ Right Sleeve: {patterns['Right_Sleeve']['width']:.1f} x {patterns['Right_Sleeve']['height']:.1f} cm")
     
     return patterns
 
@@ -696,18 +700,18 @@ def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
             # Left side (when garment is worn)
             {
                 "name": "left_side_seam",
-                "panel_a": "front",
+                "panel_a": "Front_Panel",
                 "edge_a": "side_seam",
-                "panel_b": "back", 
+                "panel_b": "Back_Panel", 
                 "edge_b": "side_seam",
                 "side": "left"
             },
             # Right side
             {
                 "name": "right_side_seam",
-                "panel_a": "front",
+                "panel_a": "Front_Panel",
                 "edge_a": "side_seam",
-                "panel_b": "back",
+                "panel_b": "Back_Panel",
                 "edge_b": "side_seam", 
                 "side": "right"
             },
@@ -715,17 +719,17 @@ def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
             # Shoulder seams: Front and Back shoulder edges
             {
                 "name": "left_shoulder_seam",
-                "panel_a": "front",
+                "panel_a": "Front_Panel",
                 "edge_a": "shoulder",
-                "panel_b": "back",
+                "panel_b": "Back_Panel",
                 "edge_b": "shoulder",
                 "side": "left"
             },
             {
                 "name": "right_shoulder_seam",
-                "panel_a": "front",
+                "panel_a": "Front_Panel",
                 "edge_a": "shoulder",
-                "panel_b": "back",
+                "panel_b": "Back_Panel",
                 "edge_b": "shoulder",
                 "side": "right"
             },
@@ -733,17 +737,17 @@ def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
             # Sleeve seams: Armhole to Sleeve cap
             {
                 "name": "left_sleeve_seam",
-                "panel_a": "front",
+                "panel_a": "Front_Panel",
                 "edge_a": "armhole",
-                "panel_b": "sleeve_left",
+                "panel_b": "Left_Sleeve",
                 "edge_b": "cap_left",
                 "side": "left"
             },
             {
                 "name": "right_sleeve_seam",
-                "panel_a": "front",
+                "panel_a": "Front_Panel",
                 "edge_a": "armhole",
-                "panel_b": "sleeve_right",
+                "panel_b": "Right_Sleeve",
                 "edge_b": "cap_right",
                 "side": "right"
             },
@@ -751,17 +755,17 @@ def generate_seam_definitions(patterns: Dict[str, Dict]) -> Dict:
             # Sleeve underarm seams (sleeve tube)
             {
                 "name": "left_sleeve_underarm",
-                "panel_a": "sleeve_left",
+                "panel_a": "Left_Sleeve",
                 "edge_a": "underarm_left",
-                "panel_b": "sleeve_left",
+                "panel_b": "Left_Sleeve",
                 "edge_b": "underarm_right",
                 "side": "left"
             },
             {
                 "name": "right_sleeve_underarm",
-                "panel_a": "sleeve_right",
+                "panel_a": "Right_Sleeve",
                 "edge_a": "underarm_left",
-                "panel_b": "sleeve_right",
+                "panel_b": "Right_Sleeve",
                 "edge_b": "underarm_right",
                 "side": "right"
             }
@@ -840,19 +844,19 @@ def run_pattern_generation_pipeline(measurements: Dict[str, float] = None):
     
     print("\n📐 Generated patterns:")
     print("\n  FRONT PANEL:")
-    print(f"    - Width: {patterns['front']['width']:.1f} cm (half-width, cut on fold)")
-    print(f"    - Length: {patterns['front']['height']:.1f} cm")
-    print(f"    - Full width when unfolded: {patterns['front']['width'] * 2:.1f} cm")
+    print(f"    - Width: {patterns['Front_Panel']['width']:.1f} cm (half-width, cut on fold)")
+    print(f"    - Length: {patterns['Front_Panel']['height']:.1f} cm")
+    print(f"    - Full width when unfolded: {patterns['Front_Panel']['width'] * 2:.1f} cm")
     
     print("\n  BACK PANEL:")
-    print(f"    - Width: {patterns['back']['width']:.1f} cm (half-width, cut on fold)")
-    print(f"    - Length: {patterns['back']['height']:.1f} cm")
+    print(f"    - Width: {patterns['Back_Panel']['width']:.1f} cm (half-width, cut on fold)")
+    print(f"    - Length: {patterns['Back_Panel']['height']:.1f} cm")
     print(f"    - Neckline: shallower than front")
     
     print("\n  SLEEVE (x2):")
-    print(f"    - Width: {patterns['sleeve']['width']:.1f} cm")
-    print(f"    - Length: {patterns['sleeve']['height']:.1f} cm")
-    print(f"    - Sleeve cap height: ~{patterns['sleeve']['width']*0.45/1.4:.1f} cm")
+    print(f"    - Width: {patterns['Left_Sleeve']['width']:.1f} cm")
+    print(f"    - Length: {patterns['Left_Sleeve']['height']:.1f} cm")
+    print(f"    - Sleeve cap height: ~{patterns['Left_Sleeve']['width']*0.45/1.4:.1f} cm")
     
     print(f"\n📁 Output saved to: {OUTPUT_DIR}/")
     print(f"   - front_pattern.svg")
