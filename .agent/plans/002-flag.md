@@ -8,7 +8,7 @@
 
 4. 🔮 **Future**: Multi-view support (front + back) - back view processing not fully integrated. MVP uses front-view only.
 
-5. 🔮 **Future**: Automated size recommendation - suggest best fit based on avatar measurements. Requires Step 1 avatar data.
+5. 🔮 **Future**: Automated size recommendation - suggest best fit based on digital twin measurements. Requires Step 1 digital twin data.
 
 6. 🔮 **Future**: Design extraction accuracy - edge detection works for MVP but AI-based segmentation would be more accurate for complex patterns.
 

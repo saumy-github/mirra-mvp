@@ -1,8 +1,8 @@
-# Plan 003: Avatar Shoulder Width Measurement Fix
+# Plan 003: digital twin Shoulder Width Measurement Fix
 
 ## Overview
 
-Fix the shoulder width measurement issue in avatar generation by distinguishing between anatomical shoulder width (DB field) from the mesh-measured width (new field).
+Fix the shoulder width measurement issue in digital twin generation by distinguishing between anatomical shoulder width (DB field) from the mesh-measured width (new field).
 
 ## Problem
 
@@ -77,7 +77,7 @@ Fix the shoulder width measurement issue in avatar generation by distinguishing 
 
 **Steps**:
 
-1. Re-generate user_m_001 avatar
+1. Re-generate user_m_001 digital twin
 2. Verify shoulder measurement is accurate
 3. Document in 003-flag.md if any limitations remain
 4. Update any relevant docs
@@ -90,7 +90,7 @@ Fix the shoulder width measurement issue in avatar generation by distinguishing 
 ## Expected Outcomes
 
 - ✅ Accurate anatomical shoulder width measurement
-- ✅ Avatar proportions match intended measurements
+- ✅ digital twin proportions match intended measurements
 - ✅ Clear separation between anatomical vs pose-dependent measurements
 - ✅ Reduced fitting errors (from 61% to <5%)
 
@@ -98,8 +98,8 @@ Fix the shoulder width measurement issue in avatar generation by distinguishing 
 
 After implementation:
 
-1. Generate new avatar with shoulder_width_cm = 45.0
+1. Generate new digital twin with shoulder_width_cm = 45.0
 2. Measure actual shoulder width on generated mesh
 3. Verify error is < 5%
 4. Check that other measurements (chest, waist, hip) still fit correctly
-5. Visualize avatar proportions look realistic
+5. Visualize digital twin proportions look realistic

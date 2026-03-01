@@ -7,7 +7,7 @@
 
 - `bpy.ops.mesh` - Mesh operations and modifiers
 - Cloth modifier with properties: mass, stiffness, damping, air resistance
-- Collision modifiers for avatar-garment interaction
+- Collision modifiers for digital twin-garment interaction
 - Vertex groups for defining seam constraints (sewing edges together)
 - Physics simulation cache and bake system
 

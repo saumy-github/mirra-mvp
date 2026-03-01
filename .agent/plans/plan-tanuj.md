@@ -79,14 +79,14 @@
 - No asset export to reusable format
 - Assets only exist in Blender session memory
 - Can't reuse assets later for Step 3 (VTO)
-- Can't preview T-shirt standalone like avatar
+- Can't preview T-shirt standalone like digital twin
 
 **Solution**:
 
 **Add Step 7 (asset export)**:
 
 - Export T-shirt as **`.glb`** (primary format)
-  - Same format as avatar (`user_m_001-001.glb`)
+  - Same format as digital twin (`user_m_001-001.glb`)
   - Single file with geometry + textures + materials
   - Web-compatible for Step 3 (VTO)
   - Viewable in 3D viewers standalone
@@ -122,7 +122,7 @@
 
 **Decision**:
 
-- For MVP, focus on making **ONE T-shirt** that fits **ONE avatar** (user_m_001)
+- For MVP, focus on making **ONE T-shirt** that fits **ONE digital twin** (user_m_001)
 - No multiple sizes (XS, S, M, L, XL) for now
 - Fix sewing and fitting issues first before scaling to size variants
 
@@ -136,7 +136,7 @@
 
 **Create T-shirt using user_m_001's ACTUAL generated measurements**:
 
-From `values-user_m_001-001.json`, the avatar was generated with:
+From `values-user_m_001-001.json`, the digital twin was generated with:
 
 - Height: **178.22 cm**
 - Chest circumference: **107.53 cm** (instead of intended 100 cm)
@@ -144,9 +144,9 @@ From `values-user_m_001-001.json`, the avatar was generated with:
 - Waist circumference: **96.92 cm**
 - Hip circumference: **93.20 cm**
 
-**Note**: The avatar has very high tolerance (failed fit gate), but we'll make cloth that fits THIS avatar.
+**Note**: The digital twin has very high tolerance (failed fit gate), but we'll make cloth that fits THIS digital twin.
 
-**T-shirt Pattern Measurements** (derived from avatar):
+**T-shirt Pattern Measurements** (derived from digital twin):
 
 - `chest_flat`: **53.77 cm** (half of 107.53 cm)
 - `body_length`: **72 cm** (standard)
@@ -208,7 +208,7 @@ From `values-user_m_001-001.json`, the avatar was generated with:
 
 ### Phase 3: VTO Integration
 
-1. Load exported T-shirt onto user_m_001 avatar
+1. Load exported T-shirt onto user_m_001 digital twin
 2. Verify fit and draping
 3. Document working pipeline
 
@@ -216,5 +216,5 @@ From `values-user_m_001-001.json`, the avatar was generated with:
 
 - Add size variants (XS, S, M, L, XL)
 - Add input validation
-- Support multiple users/avatars
+- Support multiple users/digital twins
 - Improve measurement accuracy

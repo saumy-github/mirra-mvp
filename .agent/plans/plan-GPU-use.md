@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add PyTorch GPU acceleration to the STAR avatar generation pipeline to significantly speed up beta fitting optimization. The implementation will automatically detect GPU availability and fall back to CPU when needed.
+Add PyTorch GPU acceleration to the STAR digital twin generation pipeline to significantly speed up beta fitting optimization. The implementation will automatically detect GPU availability and fall back to CPU when needed.
 
 ---
 
@@ -17,7 +17,7 @@ Add PyTorch GPU acceleration to the STAR avatar generation pipeline to significa
 ✅ **Single command** runs the pipeline with automatic GPU detection:
 
 ```bash
-python3 pipeline_star/run_avatar_pipeline.py
+python3 pipeline_star/run_digital twin_pipeline.py
 # Automatically uses GPU if available, otherwise CPU
 ```
 
@@ -208,11 +208,11 @@ python3 -c "from star.pytorch.star import STAR; STAR(gender='male'); print('✓'
 
 ```bash
 # Measure time before GPU
-time python3 pipeline_star/run_avatar_pipeline.py
+time python3 pipeline_star/run_digital twin_pipeline.py
 # (user_m_002, run 004)
 
 # Measure time after GPU
-time python3 pipeline_star/run_avatar_pipeline.py
+time python3 pipeline_star/run_digital twin_pipeline.py
 # (user_m_002, run 005)
 ```
 
@@ -277,7 +277,7 @@ Speedup scales with number of betas due to parallel computation on GPU.
 ✅ **Same command for all users**:
 
 ```bash
-python3 pipeline_star/run_avatar_pipeline.py
+python3 pipeline_star/run_digital twin_pipeline.py
 ```
 
 - Laptop with GPU → Uses GPU automatically ⚡

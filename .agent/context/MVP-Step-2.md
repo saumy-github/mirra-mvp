@@ -3,15 +3,15 @@
 This document defines **Step 2** of the Mirra MVP pipeline: converting **2D garment images** into **assets usable for virtual try-on**.  
 Step 2 sits between:
 
-- **Step 1:** 3D Avatar Generation  
-- **Step 2:** 2D Clothing → 3D/usable asset (this document)  
+- **Step 1:** 3D digital twin Generation
+- **Step 2:** 2D Clothing → 3D/usable asset (this document)
 - **Step 3:** Render + Try-on Experience for the user
 
 ---
 
 ## Step 2A — Product Ingestion Engine (Version 1)
 
-**Goal:** Populate the **Virtual Closet** quickly *without* full AI automation yet.
+**Goal:** Populate the **Virtual Closet** quickly _without_ full AI automation yet.
 
 ### 1. Sourcing Strategy (API Scraping)
 
@@ -44,7 +44,7 @@ Step 2 sits between:
 
 - For MVP, **do not** build full cloth physics conversion.
 - Use **basic texture mapping**:
-  - Map 2D garment imagery onto the avatar/garment proxy as textures
+  - Map 2D garment imagery onto the digital twin/garment proxy as textures
   - Treat as the starting point before complex deformable cloth pipelines
 
 ---
@@ -55,7 +55,7 @@ Step 2 sits between:
 
 ### Inputs
 
-- **2D Images:** Multiple views of a garment (minimum: **Front + Back**)  
+- **2D Images:** Multiple views of a garment (minimum: **Front + Back**)
   - Source can be anything for MVP (scraped / manual / brand-provided)
 - **Metadata:**
   - Size: **XS, S, M, L, XL**
@@ -64,7 +64,7 @@ Step 2 sits between:
 
 ### Outputs
 
-- A **3D asset file** compatible with the avatar/try-on system
+- A **3D asset file** compatible with the digital twin/try-on system
 - Stored inside a **Product Inventory database**
 
 ### Key Requirements

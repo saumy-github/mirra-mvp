@@ -46,13 +46,13 @@ This plan implements the complete 2D to 3D clothing asset pipeline for t-shirts 
 
 ### Phase 4 - Rigid Sizing & Fit Assessment
 
-**Goal**: Ensure garments maintain their actual size and provide fit feedback when placed on avatars.
+**Goal**: Ensure garments maintain their actual size and provide fit feedback when placed on digital twins.
 
 **Steps**:
 
 1. Review and adjust Blender cloth simulation settings to prevent auto-fitting
 2. Add constraints to maintain garment dimensions during simulation
-3. Implement fit assessment logic (compare garment vs avatar measurements)
+3. Implement fit assessment logic (compare garment vs digital twin measurements)
 4. Generate fit messages (too small, too large, good fit)
 5. Add visual indicators for fit issues in the 3D asset
 
@@ -76,7 +76,7 @@ This plan implements the complete 2D to 3D clothing asset pipeline for t-shirts 
 
 1. Test complete pipeline with 10-20 sample t-shirt images
 2. Validate asset quality (color fidelity, design accuracy, size correctness)
-3. Verify assets can be loaded and placed on avatars from Step 1
+3. Verify assets can be loaded and placed on digital twins from Step 1
 4. Document the asset ingestion workflow
 5. Create user-facing documentation for manual image input process
 
@@ -91,8 +91,8 @@ This plan implements the complete 2D to 3D clothing asset pipeline for t-shirts 
 
 ### From Step 1
 
-- Avatar body measurements (for fit assessment)
-- Avatar 3D models (for cloth simulation testing)
+- digital twin body measurements (for fit assessment)
+- digital twin 3D models (for cloth simulation testing)
 
 ## Expected Outcomes
 
@@ -140,8 +140,8 @@ After execution, verify:
    - [ ] Check metadata JSON files have correct measurements
 
 4. **Fit Behavior**:
-   - [ ] Place small size on large avatar - should look tight
-   - [ ] Place large size on small avatar - should look loose
+   - [ ] Place small size on large digital twin - should look tight
+   - [ ] Place large size on small digital twin - should look loose
    - [ ] Verify no automatic stretching to fit body
 
 5. **Asset Package**:

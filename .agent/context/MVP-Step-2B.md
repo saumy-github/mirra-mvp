@@ -12,12 +12,12 @@ This document defines **Step 2B** of the Mirra MVP pipeline - creating **3D clot
 
 ## Overview
 
-**Goal -** Convert manually provided 2D t-shirt images and size metadata into realistic 3D clothing assets that maintain proper fit behavior when placed on avatars.
+**Goal -** Convert manually provided 2D t-shirt images and size metadata into realistic 3D clothing assets that maintain proper fit behavior when placed on digital twins.
 
 **Key Principle -** The generated clothing asset should behave like real clothing -
 
-- If a garment is **too small**, it should appear tight/restrictive on the avatar
-- If a garment is **too large**, it should appear loose/baggy on the avatar
+- If a garment is **too small**, it should appear tight/restrictive on the digital twin
+- If a garment is **too large**, it should appear loose/baggy on the digital twin
 - The asset should **NOT automatically stretch or compress** to perfectly fit every body type
 
 ---
@@ -117,12 +117,12 @@ Step 2A provides manually curated data -
 
 ### Stage 3 - Size & Physics Configuration
 
-**Purpose -** Configure the asset to behave realistically when worn by avatars
+**Purpose -** Configure the asset to behave realistically when worn by digital twins
 
 #### Inputs
 
 - 3D mesh from Stage 2
-- Avatar body measurements (from Step 1)
+- digital twin body measurements (from Step 1)
 - Garment size specifications
 
 #### Process
@@ -133,10 +133,10 @@ Step 2A provides manually curated data -
      - Gravity (drape behavior)
      - Limited collision response
      - Natural fold/wrinkle patterns
-   - **No automatic fitting/stretching** to match avatar body
+   - **No automatic fitting/stretching** to match digital twin body
 
 2. **Fit Assessment Logic -**
-   - Compare garment measurements vs. avatar measurements
+   - Compare garment measurements vs. digital twin measurements
    - Calculate fit gaps -
      - **Negative gap** = too tight (garment smaller than body)
      - **Positive gap** = too loose (garment larger than body)
@@ -203,7 +203,7 @@ Each processed t-shirt produces a complete 3D asset package -
    ```
 
 5. **Fit Behavior Profile -**
-   - Recommended avatar body ranges
+   - Recommended digital twin body ranges
    - Fit warnings/messages
    - Visual behavior flags
 
@@ -219,7 +219,7 @@ Each processed t-shirt produces a complete 3D asset package -
 
 ### 2. Visual Feedback System -
 
-When rendered on an avatar -
+When rendered on an digital twin -
 
 - **Clear visual cues** for fit issues -
   - Too tight - visible pulling, fabric stress
@@ -236,7 +236,7 @@ The system should generate user-facing messages -
 
 ### 4. Measurement-Based Logic -
 
-- Compare garment dimensions to avatar body measurements
+- Compare garment dimensions to digital twin body measurements
 - Use industry-standard fit tolerances -
   - Chest - 2-4 cm ease for good fit
   - Length - proportional to torso height
@@ -260,7 +260,7 @@ The system should generate user-facing messages -
 - Complex fabric simulation (wind, dynamic movement)
 - Other garment types (pants, dresses, jackets)
 - Accessories
-- Real-time cloth deformation during avatar movement
+- Real-time cloth deformation during digital twin movement
 - Advanced material properties (elasticity, stiffness variation)
 
 ---
@@ -315,6 +315,6 @@ After Step 2B completion -
 
 - Assets ready for **Step 3 - Virtual Try-On**
 - User can select from inventory
-- System places asset on avatar (Step 1)
+- System places asset on digital twin (Step 1)
 - Fit assessment + visual feedback provided
 - User sees realistic try-on result

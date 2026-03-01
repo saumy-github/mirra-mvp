@@ -1,6 +1,6 @@
 # Mirra MVP — Step 3: Try-On Engine (VTO Integration)
 
-This document defines **Step 3** of the Mirra MVP pipeline: **visually combining** the user’s avatar (Step 1) with a selected clothing asset (Step 2) to render a realistic try-on result.
+This document defines **Step 3** of the Mirra MVP pipeline: **visually combining** the user’s digital twin (Step 1) with a selected clothing asset (Step 2) to render a realistic try-on result.
 
 ---
 
@@ -8,37 +8,37 @@ This document defines **Step 3** of the Mirra MVP pipeline: **visually combining
 
 ### Goal
 
-Visually merge the **cloth asset** with the **avatar** to demonstrate **fit + style**.
+Visually merge the **cloth asset** with the **digital twin** to demonstrate **fit + style**.
 
 ---
 
 ## Inputs
 
-- **Avatar_ID** — the user’s persisted 3D body/avatar (from Step 1)
+- **digital twin_ID** — the user’s persisted 3D body/digital twin (from Step 1)
 - **Asset_ID** — the selected clothing asset (from Step 2)
 
 ---
 
 ## Outputs
 
-- A **visual rendering (3D Scene)** showing the cloth **draped onto** the avatar  
+- A **visual rendering (3D Scene)** showing the cloth **draped onto** the digital twin  
   (the user sees the final try-on visualization)
 
 ---
 
 ## Core Workflow (Integration)
 
-**Action:** Combine the **Flexible Asset (Step 2)** onto the **Custom Avatar (Step 1)**  
-**Result:** A visual simulation where the cloth “drapes” onto the body, showing how that *specific size* fits that *specific user*.
+**Action:** Combine the **Flexible Asset (Step 2)** onto the **Custom digital twin (Step 1)**  
+**Result:** A visual simulation where the cloth “drapes” onto the body, showing how that _specific size_ fits that _specific user_.
 
 ---
 
 ## Visualization Methods
 
-### 1. Avatar Mode (Primary for MVP)
+### 1. digital twin Mode (Primary for MVP)
 
-- **Warp the product image** to fit the **3D avatar mesh coordinates**
-- Technique: **UV mapping** onto avatar/garment proxy mesh
+- **Warp the product image** to fit the **3D digital twin mesh coordinates**
+- Technique: **UV mapping** onto digital twin/garment proxy mesh
 
 ### 2. Live / Camera Mode (Optional for MVP)
 
@@ -57,8 +57,8 @@ Visually merge the **cloth asset** with the **avatar** to demonstrate **fit + st
 
 The system must visually represent how the chosen cloth size interacts with the user’s body shape:
 
-- **Small size on large avatar** → looks **tight / stretched**
-- **Large size on small avatar** → looks **loose / relaxed**
+- **Small size on large digital twin** → looks **tight / stretched**
+- **Large size on small digital twin** → looks **loose / relaxed**
 - Also supports signals like:
   - “tightness”
   - “sleeve length”
@@ -85,7 +85,7 @@ The system must visually represent how the chosen cloth size interacts with the 
 
 - Multi-layering:
   - Shirt + Sweater + Jacket
-- Real-time movement/animation of avatar wearing clothes
+- Real-time movement/animation of digital twin wearing clothes
 
 ---
 
@@ -123,8 +123,8 @@ The system must visually represent how the chosen cloth size interacts with the 
 ## Summary (What Step 3 Must Deliver for MVP)
 
 - A working **Try-On Engine** that:
-  - Takes **Avatar_ID + Asset_ID**
-  - Produces a **3D scene rendering** of cloth on avatar
+  - Takes **digital twin_ID + Asset_ID**
+  - Produces a **3D scene rendering** of cloth on digital twin
   - Visually communicates **fit differences** (tight vs loose)
 - MVP supports **single-layer** try-on with a clean path to future:
   - multi-layering
