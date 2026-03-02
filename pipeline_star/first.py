@@ -17,6 +17,7 @@ from pipeline_star.artifact_io import write_values_json, get_timestamp
 from pipeline_star.artifact_schema import create_values_schema, FITNESS_TOLERANCE_PERCENT
 from pipeline_star.pose_catalog import get_apose_thetas, get_apose_metadata
 from pipeline_star.avatar_exporter import export_mesh_to_glb
+from pipeline_star.avatar_exporter_clo import export_avatar_for_clo
 from pipeline_star.run_manifest import get_avatar_glb_path
 from pipeline_star.mesh_postprocess import postprocess_mesh
 from pipeline_star.avatar_style import get_material_config
@@ -356,6 +357,17 @@ def main():
                     material_config=get_material_config()
                 )
                 print(f"✓ GLB exported: {glb_path}")
+                
+                # Also export OBJ for CLO3D integration
+                clo_export_result = export_avatar_for_clo(
+                    vertices=processed_mesh['vertices'],
+                    faces=processed_mesh['faces'],
+                    measurements=doc,
+                    output_directory=os.path.join(os.path.dirname(glb_path), 'clo_avatars'),
+                    user_id=user_id,
+                    run_number=run_number
+                )
+                print(f"✓ CLO3D OBJ exported: {clo_export_result['obj_file']}")
                 
                 # Enhanced terminal feedback based on status
                 print("\n" + "=" * 60)
