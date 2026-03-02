@@ -30,9 +30,25 @@ def fetch_user_measurements(user_id: str) -> Dict[str, Any]:
     return doc
 
 
-# Validate required fields for MVP (including validate-only fields)
+# Validate required fields for MVP (gender-specific)
 def validate_required_fields(doc: Dict[str, Any]) -> None:
-    required_fields = ['user_id', 'gender'] + FITTING_MEASUREMENT_FIELDS + VALIDATE_ONLY_FIELDS
+    gender = doc.get('gender')
+    if not gender:
+        raise ValueError("Field 'gender' is required")
+    
+    # Base fields for both genders
+    base_fields = ['user_id', 'gender', 'height_cm', 'weight_kg', 'shoulder_width_cm', 
+                   'waist_circumference_cm', 'hip_circumference_cm', 'leg_length_cm']
+    
+    # Gender-specific chest/bust fields
+    if gender == 'male':
+        chest_fields = ['chest_circumference_cm']
+    elif gender == 'female':
+        chest_fields = ['bust_circumference_cm', 'under_bust_circumference_cm']
+    else:
+        raise ValueError(f"Invalid gender: {gender}. Expected 'male' or 'female'")
+    
+    required_fields = base_fields + chest_fields
     
     missing_fields = []
     for field in required_fields:
@@ -53,6 +69,8 @@ def validate_measurement_ranges(doc: Dict[str, Any]) -> None:
         'weight_kg': (30, 200),
         'shoulder_width_cm': (25, 70),
         'chest_circumference_cm': (60, 150),
+        'bust_circumference_cm': (60, 150),
+        'under_bust_circumference_cm': (55, 140),
         'waist_circumference_cm': (40, 160),
         'hip_circumference_cm': (60, 160),
         'leg_length_cm': (50, 130),
@@ -75,23 +93,26 @@ def validate_measurement_ranges(doc: Dict[str, Any]) -> None:
         )
 
 
-# Create derived fitting targets for MVP (male: chest path only)
+# Create derived fitting targets for MVP (gender-aware: map bust to chest for females)
 def create_fitting_targets(doc: Dict[str, Any]) -> Dict[str, float]:
     gender = doc['gender']
     
+    base_targets = {
+        'height_cm': float(doc['height_cm']),
+        'shoulder_width_cm': float(doc['shoulder_width_cm']),
+        'waist_circumference_cm': float(doc['waist_circumference_cm']),
+        'hip_circumference_cm': float(doc['hip_circumference_cm']),
+    }
+    
     if gender == 'male':
-        return {
-            'height_cm': float(doc['height_cm']),
-            'shoulder_width_cm': float(doc['shoulder_width_cm']),
-            'chest_circumference_cm': float(doc['chest_circumference_cm']),
-            'waist_circumference_cm': float(doc['waist_circumference_cm']),
-            'hip_circumference_cm': float(doc['hip_circumference_cm']),
-        }
+        base_targets['chest_circumference_cm'] = float(doc['chest_circumference_cm'])
+    elif gender == 'female':
+        # Map bust to chest for STAR model (Option A: use bust directly)
+        base_targets['chest_circumference_cm'] = float(doc['bust_circumference_cm'])
     else:
-        raise NotImplementedError(
-            f"Female bust/under-bust mapping not yet implemented. "
-            f"Only male (chest) path is supported in MVP."
-        )
+        raise ValueError(f"Unsupported gender: {gender}")
+    
+    return base_targets
 
 
 # Create run configuration

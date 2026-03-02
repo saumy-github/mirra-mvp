@@ -17,3 +17,4 @@ Example from your user rules:
 4. Do NOT add extra line breaks or remove existing line breaks
 5. Follow the EXACT formatting style of the existing file
 6. Keep ternary operators on one line
+7. Do NOT create walkthrough documents unless explicitly requested by the user

@@ -1,8 +1,8 @@
-# Plan 001: Avatar Generation Pipeline - Interactive CLI & Bug Fixes
+# Plan 001: digital twin Generation Pipeline - Interactive CLI & Bug Fixes
 
 ## Overview
 
-Improve the existing avatar generation pipeline to make it user-friendly with an interactive CLI, fix critical measurement bugs, and enhance error reporting. The pipeline already has working Phase 0-3 (validation, inputs/values creation, GLB export), but needs usability improvements and bug fixes.
+Improve the existing digital twin generation pipeline to make it user-friendly with an interactive CLI, fix critical measurement bugs, and enhance error reporting. The pipeline already has working Phase 0-3 (validation, inputs/values creation, GLB export), but needs usability improvements and bug fixes.
 
 ## Current State
 
@@ -13,7 +13,7 @@ Improve the existing avatar generation pipeline to make it user-friendly with an
 - Phase 2A: Inputs JSON creation (`pipeline_star/mapping_layer.py`)
 - Phase 2B: Beta fitting with STAR (`pipeline_star/fit_betas.py`)
 - Phase 2C: Values JSON creation with fit report and status
-- Phase 3: GLB export (`pipeline_star/avatar_exporter.py`)
+- Phase 3: GLB export (`pipeline_star/digital twin_exporter.py`)
 
 ❌ **Known Issues:**
 
@@ -30,19 +30,19 @@ Improve the existing avatar generation pipeline to make it user-friendly with an
 
 **Steps**:
 
-1. Create `run_avatar_pipeline.py` in project root that wraps `pipeline_star/first.py`
+1. Create `run_digital twin_pipeline.py` in project root that wraps `pipeline_star/first.py`
 2. Implement interactive user_id input prompt with validation
 3. Auto-detect next available run number by scanning `pipeline_star/generated/` folder
 4. Display the next run number to user and ask for confirmation or custom number
-5. Call `first.py` with the collected arguments in `generate_avatar` mode
+5. Call `first.py` with the collected arguments in `generate_digital twin` mode
 6. Handle keyboard interrupts gracefully
 
 **Expected Behavior**:
 
 ```plain
-$ python run_avatar_pipeline.py
+$ python run_digital twin_pipeline.py
 
-🎯 Avatar Generation Pipeline
+🎯 digital twin Generation Pipeline
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Enter user_id: user_m_001
@@ -56,11 +56,11 @@ Use run number 002? [Y/n]: _
 
 ### Phase 2: Enhance Terminal Feedback for Failed Runs
 
-**Goal**: Provide clear visual feedback when avatar generation fails the 2% tolerance gate
+**Goal**: Provide clear visual feedback when digital twin generation fails the 2% tolerance gate
 
 **Steps**:
 
-1. Modify `pipeline_star/first.py` in the `generate_avatar` mode section
+1. Modify `pipeline_star/first.py` in the `generate_digital twin` mode section
 2. After status determination (line ~298), add conditional formatting
 3. If status is "failed", print a red cross (❌) with a clear failure message
 4. Display which measurements failed the tolerance gate with their error percentages
@@ -70,7 +70,7 @@ Use run number 002? [Y/n]: _
 **Expected Output (Failed)**:
 
 ```plain
-❌ AVATAR GENERATION FAILED
+❌ digital twin GENERATION FAILED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 The following measurements exceeded 2% tolerance:
   • Shoulder Width: 61.71% error
@@ -84,7 +84,7 @@ Review the values JSON for detailed fit report.
 **Expected Output (Passed)**:
 
 ```plain
-✅ AVATAR GENERATION SUCCESSFUL
+✅ digital twin GENERATION SUCCESSFUL
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 All measurements within 2% tolerance
 Ready for Blender import: user_m_001-001.glb
@@ -118,7 +118,7 @@ Ready for Blender import: user_m_001-001.glb
 
 **Items to Verify**:
 
-1. Run `python run_avatar_pipeline.py` - confirm interactive prompt appears
+1. Run `python run_digital twin_pipeline.py` - confirm interactive prompt appears
 2. Enter `user_m_001` - confirm it finds the user in database
 3. Confirm auto-detected run number is correct (should be next available)
 4. Let the pipeline complete - check terminal output for clear success/failure message
@@ -127,7 +127,7 @@ Ready for Blender import: user_m_001-001.glb
    - `values-user_m_001-00X.json`
    - `user_m_001-00X.glb`
 6. Open Blender and import the GLB file - verify it loads without errors
-7. Visually inspect the avatar mesh in Blender for basic correctness
+7. Visually inspect the digital twin mesh in Blender for basic correctness
 8. Repeat test with `user_m_002`, `user_f_001`, `user_f_002` (optional extended test)
 
 ---
@@ -142,7 +142,7 @@ Ready for Blender import: user_m_001-001.glb
 
 When this plan is complete:
 
-1. Users can run `python run_avatar_pipeline.py` and be guided through avatar generation
+1. Users can run `python run_digital twin_pipeline.py` and be guided through digital twin generation
 2. Failed runs show clear, color-coded error messages
 3. Run numbers auto-increment without manual specification
 4. Shoulder width bug is documented with investigation findings

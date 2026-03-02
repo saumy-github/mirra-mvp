@@ -5,6 +5,18 @@ import numpy as np
 from pipeline_star.star_runner import generate_apose_mesh
 from pipeline_star.mesh_measure import extract_measurements_from_mesh
 
+# Load J_regressor from STAR model for anatomical landmark measurements
+J_REGRESSOR_CACHE = {}
+def get_j_regressor(gender: str):
+    if gender not in J_REGRESSOR_CACHE:
+        import os
+        model_path = f'/home/saumy/Documents/mirra-mvp/models/star_1_1/{gender}/model.npz'
+        if os.path.exists(model_path):
+            data = np.load(model_path, allow_pickle=True)
+            J_REGRESSOR_CACHE[gender] = data['J_regressor']
+        else:
+            J_REGRESSOR_CACHE[gender] = None
+    return J_REGRESSOR_CACHE[gender]
 
 FITTING_WEIGHTS = {
     'height_cm': 1.0,
@@ -23,7 +35,6 @@ OPTIMIZER_CONVERGENCE_THRESHOLD = 1e-6
 OPTIMIZER_CONVERGENCE_PATIENCE = 5
 OPTIMIZER_PRINT_FREQUENCY = 10
 
-
 # Predict measurements from betas by generating mesh and extracting measurements
 def predict_measurements_from_betas(
     gender: str,
@@ -34,9 +45,9 @@ def predict_measurements_from_betas(
 ) -> Dict[str, float]:
     mesh_data = generate_apose_mesh(gender, betas, scale, num_betas)
     vertices = mesh_data['vertices']
-    measurements = extract_measurements_from_mesh(vertices, debug=debug)
+    j_regressor = get_j_regressor(gender)
+    measurements = extract_measurements_from_mesh(vertices, j_regressor=j_regressor, debug=debug)
     return measurements
-
 
 # Compute weighted least-squares loss with L2 regularization: Σ weight * ((pred-target)/target)^2 + λ * ||betas||^2
 def compute_fitting_loss(
@@ -75,7 +86,6 @@ def compute_fitting_loss(
         print(f"  total_loss: {total_loss:.6f}")
     
     return total_loss
-
 
 # Fit STAR betas to target measurements using finite-difference gradient descent
 def fit_betas_to_measurements(

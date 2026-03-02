@@ -25,7 +25,13 @@ For each phase:
 3. Verify the step worked as expected
 4. Move to the next step
 
-### 3. Handle Problems **CRITICAL WORKFLOW**
+### 3. Phase Gate
+
+1. **Execute only one phase** at a time
+2. **Notify the user** when a phase is complete
+3. **Wait for explicit confirmation** before moving to the next phase
+
+### 4. Handle Problems **CRITICAL WORKFLOW**
 
 When issues arise during execution:
 
@@ -43,7 +49,7 @@ When issues arise during execution:
 
 **AI MUST NOT update the problems file without your explicit command.**
 
-### 4. Handle Flags **CRITICAL WORKFLOW**
+### 5. Handle Flags **CRITICAL WORKFLOW**
 
 If vulnerabilities or limitations are discovered during execution:
 
@@ -59,7 +65,7 @@ If vulnerabilities or limitations are discovered during execution:
 
 **AI MUST NOT update the flags file without your explicit command.**
 
-### 5. Adapt When Needed
+### 6. Adapt When Needed
 
 If the plan needs adjustment during execution:
 

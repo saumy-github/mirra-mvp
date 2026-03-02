@@ -77,27 +77,13 @@ Brief description of what this plan accomplishes
 ```markdown
 # Problems: Plan <number>
 
-## Phase X, Step Y: [Problem Description]
+1. **Problem**: [Brief Problem Title]
 
-**Problem**: Detailed description of what went wrong
+   [Detailed description of what went wrong and impact]
 
-**Attempted Solutions**:
+   **Found in**: Phase X, Step Y ([context/location])
 
-1. What we tried first (and why it didn't work)
-2. What we tried second
-
-**Resolution**:
-
-- How we solved it, OR
-- "Left for future" with explanation
-
-**Date**: YYYY-MM-DD
-
----
-
-## Phase X, Step Z: [Problem Description]
-
-...
+   **Evidence**: [Root cause analysis, attempted solutions, and fix options]
 ```
 
 **Important**:
@@ -125,36 +111,21 @@ Brief description of what this plan accomplishes
 ```markdown
 # Flags: Plan <number>
 
-## 🚩 Vulnerabilities
-
-### [Vulnerability Name]
-
-**Type**: Security / Performance / Scalability / etc.
-**Description**: What the vulnerability is
-**Impact**: Potential consequences
-**Mitigation**: What we did to minimize it (if anything)
-**Status**: Unresolved / Partially Addressed / Accepted Risk
-
----
-
-## 🔮 Future Considerations
-
-### [Feature/Improvement Name]
-
-**Description**: What should be done in the future
-**Reason**: Why it's not being done now
-**Priority**: Low / Medium / High
-
----
-
-## ⚠️ Known Limitations
-
-### [Limitation Name]
-
-**Description**: What the limitation is
-**Impact**: How it affects functionality
-**Workaround**: Any temporary solutions in place
+1. 🚩 **Vulnerability**: Brief description of security/robustness issue and mitigation.
+2. 🔮 **Future**: Feature or improvement deferred to post-MVP with brief reason.
+3. 🔮 **Learn**: Topic or concept to understand better (research item).
+4. ⚡ **Performance**: Known performance issue and potential optimization.
+5. 🔧 **Tooling**: Development tool or infrastructure improvement.
+6. ⚠️ **Limitation**: Known constraint by design or MVP scope decision.
 ```
+
+**Emoji Guide**:
+
+- 🚩 Vulnerability/Risk
+- 🔮 Future work/Learn
+- ⚡ Performance
+- 🔧 Tooling
+- ⚠️ Limitation
 
 **Important**:
 

@@ -10,40 +10,23 @@ if workspace_root not in sys.path:
     sys.path.insert(0, workspace_root)
 
 from mirra_measurements.db import get_measurements_collection
-from pipeline_star.star_runner import generate_default_mesh, generate_mesh
-from pipeline_star.fit_betas import fit_betas_to_measurements, predict_measurements_from_betas
-from pipeline_star.mapping_layer import create_mapping_layer_output
+from pipeline_star.star_runner import generate_apose_mesh, generate_mesh
+from pipeline_star.fit_betas import fit_betas_to_measurements
+from pipeline_star.mesh_measure import extract_measurements_from_mesh
+from pipeline_star.avatar_exporter import export_mesh_to_glb
+from pipeline_star.mapping_layer import (
+    validate_required_fields,
+    validate_measurement_ranges,
+    create_mapping_layer_output
+)
+from pipeline_star.run_manifest import RunIdentity, get_inputs_json_path, get_values_json_path, get_avatar_glb_path
+from pipeline_star.artifact_schema import create_values_schema, FITNESS_TOLERANCE_PERCENT, FITTING_MEASUREMENT_FIELDS
 from pipeline_star.artifact_io import write_values_json, get_timestamp
 from pipeline_star.artifact_schema import create_values_schema, FITNESS_TOLERANCE_PERCENT
 from pipeline_star.pose_catalog import get_apose_thetas, get_apose_metadata
 from pipeline_star.avatar_exporter import export_mesh_to_glb
-from pipeline_star.avatar_exporter_clo import export_avatar_for_clo
 from pipeline_star.run_manifest import get_avatar_glb_path
 from pipeline_star.mesh_postprocess import postprocess_mesh
-from pipeline_star.avatar_style import get_material_config
-
-
-REQUIRED_FIELDS = [
-    'user_id',
-    'gender',
-    'height_cm',
-    'weight_kg',
-    'shoulder_width_cm',
-    'chest_circumference_cm',
-    'waist_circumference_cm',
-    'hip_circumference_cm',
-    'leg_length_cm',
-]
-
-MEASUREMENT_RANGES = {
-    'height_cm': (120, 220),
-    'weight_kg': (30, 200),
-    'shoulder_width_cm': (25, 70),
-    'chest_circumference_cm': (60, 150),
-    'waist_circumference_cm': (40, 160),
-    'hip_circumference_cm': (60, 160),
-    'leg_length_cm': (50, 130),
-}
 
 
 # Fetch user measurement document from MongoDB
@@ -53,40 +36,6 @@ def fetch_user_measurements(user_id: str, version: int = 1) -> Dict[str, Any]:
     if doc is None:
         raise ValueError(f"No measurements found for user_id: {user_id}")
     return doc
-
-
-# Validate all required fields are present
-def validate_required_fields(doc: Dict[str, Any]) -> None:
-    missing_fields: List[str] = []
-    for field in REQUIRED_FIELDS:
-        if field not in doc or doc[field] is None:
-            missing_fields.append(field)
-    if missing_fields:
-        raise ValueError(
-            f"Missing required fields: {', '.join(missing_fields)}\n"
-            f"Cannot generate avatar without complete measurement data."
-        )
-
-
-# Validate measurements are within plausible ranges
-def validate_measurement_ranges(doc: Dict[str, Any]) -> None:
-    out_of_range: List[str] = []
-    
-    for field, (min_val, max_val) in MEASUREMENT_RANGES.items():
-        if field in doc and doc[field] is not None:
-            value = doc[field]
-            if value < min_val or value > max_val:
-                out_of_range.append(
-                    f"{field}: {value:.1f} (expected {min_val}-{max_val})"
-                )
-    
-    if out_of_range:
-        raise ValueError(
-            f"Measurements out of plausible range:\n" +
-            "\n".join(f"  - {item}" for item in out_of_range) +
-            f"\nPlease verify measurement data before generating avatar."
-        )
-
 
 # Print formatted summary of user measurements
 def print_measurements_summary(doc: Dict[str, Any]) -> None:
@@ -98,7 +47,14 @@ def print_measurements_summary(doc: Dict[str, Any]) -> None:
     print(f"Height:               {doc['height_cm']:.1f} cm")
     print(f"Weight:               {doc['weight_kg']:.1f} kg")
     print(f"Shoulder Width:       {doc['shoulder_width_cm']:.1f} cm")
-    print(f"Chest Circumference:  {doc['chest_circumference_cm']:.1f} cm")
+    
+    # Gender-specific chest/bust display
+    if doc['gender'] == 'male':
+        print(f"Chest Circumference:  {doc['chest_circumference_cm']:.1f} cm")
+    elif doc['gender'] == 'female':
+        print(f"Bust Circumference:   {doc['bust_circumference_cm']:.1f} cm")
+        print(f"Under-Bust Circum.:   {doc['under_bust_circumference_cm']:.1f} cm")
+    
     print(f"Waist Circumference:  {doc['waist_circumference_cm']:.1f} cm")
     print(f"Hip Circumference:    {doc['hip_circumference_cm']:.1f} cm")
     print(f"Leg Length:           {doc['leg_length_cm']:.1f} cm")
