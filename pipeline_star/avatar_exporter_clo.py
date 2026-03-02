@@ -192,11 +192,24 @@ def export_avatar_for_clo(
     
     # Export measurements JSON
     json_path = output_dir / f"{base_name}_measurements.json"
+    
+    # Sanitize measurements dict: remove MongoDB-specific fields and convert datetime to string
+    sanitized_measurements = {}
+    for key, value in measurements.items():
+        # Skip MongoDB internal fields
+        if key.startswith('_'):
+            continue
+        # Convert datetime objects to ISO format strings
+        if hasattr(value, 'isoformat'):
+            sanitized_measurements[key] = value.isoformat()
+        else:
+            sanitized_measurements[key] = value
+    
     measurement_data = {
         'user_id': user_id,
         'run_number': run_number,
         'export_date': datetime.now().isoformat(),
-        'measurements': measurements,
+        'measurements': sanitized_measurements,
         'mesh_stats': {
             'vertex_count': int(len(vertices)),
             'face_count': int(len(faces)),

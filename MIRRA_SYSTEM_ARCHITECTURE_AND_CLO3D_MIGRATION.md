@@ -457,7 +457,7 @@ Transform 2D garment images into 3D garments with accurate appearance (color, de
 │  Process:                                     │
 │  1-3. Image analysis → color, design          │
 │  4. Generate patterns (SVG)                   │
-│  5. Blender simulation with avatar           │
+│  5. Blender simulation with avatar            │
 │       - Load avatar.glb as collision object   │
 │       - Sew patterns → garment                │
 │       - Simulate draping on avatar            │
