@@ -6,11 +6,12 @@
 __pycache__/
 *.pyc
 
+#libs (for tracking submodules)
+libs/*
+!libs/.gitkeep
+
 # models (keep big binaries out of git)
-models/
+models/*
 *.npz
 *.zip
-
-# pipeline_star/generated artifacts (but track the folder itself)
-pipeline_star/generated/*
-!pipeline_star/generated/.gitkeep
+!models/.gitkeep
