@@ -7,9 +7,9 @@ import os
 from pathlib import Path
 
 # CLO Installation Paths
-CLO_INSTALL_DIR = Path("C:/Program Files/CLO/CLO_SET")
-CLO_EXECUTABLE = CLO_INSTALL_DIR / "CLO.exe"
-CLO_API_DIR = CLO_INSTALL_DIR / "API/Python"
+CLO_INSTALL_DIR = Path("C:/Program Files/CLO Standalone OnlineAuth")
+CLO_EXECUTABLE = CLO_INSTALL_DIR / "CLO_Standalone_OnlineAuth_x64.exe"
+CLO_API_DIR = CLO_INSTALL_DIR / "ApiStubFiles"
 
 # Project Paths
 PROJECT_ROOT = Path(__file__).parent.parent

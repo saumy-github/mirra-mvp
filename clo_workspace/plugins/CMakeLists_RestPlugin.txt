@@ -1,0 +1,39 @@
+# CMakeLists.txt for RestPlugin
+# Place in same folder as RestPlugin_template.cpp
+
+cmake_minimum_required(VERSION 3.15)
+project(RestPlugin)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find Qt (adjust version as needed)
+set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
+find_package(Qt5 COMPONENTS Core Widgets REQUIRED)
+
+# CLO SDK paths (adjust based on your SDK location)
+set(CLO_SDK_ROOT "C:/CLO_SDK")
+include_directories(${CLO_SDK_ROOT}/include)
+link_directories(${CLO_SDK_ROOT}/lib)
+
+# Plugin source
+add_library(RestPlugin SHARED
+    RestPlugin_template.cpp
+)
+
+# Link against CLO SDK libraries
+target_link_libraries(RestPlugin
+    Qt5::Core
+    Qt5::Widgets
+    # Add CLO SDK libraries here (check SDK lib folder for exact names)
+    # Example: CLOAPISDK.lib
+)
+
+# Output DLL to specific location
+set_target_properties(RestPlugin PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release"
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/Release"
+)
+
+# Copy httplib.h if needed (download separately)
+# Download from: https://github.com/yhirose/cpp-httplib/blob/master/httplib.h

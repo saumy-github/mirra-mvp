@@ -1,6 +1,7 @@
 """
-MIRAAA T-Shirt Assembly - Realistic T-shirt matching reference image
-Creates a proper T-shirt with front/back panels and proper sleeves
+CLO3D T-Shirt Generator - Optimized for CLO3D Simulation
+Creates lightweight T-shirt mesh suitable for CLO3D physics simulation
+Subdivision Level 1 for balance between quality and performance
 """
 
 import bpy
@@ -8,7 +9,7 @@ import bmesh
 import math
 from mathutils import Vector
 
-OUTPUT_PATH = r"C:\Users\Anant\mirra-mvp\Working_Cloth_3D_Pipeline\output\assembly\tshirt_3d.glb"
+OUTPUT_PATH = r"C:\Users\Anant\mirra-mvp\garment_generation_clo3d\tshirt_clo3d.glb"
 
 
 def clear_scene():
@@ -21,10 +22,10 @@ def create_realistic_tshirt():
     """
     Create a realistic T-shirt as a continuous mesh.
     Body forms a tube, sleeves properly integrated.
+    Optimized for CLO3D simulation.
     """
     
     # Dimensions in CENTIMETERS for CLO3D compatibility
-    # (multiplied by 100 from original meter values)
     body_width = 50.0         # HalfChestWidth: 50cm
     body_length = 70.0        # GarmentLength: 70cm
     body_depth = 18.0         # Front-to-back depth (estimated)
@@ -50,9 +51,6 @@ def create_realistic_tshirt():
     bpy.context.scene.collection.objects.link(obj)
     
     bm = bmesh.new()
-    
-    # Number of segments around body
-    body_segments = 16
     
     # Number of segments around body
     body_segments = 16
@@ -88,7 +86,6 @@ def create_realistic_tshirt():
             bm.faces.new([ring1[i], ring1[i_next], ring2[i_next], ring2[i]])
     
     # DON'T close bottom hem - leave it open for wearability
-    # A real T-shirt has an open bottom!
     
     # Create shoulder/neck area
     armpit_ring = body_rings[-1]
@@ -123,7 +120,7 @@ def create_realistic_tshirt():
     neck_verts_inner = []  # Inner edge of neckband
     neck_verts_outer = []  # Outer edge connecting to body
     
-    # Neckband dimensions from XML specification
+    # Neckband dimensions
     neckband_width = neckband_height  # BandHeight: 4cm
     
     for i in range(neck_segments):
@@ -192,7 +189,6 @@ def create_realistic_tshirt():
         sleeve_segments = 12
         
         # First, identify and extract the armhole vertices from body
-        # These are the body vertices we want to connect the sleeve to
         armhole_verts = []
         
         # Determine angle range for this side's armhole
@@ -222,8 +218,7 @@ def create_realistic_tshirt():
         if len(armhole_verts) < 4:
             return  # Not enough vertices to create sleeve
         
-        # Create sleeve attachment ring by duplicating armhole vertices slightly outward
-        # This creates the first ring of the sleeve at the exact armhole position
+        # Create sleeve attachment ring
         sleeve_base_ring = []
         
         center_x = side * body_width / 2
@@ -247,7 +242,6 @@ def create_realistic_tshirt():
             y = v1.y + (v2.y - v1.y) * frac
             z = v1.z + (v2.z - v1.z) * frac
             
-            # Create new vertex at this position (will merge with body during remove_doubles)
             v = bm.verts.new((x, y, z))
             sleeve_base_ring.append(v)
         
@@ -283,15 +277,10 @@ def create_realistic_tshirt():
                 else:
                     bm.faces.new([ring1[i], ring1[i_next], ring2[i_next], ring2[i]])
         
-        # DON'T close sleeve end - leave it open for wearability
-        # A real T-shirt has open sleeve holes!
-        
-        # Connect sleeve base to armhole by creating faces between sleeve_base_ring and armhole_verts
-        # Create triangular fan from armhole vertices to sleeve base
+        # Connect sleeve base to armhole
         num_armhole = len(armhole_verts)
         
         for i in range(num_armhole):
-            # Map each armhole vertex to closest sleeve base vertex
             armhole_v = armhole_verts[i]
             armhole_v_next = armhole_verts[(i + 1) % num_armhole]
             
@@ -316,7 +305,6 @@ def create_realistic_tshirt():
                             armhole_v_next
                         ])
                 except:
-                    # Try triangle if quad fails
                     try:
                         if side > 0:
                             bm.faces.new([armhole_v, armhole_v_next, sleeve_base_ring[sleeve_idx]])
@@ -339,34 +327,34 @@ def create_realistic_tshirt():
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
     
-    # Remove doubles to merge seam vertices - CRITICAL for sleeve connection
-    bpy.ops.mesh.remove_doubles(threshold=2.0)  # 2cm threshold (scaled for cm units)
+    # Remove doubles to merge seam vertices
+    bpy.ops.mesh.remove_doubles(threshold=2.0)  # 2cm threshold
     
     # Recalculate normals
     bpy.ops.mesh.normals_make_consistent(inside=False)
     
-    # Additional subdivision pass BEFORE main subdivision for smoother seams
+    # Additional subdivision pass for smoother seams
     bpy.ops.mesh.subdivide(number_cuts=1, smoothness=0.3)
     
     bpy.ops.object.mode_set(mode='OBJECT')
     
-    # Add Subdivision Surface modifier for extra smoothness
+    # Add Subdivision Surface modifier - LEVEL 1 FOR CLO3D PERFORMANCE
     subsurf = obj.modifiers.new(name="Subdivision", type='SUBSURF')
-    subsurf.levels = 3  # Increased to 3 for even smoother seams
-    subsurf.render_levels = 3
+    subsurf.levels = 1  # ⚡ REDUCED TO LEVEL 1 FOR CLO3D SIMULATION
+    subsurf.render_levels = 1
     subsurf.quality = 4
-    subsurf.subdivision_type = 'CATMULL_CLARK'  # Smoother algorithm
+    subsurf.subdivision_type = 'CATMULL_CLARK'
     
     # Apply the modifier
     bpy.context.view_layer.objects.active = obj
     bpy.ops.object.modifier_apply(modifier=subsurf.name)
     
-    # Final smoothing pass in edit mode
+    # Final smoothing pass
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='SELECT')
     
     # Smooth vertices to blend seams
-    bpy.ops.mesh.vertices_smooth(factor=0.5, repeat=3)
+    bpy.ops.mesh.vertices_smooth(factor=0.5, repeat=2)
     
     bpy.ops.object.mode_set(mode='OBJECT')
     
@@ -421,12 +409,13 @@ def export_obj(obj, filepath):
 
 def main():
     print("=" * 60)
-    print("MIRAAA T-Shirt 3D Assembly - Realistic T-shirt")
+    print("CLO3D T-Shirt Generator - Optimized for Simulation")
+    print("Subdivision Level 1 (Low Poly)")
     print("=" * 60)
     
     clear_scene()
     
-    print("\nCreating realistic T-shirt...")
+    print("\nCreating optimized T-shirt for CLO3D...")
     tshirt = create_realistic_tshirt()
     
     # Add material
@@ -436,6 +425,7 @@ def main():
     print(f"\nFinal T-shirt:")
     print(f"  Vertices: {len(tshirt.data.vertices)}")
     print(f"  Faces: {len(tshirt.data.polygons)}")
+    print(f"  Estimated Triangles: {len(tshirt.data.polygons) * 2}")
     print(f"  Dimensions: {tshirt.dimensions}")
     
     # Export both formats
@@ -446,8 +436,12 @@ def main():
     export_obj(tshirt, obj_path)
     
     print("\n" + "=" * 60)
-    print("T-SHIRT COMPLETE!")
+    print("✅ CLO3D-OPTIMIZED T-SHIRT COMPLETE!")
     print("=" * 60)
+    print(f"\nOutput files:")
+    print(f"  GLB: {glb_path}")
+    print(f"  OBJ: {obj_path}")
+    print(f"\nThis mesh should simulate smoothly in CLO3D!")
 
 
 if __name__ == "__main__":

@@ -624,9 +624,147 @@ class SVGExporter:
         return paths
 
 
+class DXFExporter:
+    """
+    Export pattern pieces to DXF format for CLO3D.
+    
+    DXF is the standard CAD format that CLO3D uses for pattern import.
+    All measurements are in centimeters.
+    """
+    
+    def __init__(self, output_directory: str = "patterns_dxf"):
+        self.output_dir = Path(output_directory)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+    def export_piece(self, piece: PatternPiece) -> str:
+        """Export a single pattern piece to DXF."""
+        try:
+            import ezdxf
+        except ImportError:
+            raise ImportError(
+                "ezdxf is required for DXF export. Install with: pip install ezdxf"
+            )
+        
+        # Create new DXF document
+        doc = ezdxf.new('R2010')  # AutoCAD 2010 format (widely compatible)
+        msp = doc.modelspace()
+        
+        # Create layer for pattern outline
+        doc.layers.new(name='PATTERN_OUTLINE', dxfattribs={'color': 7})
+        doc.layers.new(name='NOTCHES', dxfattribs={'color': 1})
+        doc.layers.new(name='GRAIN_LINE', dxfattribs={'color': 3})
+        
+        # Draw pattern outline as LWPOLYLINE (closed)
+        points = []
+        curve_segments = {(c.p0.x, c.p0.y): c for c in piece.curves}
+        
+        for i in range(len(piece.outline)):
+            curr = piece.outline[i]
+            
+            # Check if there's a curve starting from this point
+            curve = curve_segments.get((curr.x, curr.y))
+            
+            if curve:
+                # Approximate curve with line segments (CLO3D will handle smoothing)
+                samples = 20
+                for j in range(samples + 1):
+                    t = j / samples
+                    p = curve.get_point(t)
+                    points.append((p.x, p.y))
+            else:
+                # Regular point
+                points.append((curr.x, curr.y))
+        
+        # Create closed polyline
+        msp.add_lwpolyline(
+            points,
+            close=True,
+            dxfattribs={'layer': 'PATTERN_OUTLINE'}
+        )
+        
+        # Add notches as small lines
+        for notch in piece.notches:
+            # Draw notch as perpendicular line (3cm long)
+            msp.add_line(
+                (notch.x - 1.5, notch.y),
+                (notch.x + 1.5, notch.y),
+                dxfattribs={'layer': 'NOTCHES'}
+            )
+        
+        # Add grain line if present
+        if piece.grain_line:
+            start, end = piece.grain_line
+            msp.add_line(
+                (start.x, start.y),
+                (end.x, end.y),
+                dxfattribs={'layer': 'GRAIN_LINE'}
+            )
+            
+            # Add arrow at grain line start
+            msp.add_circle(
+                (start.x, start.y),
+                radius=1.0,
+                dxfattribs={'layer': 'GRAIN_LINE'}
+            )
+        
+        # Add text label with piece name
+        bounds = self._calculate_bounds(piece.outline)
+        center_x = (bounds['min_x'] + bounds['max_x']) / 2
+        center_y = (bounds['min_y'] + bounds['max_y']) / 2
+        
+        msp.add_text(
+            piece.name.replace('_', ' ').title(),
+            dxfattribs={
+                'insert': (center_x, center_y),
+                'height': 5,
+                'layer': 'PATTERN_OUTLINE'
+            }
+        )
+        
+        # Save DXF file
+        output_path = self.output_dir / f"{piece.name}.dxf"
+        doc.saveas(str(output_path))
+        
+        print(f"  Exported DXF: {output_path}")
+        return str(output_path)
+    
+    def _calculate_bounds(self, points: List[Point]) -> Dict[str, float]:
+        """Calculate bounding box of points."""
+        xs = [p.x for p in points]
+        ys = [p.y for p in points]
+        return {
+            'min_x': min(xs),
+            'max_x': max(xs),
+            'min_y': min(ys),
+            'max_y': max(ys)
+        }
+    
+    def export_all(self, pattern_set: PatternSet) -> List[str]:
+        """Export all pieces in the pattern set to DXF."""
+        paths = []
+        
+        print(f"\nExporting {len(pattern_set.pieces)} patterns to DXF...")
+        
+        for name, piece in pattern_set.pieces.items():
+            path = self.export_piece(piece)
+            paths.append(path)
+        
+        # Export metadata as JSON
+        metadata_path = self.output_dir / "metadata.json"
+        with open(metadata_path, 'w') as f:
+            json.dump(pattern_set.metadata, f, indent=2)
+        paths.append(str(metadata_path))
+        
+        print(f"\n✓ All DXF patterns exported to: {self.output_dir}")
+        print(f"  Ready for import into CLO3D!")
+        
+        return paths
+
+
 def generate_patterns(
     config: Optional[PatternGenerationConfig] = None,
-    output_directory: str = "pattern_output"
+    output_directory: str = "pattern_output",
+    export_dxf: bool = False
 ) -> PatternSet:
     """
     Convenience function to generate all pattern pieces.
@@ -634,6 +772,7 @@ def generate_patterns(
     Args:
         config: Optional pattern configuration
         output_directory: Directory for SVG output
+        export_dxf: If True, also export DXF files for CLO3D
         
     Returns:
         PatternSet with all pieces
@@ -641,8 +780,15 @@ def generate_patterns(
     generator = PatternGenerator(config)
     pattern_set = generator.generate_all_pieces()
     
-    exporter = SVGExporter(output_directory)
-    exporter.export_all(pattern_set)
+    # Always export SVG
+    svg_exporter = SVGExporter(output_directory)
+    svg_exporter.export_all(pattern_set)
+    
+    # Optionally export DXF
+    if export_dxf:
+        dxf_dir = str(Path(output_directory) / "dxf")
+        dxf_exporter = DXFExporter(dxf_dir)
+        dxf_exporter.export_all(pattern_set)
     
     return pattern_set
 
@@ -655,6 +801,11 @@ if __name__ == "__main__":
         "-o", "--output", 
         help="Output directory", 
         default="pattern_output"
+    )
+    parser.add_argument(
+        "--dxf",
+        action="store_true",
+        help="Export patterns as DXF for CLO3D"
     )
     parser.add_argument(
         "--chest", 
@@ -678,7 +829,7 @@ if __name__ == "__main__":
         config.measurements.garment_length = args.length
     
     # Generate patterns
-    pattern_set = generate_patterns(config, args.output)
+    pattern_set = generate_patterns(config, args.output, export_dxf=args.dxf)
     
     print(f"\nGenerated {len(pattern_set.pieces)} pattern pieces:")
     for name, piece in pattern_set.pieces.items():
