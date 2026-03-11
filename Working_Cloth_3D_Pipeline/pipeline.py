@@ -369,8 +369,15 @@ class MIRAAPipeline:
             pattern_generator = PatternGenerator(self.config.pattern_generation)
             pattern_set = pattern_generator.generate_all_pieces()
             
+            # Export SVG patterns
             exporter = SVGExporter(str(pattern_dir))
             exporter.export_all(pattern_set)
+            
+            # Export DXF patterns for CLO3D
+            from steps.step4_pattern_generation import DXFExporter
+            dxf_dir = output_dir / "patterns_dxf"
+            dxf_exporter = DXFExporter(str(dxf_dir))
+            dxf_exporter.export_all(pattern_set)
             
             self.step_times["pattern_generation"] = time.time() - step_start
             
