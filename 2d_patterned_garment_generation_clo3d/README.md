@@ -32,8 +32,7 @@ Run from the **repo root** (`mirra-mvp/`):
 ### Option A — Manual measurements
 
 ```bash
-# Mac/Linux
-python 2d_patterned_garment_generation_clo3d/generate_patterns_clo3d.py \
+# Mac/Linuxpython 2d_patterned_garment_generation_clo3d/generate_patterns_clo3d.py \
   --manual --height 178 --chest 100 --shoulder 45 --waist 85 --hip 98 --gender male \
   -o 2d_patterned_garment_generation_clo3d/output
 ```
