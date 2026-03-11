@@ -1,7 +1,5 @@
 # Setup Guide
 
----
-
 ## Step 1 — Python Environment & Dependencies
 
 1. Create a virtual environment:
@@ -28,42 +26,45 @@
 
 ---
 
-## Step 2 — STAR Body Model
+## Step 2 — MongoDB Connection & Seeding
 
-The avatar pipeline uses the **STAR** (Sparse Trained Articulated Human Body Regressor) model.
+To use the measurements database, set up your MongoDB connection and seed test data:
 
-### 2a. Install the STAR library
+1. Go to the `mirra_measurements` folder:
 
-From the project root, run:
-
-```bash
-pip install -e libs/star/
-```
-
-### 2b. Download the STAR model files
-
-1. Register and download the model files from the official website:
-   👉 <https://star.is.tue.mpg.de/>
-
-2. After downloading, place the model files in the following structure inside the project root:
-
-   ```plain
-   models/
-   └── star_1_1/
-       ├── male/
-       │   └── model.npz
-       ├── female/
-       │   └── model.npz
-       └── neutral/
-           └── model.npz
+   ```bash
+   cd mirra_measurements
    ```
 
-   > The model paths are already pre-configured in `libs/star/star/config.py` to point to this exact location. No changes needed.
+2. Copy the example environment file and edit it:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env and set your MongoDB connection string
+   ```
+
+3. Seed the database with test data (10 documents: 5 male + 5 female):
+
+   From the repo root:
+
+   ```bash
+   python -m mirra_measurements.seed_measurements
+   ```
+
+   Or from inside `mirra_measurements/`:
+
+   ```bash
+   python seed_measurements.py
+   ```
 
 ---
 
-## Step 3 — Additional External Files
+## Step 3 - Pipeline & Technology Setup
 
-Nothing to download here yet.
+Each pipeline or technology has its own setup guide in its respective folder:
+
+| Pipeline / Technology | Setup Guide                                      |
+| --------------------- | ------------------------------------------------ |
+| STAR Avatar Pipeline  | [pipeline_star/SETUP.md](pipeline_star/SETUP.md) |
 
 ---
