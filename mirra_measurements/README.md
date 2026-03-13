@@ -111,7 +111,7 @@ collection = get_measurements_collection()
 ### Create and Validate Documents
 
 ```python
-from mirra_measurements.models import create_measurement_doc, validate_measurement_doc
+from mirra_measurements import create_measurement_doc, validate_measurement_doc
 
 # Create a measurement document
 doc = create_measurement_doc(
@@ -167,8 +167,10 @@ The `validate_measurement_doc()` function enforces:
 mirra_measurements/
 ├── __init__.py           # Package initialization
 ├── db.py                 # MongoDB connection and collection access
-├── models.py             # Data model and validation
+├── avatar_model.py       # Avatar body measurement model and validation
+├── garment_model.py      # Garment pattern model and validation
 ├── seed_measurements.py  # Seeding script with test data
+├── seed_garments.py      # Seeding script for garment templates
 ├── requirements.txt      # Python dependencies
 ├── .env.example          # Example environment variables
 └── README.md             # This file
