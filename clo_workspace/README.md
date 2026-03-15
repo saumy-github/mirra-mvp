@@ -80,7 +80,7 @@ If patterns were regenerated or edge counts changed, re-run the seam index disco
 .\.venv\Scripts\python.exe clo_workspace\plugins\discover_seam_indices.py
 ```
 
-This reads the DXF files directly (no CLO needed) and prints the 26-seam map that is already embedded in `clo_automation_client.py`.
+This reads the DXF files directly (no CLO needed) and prints the 26-seam map used by the modular pipeline (`clo_automation_steps/seams.py`).
 
 ---
 
@@ -157,6 +157,24 @@ The script runs 10 active steps and prints live status for each:
 | **[10]** Simulate | Runs 150-step physics; cloth drapes and seams pull together |
 | **[11]** Export/Save | **Currently disabled** — see note below |
 
+Modular implementation notes:
+- `clo_workspace/plugins/clo_automation_client.py` is now a thin orchestrator/entrypoint.
+- Individual steps live in `clo_workspace/plugins/clo_automation_steps/step_*.py`.
+- Shared state/config lives in `context.py`, helper functions in `helpers.py`, and default seam map in `seams.py`.
+
+Useful run modes:
+
+```powershell
+# health check only
+.\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py test
+
+# inspect plugin queue status
+.\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py status
+
+# run full end-to-end automation
+.\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py
+```
+
 Expected console output:
 ```
 ================================================================
@@ -200,7 +218,7 @@ Steps 11 (export GLB) and 12 (save ZPRJ) are **commented out** because CLO v2025
 - **Export GLB**: `File → Export → glTF 2.0` → save to `clo_workspace/exports/`
 - **Save project**: `File → Save As` → `.zprj` → save to `clo_workspace/projects/`
 
-To re-enable automated export, uncomment lines `# out_glb = ...` through `# client.wait_for_queue(timeout=60)` near the bottom of `example_workflow()` in [clo_workspace/plugins/clo_automation_client.py](plugins/clo_automation_client.py).
+To re-enable automated export, add export/save API calls as a dedicated step module (for example, `step_12_export.py`) and wire it into `run_pipeline()` in `clo_workspace/plugins/clo_automation_steps/pipeline.py`.
 
 ---
 
@@ -266,7 +284,14 @@ clo_workspace/
 │   ├── json.hpp                    ← embedded JSON parser (nlohmann)
 │   ├── dllmain.cpp                 ← DLL entry point
 │   ├── stdafx.h / targetver.h      ← Windows precompiled headers
-│   ├── clo_automation_client.py    ← Python REST client + full pipeline runner
+│   ├── clo_automation_client.py    ← thin Python entrypoint/orchestrator
+│   ├── clo_automation_steps/       ← modular pipeline package
+│   │   ├── client.py               ← REST client class (`CLORestClient`)
+│   │   ├── context.py              ← shared pipeline context/state
+│   │   ├── helpers.py              ← helper utilities
+│   │   ├── seams.py                ← default seam map
+│   │   ├── pipeline.py             ← run_pipeline() orchestrator
+│   │   └── step_01_...step_11_...  ← one file per pipeline step
 │   ├── discover_seam_indices.py    ← DXF edge analyser (run offline)
 │   └── mirra_pattern_importer.py   ← standalone pattern import helper
 ├── exports/                        ← GLB/OBJ files exported by CLO
@@ -295,6 +320,10 @@ Copy-Item "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN\Samples\Rest
 # 5. Run full pipeline
 cd C:\Users\Anant\mirra-mvp
 .\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py
+
+# Optional: smoke checks
+.\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py test
+.\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py status
 ```
 
 ---
