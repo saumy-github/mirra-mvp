@@ -1,6 +1,9 @@
 """Step 6: Read edge data and query arrangement slots."""
 
-from .helpers import find_slot
+import time
+
+from .helpers import apply_slot_fallbacks
+from .helpers import resolve_slot_map
 
 
 def run(ctx):
@@ -12,8 +15,17 @@ def run(ctx):
         print(f"  Pattern {idx}: {name}  ({line_count} edges)")
 
     print("\n[6b] Querying CLO arrangement slots ...")
-    arr_resp = ctx.client.get_arrangement_list()
-    ctx.slots = arr_resp.get("slots", [])
+    # CLO can delay arrangement slot availability; retry briefly before fallback.
+    ctx.slots = []
+    for _ in range(3):
+        arr_resp = ctx.client.get_arrangement_list()
+        slots = arr_resp.get("slots", [])
+        if slots:
+            ctx.slots = slots
+            break
+        time.sleep(1.0)
+
+    ctx.has_live_slots = bool(ctx.slots)
 
     if ctx.slots:
         for slot in ctx.slots:
@@ -22,12 +34,32 @@ def run(ctx):
         print("  No slots returned - avatar may not be loaded yet or CLO version")
         print("  doesn't populate arrangement list until after first simulate.")
 
-    ctx.slot_map = {
-        "front": find_slot(ctx.slots, ["front"]),
-        "back": find_slot(ctx.slots, ["back"]),
-        "sleeve_L": find_slot(ctx.slots, ["left", "sleeve"]),
-        "sleeve_R": find_slot(ctx.slots, ["right", "sleeve"]),
-    }
+        # CLO 2025 sometimes populates arrangement metadata only after a frame/sim tick.
+        if ctx.avatar_loaded:
+            print("  Trying slot recovery: running a short simulate(1) and re-querying slots ...")
+            ctx.client.simulate(steps=1)
+            ctx.client.wait_for_queue(timeout=30)
+
+            for _ in range(3):
+                arr_resp = ctx.client.get_arrangement_list()
+                slots = arr_resp.get("slots", [])
+                if slots:
+                    ctx.slots = slots
+                    break
+                time.sleep(1.0)
+
+            if ctx.slots:
+                print("  Slot recovery succeeded.")
+                for slot in ctx.slots:
+                    print(f"  Slot {slot.get('index', '?')}: {slot}")
+
+    resolved_slot_map = resolve_slot_map(ctx.slots)
+    ctx.slot_map = apply_slot_fallbacks(resolved_slot_map)
+
+    if resolved_slot_map != ctx.slot_map:
+        print("  Some slots were unresolved; using fallback indices front=0 back=1 sleeve_L=2 sleeve_R=3")
+    if not ctx.has_live_slots:
+        print("  ! Using fallback slot strategy; stage 7 will apply stronger per-piece offsets.")
 
     print(
         "  Matched slots - "

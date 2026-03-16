@@ -359,6 +359,7 @@ void StartRESTServer()
             cmd.param3 = j["pattern_index"];
             cmd.param4 = j.value("arrangement_index", 0);  // slot index from GetArrangementList
             cmd.param5 = j.value("orientation", 0);         // CLO orientation enum
+            cmd.boolParam1 = j.value("position_only", false); // skip slot binding, apply offsets only
 
             // Fine-tune 2D offset within the arrangement slot (CLO mm units, ints)
             if (j.contains("position")) {
@@ -423,7 +424,7 @@ void StartRESTServer()
             json slots = json::array();
             auto list = PATTERN_API->GetArrangementList();
             for (int i = 0; i < (int)list.size(); i++) {
-                json entry = {"index", i};
+                json entry = {{"index", i}};
                 for (auto& kv : list[i])
                     entry[kv.first] = kv.second;
                 slots.push_back(entry);
@@ -632,22 +633,35 @@ void ProcessCommandQueue()
             // param3 = patternIndex, param4 = arrangementIndex (-1 = skip SetArrangement)
             // floatParam1/2/3 = X/Y/Z offset in mm, param5 = orientation enum
             else if (cmd.type == "arrange-pattern") {
-                if (cmd.param4 >= 0)
-                    PATTERN_API->SetArrangement(cmd.param3, cmd.param4);
-                PATTERN_API->SetArrangementPosition(
-                    cmd.param3,
-                    (int)cmd.floatParam1,
-                    (int)cmd.floatParam2,
-                    (int)cmd.floatParam3
-                );
-                if (cmd.param5 != 0)
+                bool positionOnly = cmd.boolParam1;
+                if (cmd.param4 < 0 && !positionOnly) {
+                    result.success = false;
+                    result.message = "Invalid arrangement slot for pattern " + std::to_string(cmd.param3) +
+                        " (slot=" + std::to_string(cmd.param4) + ")";
+                }
+                else {
+                    if (!positionOnly)
+                        PATTERN_API->SetArrangement(cmd.param3, cmd.param4);
+
+                    // Curved style for avatar-slot draping, flat for position-only fallback.
+                    PATTERN_API->SetArrangementShapeStyle(cmd.param3, positionOnly ? "Flat" : "Curved");
+                    PATTERN_API->SetArrangementPosition(
+                        cmd.param3,
+                        (int)cmd.floatParam1,
+                        (int)cmd.floatParam2,
+                        (int)cmd.floatParam3
+                    );
                     PATTERN_API->SetArrangementOrientation(cmd.param3, cmd.param5);
-                result.success = true;
-                result.message = "Pattern " + std::to_string(cmd.param3) +
-                    (cmd.param4 >= 0 ? " -> arrangement slot " + std::to_string(cmd.param4) : " position set") +
-                    " pos=(" + std::to_string((int)cmd.floatParam1) +
-                    "," + std::to_string((int)cmd.floatParam2) +
-                    "," + std::to_string((int)cmd.floatParam3) + ")mm";
+
+                    result.success = true;
+                    result.message = "Pattern " + std::to_string(cmd.param3) +
+                        (positionOnly
+                            ? " position-only [Flat]"
+                            : " -> arrangement slot " + std::to_string(cmd.param4) + " [Curved]") +
+                        " pos=(" + std::to_string((int)cmd.floatParam1) +
+                        "," + std::to_string((int)cmd.floatParam2) +
+                        "," + std::to_string((int)cmd.floatParam3) + ")";
+                }
             }
             // ── Set fabric preset + colour ─────────────────────────────────
             else if (cmd.type == "set-fabric") {
