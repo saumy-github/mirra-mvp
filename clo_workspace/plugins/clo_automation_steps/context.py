@@ -25,6 +25,7 @@ class PipelineContext:
     loaded_patterns: int = 0
     slots: list[dict] = field(default_factory=list)
     slot_map: dict[str, int] = field(default_factory=dict)
+    has_live_slots: bool = False
 
 
 def create_context(seam_map=None):

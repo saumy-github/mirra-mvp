@@ -20,6 +20,26 @@ if not exist "%SDK_PATH%" (
     exit /b 1
 )
 
+REM Ensure CMake is available (either already in PATH or from VS install)
+where cmake >nul 2>&1
+if errorlevel 1 (
+    if exist "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" (
+        set "PATH=C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;%PATH%"
+    ) else if exist "C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" (
+        set "PATH=C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;%PATH%"
+    ) else if exist "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" (
+        set "PATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;%PATH%"
+    )
+)
+
+where cmake >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: CMake not found in PATH.
+    echo Install Visual Studio 2022 C++ workload or add CMake to PATH.
+    pause
+    exit /b 1
+)
+
 echo [Step 2/6] Creating plugin directory in SDK...
 if not exist "%PLUGIN_DIR%" mkdir "%PLUGIN_DIR%"
 

@@ -58,6 +58,7 @@ class CLORestClient:
         offset_y=0,
         offset_z=0,
         orientation=0,
+        position_only=False,
     ):
         return self._post(
             "/arrange-pattern",
@@ -66,6 +67,7 @@ class CLORestClient:
                 "arrangement_index": arrangement_index,
                 "position": {"x": offset_x, "y": offset_y, "offset": offset_z},
                 "orientation": orientation,
+                "position_only": position_only,
             },
         )
 
