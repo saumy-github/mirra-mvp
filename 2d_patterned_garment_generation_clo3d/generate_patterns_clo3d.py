@@ -19,6 +19,22 @@ except ImportError:
     HAS_EZDXF = False
     print("Warning: ezdxf not installed. DXF export will be disabled.")
 
+# Database integration (optional — requires pymongo)
+import sys as _sys
+_HERE = Path(__file__).parent
+_ROOT = _HERE.parent
+if str(_HERE) not in _sys.path:
+    _sys.path.insert(0, str(_HERE))
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+try:
+    from mirra_measurements.db import get_garments_collection, get_avatar_collection, close_connection
+    from mirra_measurements.garment_model import create_garment_doc, validate_garment_doc
+    HAS_DB = True
+except (ImportError, AttributeError, FileNotFoundError):
+    HAS_DB = False
+    print("Warning: pymongo/dotenv not installed. Database operations will be disabled.")
+
 
 @dataclass
 class AvatarMeasurements:
@@ -46,6 +62,36 @@ class AvatarMeasurements:
             shoulder_width_cm=measurements.get('shoulder_width_cm', 45.0),
             gender=measurements.get('gender', 'male'),
             user_id=measurements.get('user_id', 'unknown')
+        )
+
+    @classmethod
+    def from_db(cls, user_id: str) -> 'AvatarMeasurements':
+        """
+        Load avatar body measurements from the 'measurements' collection in MongoDB.
+
+        Args:
+            user_id: The user_id as stored by the avatar pipeline (e.g. 'user_m_001')
+        """
+        if not HAS_DB:
+            raise RuntimeError(
+                "pymongo is not installed. Cannot load from database.\n"
+                "Install it with: pip install pymongo python-dotenv"
+            )
+        collection = get_avatar_collection()
+        doc = collection.find_one({"user_id": user_id})
+        if doc is None:
+            raise ValueError(
+                f"No avatar measurements found for user_id='{user_id}' "
+                f"in the '{collection.name}' collection."
+            )
+        return cls(
+            height_cm=doc.get('height_cm', 175.0),
+            chest_circumference_cm=doc.get('chest_circumference_cm', 100.0),
+            waist_circumference_cm=doc.get('waist_circumference_cm', 85.0),
+            hip_circumference_cm=doc.get('hip_circumference_cm', 98.0),
+            shoulder_width_cm=doc.get('shoulder_width_cm', 45.0),
+            gender=doc.get('gender', 'male'),
+            user_id=doc.get('user_id', user_id)
         )
 
 
@@ -135,6 +181,49 @@ class GarmentMeasurements:
             armhole_depth=armhole_depth,
             ease_cm=ease_cm,
             fit_type=fit_type
+        )
+
+    @classmethod
+    def from_garments_db(cls, garment_id: str) -> 'GarmentMeasurements':
+        """
+        Load pre-computed garment measurements directly from the garments
+        collection (flat schema).  No avatar body measurements needed —
+        the 10 pattern fields are used as-is.
+
+        Args:
+            garment_id: The garment_id stored in MongoDB (e.g. '001')
+        """
+        if not HAS_DB:
+            raise RuntimeError(
+                "pymongo is not installed. Cannot load from database.\n"
+                "Install it with: pip install pymongo python-dotenv"
+            )
+        col = get_garments_collection()
+        doc = col.find_one({"garment_id": garment_id}, {"_id": 0})
+        if doc is None:
+            available = [d["garment_id"] for d in col.find({}, {"garment_id": 1, "_id": 0}).sort("garment_id", 1)]
+            raise ValueError(
+                f"garment_id='{garment_id}' not found in garments collection.\n"
+                f"Available IDs: {', '.join(available) if available else 'none — run seed first'}"
+            )
+        return cls(
+            # body fields — not stored in garments collection, use display defaults
+            body_height=175.0,
+            body_chest=0.0,
+            body_shoulder=doc["shoulder_width_cm"],
+            # pattern fields (flat schema — already includes ease)
+            half_chest_width=doc["half_chest_width_cm"],
+            garment_length=doc["garment_length_cm"],
+            shoulder_width=doc["shoulder_width_cm"],
+            neck_width=doc["neck_width_cm"],
+            neck_depth_front=doc["neck_depth_front_cm"],
+            neck_depth_back=doc["neck_depth_back_cm"],
+            sleeve_length=doc["sleeve_length_cm"],
+            bicep_width=doc["bicep_width_cm"],
+            armhole_depth=doc["armhole_depth_cm"],
+            seam_allowance=doc["seam_allowance_cm"],
+            fit_type=doc.get("fit_type", "regular"),
+            ease_cm=0.0,          # ease already baked into stored values
         )
 
 
@@ -830,6 +919,45 @@ class DynamicPatternGenerator:
             json.dump(metadata, f, indent=2)
         print(f"  ✓ pattern_metadata.json (with seam allowance specifications)")
 
+    def save_to_db(self, garment_id: str) -> bool:
+        """Upsert the garment record into garments using the flat schema."""
+        if not HAS_DB:
+            print("⚠️  Database not available — skipping DB save (pymongo not installed).")
+            return False
+
+        doc = create_garment_doc(
+            garment_id=garment_id,
+            fit_type=self.m.fit_type,
+            half_chest_width_cm=self.m.half_chest_width,
+            garment_length_cm=self.m.garment_length,
+            shoulder_width_cm=self.m.shoulder_width,
+            neck_width_cm=self.m.neck_width,
+            neck_depth_front_cm=self.m.neck_depth_front,
+            neck_depth_back_cm=self.m.neck_depth_back,
+            sleeve_length_cm=self.m.sleeve_length,
+            bicep_width_cm=self.m.bicep_width,
+            armhole_depth_cm=self.m.armhole_depth,
+            seam_allowance_cm=self.m.seam_allowance,
+        )
+
+        ok, err = validate_garment_doc(doc)
+        if not ok:
+            print(f"⚠️  Garment document validation failed: {err}")
+            return False
+
+        try:
+            collection = get_garments_collection()
+            collection.update_one(
+                {'garment_id': garment_id},
+                {'$set': doc},
+                upsert=True
+            )
+            print(f"  ✅ Saved to DB  →  garments  (garment_id={garment_id}, fit={self.m.fit_type})")
+            return True
+        except Exception as exc:
+            print(f"⚠️  DB write failed: {exc}")
+            return False
+
 
 def main():
     import argparse
@@ -839,46 +967,58 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Generate from avatar measurements JSON:
-  python generate_patterns_clo3d.py --avatar path/to/avatar_measurements.json
-  
-  # Generate with manual measurements:
-  python generate_patterns_clo3d.py --height 178 --chest 100 --shoulder 45
-  
-  # Generate with specific fit type:
-  python generate_patterns_clo3d.py --avatar measurements.json --fit relaxed
+  # DEFAULT — fetch from garments DB (interactive prompt for ID):
+  python generate_patterns_clo3d.py
+
+  # DEFAULT — fetch garment 003 directly from garments DB:
+  python generate_patterns_clo3d.py --garment-id 003
+
+  # Other modes:
+  python generate_patterns_clo3d.py --avatar path/to/measurements.json
+  python generate_patterns_clo3d.py --manual --height 178 --chest 100 --shoulder 45
+  python generate_patterns_clo3d.py --db-user user_m_001
         """
     )
-    
-    # Input methods
-    input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument('--avatar', type=str, 
-                            help='Path to avatar measurements JSON file')
-    input_group.add_argument('--manual', action='store_true',
-                            help='Use manual measurements (specify with other flags)')
-    
-    # Manual measurements (only used with --manual)
-    parser.add_argument('--height', type=float, help='Body height (cm)', default=175.0)
-    parser.add_argument('--chest', type=float, help='Chest circumference (cm)', default=100.0)
-    parser.add_argument('--waist', type=float, help='Waist circumference (cm)', default=85.0)
-    parser.add_argument('--hip', type=float, help='Hip circumference (cm)', default=98.0)
-    parser.add_argument('--shoulder', type=float, help='Shoulder width (cm)', default=45.0)
-    parser.add_argument('--gender', type=str, choices=['male', 'female'], default='male')
-    
-    # Fit options
-    parser.add_argument('--fit', type=str, choices=['slim', 'regular', 'relaxed'], 
+
+    # Garment ID — the primary user-facing argument for the default DB mode
+    parser.add_argument('--garment-id', type=str, default=None,
+                       help='Garment ID from the garments collection (e.g. 003). '
+                            'If omitted the script lists all garments and prompts.')
+
+    # Advanced / alternate input modes (all optional)
+    parser.add_argument('--avatar', type=str, default=None,
+                       help='Path to avatar measurements JSON file')
+    parser.add_argument('--manual', action='store_true',
+                       help='Use manual body measurements (specify with --height / --chest etc.)')
+    parser.add_argument('--db-user', type=str, metavar='USER_ID', default=None,
+                       help='Load avatar body-measurements from MongoDB by user_id')
+
+    # Manual measurement overrides
+    parser.add_argument('--height',   type=float, default=175.0, help='Body height (cm)')
+    parser.add_argument('--chest',    type=float, default=100.0, help='Chest circumference (cm)')
+    parser.add_argument('--waist',    type=float, default=85.0,  help='Waist circumference (cm)')
+    parser.add_argument('--hip',      type=float, default=98.0,  help='Hip circumference (cm)')
+    parser.add_argument('--shoulder', type=float, default=45.0,  help='Shoulder width (cm)')
+    parser.add_argument('--gender',   type=str,   default='male', choices=['male', 'female'])
+
+    # Fit (only used by avatar / manual modes)
+    parser.add_argument('--fit', type=str, choices=['slim', 'regular', 'relaxed'],
                        default='regular', help='Fit type (default: regular)')
-    
+
     # Output
-    parser.add_argument('-o', '--output', help='Output directory', default='output')
-    
+    parser.add_argument('-o', '--output', help='Output directory',
+                       default=str(Path(__file__).parent / 'output'))
+
     args = parser.parse_args()
     
     print("\n" + "="*60)
     print("DYNAMIC PATTERN GENERATOR FOR CLO3D")
     print("="*60)
     
-    # Load or create avatar measurements
+    # ── Route to the correct input mode ────────────────────────────────────
+    # Default (no special flags) or --garment-id → garments DB mode
+    use_garments_db = not args.avatar and not args.manual and not args.db_user
+
     if args.avatar:
         print(f"\n📁 Loading measurements from: {args.avatar}")
         try:
@@ -890,6 +1030,83 @@ Examples:
         except Exception as e:
             print(f"❌ Error loading measurements: {e}")
             return
+    elif args.db_user:
+        print(f"\n🗄️  Loading measurements from DB  (user_id='{args.db_user}')")
+        try:
+            avatar = AvatarMeasurements.from_db(args.db_user)
+            print(f"✓ Loaded avatar: {avatar.user_id}  ({avatar.gender})")
+            print(f"  Height: {avatar.height_cm:.1f} cm  |  Chest: {avatar.chest_circumference_cm:.1f} cm  |  Shoulder: {avatar.shoulder_width_cm:.1f} cm")
+        except (RuntimeError, ValueError) as e:
+            print(f"❌ Error: {e}")
+            return
+        except Exception as e:
+            print(f"❌ Unexpected DB error: {e}")
+            return
+    elif use_garments_db:
+        # ── Garments-DB mode: load flat measurements directly from garments ──
+        print(f"\n🗄️  Loading from garments collection …")
+
+        if not HAS_DB:
+            print("❌ DB not available. Install: pip install pymongo python-dotenv")
+            return
+
+        col = get_garments_collection()
+
+        # Resolve garment_id — prompt interactively if not supplied via flag
+        garment_id = args.garment_id
+        if not garment_id:
+            all_garments = list(col.find({}, {"_id": 0}).sort("garment_id", 1))
+            if not all_garments:
+                print("❌ The garments collection is empty. Run seed first:")
+                print("   python -m mirra_measurements.seed_garments")
+                return
+
+            print(f"\n{'ID':<6} {'Fit Type':<12} {'Half Chest':>11} {'Length':>8} {'Shoulder':>10} {'Sleeve':>8}")
+            print("─" * 62)
+            for g in all_garments:
+                print(
+                    f"  {g['garment_id']:<4} "
+                    f"{g['fit_type']:<12} "
+                    f"{g['half_chest_width_cm']:>9.1f}cm "
+                    f"{g['garment_length_cm']:>6.1f}cm "
+                    f"{g['shoulder_width_cm']:>8.1f}cm "
+                    f"{g['sleeve_length_cm']:>6.1f}cm"
+                )
+            print()
+            garment_id = input("Enter garment_id to generate patterns for: ").strip()
+
+        try:
+            garment = GarmentMeasurements.from_garments_db(garment_id)
+        except (RuntimeError, ValueError) as e:
+            print(f"❌ Error: {e}")
+            return
+
+        print(f"✓ Loaded garment_id={garment_id}  fit={garment.fit_type}")
+        print(f"  Half chest : {garment.half_chest_width:.1f} cm")
+        print(f"  Length     : {garment.garment_length:.1f} cm")
+        print(f"  Shoulder   : {garment.shoulder_width:.1f} cm")
+        print(f"  Sleeve     : {garment.sleeve_length:.1f} cm")
+
+        # Generate patterns directly (no from_avatar step needed)
+        generator = DynamicPatternGenerator(garment)
+        generator.generate_all(args.output)
+        generator.save_to_db(garment_id=garment_id)
+
+        run_path = generator.last_run_path
+        print("\n" + "="*60)
+        print("✅ PATTERN GENERATION COMPLETE")
+        print("="*60)
+        print(f"\n  Garment ID   : {garment_id}  ({garment.fit_type} fit)")
+        print(f"  DXF files    : {run_path / 'patterns_dxf'}")
+        print(f"  SVG previews : {run_path / 'patterns_svg'}")
+        print(f"\nNext steps:")
+        print(f"  1. Open CLO3D")
+        print(f"  2. Import avatar  → Avatar › Import Avatar")
+        print(f"  3. Import patterns → File › Import › DXF/AAMA (select all .dxf files)")
+        print(f"  4. Sew seams and simulate!")
+        print()
+        return
+
     else:
         print(f"\n📐 Using manual measurements")
         avatar = AvatarMeasurements(
@@ -901,14 +1118,19 @@ Examples:
             gender=args.gender,
             user_id="manual_input"
         )
-    
-    # Calculate garment measurements
+
+    # Calculate garment measurements (avatar / manual / file modes)
     garment = GarmentMeasurements.from_avatar(avatar, fit_type=args.fit)
     
     # Generate patterns
     generator = DynamicPatternGenerator(garment)
     generator.generate_all(args.output)
-    
+
+    # Persist results to garments collection
+    generator.save_to_db(
+        garment_id=generator.last_run_path.name,   # e.g. "run_001"
+    )
+
     print("\n" + "="*60)
     print("✅ PATTERN GENERATION COMPLETE")
     print("="*60)

@@ -4,7 +4,7 @@ Seed script to populate the measurements collection with test data.
 
 from datetime import datetime
 from mirra_measurements.db import get_measurements_collection, close_connection
-from mirra_measurements.models import create_measurement_doc, validate_measurement_doc
+from mirra_measurements import create_measurement_doc, validate_measurement_doc
 from mirra_measurements.golden_users import GOLDEN_USER_IDS, GOLDEN_USER_PRIORITY
 
 
