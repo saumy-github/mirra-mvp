@@ -10,6 +10,16 @@ python pipeline_star/run_avatar_pipeline.py
 
 Then enter user_id from the mongodb.
 
+---
+
+## Clearing generated outputs
+
+```bash
+python pipeline_star/clear_generated.py
+```
+
+---
+
 ## Folder Structure
 
 ```plain
@@ -35,6 +45,5 @@ pipeline_star/
 ├──.gitignore                       
 ├── SETUP.md                         
 └── README.md                       
-```
 
----
+

@@ -26,11 +26,23 @@ The avatar pipeline uses the **STAR** (Sparse Trained Articulated Human Body Reg
 
 ## 2. Install the STAR library
 
-   1. Clone the STAR repository into `libs/star`:
+   1. Clone the STAR repository into `libs/star` (use the fork and branch we maintain):
 
       ```bash
-      git clone https://github.com/ahmedosman/STAR.git libs/star
+      git clone -b star_mirra https://github.com/saumy-github/STAR.git libs/star
       ```
+
+      Or, if you later add multiple submodules to this repository, clone all submodules in one step with:
+
+      ```bash
+      # clone the superproject (if not already cloned) and all submodules
+      git clone --recurse-submodules <superproject-url>
+
+      # or, from an existing clone of the superproject, initialize and fetch every submodule
+      git submodule update --init --recursive
+      ```
+
+      The `git submodule` commands read `.gitmodules` to find each submodule's URL/path/branch and fetch them automatically.
 
    2. Update `libs/star/star/config.py` to point model paths to the project root.
    Replace the entire contents of that file with the following:
