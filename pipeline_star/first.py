@@ -27,6 +27,7 @@ from pipeline_star.avatar_exporter import export_mesh_to_glb
 from pipeline_star.mesh_postprocess import postprocess_mesh
 from pipeline_star.avatar_style import get_material_config
 from pipeline_star.avatar_exporter_clo import export_avatar_for_clo
+from utils.device import log_device
 
 
 # Fetch user measurement document from MongoDB
@@ -112,6 +113,7 @@ def main():
     
     try:
         print(f"Fetching measurements for user_id: {args.user_id}...")
+        log_device()
         doc = fetch_user_measurements(args.user_id, args.version)
         
         print("Validating required fields...")

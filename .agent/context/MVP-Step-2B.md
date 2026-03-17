@@ -265,36 +265,6 @@ The system should generate user-facing messages -
 
 ---
 
-## Pipeline Workflow Summary
-
-```plain
-[Manual Input: Images + Metadata] (Step 2A)
-           ↓
-[Stage 1: Design Extraction]
-  - Color extraction
-  - Pattern identification
-  - Texture generation
-           ↓
-[Stage 2: Structure Generation]
-  - Apply base template
-  - Size-specific geometry
-  - Mesh refinement
-           ↓
-[Stage 3: Size & Physics Configuration]
-  - Rigid base with limited physics
-  - Fit assessment
-  - Visual behavior rules
-           ↓
-[Output: Complete 3D Asset Package]
-  - Geometry + Textures
-  - Physics config
-  - Metadata + Fit profile
-           ↓
-[Storage: Virtual Inventory Database]
-```
-
----
-
 ## Success Criteria
 
 A successful Step 2B implementation must -
