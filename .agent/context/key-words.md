@@ -6,7 +6,7 @@ This document defines key terms and concepts used throughout the project. These 
 
 ## Keywords
 
-1. **3D Avatar**
+1. **Digital Twin**
    - The custom body model we create for each user so that they can try clothes on it
    - Generated once per user based on their measurements, stored permanently
 
@@ -15,11 +15,11 @@ This document defines key terms and concepts used throughout the project. These 
    - Allows users to see how clothes look on them in real-time using their device camera
 
 3. **VTO (Virtual Try-On)**
-   - 3D clothes displayed on the 3D avatar
-   - The core simulation experience where users see garments fitted to their avatar
+   - 3D clothes displayed on the 3D digital twin
+   - The core simulation experience where users see garments fitted to their digital twin
 
 4. **3D Clothes / 3D Assets**
-   - Digital clothing items we put on the avatar
+   - Digital clothing items we put on the digital twin
    - The virtual garments that have been converted from 2D to 3D for VTO purposes
 
 5. **Seller Websites / Amazon**

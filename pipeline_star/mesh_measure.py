@@ -56,6 +56,27 @@ def extract_shoulder_width_from_mesh(
     return shoulder_width_cm
 
 
+# Extract anatomical shoulder width using STAR joint landmarks (joints 16 & 17)
+def extract_shoulder_landmarks_from_mesh(
+    vertices: np.ndarray,
+    j_regressor: np.ndarray,
+    debug: bool = False
+) -> float:
+    LEFT_SHOULDER_IDX = 16
+    RIGHT_SHOULDER_IDX = 17
+    
+    joints = np.dot(j_regressor, vertices)  # Shape: (24, 3)
+    left_shoulder = joints[LEFT_SHOULDER_IDX]
+    right_shoulder = joints[RIGHT_SHOULDER_IDX]
+    
+    shoulder_width_m = np.linalg.norm(left_shoulder - right_shoulder)
+    shoulder_width_cm = shoulder_width_m * 100.0
+    
+    if debug:
+        print(f"[DEBUG] Shoulder landmarks: left={left_shoulder}, right={right_shoulder}, width={shoulder_width_cm:.2f}cm")
+    
+    return shoulder_width_cm
+
 # Extract circumference using thin y-band and ellipse approximation from width (x-range) and depth (z-range)
 def extract_circumference_from_mesh(
     vertices: np.ndarray, 
@@ -104,12 +125,10 @@ def extract_circumference_from_mesh(
 
 
 # Main entry point: extract all measurements from mesh vertices
-def extract_measurements_from_mesh(vertices: np.ndarray, debug: bool = False) -> Dict[str, float]:
+def extract_measurements_from_mesh(vertices: np.ndarray, j_regressor: np.ndarray = None, debug: bool = False) -> Dict[str, float]:
     measurements = {
         'height_cm': extract_height_from_mesh(vertices, debug=debug),
-        'shoulder_width_cm': extract_shoulder_width_from_mesh(
-            vertices, y_percentile=0.85, debug=debug
-        ),
+        'shoulder_width_cm': extract_shoulder_landmarks_from_mesh(vertices, j_regressor, debug=debug) if j_regressor is not None else extract_shoulder_width_from_mesh(vertices, y_percentile=0.85, debug=debug),
         'chest_circumference_cm': extract_circumference_from_mesh(
             vertices, y_percentile=0.75, debug=debug, name="Chest"
         ),

@@ -6,11 +6,38 @@
 __pycache__/
 *.pyc
 
+#libs (for tracking submodules)
+libs/*
+!libs/.gitkeep
+
 # models (keep big binaries out of git)
-models/
+models/*
 *.npz
 *.zip
+!models/.gitkeep
 
 # pipeline_star/generated artifacts (but track the folder itself)
 pipeline_star/generated/*
 !pipeline_star/generated/.gitkeep
+
+# Visual Studio build/config folder
+.vs/
+
+# Generated garment output (DXF patterns, SVGs, OBJ meshes, GLB/GLTF exports)
+# These are produced by the pipeline and should not be committed
+**/*.dxf
+**/*.obj
+**/*.mtl
+**/*.glb
+**/*.gltf
+**/*.svg
+2d_patterned_garment_generation_clo3d/output/**/pattern_metadata.json
+
+# Pattern generation output runs
+2d_patterned_garment_generation_clo3d/output/run_*/
+
+# CLO workspace exports and temp files
+clo_workspace/exports/
+clo_workspace/temp/
+clo_workspace/blender_tshirt_output/
+
