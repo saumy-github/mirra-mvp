@@ -6,7 +6,7 @@ This document defines key terms and concepts used throughout the project. These 
 
 ## Keywords
 
-1. **Digital Twin / avatar**
+1. **Digital Twin**
    - The custom body model we create for each user so that they can try clothes on it
    - Generated once per user based on their measurements, stored permanently
 
