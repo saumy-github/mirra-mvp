@@ -11,6 +11,8 @@ using namespace httplib;
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include <cstdlib>
+#include <cstring>
 #include <windows.h>  // SetTimer / KillTimer
 
 // ─── Command payload ────────────────────────────────────────────────────────
@@ -89,6 +91,18 @@ void StartRESTServer()
             res.set_content(response.dump(), "application/json");
         });
 
+        // Version endpoint with build identity
+        svr.Get("/version", [](const Request&, Response& res) {
+            json response = {
+                {"plugin", "CLO REST Automation"},
+                {"version", "1.0"},
+                {"build_date", __DATE__},
+                {"build_time", __TIME__},
+                {"api_status", "ok"}
+            };
+            res.set_content(response.dump(), "application/json");
+        });
+
     // Import Avatar (OBJ file) - QUEUED
     svr.Post("/import-avatar", [](const Request& req, Response& res) {
         try {
@@ -123,10 +137,20 @@ void StartRESTServer()
         try {
             auto j = json::parse(req.body);
             std::string filePath = j["path"];
+            float requestScale = 0.0f;
+            if (j.contains("scale")) {
+                try {
+                    requestScale = j["scale"].get<float>();
+                }
+                catch (...) {
+                    requestScale = 0.0f;
+                }
+            }
             
             APICommand cmd;
             cmd.type = "import-pattern";
             cmd.param1 = filePath;
+            cmd.floatParam1 = requestScale;
             
             {
                 std::lock_guard<std::mutex> lock(g_queueMutex);
@@ -137,6 +161,7 @@ void StartRESTServer()
                 {"success", true},
                 {"message", "Pattern import queued. Call /execute to process."},
                 {"path", filePath},
+                {"scale", requestScale},
                 {"queue_size", g_commandQueue.size()}
             };
             res.set_content(response.dump(), "application/json");
@@ -578,12 +603,29 @@ void ProcessCommandQueue()
             // ── Pattern import ────────────────────────────────────────────
             else if (cmd.type == "import-pattern") {
                 Marvelous::ImportDxfOption options;
-                options.m_Scale   = 1.0f;
+                // Priority: request scale > env var > default.
+                float patternScale = (cmd.floatParam1 > 0.0f) ? cmd.floatParam1 : 1.0f;
+                const char* scaleEnv = std::getenv("CLO_PATTERN_IMPORT_SCALE");
+                if (cmd.floatParam1 <= 0.0f && scaleEnv && std::strlen(scaleEnv) > 0) {
+                    try {
+                        float parsed = std::stof(scaleEnv);
+                        if (parsed > 0.0f) {
+                            patternScale = parsed;
+                        }
+                    }
+                    catch (...) {
+                        // Ignore invalid env var values and keep default scale.
+                    }
+                }
+
+                options.m_Scale   = patternScale;
                 options.m_bAppend = true;
                 result.success = IMPORT_API->ImportDXF(cmd.param1, options);
                 result.message = result.success
-                    ? "Imported pattern: " + cmd.param1
-                    : "Failed to import pattern: " + cmd.param1;
+                    ? "Imported pattern: " + cmd.param1 +
+                      " (scale=" + std::to_string(patternScale) + ")"
+                                        : "Failed to import pattern: " + cmd.param1 +
+                                            " (check DXF units/scale; expected centimeter-sized panels)";
             }
             // ── Create seam ───────────────────────────────────────────────
             else if (cmd.type == "create-seam") {

@@ -1,10 +1,25 @@
 """Step 7: Arrange patterns around the avatar."""
 
+import os
 from .helpers import print_result
 
 
 def run(ctx):
     print("\n[7] Arranging patterns in 3D around avatar ...")
+    
+    # Hard-fail gate: if live slots are unavailable, fail by default to prevent
+    # false-positive success runs. Use ALLOW_DEGRADED_PLACEMENT env var to override.
+    allow_degraded = os.getenv("ALLOW_DEGRADED_PLACEMENT", "").lower() in ("1", "true", "yes")
+    
+    if not ctx.has_live_slots and not allow_degraded:
+        print("  ✗ PLACEMENT FAILURE: Live arrangement slots are unavailable in CLO.")
+        print("     This typically means the avatar is not properly loaded or CLO's")
+        print("     arrangement metadata is not yet available.")
+        print("     Pipeline stopping to prevent silent false-positive placement.")
+        print("     To force degraded-mode placement (not recommended), set:")
+        print("     ALLOW_DEGRADED_PLACEMENT=1")
+        return False
+    
     # Offsets are mm. When CLO does not provide live slot metadata, use
     # stronger per-piece separation so all panels do not stack at one point.
     if ctx.has_live_slots:
@@ -23,7 +38,7 @@ def run(ctx):
             (2, -1, 15, 25, 70, 270),
             (3, -1, 85, 25, 70, 90),
         ]
-        print("  ! Live arrangement slots unavailable; applying fallback spread offsets.")
+        print("  ! DEGRADED MODE: Live arrangement slots unavailable; applying fallback spread offsets.")
 
     arranged_ok = True
     requested = {}

@@ -8,6 +8,12 @@ def run(ctx):
         print("\u2713 Connected to CLO REST server")
         print(f"  Plugin: {result.get('plugin')}")
         print(f"  Version: {result.get('version')}")
+        
+        # Get detailed version info
+        version_info = ctx.client.get_version()
+        if version_info.get("build_date"):
+            print(f"  Build: {version_info.get('build_date')} {version_info.get('build_time')}")
+        
         return True
 
     print("\u2717 Failed to connect to CLO REST server")

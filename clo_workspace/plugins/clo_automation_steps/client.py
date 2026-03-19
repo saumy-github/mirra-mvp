@@ -39,13 +39,19 @@ class CLORestClient:
     def health_check(self):
         return self._get("/health")
 
+    def get_version(self):
+        return self._get("/version")
+
     def import_avatar(self, obj_path):
         obj_path = str(Path(obj_path).as_posix())
         return self._post("/import-avatar", {"path": obj_path})
 
-    def import_pattern(self, dxf_path):
+    def import_pattern(self, dxf_path, scale=None):
         dxf_path = str(Path(dxf_path).as_posix())
-        return self._post("/import-pattern", {"path": dxf_path})
+        payload = {"path": dxf_path}
+        if scale is not None:
+            payload["scale"] = float(scale)
+        return self._post("/import-pattern", payload)
 
     def new_project(self):
         return self._post("/new-project", {})

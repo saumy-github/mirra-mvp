@@ -1,4 +1,4 @@
-"""
+﻿"""
 Dynamic 2D Pattern Generator for CLO3D
 Generates measurement-driven T-shirt pattern pieces
 Reads avatar measurements and calculates proper fit with ease
@@ -14,12 +14,13 @@ from typing import List, Tuple, Dict, Any, Optional
 
 try:
     import ezdxf
+    from ezdxf import units as ezdxf_units
     HAS_EZDXF = True
 except ImportError:
     HAS_EZDXF = False
     print("Warning: ezdxf not installed. DXF export will be disabled.")
 
-# Database integration (optional — requires pymongo)
+# Database integration (optional ΓÇö requires pymongo)
 import sys as _sys
 _HERE = Path(__file__).parent
 _ROOT = _HERE.parent
@@ -187,7 +188,7 @@ class GarmentMeasurements:
     def from_garments_db(cls, garment_id: str) -> 'GarmentMeasurements':
         """
         Load pre-computed garment measurements directly from the garments
-        collection (flat schema).  No avatar body measurements needed —
+        collection (flat schema).  No avatar body measurements needed ΓÇö
         the 10 pattern fields are used as-is.
 
         Args:
@@ -204,14 +205,14 @@ class GarmentMeasurements:
             available = [d["garment_id"] for d in col.find({}, {"garment_id": 1, "_id": 0}).sort("garment_id", 1)]
             raise ValueError(
                 f"garment_id='{garment_id}' not found in garments collection.\n"
-                f"Available IDs: {', '.join(available) if available else 'none — run seed first'}"
+                f"Available IDs: {', '.join(available) if available else 'none ΓÇö run seed first'}"
             )
         return cls(
-            # body fields — not stored in garments collection, use display defaults
+            # body fields ΓÇö not stored in garments collection, use display defaults
             body_height=175.0,
             body_chest=0.0,
             body_shoulder=doc["shoulder_width_cm"],
-            # pattern fields (flat schema — already includes ease)
+            # pattern fields (flat schema ΓÇö already includes ease)
             half_chest_width=doc["half_chest_width_cm"],
             garment_length=doc["garment_length_cm"],
             shoulder_width=doc["shoulder_width_cm"],
@@ -282,7 +283,7 @@ class DynamicPatternGenerator:
         total_armhole = self.front_armhole_length + self.back_armhole_length
         armhole_per_sleeve = total_armhole / 2  # Each sleeve fits one armhole
         
-        print(f"\n💡 Armhole sizing:")
+        print(f"\n≡ƒÆí Armhole sizing:")
         print(f"  Total armhole (both sides): {total_armhole:.2f} cm")
         print(f"  Per sleeve: {armhole_per_sleeve:.2f} cm")
         
@@ -329,13 +330,13 @@ class DynamicPatternGenerator:
         print(f"  Difference: {mismatch:.2f} cm ({mismatch_percent:.1f}%)")
         
         if mismatch <= 2.0:
-            print(f"  ✅ GOOD - Within acceptable tolerance (±2cm)")
+            print(f"  Γ£à GOOD - Within acceptable tolerance (┬▒2cm)")
         elif mismatch <= 5.0:
-            print(f"  ⚠️  WARNING - Seams may be difficult to match")
+            print(f"  ΓÜá∩╕Å  WARNING - Seams may be difficult to match")
         else:
-            print(f"  ❌ CRITICAL - Seams will not match, sewing impossible!")
+            print(f"  Γ¥î CRITICAL - Seams will not match, sewing impossible!")
         
-        print(f"\n✅ Patterns generated successfully!")
+        print(f"\nΓ£à Patterns generated successfully!")
         print(f"   Output: {output_path}")
         print(f"   Pattern pieces: {len(self.patterns)}")
 
@@ -366,7 +367,7 @@ class DynamicPatternGenerator:
         points = []
         for i in range(num_points):
             t = i / (num_points - 1)
-            # Quadratic Bezier formula: B(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+            # Quadratic Bezier formula: B(t) = (1-t)┬▓PΓéÇ + 2(1-t)tPΓéü + t┬▓PΓéé
             x = (1-t)**2 * start[0] + 2*(1-t)*t * mid_x + t**2 * end[0]
             y = (1-t)**2 * start[1] + 2*(1-t)*t * mid_y + t**2 * end[1]
             points.append((x, y))
@@ -386,7 +387,7 @@ class DynamicPatternGenerator:
         
         Returns list of (x, y) coordinates forming a closed polygon.
         """
-        print("\n📐 GENERATING FRONT PANEL:")
+        print("\n≡ƒôÉ GENERATING FRONT PANEL:")
         points = []
         
         # Calculate center and shoulder positions for symmetric pattern
@@ -458,7 +459,7 @@ class DynamicPatternGenerator:
         self.front_armhole_length = right_armhole_arc_length + left_armhole_arc_length
         
         print(f"  Total points: {len(points)}")
-        print(f"  ✓ Front panel complete")
+        print(f"  Γ£ô Front panel complete")
         
         return points
     
@@ -467,7 +468,7 @@ class DynamicPatternGenerator:
         Generate back panel pattern with smooth curves.
         Similar to front but with shallower neckline.
         """
-        print("\n📐 GENERATING BACK PANEL:")
+        print("\n≡ƒôÉ GENERATING BACK PANEL:")
         points = []
         
         # Calculate center and shoulder positions for symmetric pattern
@@ -535,7 +536,7 @@ class DynamicPatternGenerator:
         self.back_armhole_length = right_armhole_arc_length + left_armhole_arc_length
         
         print(f"  Total points: {len(points)}")
-        print(f"  ✓ Back panel complete")
+        print(f"  Γ£ô Back panel complete")
         
         return points
     
@@ -546,7 +547,7 @@ class DynamicPatternGenerator:
         Args:
             target_armhole_length: Target armhole circumference to match (if None, uses default sizing)
         """
-        print("\n📐 GENERATING SLEEVE:")
+        print("\n≡ƒôÉ GENERATING SLEEVE:")
         
         # Sleeve dimensions
         sleeve_width = self.m.bicep_width / 2
@@ -560,7 +561,7 @@ class DynamicPatternGenerator:
             # Iterative solver: binary search for correct cap_height
             # Allow 1-2cm ease (sleeve cap should be slightly larger than armhole)
             target_cap = target_armhole_length + 1.5  # 1.5cm ease
-            tolerance = 2.0  # ±2cm is acceptable
+            tolerance = 2.0  # ┬▒2cm is acceptable
             
             # Initial bounds
             min_height = self.m.armhole_depth * 0.2  # 20% minimum
@@ -597,10 +598,10 @@ class DynamicPatternGenerator:
                 
                 if difference <= tolerance:
                     # Found acceptable match
-                    print(f"  ✓ Converged after {iterations+1} iterations")
+                    print(f"  Γ£ô Converged after {iterations+1} iterations")
                     print(f"    Sleeve cap: {current_cap:.2f} cm")
                     print(f"    Target: {target_cap:.2f} cm")
-                    print(f"    Difference: {difference:.2f} cm (within ±{tolerance:.1f}cm tolerance)")
+                    print(f"    Difference: {difference:.2f} cm (within ┬▒{tolerance:.1f}cm tolerance)")
                     break
                 
                 # Adjust cap_height using binary search
@@ -615,7 +616,7 @@ class DynamicPatternGenerator:
                 iterations += 1
             
             if iterations >= max_iterations:
-                print(f"  ⚠️  Warning: Max iterations reached, using best approximation")
+                print(f"  ΓÜá∩╕Å  Warning: Max iterations reached, using best approximation")
                 print(f"    Sleeve cap: {current_cap:.2f} cm")
                 print(f"    Target: {target_cap:.2f} cm")
                 print(f"    Difference: {difference:.2f} cm")
@@ -669,19 +670,22 @@ class DynamicPatternGenerator:
         print(f"  Total cap circumference: {sleeve_cap_circumference:.2f} cm")
         
         print(f"  Total points: {len(points)}")
-        print(f"  ✓ Sleeve complete")
+        print(f"  Γ£ô Sleeve complete")
         
         return points
     
     def export_dxf(self, output_dir: Path):
         """Export patterns as DXF files for CLO3D."""
         if not HAS_EZDXF:
-            print("⚠️  ezdxf not available, skipping DXF export")
+            print("ΓÜá∩╕Å  ezdxf not available, skipping DXF export")
             return
         
         for name, points in self.patterns.items():
             # Create new DXF document
             doc = ezdxf.new('R2010')
+            # Pattern coordinates are in centimeters.
+            # Explicitly writing drawing units avoids CLO importing them as meters.
+            doc.units = ezdxf_units.CM
             msp = doc.modelspace()
             
             # Add pattern outline as POLYLINE (not LWPOLYLINE - better CLO3D compatibility)
@@ -732,7 +736,7 @@ class DynamicPatternGenerator:
             # Save DXF file
             output_file = output_dir / f"{name}.dxf"
             doc.saveas(output_file)
-            print(f"  ✓ {name}.dxf ({len(points)} points)")
+            print(f"  Γ£ô {name}.dxf ({len(points)} points)")
     
     def export_svg(self, output_dir: Path):
         """Export patterns as SVG files for visual verification."""
@@ -833,7 +837,7 @@ class DynamicPatternGenerator:
             output_file = output_dir / f"{name}.svg"
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(svg_content)
-            print(f"  ✓ {name}.svg (for preview)")
+            print(f"  Γ£ô {name}.svg (for preview)")
     
     def export_metadata(self, output_dir: Path):
         """Export pattern metadata as JSON."""
@@ -907,7 +911,7 @@ class DynamicPatternGenerator:
             'clo3d_import_notes': [
                 'Patterns are at seam line (cutting line includes allowances documented above)',
                 'When importing to CLO3D, use Segment Sewing tool to connect seams',
-                'Apply seam allowances using Transform Pattern → Internal Line → Offset',
+                'Apply seam allowances using Transform Pattern ΓåÆ Internal Line ΓåÆ Offset',
                 'Or manually add allowances by offsetting edges outward before import',
                 'Front and back shoulder lengths should match',
                 'Armhole curves should match sleeve cap circumference (validated above)'
@@ -917,12 +921,12 @@ class DynamicPatternGenerator:
         output_file = output_dir / "pattern_metadata.json"
         with open(output_file, 'w') as f:
             json.dump(metadata, f, indent=2)
-        print(f"  ✓ pattern_metadata.json (with seam allowance specifications)")
+        print(f"  Γ£ô pattern_metadata.json (with seam allowance specifications)")
 
     def save_to_db(self, garment_id: str) -> bool:
         """Upsert the garment record into garments using the flat schema."""
         if not HAS_DB:
-            print("⚠️  Database not available — skipping DB save (pymongo not installed).")
+            print("ΓÜá∩╕Å  Database not available ΓÇö skipping DB save (pymongo not installed).")
             return False
 
         doc = create_garment_doc(
@@ -942,7 +946,7 @@ class DynamicPatternGenerator:
 
         ok, err = validate_garment_doc(doc)
         if not ok:
-            print(f"⚠️  Garment document validation failed: {err}")
+            print(f"ΓÜá∩╕Å  Garment document validation failed: {err}")
             return False
 
         try:
@@ -952,10 +956,10 @@ class DynamicPatternGenerator:
                 {'$set': doc},
                 upsert=True
             )
-            print(f"  ✅ Saved to DB  →  garments  (garment_id={garment_id}, fit={self.m.fit_type})")
+            print(f"  Γ£à Saved to DB  ΓåÆ  garments  (garment_id={garment_id}, fit={self.m.fit_type})")
             return True
         except Exception as exc:
-            print(f"⚠️  DB write failed: {exc}")
+            print(f"ΓÜá∩╕Å  DB write failed: {exc}")
             return False
 
 
@@ -967,10 +971,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # DEFAULT — fetch from garments DB (interactive prompt for ID):
+  # DEFAULT ΓÇö fetch from garments DB (interactive prompt for ID):
   python generate_patterns_clo3d.py
 
-  # DEFAULT — fetch garment 003 directly from garments DB:
+  # DEFAULT ΓÇö fetch garment 003 directly from garments DB:
   python generate_patterns_clo3d.py --garment-id 003
 
   # Other modes:
@@ -980,7 +984,7 @@ Examples:
         """
     )
 
-    # Garment ID — the primary user-facing argument for the default DB mode
+    # Garment ID ΓÇö the primary user-facing argument for the default DB mode
     parser.add_argument('--garment-id', type=str, default=None,
                        help='Garment ID from the garments collection (e.g. 003). '
                             'If omitted the script lists all garments and prompts.')
@@ -1015,100 +1019,130 @@ Examples:
     print("DYNAMIC PATTERN GENERATOR FOR CLO3D")
     print("="*60)
     
-    # ── Route to the correct input mode ────────────────────────────────────
-    # Default (no special flags) or --garment-id → garments DB mode
+    # ΓöÇΓöÇ Route to the correct input mode ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+    # Default (no special flags) or --garment-id ΓåÆ garments DB mode
     use_garments_db = not args.avatar and not args.manual and not args.db_user
 
     if args.avatar:
-        print(f"\n📁 Loading measurements from: {args.avatar}")
+        print(f"\n≡ƒôü Loading measurements from: {args.avatar}")
         try:
             avatar = AvatarMeasurements.from_json(args.avatar)
-            print(f"✓ Loaded avatar: {avatar.user_id}")
+            print(f"Γ£ô Loaded avatar: {avatar.user_id}")
         except FileNotFoundError:
-            print(f"❌ Error: File not found: {args.avatar}")
+            print(f"Γ¥î Error: File not found: {args.avatar}")
             return
         except Exception as e:
-            print(f"❌ Error loading measurements: {e}")
+            print(f"Γ¥î Error loading measurements: {e}")
             return
     elif args.db_user:
-        print(f"\n🗄️  Loading measurements from DB  (user_id='{args.db_user}')")
+        print(f"\n≡ƒùä∩╕Å  Loading measurements from DB  (user_id='{args.db_user}')")
         try:
             avatar = AvatarMeasurements.from_db(args.db_user)
-            print(f"✓ Loaded avatar: {avatar.user_id}  ({avatar.gender})")
+            print(f"Γ£ô Loaded avatar: {avatar.user_id}  ({avatar.gender})")
             print(f"  Height: {avatar.height_cm:.1f} cm  |  Chest: {avatar.chest_circumference_cm:.1f} cm  |  Shoulder: {avatar.shoulder_width_cm:.1f} cm")
         except (RuntimeError, ValueError) as e:
-            print(f"❌ Error: {e}")
+            print(f"Γ¥î Error: {e}")
             return
         except Exception as e:
-            print(f"❌ Unexpected DB error: {e}")
+            print(f"Γ¥î Unexpected DB error: {e}")
             return
     elif use_garments_db:
-        # ── Garments-DB mode: load flat measurements directly from garments ──
-        print(f"\n🗄️  Loading from garments collection …")
+        # ΓöÇΓöÇ Garments-DB mode: load flat measurements directly from garments ΓöÇΓöÇ
+        print(f"\n≡ƒùä∩╕Å  Loading from garments collection ΓÇª")
 
+        col = None
         if not HAS_DB:
-            print("❌ DB not available. Install: pip install pymongo python-dotenv")
-            return
+            if args.garment_id:
+                print("DB not available. Install: pip install pymongo python-dotenv")
+                return
+            print("DB not available; falling back to manual defaults.")
+            print("Tip: use --manual to force this mode explicitly.")
+            avatar = AvatarMeasurements(
+                height_cm=args.height,
+                chest_circumference_cm=args.chest,
+                waist_circumference_cm=args.waist,
+                hip_circumference_cm=args.hip,
+                shoulder_width_cm=args.shoulder,
+                gender=args.gender,
+                user_id="manual_fallback_no_db_client",
+            )
+        else:
+            try:
+                col = get_garments_collection()
+            except Exception as e:
+                if args.garment_id:
+                    print(f"DB connection failed while loading garment_id={args.garment_id}: {e}")
+                    return
+                print(f"DB connection failed ({e}). Falling back to manual defaults.")
+                print("Tip: use --manual to force this mode explicitly.")
+                avatar = AvatarMeasurements(
+                    height_cm=args.height,
+                    chest_circumference_cm=args.chest,
+                    waist_circumference_cm=args.waist,
+                    hip_circumference_cm=args.hip,
+                    shoulder_width_cm=args.shoulder,
+                    gender=args.gender,
+                    user_id="manual_fallback_db_unavailable",
+                )
 
-        col = get_garments_collection()
+        if col is not None:
+            # Resolve garment_id prompt interactively if not supplied via flag
+            garment_id = args.garment_id
+            if not garment_id:
+                all_garments = list(col.find({}, {"_id": 0}).sort("garment_id", 1))
+                if not all_garments:
+                    print("The garments collection is empty. Run seed first:")
+                    print("  python -m mirra_measurements.seed_garments")
+                    return
 
-        # Resolve garment_id — prompt interactively if not supplied via flag
-        garment_id = args.garment_id
-        if not garment_id:
-            all_garments = list(col.find({}, {"_id": 0}).sort("garment_id", 1))
-            if not all_garments:
-                print("❌ The garments collection is empty. Run seed first:")
-                print("   python -m mirra_measurements.seed_garments")
+                print(f"\n{'ID':<6} {'Fit Type':<12} {'Half Chest':>11} {'Length':>8} {'Shoulder':>10} {'Sleeve':>8}")
+                print("-" * 62)
+                for g in all_garments:
+                    print(
+                        f"  {g['garment_id']:<4} "
+                        f"{g['fit_type']:<12} "
+                        f"{g['half_chest_width_cm']:>9.1f}cm "
+                        f"{g['garment_length_cm']:>6.1f}cm "
+                        f"{g['shoulder_width_cm']:>8.1f}cm "
+                        f"{g['sleeve_length_cm']:>6.1f}cm"
+                    )
+                print()
+                garment_id = input("Enter garment_id to generate patterns for: ").strip()
+
+            try:
+                garment = GarmentMeasurements.from_garments_db(garment_id)
+            except (RuntimeError, ValueError) as e:
+                print(f"Error: {e}")
                 return
 
-            print(f"\n{'ID':<6} {'Fit Type':<12} {'Half Chest':>11} {'Length':>8} {'Shoulder':>10} {'Sleeve':>8}")
-            print("─" * 62)
-            for g in all_garments:
-                print(
-                    f"  {g['garment_id']:<4} "
-                    f"{g['fit_type']:<12} "
-                    f"{g['half_chest_width_cm']:>9.1f}cm "
-                    f"{g['garment_length_cm']:>6.1f}cm "
-                    f"{g['shoulder_width_cm']:>8.1f}cm "
-                    f"{g['sleeve_length_cm']:>6.1f}cm"
-                )
-            print()
-            garment_id = input("Enter garment_id to generate patterns for: ").strip()
+            print(f"Loaded garment_id={garment_id} fit={garment.fit_type}")
+            print(f"  Half chest : {garment.half_chest_width:.1f} cm")
+            print(f"  Length     : {garment.garment_length:.1f} cm")
+            print(f"  Shoulder   : {garment.shoulder_width:.1f} cm")
+            print(f"  Sleeve     : {garment.sleeve_length:.1f} cm")
 
-        try:
-            garment = GarmentMeasurements.from_garments_db(garment_id)
-        except (RuntimeError, ValueError) as e:
-            print(f"❌ Error: {e}")
+            # Generate patterns directly (no from_avatar step needed)
+            generator = DynamicPatternGenerator(garment)
+            generator.generate_all(args.output)
+            generator.save_to_db(garment_id=garment_id)
+
+            run_path = generator.last_run_path
+            print("\n" + "="*60)
+            print("PATTERN GENERATION COMPLETE")
+            print("="*60)
+            print(f"\n  Garment ID   : {garment_id}  ({garment.fit_type} fit)")
+            print(f"  DXF files    : {run_path / 'patterns_dxf'}")
+            print(f"  SVG previews : {run_path / 'patterns_svg'}")
+            print("\nNext steps:")
+            print("  1. Open CLO3D")
+            print("  2. Import avatar -> Avatar > Import Avatar")
+            print("  3. Import patterns -> File > Import > DXF/AAMA (select all .dxf files)")
+            print("  4. Sew seams and simulate!")
+            print()
             return
 
-        print(f"✓ Loaded garment_id={garment_id}  fit={garment.fit_type}")
-        print(f"  Half chest : {garment.half_chest_width:.1f} cm")
-        print(f"  Length     : {garment.garment_length:.1f} cm")
-        print(f"  Shoulder   : {garment.shoulder_width:.1f} cm")
-        print(f"  Sleeve     : {garment.sleeve_length:.1f} cm")
-
-        # Generate patterns directly (no from_avatar step needed)
-        generator = DynamicPatternGenerator(garment)
-        generator.generate_all(args.output)
-        generator.save_to_db(garment_id=garment_id)
-
-        run_path = generator.last_run_path
-        print("\n" + "="*60)
-        print("✅ PATTERN GENERATION COMPLETE")
-        print("="*60)
-        print(f"\n  Garment ID   : {garment_id}  ({garment.fit_type} fit)")
-        print(f"  DXF files    : {run_path / 'patterns_dxf'}")
-        print(f"  SVG previews : {run_path / 'patterns_svg'}")
-        print(f"\nNext steps:")
-        print(f"  1. Open CLO3D")
-        print(f"  2. Import avatar  → Avatar › Import Avatar")
-        print(f"  3. Import patterns → File › Import › DXF/AAMA (select all .dxf files)")
-        print(f"  4. Sew seams and simulate!")
-        print()
-        return
-
     else:
-        print(f"\n📐 Using manual measurements")
+        print(f"\n≡ƒôÉ Using manual measurements")
         avatar = AvatarMeasurements(
             height_cm=args.height,
             chest_circumference_cm=args.chest,
@@ -1132,12 +1166,12 @@ Examples:
     )
 
     print("\n" + "="*60)
-    print("✅ PATTERN GENERATION COMPLETE")
+    print("Γ£à PATTERN GENERATION COMPLETE")
     print("="*60)
     print(f"\nNext steps:")
     print(f"1. Open CLO3D")
-    print(f"2. Import avatar: CLO3D → Avatar → Import Avatar")
-    print(f"3. Import patterns: CLO3D → File → Import → DXF/AAMA")
+    print(f"2. Import avatar: CLO3D ΓåÆ Avatar ΓåÆ Import Avatar")
+    print(f"3. Import patterns: CLO3D ΓåÆ File ΓåÆ Import ΓåÆ DXF/AAMA")
     print(f"4. Select all 4 DXF files from: {generator.last_run_path / 'patterns_dxf'}/")
     print(f"5. Use Segment Sewing tool to connect seams")
     print(f"6. Assign fabric properties and simulate!")
