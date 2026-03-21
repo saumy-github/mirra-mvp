@@ -9,6 +9,12 @@ workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if workspace_root not in sys.path:
     sys.path.insert(0, workspace_root)
 
+# Homebrew Python 3.12 can skip hidden .pth files (e.g. _editable_.star-*.pth),
+# so editable installs may not expose the local STAR package. Add a direct fallback.
+star_repo_root = os.path.join(workspace_root, 'libs', 'star')
+if os.path.isdir(star_repo_root) and star_repo_root not in sys.path:
+    sys.path.insert(0, star_repo_root)
+    
 from star.pytorch.star import STAR  # type: ignore
 from pipeline_star.pose_catalog import get_apose_thetas
 from utils.device import DEVICE

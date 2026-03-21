@@ -85,9 +85,16 @@ def main():
             except ValueError:
                 print("❌ Error: Invalid run number")
                 return 1
+
+        pose = input("Select pose [tpose/apose] (default: tpose): ").strip().lower()
+        if not pose:
+            pose = 'tpose'
+        if pose not in ['tpose', 'apose']:
+            print("❌ Error: Invalid pose. Use 'tpose' or 'apose'.")
+            return 1
         
         # Run the pipeline
-        print(f"\n🚀 Starting avatar generation for {user_id}-{next_number:03d}...")
+        print(f"\n🚀 Starting avatar generation for {user_id}-{next_number:03d} ({pose})...")
         print("━" * 50)
         
         cmd = [
@@ -95,7 +102,8 @@ def main():
             os.path.join(os.path.dirname(__file__), 'first.py'),
             '--user_id', user_id,
             '--mode', 'generate_avatar',
-            '--run_number', str(next_number)
+            '--run_number', str(next_number),
+            '--pose', pose,
         ]
         
         result = subprocess.run(cmd)

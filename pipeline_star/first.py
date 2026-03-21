@@ -2,7 +2,7 @@
 import sys
 import os
 import argparse
-from typing import Dict, Any, List
+from typing import Dict, Any
 import numpy as np
 
 workspace_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -10,23 +10,21 @@ if workspace_root not in sys.path:
     sys.path.insert(0, workspace_root)
 
 from mirra_measurements.db import get_measurements_collection
-from pipeline_star.star_runner import generate_apose_mesh, generate_mesh
-from pipeline_star.fit_betas import fit_betas_to_measurements
+from pipeline_star.star_runner import generate_default_mesh, generate_mesh
+from pipeline_star.fit_betas import fit_betas_to_measurements, predict_measurements_from_betas
 from pipeline_star.mesh_measure import extract_measurements_from_mesh
-from pipeline_star.avatar_exporter import export_mesh_to_glb
 from pipeline_star.mapping_layer import (
     validate_required_fields,
     validate_measurement_ranges,
     create_mapping_layer_output
 )
-from pipeline_star.run_manifest import RunIdentity, get_inputs_json_path, get_values_json_path, get_avatar_glb_path
-from pipeline_star.artifact_schema import create_values_schema, FITNESS_TOLERANCE_PERCENT, FITTING_MEASUREMENT_FIELDS
+from pipeline_star.run_manifest import get_avatar_glb_path
+from pipeline_star.artifact_schema import create_values_schema, FITNESS_TOLERANCE_PERCENT
 from pipeline_star.artifact_io import write_values_json, get_timestamp
-from pipeline_star.pose_catalog import get_apose_thetas, get_apose_metadata
-from pipeline_star.avatar_exporter import export_mesh_to_glb
+from pipeline_star.pose_catalog import get_pose_thetas, get_pose_metadata
 from pipeline_star.mesh_postprocess import postprocess_mesh
 from pipeline_star.avatar_style import get_material_config
-from pipeline_star.avatar_exporter_clo import export_avatar_for_clo
+from pipeline_star.avatar_exporter_clo import export_avatar_for_clo, export_mesh_to_glb
 from utils.device import log_device
 
 
@@ -79,6 +77,36 @@ def print_mesh_stats(mesh_data: Dict[str, Any]) -> None:
     print("=" * 60 + "\n")
 
 
+def build_fitting_targets(doc: Dict[str, Any]) -> Dict[str, float]:
+    """Build fitter-compatible targets from a measurement document.
+
+    Maps female `bust_circumference_cm` to fitter's expected
+    `chest_circumference_cm` when necessary and validates presence.
+    """
+    chest_field = 'chest_circumference_cm'
+    if chest_field not in doc and 'bust_circumference_cm' in doc:
+        chest_field = 'bust_circumference_cm'
+
+    required = [
+        'height_cm',
+        'shoulder_width_cm',
+        chest_field,
+        'waist_circumference_cm',
+        'hip_circumference_cm',
+    ]
+    missing = [f for f in required if f not in doc]
+    if missing:
+        raise ValueError(f"Missing fitting target fields: {missing}")
+
+    return {
+        'height_cm': float(doc['height_cm']),
+        'shoulder_width_cm': float(doc['shoulder_width_cm']),
+        'chest_circumference_cm': float(doc[chest_field]),
+        'waist_circumference_cm': float(doc['waist_circumference_cm']),
+        'hip_circumference_cm': float(doc['hip_circumference_cm']),
+    }
+
+
 # Main CLI entry point for STAR pipeline
 def main():
     parser = argparse.ArgumentParser(
@@ -107,6 +135,12 @@ def main():
         default='validate_only', 
         help="Operation mode: validate_only (default), star_preflight (generate mesh), "
              "fit_betas (optimize shape), or generate_avatar (complete run with inputs/values/GLB)"
+    )
+    parser.add_argument(
+        "--pose",
+        choices=['tpose', 'apose'],
+        default='tpose',
+        help="Avatar pose for generate_avatar mode: tpose (default) or apose"
     )
     
     args = parser.parse_args()
@@ -148,13 +182,7 @@ def main():
             
             gender = doc['gender']
             
-            target_measurements = {
-                'height_cm': doc['height_cm'],
-                'shoulder_width_cm': doc['shoulder_width_cm'],
-                'chest_circumference_cm': doc['chest_circumference_cm'],
-                'waist_circumference_cm': doc['waist_circumference_cm'],
-                'hip_circumference_cm': doc['hip_circumference_cm'],
-            }
+            target_measurements = build_fitting_targets(doc)
             
             print("\nComputing initial predictions (betas=zeros)...")
             initial_betas = np.zeros(10)
@@ -259,11 +287,13 @@ def main():
                 print(f"  Max error: {max_error:.2f}%")
                 print(f"  Tolerance: {FITNESS_TOLERANCE_PERCENT}%")
                 print(f"  Status: {status.upper()}")
+                print(f"  Pose: {args.pose}")
                 
                 print("\n[4/5] Writing values JSON...")
                 
                 pose_size = 72
-                thetas = get_apose_thetas(pose_size).tolist()
+                pose_thetas = get_pose_thetas(args.pose, pose_size)
+                thetas = pose_thetas.tolist()
                 
                 fit_report = {
                     'predicted_measurements': predicted,
@@ -282,7 +312,7 @@ def main():
                     betas=fitting_result['betas'].tolist(),
                     thetas=thetas,
                     scale=float(fitting_result['scale']),
-                    pose_metadata=get_apose_metadata(),
+                    pose_metadata=get_pose_metadata(args.pose),
                     fit_report=fit_report
                 )
                 
@@ -294,7 +324,7 @@ def main():
                 mesh_data = generate_mesh(
                     gender=gender,
                     betas=fitting_result['betas'],
-                    pose=get_apose_thetas(pose_size),
+                    pose=pose_thetas,
                     scale=fitting_result['scale'],
                     num_betas=10
                 )
