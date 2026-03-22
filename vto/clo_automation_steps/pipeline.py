@@ -14,9 +14,13 @@ from .step_10_simulate import run as step_10_simulate
 from .step_11_export_note import run as step_11_export_note
 
 
-def run_pipeline(seam_map=None):
-    """Run full CLO automation pipeline by executing all step modules."""
-    ctx = create_context(seam_map=seam_map)
+def run_pipeline(seam_map=None, avatar_path: str | None = None, patterns_dir: str | None = None):
+    """Run full CLO automation pipeline by executing all step modules.
+
+    Optional `avatar_path` and `patterns_dir` may be provided to override
+    the default discovery logic and use a chosen `vto/input` run.
+    """
+    ctx = create_context(seam_map=seam_map, avatar_path=avatar_path, patterns_dir=patterns_dir)
 
     print("=" * 64)
     print("CLO Virtual Try-On Automation Pipeline")

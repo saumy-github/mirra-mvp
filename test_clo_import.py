@@ -1,9 +1,10 @@
 """Quick test of CLO REST API pattern import - QUEUE-BASED"""
 import sys
 from pathlib import Path
-sys.path.insert(0, r"C:\Users\Anant\mirra-mvp\clo_workspace\plugins")
-
-from clo_automation_client import CLORestClient
+ROOT = Path(__file__).resolve().parents[0]
+# Ensure we can import the REST client that remains under clo_workspace/plugins
+sys.path.insert(0, str((ROOT / "clo_workspace" / "plugins").resolve()))
+from clo_rest_client import CLORestClient
 import time
 
 # Create client

@@ -253,7 +253,7 @@ def main():
     print("]")
     print()
     print("Usage:")
-    print("  from clo_workspace.plugins.clo_automation_client import example_workflow")
+    print("  from vto.clo_automation_client import example_workflow")
     print("  example_workflow(seam_map=SEAM_MAP)")
     print()
     print("NOTE: If seams look twisted in CLO simulation, flip 'db' on the")
