@@ -135,7 +135,7 @@ def test_clo_automation():
         return False
     
     # Test workflow
-    workspace = Path("C:/Users/Anant/mirra-mvp")
+    workspace = Path(__file__).resolve().parents[2]
     
     # 1. Import avatar
     avatar_path = workspace / "clo_workspace/user_m_001_patterns/user_m_001_001_avatar.obj"

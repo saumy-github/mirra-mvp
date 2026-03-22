@@ -28,12 +28,13 @@ from pathlib import Path
 # CONFIGURATION
 # =============================================================================
 
-# Paths (update these for your system)
-WORKSPACE = Path(r"C:\Users\Anant\mirra-mvp\clo_workspace")
+# Paths
+REPO_ROOT = Path(__file__).resolve().parents[2]
+WORKSPACE = REPO_ROOT / "clo_workspace"
 AVATAR_PATH = WORKSPACE / "user_m_001_patterns" / "user_m_001_001_avatar.obj"
 
 # Dynamically resolve the latest generated run folder under output/
-_PATTERNS_BASE = Path(r"C:\Users\Anant\mirra-mvp\2d_patterned_garment_generation_clo3d\output")
+_PATTERNS_BASE = REPO_ROOT / "2d_patterned_garment_generation_clo3d" / "output"
 
 
 def _get_latest_patterns_dir() -> Path:

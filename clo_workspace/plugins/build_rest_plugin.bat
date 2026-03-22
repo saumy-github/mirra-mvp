@@ -8,14 +8,36 @@ echo ========================================
 echo.
 
 REM Configuration
-set WORKSPACE=C:\Users\Anant\mirra-mvp\clo_workspace\plugins
-set SDK_PATH=C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN
+REM Derive workspace from this script location so the repo can live anywhere.
+set "WORKSPACE=%~dp0"
+if "%WORKSPACE:~-1%"=="\" set "WORKSPACE=%WORKSPACE:~0,-1%"
+
+REM Allow overriding paths via environment variables.
+if "%CLO_SDK_PATH%"=="" (
+    set "SDK_PATH=C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN"
+) else (
+    set "SDK_PATH=%CLO_SDK_PATH%"
+)
 set PLUGIN_DIR=%SDK_PATH%\Samples\RestPlugin
-set CLO_PLUGINS=C:\Program Files\CLO Standalone OnlineAuth\plugins
+if "%CLO_PLUGINS_DIR%"=="" (
+    set "CLO_PLUGINS=C:\Program Files\CLO Standalone OnlineAuth\plugins"
+) else (
+    set "CLO_PLUGINS=%CLO_PLUGINS_DIR%"
+)
+
+where cmake >nul 2>nul
+if errorlevel 1 (
+    echo ERROR: cmake is not available in PATH.
+    echo Open "Developer Command Prompt for VS 2022" and run this script again.
+    pause
+    exit /b 1
+)
 
 echo [Step 1/6] Checking prerequisites...
 if not exist "%SDK_PATH%" (
     echo ERROR: CLO SDK not found at %SDK_PATH%
+    echo Set CLO_SDK_PATH to your SDK root, for example:
+    echo   set CLO_SDK_PATH=D:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN
     pause
     exit /b 1
 )

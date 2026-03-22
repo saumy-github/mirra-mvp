@@ -89,9 +89,10 @@ This reads the DXF files directly (no CLO needed) and prints the 26-seam map use
 **Only needed when `RestPlugin.cpp` source changes.**
 
 ```powershell
-cd C:\Users\Anant\mirra-mvp
-$env:PATH += ";C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+.\venv\Scripts\activate
 cd clo_workspace\plugins
+# Optional when SDK is not in the default location used by build_rest_plugin.bat
+# $env:CLO_SDK_PATH = "D:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN"
 .\build_rest_plugin.bat
 ```
 
@@ -106,8 +107,9 @@ Output: `C:\setup\CLO_SDK_v2025.2.236_WIN\...\Samples\RestPlugin\build\Release\R
 **CLO must be closed for this step.**
 
 ```powershell
-Copy-Item "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN\Samples\RestPlugin\build\Release\RestPlugin.dll" `
-          -Destination "C:\Program Files\CLO Standalone OnlineAuth\plugins\" -Force
+$sdk = if ($env:CLO_SDK_PATH) { $env:CLO_SDK_PATH } else { "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN" }
+$cloPlugins = if ($env:CLO_PLUGINS_DIR) { $env:CLO_PLUGINS_DIR } else { "C:\Program Files\CLO Standalone OnlineAuth\plugins" }
+Copy-Item "$sdk\Samples\RestPlugin\build\Release\RestPlugin.dll" -Destination "$cloPlugins\RestPlugin.dll" -Force
 ```
 
 ---
@@ -136,7 +138,6 @@ A confirmation dialog appears: *"REST server started on port 50505"*. Click OK.
 ### Stage 7 — Run the full Python automation pipeline
 
 ```powershell
-cd C:\Users\Anant\mirra-mvp
 .\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py
 ```
 

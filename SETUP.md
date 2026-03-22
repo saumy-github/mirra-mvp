@@ -24,6 +24,12 @@
    pip install -r requirements.txt
    ```
 
+4. Print all installed packages:
+
+   ```bash
+   pip list
+   ```
+
 ---
 
 ## Step 2 — MongoDB Connection & Seeding

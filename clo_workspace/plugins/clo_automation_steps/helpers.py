@@ -5,7 +5,8 @@ from pathlib import Path
 
 def resolve_patterns_dir():
     """Find the latest run_NNN/patterns_dxf directory."""
-    base = Path("C:/Users/Anant/mirra-mvp/2d_patterned_garment_generation_clo3d/output")
+    workspace_root = Path(__file__).resolve().parents[3]
+    base = workspace_root / "2d_patterned_garment_generation_clo3d/output"
     if not base.exists():
         return base / "patterns_dxf"
 
