@@ -37,7 +37,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from mirra_measurements.db import get_sizes_collection  # noqa: E402
-from generate_patterns_clo3d import GarmentMeasurements  # noqa: E402
+from garment_measurements import GarmentMeasurements  # noqa: E402
 from view_selection import list_cloth_images, select_primary_image  # noqa: E402
 from segmentation import run_segmentation  # noqa: E402
 from colour_extraction import extract_colours  # noqa: E402

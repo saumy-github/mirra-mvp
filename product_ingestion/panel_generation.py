@@ -6,7 +6,8 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from generate_patterns_clo3d import DynamicPatternGenerator, GarmentMeasurements
+from garment_measurements import GarmentMeasurements
+from panels import DynamicPatternGenerator
 
 from panel_export_dxf import export_panels_dxf
 from panel_export_svg import export_panels_svg

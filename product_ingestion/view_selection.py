@@ -1,4 +1,7 @@
-"""Step 1 of product_ingestion: view selection."""
+"""Step 2 of product_ingestion: view selection.
+
+Classify images in a folder using CLIP zero-shot via the GarmentRouter helper.
+"""
 
 from __future__ import annotations
 
@@ -6,9 +9,53 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, List
 
-from tshirt_extractor import ViewLabel, run_view_selection
+try:
+    # garment_router is an internal helper using CLIP
+    from garment_router import GarmentRouter
+    HAS_ROUTER = True
+except Exception:
+    HAS_ROUTER = False
 
 SUPPORTED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tiff"}
+
+
+@dataclass
+class ViewLabel:
+    """View classification for one image."""
+    filename: str
+    filepath: str
+    label: str       # front_view | back_view | side_view | irrelevant
+    confidence: float
+    scores: dict
+
+
+def run_view_selection(input_dir: str) -> List[ViewLabel]:
+    """
+    Classify images in *input_dir* using CLIP zero-shot.
+    Returns list of ViewLabel for each image.
+    """
+    if not HAS_ROUTER:
+        print("    ⚠️  garment_router.py not importable — skipping view selection")
+        return []
+
+    router = GarmentRouter()
+    routing = router.route_images(input_dir)
+
+    views: List[ViewLabel] = []
+    for score in routing.all_scores:
+        views.append(ViewLabel(
+            filename=score.filename,
+            filepath=score.filepath,
+            label=f"{score.assigned_view}_view" if score.assigned_view != "irrelevant" else "irrelevant",
+            confidence=score.confidence,
+            scores={
+                "front_view": score.front,
+                "back_view": score.back,
+                "side_view": score.side,
+                "irrelevant": score.irrelevant,
+            },
+        ))
+    return views
 
 
 @dataclass
