@@ -8,7 +8,7 @@ def run(ctx):
     if not ctx.avatar_path.exists():
         print(f"  ! Avatar not found: {ctx.avatar_path}")
         print("  ! Simulation will be SKIPPED - CLO crashes without a body mesh.")
-        print("  ! Generate an avatar OBJ via pipeline_star/ first.")
+        print("  ! Generate an avatar OBJ via avatar_generation/run_avatar.py first.")
         ctx.avatar_loaded = False
     else:
         print_result(ctx.client.import_avatar(str(ctx.avatar_path)), "import-avatar")

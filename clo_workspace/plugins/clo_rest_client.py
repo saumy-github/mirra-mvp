@@ -6,8 +6,15 @@ This lets your Python scripts control CLO automation.
 """
 
 import requests
+import sys
 import time
 from pathlib import Path
+
+workspace_root = Path(__file__).resolve().parents[2]
+if str(workspace_root) not in sys.path:
+    sys.path.insert(0, str(workspace_root))
+
+from avatar_generation.run_manifest import get_latest_avatar_obj_path
 
 
 class CLORestClient:
@@ -135,10 +142,14 @@ def test_clo_automation():
         return False
     
     # Test workflow
-    workspace = Path(__file__).resolve().parents[2]
+    workspace = workspace_root
     
     # 1. Import avatar
-    avatar_path = workspace / "clo_workspace/user_m_001_patterns/user_m_001_001_avatar.obj"
+    try:
+        avatar_path = Path(get_latest_avatar_obj_path())
+    except FileNotFoundError:
+        avatar_path = workspace / "avatar_generation/output/u_001-001/avatar.obj"
+
     if avatar_path.exists():
         clo.import_avatar(avatar_path)
     else:

@@ -564,7 +564,7 @@ void ProcessCommandQueue()
             // ── Avatar import ─────────────────────────────────────────────
             if (cmd.type == "import-avatar") {
                 Marvelous::ImportExportOption options;
-                // Avatar OBJ is exported by pipeline_star in metres.
+                // Avatar OBJ is exported by avatar_generation in metres.
                 // CLO works in centimetres, so scale by 100.
                 options.scale           = 100.0f;
                 options.ImportObjectType = 0;   // Avatar

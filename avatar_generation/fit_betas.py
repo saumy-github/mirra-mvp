@@ -2,8 +2,8 @@
 from typing import Dict, Any
 import numpy as np
 
-from pipeline_star.star_runner import generate_apose_mesh
-from pipeline_star.mesh_measure import extract_measurements_from_mesh
+from avatar_generation.star_runner import generate_apose_mesh
+from avatar_generation.mesh_measure import extract_measurements_from_mesh
 
 # Load J_regressor from STAR model for anatomical landmark measurements
 J_REGRESSOR_CACHE = {}
@@ -191,3 +191,4 @@ def fit_betas_to_measurements(
         'predicted_measurements': final_measurements,
         'iterations': len(loss_history) - 1
     }
+

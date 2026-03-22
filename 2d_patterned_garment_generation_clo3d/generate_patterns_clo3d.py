@@ -70,7 +70,7 @@ class AvatarMeasurements:
         Load avatar body measurements from the 'measurements' collection in MongoDB.
 
         Args:
-            user_id: The user_id as stored by the avatar pipeline (e.g. 'user_m_001')
+            user_id: The user_id as stored by the avatar pipeline (e.g. 'u_001')
         """
         if not HAS_DB:
             raise RuntimeError(
@@ -976,7 +976,7 @@ Examples:
   # Other modes:
   python generate_patterns_clo3d.py --avatar path/to/measurements.json
   python generate_patterns_clo3d.py --manual --height 178 --chest 100 --shoulder 45
-  python generate_patterns_clo3d.py --db-user user_m_001
+  python generate_patterns_clo3d.py --db-user u_001
         """
     )
 

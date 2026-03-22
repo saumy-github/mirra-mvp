@@ -71,6 +71,6 @@ Each pipeline or technology has its own setup guide in its respective folder:
 
 | Pipeline / Technology | Setup Guide                                      |
 | --------------------- | ------------------------------------------------ |
-| STAR Avatar Pipeline  | [pipeline_star/SETUP.md](pipeline_star/SETUP.md) |
+| STAR Avatar Pipeline  | [avatar_generation/SETUP.md](avatar_generation/SETUP.md) |
 
 ---

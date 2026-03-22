@@ -48,7 +48,7 @@ If you have a measurements file from the avatar pipeline:
 
 ```bash
 python 2d_patterned_garment_generation_clo3d/generate_patterns_clo3d.py \
-  --avatar pipeline_star/generated/clo_avatars/<measurements_file>.json \
+  --avatar avatar_generation/output/<run_id>/measurements.json \
   -o 2d_patterned_garment_generation_clo3d/output
 ```
 

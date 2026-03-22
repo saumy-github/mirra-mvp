@@ -22,16 +22,25 @@ Check CLO documentation for available API functions.
 
 import CLO
 import os
+import sys
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from avatar_generation.run_manifest import get_latest_avatar_obj_path
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
 # Paths
-REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKSPACE = REPO_ROOT / "clo_workspace"
-AVATAR_PATH = WORKSPACE / "user_m_001_patterns" / "user_m_001_001_avatar.obj"
+try:
+    AVATAR_PATH = Path(get_latest_avatar_obj_path())
+except FileNotFoundError:
+    AVATAR_PATH = REPO_ROOT / "avatar_generation/output/u_001-001/avatar.obj"
 
 # Dynamically resolve the latest generated run folder under output/
 _PATTERNS_BASE = REPO_ROOT / "2d_patterned_garment_generation_clo3d" / "output"

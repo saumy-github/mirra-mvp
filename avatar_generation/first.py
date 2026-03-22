@@ -10,21 +10,21 @@ if workspace_root not in sys.path:
     sys.path.insert(0, workspace_root)
 
 from mirra_measurements.db import get_measurements_collection
-from pipeline_star.star_runner import generate_default_mesh, generate_mesh
-from pipeline_star.fit_betas import fit_betas_to_measurements, predict_measurements_from_betas
-from pipeline_star.mesh_measure import extract_measurements_from_mesh
-from pipeline_star.mapping_layer import (
+from avatar_generation.star_runner import generate_default_mesh, generate_mesh
+from avatar_generation.fit_betas import fit_betas_to_measurements, predict_measurements_from_betas
+from avatar_generation.mesh_measure import extract_measurements_from_mesh
+from avatar_generation.mapping_layer import (
     validate_required_fields,
     validate_measurement_ranges,
     create_mapping_layer_output
 )
-from pipeline_star.run_manifest import get_avatar_glb_path
-from pipeline_star.artifact_schema import create_values_schema, FITNESS_TOLERANCE_PERCENT
-from pipeline_star.artifact_io import write_values_json, get_timestamp
-from pipeline_star.pose_catalog import get_pose_thetas, get_pose_metadata
-from pipeline_star.mesh_postprocess import postprocess_mesh
-from pipeline_star.avatar_style import get_material_config
-from pipeline_star.avatar_exporter_clo import export_avatar_for_clo, export_mesh_to_glb
+from avatar_generation.run_manifest import get_avatar_glb_path
+from avatar_generation.artifact_schema import create_values_schema, FITNESS_TOLERANCE_PERCENT
+from avatar_generation.artifact_io import write_values_json, get_timestamp
+from avatar_generation.pose_catalog import get_pose_thetas, get_pose_metadata
+from avatar_generation.mesh_postprocess import postprocess_mesh
+from avatar_generation.avatar_style import get_material_config
+from avatar_generation.avatar_exporter_clo import export_avatar_for_clo, export_mesh_to_glb
 from utils.device import log_device
 
 
@@ -127,7 +127,7 @@ def main():
     parser.add_argument(
         "--run_number", 
         type=int, 
-        help="Run number for generate_avatar mode (e.g., 1 for user_m_001-001)"
+        help="Run number for generate_avatar mode (e.g., 1 for u_001-001)"
     )
     parser.add_argument(
         "--mode", 
@@ -289,7 +289,7 @@ def main():
                 print(f"  Status: {status.upper()}")
                 print(f"  Pose: {args.pose}")
                 
-                print("\n[4/5] Writing values JSON...")
+                print("\n[4/5] Writing output.json...")
                 
                 pose_size = 72
                 pose_thetas = get_pose_thetas(args.pose, pose_size)
@@ -317,7 +317,7 @@ def main():
                 )
                 
                 values_file = write_values_json(run_id, values_data)
-                print(f"✓ Values JSON written: {values_file}")
+                print(f"✓ Output JSON written: {values_file}")
                 
                 print("\n[5/5] Exporting GLB file...")
                 
@@ -351,7 +351,7 @@ def main():
                     vertices=processed_mesh['vertices'],
                     faces=processed_mesh['faces'],
                     measurements=doc,
-                    output_directory=os.path.join(os.path.dirname(glb_path), 'clo_avatars'),
+                    output_directory=os.path.dirname(glb_path),
                     user_id=args.user_id,
                     run_number=args.run_number
                 )
@@ -378,7 +378,7 @@ def main():
                         print(f"  • {field_name}: {error_pct:.2f}% error")
                     
                     print(f"\nGLB file exported for debugging: {os.path.basename(glb_path)}")
-                    print("Review the values JSON for detailed fit report.")
+                    print("Review output.json for detailed fit report.")
                 else:
                     print("✅ AVATAR GENERATION SUCCESSFUL")
                     print("=" * 60)
@@ -391,6 +391,8 @@ def main():
                 print(f"  - {os.path.basename(inputs_file)}")
                 print(f"  - {os.path.basename(values_file)}")
                 print(f"  - {os.path.basename(glb_path)}")
+                print(f"  - {os.path.basename(clo_export_result['obj_file'])}")
+                print(f"  - {os.path.basename(clo_export_result['json_file'])}")
                 print("=" * 60)
                 
             except Exception as e:
@@ -413,3 +415,6 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+

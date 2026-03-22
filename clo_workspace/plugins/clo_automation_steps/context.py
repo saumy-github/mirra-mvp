@@ -1,8 +1,14 @@
 """Pipeline context object and initializer."""
 
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+workspace_root = Path(__file__).resolve().parents[3]
+if str(workspace_root) not in sys.path:
+    sys.path.insert(0, str(workspace_root))
+
+from avatar_generation.run_manifest import get_latest_avatar_obj_path
 from .client import CLORestClient
 from .helpers import resolve_patterns_dir
 from .seams import DEFAULT_SEAMS
@@ -29,18 +35,21 @@ class PipelineContext:
 
 def create_context(seam_map=None):
     """Build a pipeline context with default paths and seam map."""
-    workspace_root = Path(__file__).resolve().parents[3]
     output_dir = workspace_root / "clo_workspace/exports"
     output_dir.mkdir(exist_ok=True)
     project_dir = workspace_root / "clo_workspace/projects"
     project_dir.mkdir(exist_ok=True)
 
     using_default_seams = seam_map is None
+    try:
+        avatar_path = Path(get_latest_avatar_obj_path())
+    except FileNotFoundError:
+        avatar_path = workspace_root / "avatar_generation/output/u_001-001/avatar.obj"
 
     return PipelineContext(
         client=CLORestClient(),
         workspace_root=workspace_root,
-        avatar_path=workspace_root / "pipeline_star/generated/clo_avatars/user_m_001_001_avatar.obj",
+        avatar_path=avatar_path,
         patterns_dir=resolve_patterns_dir(),
         output_dir=output_dir,
         project_dir=project_dir,

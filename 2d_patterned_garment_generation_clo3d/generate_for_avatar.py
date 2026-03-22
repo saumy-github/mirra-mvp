@@ -4,13 +4,15 @@ Quick script to generate patterns for a specific avatar.
 Two modes:
   1. DB mode (default): fetches the latest avatar measurements from MongoDB
      (same 'measurements' collection written by the avatar pipeline).
-  2. File mode (--file): reads the most recent *_measurements.json from disk.
+  2. File mode (--file): reads the most recent measurements.json from
+     avatar_generation/output/<run_id>/ on disk.
 
 Results are always saved to the garments collection in MongoDB
 (when pymongo is available) in addition to the local DXF / SVG files.
 """
 import sys
 from pathlib import Path
+from typing import Optional
 
 # Ensure this folder is importable regardless of cwd
 _HERE = Path(__file__).parent
@@ -27,15 +29,12 @@ from generate_patterns_clo3d import (
     DynamicPatternGenerator,
     HAS_DB,
 )
+from avatar_generation.run_manifest import get_latest_measurements_json_path
 
 
-def find_latest_avatar_measurements(avatar_dir: Path) -> Path:
-    """Find the most recent avatar measurements JSON file on disk."""
-    json_files = list(avatar_dir.glob("*_measurements.json"))
-    if not json_files:
-        raise FileNotFoundError(f"No measurements JSON files found in {avatar_dir}")
-    json_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-    return json_files[0]
+def find_latest_avatar_measurements(user_id: Optional[str] = None) -> Path:
+    """Find the latest avatar measurements JSON file from Step 1 output."""
+    return Path(get_latest_measurements_json_path(user_id))
 
 
 def load_avatar_from_db(user_id: str = None) -> AvatarMeasurements:
@@ -97,13 +96,13 @@ Examples:
   python generate_for_avatar.py
 
   # DB mode — specific user:
-  python generate_for_avatar.py --user-id user_m_001
+  python generate_for_avatar.py --user-id u_001
 
   # File mode — use local JSON instead of DB:
   python generate_for_avatar.py --file
 
   # Choose fit up-front without interactive prompt:
-  python generate_for_avatar.py --user-id user_m_001 --fit slim
+  python generate_for_avatar.py --user-id u_001 --fit slim
         """,
     )
     parser.add_argument(
@@ -112,7 +111,7 @@ Examples:
     )
     parser.add_argument(
         "--file", action="store_true",
-        help="Use the latest *_measurements.json from disk instead of MongoDB"
+        help="Use the latest avatar_generation/output/<run_id>/measurements.json instead of MongoDB"
     )
     parser.add_argument(
         "--fit", type=str, choices=["slim", "regular", "relaxed"], default=None,
@@ -133,16 +132,14 @@ Examples:
 
     if args.file:
         # --- File mode ---
-        project_root = Path(__file__).parent.parent
-        avatar_dir   = project_root / "pipeline_star" / "generated" / "clo_avatars"
         try:
-            measurements_file = find_latest_avatar_measurements(avatar_dir)
+            measurements_file = find_latest_avatar_measurements(args.user_id)
             print(f"\n📁 File mode — found: {measurements_file.name}")
             avatar = AvatarMeasurements.from_json(str(measurements_file))
         except FileNotFoundError as e:
             print(f"\n❌ Error: {e}")
             print("Please run the avatar generation pipeline first:")
-            print("  python pipeline_star/run_avatar_pipeline.py")
+            print("  python avatar_generation/run_avatar.py")
             return
     else:
         # --- DB mode (default) ---
@@ -153,10 +150,8 @@ Examples:
             # pymongo missing — fall back to file automatically
             print(f"\n⚠️  {e}")
             print("\nFalling back to file mode …")
-            project_root = Path(__file__).parent.parent
-            avatar_dir   = project_root / "pipeline_star" / "generated" / "clo_avatars"
             try:
-                measurements_file = find_latest_avatar_measurements(avatar_dir)
+                measurements_file = find_latest_avatar_measurements(args.user_id)
                 print(f"📁 Found: {measurements_file.name}")
                 avatar = AvatarMeasurements.from_json(str(measurements_file))
             except FileNotFoundError as e2:

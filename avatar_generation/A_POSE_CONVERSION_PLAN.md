@@ -1,4 +1,4 @@
-# T-Pose + Optional A-Pose Plan (Minimum Code Changes)
+﻿# T-Pose + Optional A-Pose Plan (Minimum Code Changes)
 
 ## Goal
 
@@ -12,15 +12,15 @@ Keep existing T-pose behavior unchanged and add an option to generate avatars in
 
 ## Current state
 
-- Pose vector is produced in [pipeline_star/pose_catalog.py](pipeline_star/pose_catalog.py).
-- Main generation path consumes pose in [pipeline_star/first.py](pipeline_star/first.py).
+- Pose vector is produced in [avatar_generation/pose_catalog.py](avatar_generation/pose_catalog.py).
+- Main generation path consumes pose in [avatar_generation/first.py](avatar_generation/first.py).
 - Current zero-theta output is STAR neutral T-pose.
 
 ## Minimal-change design
 
 ### 1) Pose catalog (primary change)
 
-In [pipeline_star/pose_catalog.py](pipeline_star/pose_catalog.py):
+In [avatar_generation/pose_catalog.py](avatar_generation/pose_catalog.py):
 
 - Keep current zero-theta function for T-pose.
 - Add A-pose theta function by changing shoulder joints only.
@@ -41,29 +41,29 @@ If arm direction is inverted in outputs, swap signs.
 
 ### 2) Pipeline entry option (small change)
 
-In [pipeline_star/first.py](pipeline_star/first.py):
+In [avatar_generation/first.py](avatar_generation/first.py):
 
 - Add CLI arg: `--pose` with choices `tpose|apose` and default `tpose`.
 - Replace direct pose call with pose selector call.
 - Keep all non-pose logic unchanged (fitting, postprocess, export).
 
-In [pipeline_star/run_avatar_pipeline.py](pipeline_star/run_avatar_pipeline.py) (optional):
+In [avatar_generation/run_avatar.py](avatar_generation/run_avatar.py) (optional):
 
 - Keep default non-interactive behavior as T-pose.
 - Optionally prompt user for pose, default `tpose`.
 
 ### 3) Metadata update (small)
 
-In [pipeline_star/pose_catalog.py](pipeline_star/pose_catalog.py):
+In [avatar_generation/pose_catalog.py](avatar_generation/pose_catalog.py):
 
 - Return pose-specific metadata (`pose_name`, `description`) for both T and A.
 - Ensure values JSON records selected pose accurately.
 
 ## Files to touch
 
-1. [pipeline_star/pose_catalog.py](pipeline_star/pose_catalog.py) — add dual-pose theta helpers and metadata selector
-2. [pipeline_star/first.py](pipeline_star/first.py) — add `--pose` and route theta selection
-3. [pipeline_star/run_avatar_pipeline.py](pipeline_star/run_avatar_pipeline.py) — optional prompt/pass-through of pose
+1. [avatar_generation/pose_catalog.py](avatar_generation/pose_catalog.py) — add dual-pose theta helpers and metadata selector
+2. [avatar_generation/first.py](avatar_generation/first.py) — add `--pose` and route theta selection
+3. [avatar_generation/run_avatar.py](avatar_generation/run_avatar.py) — optional prompt/pass-through of pose
 
 ## Backward compatibility
 
@@ -91,4 +91,5 @@ In [pipeline_star/pose_catalog.py](pipeline_star/pose_catalog.py):
 
 - Keep `--pose` interface.
 - Temporarily map `apose` to zero-theta T-pose if needed.
-- Full rollback is limited to [pipeline_star/pose_catalog.py](pipeline_star/pose_catalog.py) and CLI arg wiring.
+- Full rollback is limited to [avatar_generation/pose_catalog.py](avatar_generation/pose_catalog.py) and CLI arg wiring.
+

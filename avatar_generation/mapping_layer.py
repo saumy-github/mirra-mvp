@@ -10,15 +10,15 @@ if workspace_root not in sys.path:
     sys.path.insert(0, workspace_root)
 
 from mirra_measurements.db import get_measurements_collection
-from pipeline_star.run_manifest import RunIdentity
-from pipeline_star.artifact_io import write_inputs_json, get_timestamp
-from pipeline_star.artifact_schema import (
+from avatar_generation.run_manifest import RunIdentity
+from avatar_generation.artifact_io import write_inputs_json, get_timestamp
+from avatar_generation.artifact_schema import (
     create_inputs_schema,
     FITTING_MEASUREMENT_FIELDS,
     VALIDATE_ONLY_FIELDS,
     FITNESS_TOLERANCE_PERCENT
 )
-from pipeline_star.pose_catalog import get_apose_metadata, get_apose_thetas
+from avatar_generation.pose_catalog import get_apose_metadata, get_apose_thetas
 
 
 # Fetch user measurement document from MongoDB
@@ -171,3 +171,4 @@ def create_mapping_layer_output(
     inputs_file_path = write_inputs_json(run_id, inputs_data)
     
     return run_id, mongo_snapshot, fitting_targets, inputs_file_path
+

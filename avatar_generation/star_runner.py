@@ -16,14 +16,14 @@ if os.path.isdir(star_repo_root) and star_repo_root not in sys.path:
     sys.path.insert(0, star_repo_root)
     
 from star.pytorch.star import STAR  # type: ignore
-from pipeline_star.pose_catalog import get_apose_thetas
+from avatar_generation.pose_catalog import get_apose_thetas
 from utils.device import DEVICE
 
 
 # Module-level cache to avoid re-instantiating STAR models (expensive)
 # WARNING: NOT THREAD-SAFE. Cached STAR instances are mutated per call (model.pose[:], model.betas[:]).
 # Current usage: single-threaded CLI only. Add threading.Lock if moving to concurrent/web environment.
-# Do not execute this file directly (would create separate cache); use: python pipeline_star/first.py
+# Do not execute this file directly (would create separate cache); use: python avatar_generation/first.py
 _MODEL_CACHE: Dict[Tuple[str, int], Any] = {}
 _FACES_CACHE: Dict[Tuple[str, int], np.ndarray] = {}
 
@@ -220,5 +220,6 @@ def generate_default_mesh(gender: str, num_betas: int = 10) -> Dict[str, Any]:
 if __name__ == "__main__":
     raise RuntimeError(
         "Do not execute star_runner.py directly (causes duplicate module cache).\n"
-        "Use: python pipeline_star/first.py --user_id <id> --mode <mode>"
+        "Use: python avatar_generation/first.py --user_id <id> --mode <mode>"
     )
+

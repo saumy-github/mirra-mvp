@@ -7,7 +7,7 @@ This folder contains everything needed to run the full virtual try-on automation
 ## Pipeline overview
 
 ```
-[pipeline_star]          Body measurements → STAR model → avatar OBJ (178 cm, metres)
+[avatar_generation]     Body measurements → STAR model → avatar OBJ (178 cm, metres)
        ↓
 [2d_patterned_garment_generation_clo3d]   → 4 DXF pattern pieces (cm)
        ↓
@@ -46,10 +46,10 @@ Run the STAR body model to create an OBJ avatar from measurements:
 
 ```powershell
 cd C:\Users\Anant\mirra-mvp
-.\.venv\Scripts\python.exe pipeline_star\run_avatar_pipeline.py
+.\.venv\Scripts\python.exe avatar_generation\run_avatar.py
 ```
 
-Output: `pipeline_star/generated/clo_avatars/user_m_001_001_avatar.obj`
+Output: `avatar_generation/output/u_001-001/avatar.obj`
 
 > The OBJ is in **metres**. The CLO plugin applies `scale=100` automatically at import.
 
@@ -147,7 +147,7 @@ The script runs 10 active steps and prints live status for each:
 |------|-------------|
 | **[1]** Health check | Verifies HTTP server is reachable |
 | **[2]** New project | Clears CLO scene |
-| **[3]** Import avatar | Loads `user_m_001_001_avatar.obj` at 100× scale (metres → cm) |
+| **[3]** Import avatar | Loads `avatar_generation/output/<run_id>/avatar.obj` at 100× scale (metres → cm) |
 | **[4]** Import patterns | Queues all 4 DXF files; waits up to 60 s for CLO to load them |
 | **[5]** Verify count | Confirms 4 patterns are in the CLO scene |
 | **[6]** Read edge data | Queries edge count per pattern; prints layout info |
@@ -256,7 +256,7 @@ All CLO SDK calls **must** run on CLO's main thread. The HTTP server runs on a b
 ### Units
 | Data | Unit | How handled |
 |------|------|-------------|
-| Avatar OBJ (pipeline_star output) | metres | `scale=100.0f` in `ImportOBJ` |
+| Avatar OBJ (avatar_generation output) | metres | `scale=100.0f` in `ImportOBJ` |
 | DXF pattern pieces | centimetres | `scale=1.0f` (CLO native) |
 | `SetArrangementPosition` offsets | millimetres | `offset_z=100` = 10 cm from body |
 | Simulation steps | unitless | 150 steps ≈ natural drape |
@@ -306,7 +306,7 @@ clo_workspace/
 
 ```powershell
 # 1. Generate avatar (once)
-.\.venv\Scripts\python.exe pipeline_star\run_avatar_pipeline.py
+.\.venv\Scripts\python.exe avatar_generation\run_avatar.py
 
 # 2. Generate patterns
 .\.venv\Scripts\python.exe 2d_patterned_garment_generation_clo3d\generate_patterns_clo3d.py

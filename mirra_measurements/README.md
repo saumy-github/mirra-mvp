@@ -16,7 +16,7 @@ Each measurement document contains:
 
 ### Required Fields
 
-- `user_id`: string (e.g., "user_m_001")
+- `user_id`: string (e.g., "u_001")
 - `gender`: string, one of: "male" | "female"
 - `accuracy`: string, one of: "accurate" | "approx"
 - `created_at`: datetime (UTC)
@@ -89,7 +89,7 @@ python seed_measurements.py
 The seed script will:
 
 - Insert or update 10 measurement documents
-- Use deterministic user IDs (`user_m_001` to `user_m_005`, `user_f_001` to `user_f_005`)
+- Use deterministic user IDs (`u_001` to `u_010`)
 - Include fully-filled records and records with missing optional fields
 - Include both "accurate" and "approx" accuracy examples
 - Avoid duplicates on re-run (upsert by `user_id`)
@@ -115,7 +115,7 @@ from mirra_measurements import create_measurement_doc, validate_measurement_doc
 
 # Create a measurement document
 doc = create_measurement_doc(
-    user_id="user_m_100",
+    user_id="u_100",
     gender="male",
     accuracy="accurate",
     height_cm=180.0,
@@ -140,7 +140,7 @@ from mirra_measurements.db import get_measurements_collection
 collection = get_measurements_collection()
 
 # Find by user_id
-user_data = collection.find_one({"user_id": "user_m_001"})
+user_data = collection.find_one({"user_id": "u_001"})
 
 # Find all males
 males = collection.find({"gender": "male"})
