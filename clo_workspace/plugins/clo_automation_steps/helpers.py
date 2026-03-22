@@ -1,22 +1,21 @@
-"""Shared helpers for step modules."""
+"""Shared helpers for Step 3 modules."""
 
+import sys
 from pathlib import Path
+
+workspace_root = Path(__file__).resolve().parents[3]
+if str(workspace_root) not in sys.path:
+    sys.path.insert(0, str(workspace_root))
+
+from product_ingestion.run_manifest import get_latest_panels_dxf_dir
 
 
 def resolve_patterns_dir():
-    """Find the latest run_NNN/patterns_dxf directory."""
-    workspace_root = Path(__file__).resolve().parents[3]
-    base = workspace_root / "2d_patterned_garment_generation_clo3d/output"
-    if not base.exists():
-        return base / "patterns_dxf"
-
-    runs = sorted(
-        [d for d in base.iterdir() if d.is_dir() and d.name.startswith("run_")],
-        key=lambda d: int(d.name.split("_")[1])
-        if len(d.name.split("_")) > 1 and d.name.split("_")[1].isdigit()
-        else 0,
-    )
-    return (runs[-1] / "patterns_dxf") if runs else (base / "patterns_dxf")
+    """Find the latest canonical panels/dxf directory."""
+    try:
+        return Path(get_latest_panels_dxf_dir())
+    except FileNotFoundError:
+        return workspace_root / "product_ingestion" / "output" / "panels" / "dxf"
 
 
 def print_result(result, label):
@@ -31,7 +30,7 @@ def print_result(result, label):
 def find_slot(slots, keywords):
     """Find arrangement slot index by keyword match across slot fields."""
     for slot in slots:
-        blob = " ".join(str(v) for v in slot.values()).lower()
-        if all(k.lower() in blob for k in keywords):
+        blob = " ".join(str(value) for value in slot.values()).lower()
+        if all(keyword.lower() in blob for keyword in keywords):
             return int(slot.get("index", -1))
     return -1

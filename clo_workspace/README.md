@@ -9,7 +9,7 @@ This folder contains everything needed to run the full virtual try-on automation
 ```
 [avatar_generation]     Body measurements → STAR model → avatar OBJ (178 cm, metres)
        ↓
-[2d_patterned_garment_generation_clo3d]   → 4 DXF pattern pieces (cm)
+[product_ingestion]   -> 4 DXF panel files (cm)
        ↓
 [clo_workspace/plugins]  Python client  →  HTTP REST  →  CLO3D plugin DLL
                                                                 ↓
@@ -58,10 +58,10 @@ Output: `avatar_generation/output/u_001-001/avatar.obj`
 ### Stage 1 — Generate 2D patterns
 
 ```powershell
-.\.venv\Scripts\python.exe 2d_patterned_garment_generation_clo3d\generate_patterns_clo3d.py
+.\.venv\Scripts\python.exe product_ingestion\run_product_ingestion.py
 ```
 
-This produces a new `output/run_NNN/patterns_dxf/` folder with 4 DXF files (in centimetres):
+This produces a new `product_ingestion/output/<cloth_id>-<size_id>-<run>/panels/dxf/` folder with 4 DXF files (in centimetres):
 
 ```
 front_panel.dxf    — 19 edges (hem, side seams, armhole curves, shoulder, neckline)
@@ -309,7 +309,7 @@ clo_workspace/
 .\.venv\Scripts\python.exe avatar_generation\run_avatar.py
 
 # 2. Generate patterns
-.\.venv\Scripts\python.exe 2d_patterned_garment_generation_clo3d\generate_patterns_clo3d.py
+.\.venv\Scripts\python.exe product_ingestion\run_product_ingestion.py
 
 # 3. Build & install DLL (only when C++ source changes)
 cd clo_workspace\plugins ; .\build_rest_plugin.bat
@@ -335,7 +335,7 @@ cd C:\Users\Anant\mirra-mvp
 |---------|-------------|-----|
 | `Failed to connect to CLO REST server` | Plugin not started | Click **Plugins → REST Server & Execute** in CLO |
 | `queue did not drain within Xs` | CLO not processing | Click the menu item once to nudge; check CLO isn't showing a modal dialog |
-| `Patterns in CLO scene: 0` | Wrong DXF path | Run `generate_patterns_clo3d.py` first; check `output/run_NNN/patterns_dxf/` exists |
+| `Patterns in CLO scene: 0` | Wrong DXF path | Run `run_product_ingestion.py` first; check `product_ingestion/output/<cloth>-<size>-<run>/panels/dxf/` exists |
 | Avatar is 1.78 cm tall | Wrong scale | Make sure the installed DLL is the latest build (`scale=100.0f`) |
 | Patterns all stack in one spot | Arrangement slots empty | CLO may not populate slots from OBJ avatar — pipeline falls back to position-only mode (`slot=-1`) |
 | CLO crashes after export | Physics still settling | Leave export disabled; export manually after simulation stabilises |

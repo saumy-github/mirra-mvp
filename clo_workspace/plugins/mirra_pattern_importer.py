@@ -30,6 +30,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from avatar_generation.run_manifest import get_latest_avatar_obj_path
+from product_ingestion.run_manifest import get_latest_panels_dxf_dir
 
 # =============================================================================
 # CONFIGURATION
@@ -42,19 +43,12 @@ try:
 except FileNotFoundError:
     AVATAR_PATH = REPO_ROOT / "avatar_generation/output/u_001-001/avatar.obj"
 
-# Dynamically resolve the latest generated run folder under output/
-_PATTERNS_BASE = REPO_ROOT / "2d_patterned_garment_generation_clo3d" / "output"
-
-
 def _get_latest_patterns_dir() -> Path:
-    """Returns patterns_dxf dir from the most recent run folder under output/."""
-    if not _PATTERNS_BASE.exists():
-        return _PATTERNS_BASE / "patterns_dxf"
-    runs = sorted(
-        [d for d in _PATTERNS_BASE.iterdir() if d.is_dir() and d.name.startswith("run_")],
-        key=lambda d: int(d.name.split("_")[1]) if len(d.name.split("_")) > 1 and d.name.split("_")[1].isdigit() else 0
-    )
-    return (runs[-1] / "patterns_dxf") if runs else (_PATTERNS_BASE / "patterns_dxf")
+    """Returns panels/dxf from the latest canonical product_ingestion run."""
+    try:
+        return Path(get_latest_panels_dxf_dir())
+    except FileNotFoundError:
+        return REPO_ROOT / "product_ingestion" / "output" / "panels" / "dxf"
 
 
 PATTERN_DIR = _get_latest_patterns_dir()

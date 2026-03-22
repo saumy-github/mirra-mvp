@@ -11,10 +11,10 @@ same POLYLINE vertex ordering that CLO uses for its internal line indices.
 USAGE
 ─────
   python plugins/discover_seam_indices.py
-         [--dir PATH_TO_PATTERNS_DXF_FOLDER]
+         [--dir PATH_TO_PANELS_DXF_FOLDER]
 
-  If no --dir is given, it searches for the latest run_NNN/patterns_dxf/
-  folder under 2d_patterned_garment_generation_clo3d/output/.
+  If no --dir is given, it searches for the latest
+  product_ingestion/output/<cloth_id>-<size_id>-<run>/panels/dxf/ folder.
 
 OUTPUT
 ──────
@@ -184,7 +184,7 @@ def build_hardcoded_seam_map():
 def find_dxf_dir():
     repo = Path(__file__).parent.parent.parent
     runs = sorted(glob.glob(str(
-        repo / "2d_patterned_garment_generation_clo3d" / "output" / "run_*" / "patterns_dxf"
+        repo / "product_ingestion" / "output" / "c_*-s_*-*" / "panels" / "dxf"
     )))
     return Path(runs[-1]) if runs else None
 
@@ -195,14 +195,14 @@ def find_dxf_dir():
 
 def main():
     parser = argparse.ArgumentParser(description="Generate CLO seam indices from DXF files")
-    parser.add_argument("--dir", help="Path to patterns_dxf folder", default=None)
+    parser.add_argument("--dir", help="Path to canonical panels/dxf folder", default=None)
     parser.add_argument("--show-edges", action="store_true",
                         help="Print full edge table for verification")
     args = parser.parse_args()
 
     dxf_dir = Path(args.dir) if args.dir else find_dxf_dir()
     if not dxf_dir or not dxf_dir.exists():
-        print("ERROR: Could not find patterns_dxf folder.")
+        print("ERROR: Could not find canonical panels/dxf folder.")
         print("       Pass --dir PATH_TO_FOLDER explicitly.")
         sys.exit(1)
 

@@ -28,8 +28,8 @@ if str(_HERE) not in _sys.path:
 if str(_ROOT) not in _sys.path:
     _sys.path.insert(0, str(_ROOT))
 try:
-    from mirra_measurements.db import get_garments_collection, get_avatar_collection, close_connection
-    from mirra_measurements.garment_model import create_garment_doc, validate_garment_doc
+    from mirra_measurements.db import get_sizes_collection, get_avatar_collection, close_connection
+    from mirra_measurements.size_model import create_size_doc, validate_size_doc
     HAS_DB = True
 except (ImportError, AttributeError, FileNotFoundError):
     HAS_DB = False
@@ -184,34 +184,34 @@ class GarmentMeasurements:
         )
 
     @classmethod
-    def from_garments_db(cls, garment_id: str) -> 'GarmentMeasurements':
+    def from_sizes_db(cls, size_id: str) -> 'GarmentMeasurements':
         """
-        Load pre-computed garment measurements directly from the garments
+        Load pre-computed size measurements directly from the sizes
         collection (flat schema).  No avatar body measurements needed —
-        the 10 pattern fields are used as-is.
+        the 10 size fields are used as-is.
 
         Args:
-            garment_id: The garment_id stored in MongoDB (e.g. '001')
+            size_id: The size_id stored in MongoDB (e.g. 's_001')
         """
         if not HAS_DB:
             raise RuntimeError(
                 "pymongo is not installed. Cannot load from database.\n"
                 "Install it with: pip install pymongo python-dotenv"
             )
-        col = get_garments_collection()
-        doc = col.find_one({"garment_id": garment_id}, {"_id": 0})
+        col = get_sizes_collection()
+        doc = col.find_one({"size_id": size_id}, {"_id": 0})
         if doc is None:
-            available = [d["garment_id"] for d in col.find({}, {"garment_id": 1, "_id": 0}).sort("garment_id", 1)]
+            available = [d["size_id"] for d in col.find({}, {"size_id": 1, "_id": 0}).sort("size_id", 1)]
             raise ValueError(
-                f"garment_id='{garment_id}' not found in garments collection.\n"
+                f"size_id='{size_id}' not found in sizes collection.\n"
                 f"Available IDs: {', '.join(available) if available else 'none — run seed first'}"
             )
         return cls(
-            # body fields — not stored in garments collection, use display defaults
+            # body fields — not stored in sizes collection, use display defaults
             body_height=175.0,
             body_chest=0.0,
             body_shoulder=doc["shoulder_width_cm"],
-            # pattern fields (flat schema — already includes ease)
+            # size fields (flat schema — already includes ease)
             half_chest_width=doc["half_chest_width_cm"],
             garment_length=doc["garment_length_cm"],
             shoulder_width=doc["shoulder_width_cm"],
@@ -225,6 +225,9 @@ class GarmentMeasurements:
             fit_type=doc.get("fit_type", "regular"),
             ease_cm=0.0,          # ease already baked into stored values
         )
+
+    # Legacy alias kept while older overlap commands still exist.
+    from_garments_db = from_sizes_db
 
 
 class DynamicPatternGenerator:
@@ -919,14 +922,19 @@ class DynamicPatternGenerator:
             json.dump(metadata, f, indent=2)
         print(f"  ✓ pattern_metadata.json (with seam allowance specifications)")
 
-    def save_to_db(self, garment_id: str) -> bool:
-        """Upsert the garment record into garments using the flat schema."""
+    def save_to_db(self, size_id: str = None, garment_id: str = None) -> bool:
+        """Upsert the size record into sizes using the flat schema."""
         if not HAS_DB:
             print("⚠️  Database not available — skipping DB save (pymongo not installed).")
             return False
 
-        doc = create_garment_doc(
-            garment_id=garment_id,
+        resolved_size_id = size_id or garment_id
+        if not resolved_size_id or not str(resolved_size_id).startswith("s_"):
+            print("⚠️  Skipping DB save because sizes collection expects size_id values like s_001.")
+            return False
+
+        doc = create_size_doc(
+            size_id=resolved_size_id,
             fit_type=self.m.fit_type,
             half_chest_width_cm=self.m.half_chest_width,
             garment_length_cm=self.m.garment_length,
@@ -940,19 +948,19 @@ class DynamicPatternGenerator:
             seam_allowance_cm=self.m.seam_allowance,
         )
 
-        ok, err = validate_garment_doc(doc)
+        ok, err = validate_size_doc(doc)
         if not ok:
-            print(f"⚠️  Garment document validation failed: {err}")
+            print(f"⚠️  Size document validation failed: {err}")
             return False
 
         try:
-            collection = get_garments_collection()
+            collection = get_sizes_collection()
             collection.update_one(
-                {'garment_id': garment_id},
+                {'size_id': resolved_size_id},
                 {'$set': doc},
                 upsert=True
             )
-            print(f"  ✅ Saved to DB  →  garments  (garment_id={garment_id}, fit={self.m.fit_type})")
+            print(f"  ✅ Saved to DB  →  sizes  (size_id={resolved_size_id}, fit={self.m.fit_type})")
             return True
         except Exception as exc:
             print(f"⚠️  DB write failed: {exc}")
@@ -967,11 +975,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # DEFAULT — fetch from garments DB (interactive prompt for ID):
+  # DEFAULT — fetch from sizes DB (interactive prompt for ID):
   python generate_patterns_clo3d.py
 
-  # DEFAULT — fetch garment 003 directly from garments DB:
-  python generate_patterns_clo3d.py --garment-id 003
+  # DEFAULT — fetch size s_003 directly from sizes DB:
+  python generate_patterns_clo3d.py --size-id s_003
 
   # Other modes:
   python generate_patterns_clo3d.py --avatar path/to/measurements.json
@@ -980,10 +988,10 @@ Examples:
         """
     )
 
-    # Garment ID — the primary user-facing argument for the default DB mode
-    parser.add_argument('--garment-id', type=str, default=None,
-                       help='Garment ID from the garments collection (e.g. 003). '
-                            'If omitted the script lists all garments and prompts.')
+    # Size ID — the primary user-facing argument for the default DB mode
+    parser.add_argument('--size-id', '--garment-id', dest='size_id', type=str, default=None,
+                       help='Size ID from the sizes collection (e.g. s_003). '
+                            'If omitted the script lists all sizes and prompts.')
 
     # Advanced / alternate input modes (all optional)
     parser.add_argument('--avatar', type=str, default=None,
@@ -1016,8 +1024,8 @@ Examples:
     print("="*60)
     
     # ── Route to the correct input mode ────────────────────────────────────
-    # Default (no special flags) or --garment-id → garments DB mode
-    use_garments_db = not args.avatar and not args.manual and not args.db_user
+    # Default (no special flags) or --size-id → sizes DB mode
+    use_sizes_db = not args.avatar and not args.manual and not args.db_user
 
     if args.avatar:
         print(f"\n📁 Loading measurements from: {args.avatar}")
@@ -1042,30 +1050,30 @@ Examples:
         except Exception as e:
             print(f"❌ Unexpected DB error: {e}")
             return
-    elif use_garments_db:
-        # ── Garments-DB mode: load flat measurements directly from garments ──
-        print(f"\n🗄️  Loading from garments collection …")
+    elif use_sizes_db:
+        # ── Sizes-DB mode: load flat measurements directly from sizes ──
+        print(f"\n🗄️  Loading from sizes collection …")
 
         if not HAS_DB:
             print("❌ DB not available. Install: pip install pymongo python-dotenv")
             return
 
-        col = get_garments_collection()
+        col = get_sizes_collection()
 
-        # Resolve garment_id — prompt interactively if not supplied via flag
-        garment_id = args.garment_id
-        if not garment_id:
-            all_garments = list(col.find({}, {"_id": 0}).sort("garment_id", 1))
-            if not all_garments:
-                print("❌ The garments collection is empty. Run seed first:")
-                print("   python -m mirra_measurements.seed_garments")
+        # Resolve size_id — prompt interactively if not supplied via flag
+        size_id = args.size_id
+        if not size_id:
+            all_sizes = list(col.find({}, {"_id": 0}).sort("size_id", 1))
+            if not all_sizes:
+                print("❌ The sizes collection is empty. Run seed first:")
+                print("   python -m mirra_measurements.seed_sizes")
                 return
 
-            print(f"\n{'ID':<6} {'Fit Type':<12} {'Half Chest':>11} {'Length':>8} {'Shoulder':>10} {'Sleeve':>8}")
+            print(f"\n{'ID':<8} {'Fit Type':<12} {'Half Chest':>11} {'Length':>8} {'Shoulder':>10} {'Sleeve':>8}")
             print("─" * 62)
-            for g in all_garments:
+            for g in all_sizes:
                 print(
-                    f"  {g['garment_id']:<4} "
+                    f"  {g['size_id']:<6} "
                     f"{g['fit_type']:<12} "
                     f"{g['half_chest_width_cm']:>9.1f}cm "
                     f"{g['garment_length_cm']:>6.1f}cm "
@@ -1073,15 +1081,15 @@ Examples:
                     f"{g['sleeve_length_cm']:>6.1f}cm"
                 )
             print()
-            garment_id = input("Enter garment_id to generate patterns for: ").strip()
+            size_id = input("Enter size_id to generate patterns for: ").strip()
 
         try:
-            garment = GarmentMeasurements.from_garments_db(garment_id)
+            garment = GarmentMeasurements.from_sizes_db(size_id)
         except (RuntimeError, ValueError) as e:
             print(f"❌ Error: {e}")
             return
 
-        print(f"✓ Loaded garment_id={garment_id}  fit={garment.fit_type}")
+        print(f"✓ Loaded size_id={size_id}  fit={garment.fit_type}")
         print(f"  Half chest : {garment.half_chest_width:.1f} cm")
         print(f"  Length     : {garment.garment_length:.1f} cm")
         print(f"  Shoulder   : {garment.shoulder_width:.1f} cm")
@@ -1090,13 +1098,13 @@ Examples:
         # Generate patterns directly (no from_avatar step needed)
         generator = DynamicPatternGenerator(garment)
         generator.generate_all(args.output)
-        generator.save_to_db(garment_id=garment_id)
+        generator.save_to_db(size_id=size_id)
 
         run_path = generator.last_run_path
         print("\n" + "="*60)
         print("✅ PATTERN GENERATION COMPLETE")
         print("="*60)
-        print(f"\n  Garment ID   : {garment_id}  ({garment.fit_type} fit)")
+        print(f"\n  Size ID      : {size_id}  ({garment.fit_type} fit)")
         print(f"  DXF files    : {run_path / 'patterns_dxf'}")
         print(f"  SVG previews : {run_path / 'patterns_svg'}")
         print(f"\nNext steps:")
@@ -1126,10 +1134,8 @@ Examples:
     generator = DynamicPatternGenerator(garment)
     generator.generate_all(args.output)
 
-    # Persist results to garments collection
-    generator.save_to_db(
-        garment_id=generator.last_run_path.name,   # e.g. "run_001"
-    )
+    # Legacy avatar/manual modes intentionally do not write into sizes because
+    # the canonical sizes collection is now a source-of-truth input collection.
 
     print("\n" + "="*60)
     print("✅ PATTERN GENERATION COMPLETE")

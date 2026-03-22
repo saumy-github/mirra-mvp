@@ -16,9 +16,14 @@ from mirra_measurements.avatar_model import (
 )
 
 # ── Garment model ────────────────────────────────────────────────────────────
-from mirra_measurements.garment_model import (
-    create_garment_doc,
-    validate_garment_doc,
+from mirra_measurements.size_model import (
+    create_size_doc,
+    validate_size_doc,
     VALID_FIT_TYPES,
-    GARMENT_MEASUREMENT_FIELDS,
+    SIZE_MEASUREMENT_FIELDS,
 )
+
+# Legacy aliases kept while older Step 2 helpers still exist.
+create_garment_doc = create_size_doc
+validate_garment_doc = validate_size_doc
+GARMENT_MEASUREMENT_FIELDS = SIZE_MEASUREMENT_FIELDS
