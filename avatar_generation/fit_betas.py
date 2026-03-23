@@ -10,7 +10,8 @@ J_REGRESSOR_CACHE = {}
 def get_j_regressor(gender: str):
     if gender not in J_REGRESSOR_CACHE:
         import os
-        model_path = f'/home/saumy/Documents/mirra-mvp/models/star_1_1/{gender}/model.npz'
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+        model_path = os.path.join(repo_root, 'models', 'star_1_1', gender, 'model.npz')
         if os.path.exists(model_path):
             data = np.load(model_path, allow_pickle=True)
             J_REGRESSOR_CACHE[gender] = data['J_regressor']

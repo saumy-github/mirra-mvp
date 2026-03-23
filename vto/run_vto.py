@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -22,6 +22,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_ROOT = REPO_ROOT / "vto" / "output"
 AVATAR_OUTPUT_ROOT = REPO_ROOT / "avatar_generation" / "output"
 PRODUCT_OUTPUT_ROOT = REPO_ROOT / "product_ingestion" / "output"
+
+# Ensure absolute imports like `from vto...` work even when launched from `vto/`.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+
+def utc_now_iso_z() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def find_latest_avatar_run() -> Optional[Path]:
@@ -74,7 +82,7 @@ def write_input_json(run_dir: Path, avatar_run: str, product_run: str, resolved:
         "avatar_run": avatar_run,
         "product_run": product_run,
         "resolved_paths": resolved,
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": utc_now_iso_z(),
     }
     with (run_dir / "input.json").open("w", encoding="utf8") as f:
         json.dump(payload, f, indent=2)
@@ -84,7 +92,7 @@ def write_run_summary(run_dir: Path, status: str = "initialized") -> None:
     summary = {
         "status": status,
         "steps": [],
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": utc_now_iso_z(),
     }
     with (run_dir / "run_summary.json").open("w", encoding="utf8") as f:
         json.dump(summary, f, indent=2)
@@ -189,7 +197,7 @@ def main():
             # Update run_summary.json with result
             summary_path = run_dir / "run_summary.json"
             try:
-                s = {"status": "completed" if ok else "failed", "completed_at": datetime.utcnow().isoformat() + "Z"}
+                s = {"status": "completed" if ok else "failed", "completed_at": utc_now_iso_z()}
                 with summary_path.open("w", encoding="utf8") as f:
                     json.dump(s, f, indent=2)
             except Exception:

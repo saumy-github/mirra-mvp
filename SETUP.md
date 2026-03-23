@@ -15,7 +15,10 @@
    source .venv/bin/activate
 
    # On Windows:
-   .venv\Scripts\activate
+   .venv\Scripts\Activate.ps1
+
+   # Or use the repo helper script (auto-detects .venv / .venv-win312):
+   .\scripts\venv\activate.ps1
    ```
 
 3. Install all dependencies:
