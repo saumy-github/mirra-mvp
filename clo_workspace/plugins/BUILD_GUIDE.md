@@ -105,7 +105,7 @@ POST /import-avatar
 Content-Type: application/json
 
 {
-  "path": "C:/Users/Anant/mirra-mvp/clo_workspace/user_m_001_patterns/user_m_001_001_avatar.obj"
+  "path": "C:/Users/Anant/mirra-mvp/avatar_generation/output/u_001-001/avatar.obj"
 }
 
 Response: {"success":true,"message":"Avatar imported successfully","path":"..."}
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     print("Health check:", client.health_check())
     
     # Import avatar
-    avatar_path = "C:/Users/Anant/mirra-mvp/clo_workspace/user_m_001_patterns/user_m_001_001_avatar.obj"
+    avatar_path = "C:/Users/Anant/mirra-mvp/avatar_generation/output/u_001-001/avatar.obj"
     print("Importing avatar:", client.import_avatar(avatar_path))
     
     # Import patterns

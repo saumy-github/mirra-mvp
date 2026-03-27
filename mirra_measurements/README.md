@@ -1,198 +1,139 @@
 # Mirra Measurements DB
 
-Standalone Python module for storing and retrieving user body measurements in MongoDB.
+Standalone Python module for storing avatar body measurements and size templates in MongoDB.
 
 ## Overview
 
-- **Database**: `mirratest`
-- **Collection**: `measurements`
-- **Indexes**:
-  - `user_id` (unique)
-  - `gender` (non-unique)
+- Database: `mirratest`
+- Collections:
+  - `measurements`
+  - `sizes`
 
-## Data Model
+## Measurements Collection
 
-Each measurement document contains:
+Required fields:
 
-### Required Fields
+- `user_id` (for example `u_001`)
+- `gender`
+- `accuracy`
+- `created_at`
+- `updated_at`
 
-- `user_id`: string (e.g., "user_m_001")
-- `gender`: string, one of: "male" | "female"
-- `accuracy`: string, one of: "accurate" | "approx"
-- `created_at`: datetime (UTC)
-- `updated_at`: datetime (UTC)
+Optional shared fields:
 
-### Optional Shared Fields
+- `height_cm`
+- `weight_kg`
+- `shoulder_width_cm`
+- `waist_circumference_cm`
+- `hip_circumference_cm`
+- `leg_length_cm`
+- `body_shape_type`
+- `skin_tone_hex`
 
-- `height_cm`: number
-- `weight_kg`: number
-- `shoulder_width_cm`: number
-- `waist_circumference_cm`: number
-- `hip_circumference_cm`: number
-- `leg_length_cm`: number
-- `body_shape_type`: string (e.g., "rectangle", "hourglass", "inverted_triangle")
-- `skin_tone_hex`: string (e.g., "#1A1A1A")
+Optional male field:
 
-### Male-Specific Optional Field
+- `chest_circumference_cm`
 
-- `chest_circumference_cm`: number
+Optional female fields:
 
-### Female-Specific Optional Fields
+- `bust_circumference_cm`
+- `under_bust_circumference_cm`
 
-- `bust_circumference_cm`: number
-- `under_bust_circumference_cm`: number
+## Sizes Collection
+
+Required fields:
+
+- `size_id` (for example `s_001`)
+- `fit_type`
+- `half_chest_width_cm`
+- `garment_length_cm`
+- `shoulder_width_cm`
+- `neck_width_cm`
+- `neck_depth_front_cm`
+- `neck_depth_back_cm`
+- `sleeve_length_cm`
+- `bicep_width_cm`
+- `armhole_depth_cm`
+- `seam_allowance_cm`
+- `created_at`
+- `updated_at`
+
+Optional cloth metadata:
+
+- `cloth_id` (for example `c_001`)
+- `cloth_label`
+- `category`
 
 ## Setup
 
-### 1. Install Dependencies
+Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure MongoDB Connection
-
-Create a `.env` file (copy from `.env.example`):
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and set your MongoDB connection string:
+Create `.env` from `.env.example` and set:
 
 ```bash
 MONGODB_URI=mongodb://localhost:27017
 ```
 
-For MongoDB Atlas or remote servers:
+## Seed Data
+
+Seed measurements:
 
 ```bash
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority
-```
-
-### 3. Seed the Database
-
-Run the seed script to populate test data (10 documents: 5 male + 5 female):
-
-```bash
-# From the repo root (mirra-mvp/)
 python -m mirra_measurements.seed_measurements
 ```
 
-Or if you're inside the `mirra_measurements/` directory:
+Seed sizes:
 
 ```bash
-cd mirra_measurements_db
-python seed_measurements.py
+python -m mirra_measurements.seed_sizes
 ```
-
-The seed script will:
-
-- Insert or update 10 measurement documents
-- Use deterministic user IDs (`user_m_001` to `user_m_005`, `user_f_001` to `user_f_005`)
-- Include fully-filled records and records with missing optional fields
-- Include both "accurate" and "approx" accuracy examples
-- Avoid duplicates on re-run (upsert by `user_id`)
 
 ## Usage
 
-### Connect to Database
-
-```python
-from mirra_measurements.db import get_db, get_measurements_collection
-
-# Get database
-db = get_db()
-
-# Get measurements collection (with indexes)
-collection = get_measurements_collection()
-```
-
-### Create and Validate Documents
-
-```python
-from mirra_measurements import create_measurement_doc, validate_measurement_doc
-
-# Create a measurement document
-doc = create_measurement_doc(
-    user_id="user_m_100",
-    gender="male",
-    accuracy="accurate",
-    height_cm=180.0,
-    weight_kg=75.0,
-    chest_circumference_cm=100.0
-)
-
-# Validate before inserting
-is_valid, error = validate_measurement_doc(doc)
-if is_valid:
-    collection = get_measurements_collection()
-    collection.insert_one(doc)
-else:
-    print(f"Validation error: {error}")
-```
-
-### Query Measurements
+Measurements collection:
 
 ```python
 from mirra_measurements.db import get_measurements_collection
 
-collection = get_measurements_collection()
-
-# Find by user_id
-user_data = collection.find_one({"user_id": "user_m_001"})
-
-# Find all males
-males = collection.find({"gender": "male"})
-
-# Find accurate measurements only
-accurate = collection.find({"accuracy": "accurate"})
+measurements = get_measurements_collection()
+user_data = measurements.find_one({"user_id": "u_001"})
 ```
 
-## Validation Rules
+Sizes collection:
 
-The `validate_measurement_doc()` function enforces:
+```python
+from mirra_measurements.db import get_sizes_collection
 
-1. **Required fields** must exist: `user_id`, `gender`, `accuracy`, `created_at`, `updated_at`
-2. **Enums** must be valid:
-   - `gender` ∈ {"male", "female"}
-   - `accuracy` ∈ {"accurate", "approx"}
-3. **Optional fields** are allowed to be missing or `None`
-4. **Numeric fields** (if present) must be numbers > 0
-5. **String fields** (if present) must be strings
+sizes = get_sizes_collection()
+size_data = sizes.find_one({"size_id": "s_001"})
+```
+
+Create measurement docs:
+
+```python
+from mirra_measurements import create_measurement_doc, validate_measurement_doc
+```
+
+Create size docs:
+
+```python
+from mirra_measurements import create_size_doc, validate_size_doc
+```
 
 ## Architecture
 
 ```plain
 mirra_measurements/
-├── __init__.py           # Package initialization
-├── db.py                 # MongoDB connection and collection access
-├── avatar_model.py       # Avatar body measurement model and validation
-├── garment_model.py      # Garment pattern model and validation
-├── seed_measurements.py  # Seeding script with test data
-├── seed_garments.py      # Seeding script for garment templates
-├── requirements.txt      # Python dependencies
-├── .env.example          # Example environment variables
-└── README.md             # This file
+|-- __init__.py
+|-- db.py
+|-- avatar_model.py
+|-- size_model.py
+|-- seed_measurements.py
+|-- seed_sizes.py
+|-- .env.example
+`-- README.md
 ```
-
-## Requirements
-
-- Python 3.10+
-- MongoDB (local or remote)
-- Dependencies: `pymongo`, `python-dotenv`
-
-## Future Extensions
-
-This module is designed to be reusable across different technologies. Potential additions:
-
-- REST API endpoints (FastAPI/Flask)
-- GraphQL API
-- Additional measurement types
-- Data export/import utilities
-- Analytics and aggregation queries
-- User authentication integration
-
-## License
-
-(Add your license information here)

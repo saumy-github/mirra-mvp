@@ -21,7 +21,7 @@ Every contributor must create and work in a **separate personal feature branch**
 
 ## 2. One Dedicated Root Folder per Pipeline / Technology
 
-*(e.g., `pipeline_star`, `pipeline_clo`)*
+*(e.g., `avatar_generation`, `clo_workspace`)*
 Each technology or pipeline must exist in its own separate root-level folder to ensure modularity and prevent mixing of logic.
 
 ---
@@ -95,14 +95,14 @@ All input and output files must follow a structured, incremented numbering forma
 
 ## 9. Dedicated `scripts/` Folder for Executable Files  
 
-*(e.g., `pipeline_star/scripts/`)*  
+*(e.g., `avatar_generation/scripts/`)*  
 All runnable scripts must be placed inside a `scripts/` folder within their respective pipeline.
 
 ---
 
 ## 10. Dedicated `notes/` Folder for AI-Generated or Reference Markdown  
 
-*(e.g., `pipeline_star/notes/`)*
+*(e.g., `avatar_generation/notes/`)*
 
 - Any Markdown files created for understanding AI outputs, experiments, or temporary documentation must be placed inside a `notes/` folder and not mixed with core documentation.
 - Documentation should remain concise.
@@ -112,7 +112,7 @@ All runnable scripts must be placed inside a `scripts/` folder within their resp
 
 ## 11. Register Pipeline Setup in Root `SETUP.md`
 
-*(e.g., `pipeline_star/SETUP.md` linked inside root `SETUP.md` table)*  
+*(e.g., `avatar_generation/SETUP.md` linked inside root `SETUP.md` table)*  
 
 Once a pipeline is implemented, its `SETUP.md` must be referenced inside the root-level `SETUP.md` under the **Pipeline & Technology Setup** section.
 

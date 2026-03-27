@@ -14,6 +14,8 @@ USAGE:
 This will help us understand what automation is possible during the trial period.
 """
 
+from pathlib import Path
+
 def discover_clo_api():
     """Discover and test available CLO API functions."""
     
@@ -206,7 +208,16 @@ def test_file_import():
     
     try:
         import CLO
-        test_path = r"C:\Users\Anant\mirra-mvp\2d_patterned_garment_generation_clo3d\output_test\patterns_dxf\front_panel.dxf"
+        repo_root = Path(__file__).resolve().parents[2]
+        test_path = str(
+            repo_root
+            / "product_ingestion"
+            / "output"
+            / "c_001-s_001-001"
+            / "panels"
+            / "dxf"
+            / "front_panel.dxf"
+        )
         
         # Try common import function names
         functions_to_try = [

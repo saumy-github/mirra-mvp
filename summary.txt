@@ -1,0 +1,226 @@
+Project Context
+
+We read the `.agent` workflow docs and the MVP context docs for Step 1, Step 2, and Step 3.
+The repo's MVP flow is:
+
+1. Step 1: avatar generation in `pipeline_star`
+2. Step 2: garment/image-to-2D-piece generation in `2d_patterned_garment_generation_clo3d`
+3. Step 3: virtual try-on in `clo_workspace` now, but planned to move main VTO flow into a new `vto` folder
+
+The active planning file is `.agent/plans/005-plan.md`.
+
+Plan 005 Purpose
+
+Plan 005 is only for code structure cleanup.
+We are not adding new functionality.
+We are not fixing current product/pipeline problems unless path/reference cleanup requires it.
+
+Locked Global Decisions
+
+- Zero-padded run numbers everywhere
+- Old generated outputs should not be deleted until the full Step 1 to Step 3 flow is manually verified by the user
+- User IDs in DB move to `u_001`, `u_002`, etc.
+- Step 2 size IDs will use `s_001`, `s_002`, etc.
+- App-level term `pattern` meaning flat 2D sewing piece will be renamed to `panel`
+- CLO-native `pattern` terminology should stay only at the CLO SDK / REST boundary
+
+Step 1 Decisions
+
+Step 1 is `pipeline_star`.
+
+Main command:
+`python pipeline_star/run_avatar_pipeline.py`
+
+Changes decided:
+- rename `generated` folder to `output`
+- all downstream code should use new `output` paths only
+- Step 1 run folders will be directly under `pipeline_star/output/`
+- run folder format: `<user_id>-<run_number>`
+- example: `u_001-001`
+- keep zero-padded run numbering
+
+Step 1 run contents will be flat:
+- `input.json`
+- `output.json`
+- `avatar.glb`
+- `avatar.obj`
+- `measurements.json`
+
+Other Step 1 decisions:
+- remove the old `.txt` export file
+- `avatar.obj` is needed for current VTO
+- `avatar.glb` is needed for personal viewing
+- `output.json` is needed for avatar error calculation
+- `input.json` might be deleted in future
+- `measurements.json` might be deleted in future
+
+Database / `mirra_measurements` Decisions
+
+This cleanup should happen early, after Step 1, so later phases build on the new naming.
+
+Changes decided:
+- `garment_model.py` -> `size_model.py`
+- `seed_garments.py` -> `seed_sizes.py`
+- `garment_id` -> `size_id`
+- values become `s_001`, `s_002`, etc.
+- `garment_length_cm` stays unchanged
+- DB/support/docs/scripts/readmes/examples/imports should all be updated accordingly
+- avatar-related old IDs in seeds/docs also need updating to `u_...`
+
+We checked and found:
+- schema logic mostly does not need structural change for ID prefixes
+- but seed files, docs, examples, and file names do need cleanup
+
+Step 2 Understanding
+
+Step 2 currently uses:
+- `2d_patterned_garment_generation_clo3d`
+- `clo_workspace`
+- some `config` usage was discussed, but current runtime mostly does not depend on `config`
+
+Old overlap noted:
+- command 1: garment info extraction + DXF/SVG generation
+- command 2: CLO automation / VTO side
+- overlap mainly happens at generated file handoff and path assumptions
+
+Important Step 2 rule now:
+Step 2 should not take size or cloth metadata from avatar files or avatar outputs anymore.
+It should take size and cloth metadata only from MongoDB.
+
+Step 2 Input Decisions
+
+Input root will contain cloth folders:
+- `c_001`
+- `c_002`
+
+Each folder contains multiple images of one single shirt/item.
+
+Example:
+- `c_001` = several images of one blue Zara t-shirt
+- `c_002` = several images of one red H&M t-shirt
+
+Step 2 Pipeline Order
+
+Correct order is:
+1. view selection
+2. segmentation
+3. colour extraction
+4. design extraction
+
+Some places currently mention the wrong order; Plan 005 includes fixing that.
+
+Structural decisions:
+- one separate file for each of the 4 image-processing steps
+- DXF generation and SVG generation should be separate files
+- panel generation helpers should be consolidated into one file
+
+Step 2 Terminology Decision
+
+We investigated repo usage of `pattern` and found multiple meanings:
+- flat 2D sewing piece
+- CLO SDK/REST boundary term
+- shirt print/design pattern
+- unrelated software/doc usage
+
+Decision:
+- app-level flat sewing piece should be renamed to `panel`
+- use `panel` / `panels` carefully based on context
+- do not blindly rename CLO API boundary language where `pattern` is correct
+
+Step 2 Output Naming Decisions
+
+Run folder format:
+`<cloth_id>-<size_id>-<run_number>`
+
+Example:
+`c_001-s_001-001`
+
+Run number increments per `cloth_id + size_id` pair.
+
+The old nested structure should eventually be removed, but only after new flow works and user manually verifies it.
+
+Finalized Step 2 Output Structure
+
+This is finalized and already written into Plan 005:
+
+```plain
+2d_patterned_garment_generation_clo3d/output/
+  c_001-s_001-001/
+    image_info/
+      base_garment.png
+      colors.json
+      extraction_metadata.json
+      graphic_diffuse.png
+    panels/
+      dxf/
+        back_panel.dxf
+        front_panel.dxf
+        sleeve_left.dxf
+        sleeve_right.dxf
+      svg/
+        back_panel.svg
+        front_panel.svg
+        sleeve_left.svg
+        sleeve_right.svg
+      panel_metadata.json
+    run_summary.json
+```
+
+Additional notes:
+- `image_info/` should be flat, no subfolders for each stage
+- `panels/` stays grouped
+- `pattern_metadata.json` should become `panel_metadata.json`
+- `pipeline_result.json` should become `run_summary.json`
+- in coding phase, care must be taken to avoid path/location mistakes
+- file creation/writing should follow pipeline sequence to avoid confusion
+
+Why These Step 2 Files Are Kept
+
+These are needed now or likely needed later:
+- `base_garment.png`
+- `colors.json`
+- `graphic_diffuse.png`
+- `panel_metadata.json`
+- `svg` files for personal viewing
+- DXFs for VTO
+- metadata for future recoloring / garment reconstruction work
+
+Step 3 Decisions
+
+Step 3 is virtual try-on.
+
+Current repo uses `clo_workspace`, but the planned cleanup is:
+- create a new `vto` folder for the main VTO application flow
+- `clo_workspace` should only remain as the REST server / CLO connection / integration library layer
+- the new `vto` layer will handle terminal flow, input handling, orchestration, and visible logs for the 11 VTO steps
+
+Current minimum files needed by Step 3 runtime:
+From Step 1:
+- `avatar.obj`
+
+From Step 2:
+- the 4 DXF files
+
+But we also decided other artifacts should still be preserved for viewing/debug/future use.
+
+Config Folder Decision
+
+For current runtime, `config/` is not actively required.
+Current active runtime paths use values directly from active code rather than `config/clo_config.py`.
+So `config/` is not part of the active path right now, though it could be useful in future if wired properly.
+
+Current State of Plan
+
+`.agent/plans/005-plan.md` already includes:
+- Step 1 cleanup
+- DB / `mirra_measurements` cleanup
+- Step 2 structural cleanup
+- Step 3 `vto` split
+- terminology cleanup
+- finalized Step 2 output structure
+
+What To Tell the New Chat
+
+You can say something like:
+
+"Please read `.agent/plans/005-plan.md`. We already finalized Plan 005 as a structural cleanup plan only. Continue from there. The main locked decisions are Step 1 `generated` -> `output`, user IDs `u_...`, DB `garment` -> `size`, Step 2 `pattern` -> `panel`, Step 2 output folder `c_001-s_001-001` with flat `image_info/`, grouped `panels/`, and root `run_summary.json`, and Step 3 main flow moving into `vto/` while `clo_workspace/` remains the CLO integration layer."

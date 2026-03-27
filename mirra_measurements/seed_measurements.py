@@ -18,7 +18,7 @@ def get_seed_data():
     # MALE MEASUREMENTS
     # Male 1 - Fully filled, accurate
     doc = create_measurement_doc(
-        user_id="user_m_001",
+        user_id="u_001",
         gender="male",
         accuracy="accurate",
         height_cm=178.5,
@@ -37,7 +37,7 @@ def get_seed_data():
     
     # Male 2 - Fully filled, approx
     doc = create_measurement_doc(
-        user_id="user_m_002",
+        user_id="u_002",
         gender="male",
         accuracy="approx",
         height_cm=182.0,
@@ -56,7 +56,7 @@ def get_seed_data():
     
     # Male 3 - Missing hip, leg_length, skin_tone
     doc = create_measurement_doc(
-        user_id="user_m_003",
+        user_id="u_003",
         gender="male",
         accuracy="accurate",
         height_cm=175.0,
@@ -72,7 +72,7 @@ def get_seed_data():
     
     # Male 4 - Missing chest, body_shape_type, shoulder_width
     doc = create_measurement_doc(
-        user_id="user_m_004",
+        user_id="u_004",
         gender="male",
         accuracy="accurate",
         height_cm=180.0,
@@ -88,7 +88,7 @@ def get_seed_data():
     
     # Male 5 - Minimal (only height and weight)
     doc = create_measurement_doc(
-        user_id="user_m_005",
+        user_id="u_005",
         gender="male",
         accuracy="accurate",
         height_cm=177.0,
@@ -101,7 +101,7 @@ def get_seed_data():
     # FEMALE MEASUREMENTS
     # Female 1 - Fully filled, accurate
     doc = create_measurement_doc(
-        user_id="user_f_001",
+        user_id="u_006",
         gender="female",
         accuracy="accurate",
         height_cm=165.0,
@@ -121,7 +121,7 @@ def get_seed_data():
     
     # Female 2 - Fully filled, approx
     doc = create_measurement_doc(
-        user_id="user_f_002",
+        user_id="u_007",
         gender="female",
         accuracy="approx",
         height_cm=170.0,
@@ -141,7 +141,7 @@ def get_seed_data():
     
     # Female 3 - Missing under_bust, skin_tone, leg_length
     doc = create_measurement_doc(
-        user_id="user_f_003",
+        user_id="u_008",
         gender="female",
         accuracy="accurate",
         height_cm=162.0,
@@ -158,7 +158,7 @@ def get_seed_data():
     
     # Female 4 - Missing bust measurements, body_shape_type
     doc = create_measurement_doc(
-        user_id="user_f_004",
+        user_id="u_009",
         gender="female",
         accuracy="accurate",
         height_cm=168.0,
@@ -175,7 +175,7 @@ def get_seed_data():
     
     # Female 5 - Minimal (only height and weight)
     doc = create_measurement_doc(
-        user_id="user_f_005",
+        user_id="u_010",
         gender="female",
         accuracy="accurate",
         height_cm=163.0,

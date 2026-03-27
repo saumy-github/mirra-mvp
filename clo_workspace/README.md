@@ -7,9 +7,9 @@ This folder contains everything needed to run the full virtual try-on automation
 ## Pipeline overview
 
 ```
-[pipeline_star]          Body measurements → STAR model → avatar OBJ (178 cm, metres)
+[avatar_generation]     Body measurements → STAR model → avatar OBJ (178 cm, metres)
        ↓
-[2d_patterned_garment_generation_clo3d]   → 4 DXF pattern pieces (cm)
+[product_ingestion]   -> 4 DXF panel files (cm)
        ↓
 [clo_workspace/plugins]  Python client  →  HTTP REST  →  CLO3D plugin DLL
                                                                 ↓
@@ -46,10 +46,10 @@ Run the STAR body model to create an OBJ avatar from measurements:
 
 ```powershell
 cd C:\Users\Anant\mirra-mvp
-.\.venv\Scripts\python.exe pipeline_star\run_avatar_pipeline.py
+.\.venv\Scripts\python.exe avatar_generation\run_avatar.py
 ```
 
-Output: `pipeline_star/generated/clo_avatars/user_m_001_001_avatar.obj`
+Output: `avatar_generation/output/u_001-001/avatar.obj`
 
 > The OBJ is in **metres**. The CLO plugin applies `scale=100` automatically at import.
 
@@ -58,10 +58,10 @@ Output: `pipeline_star/generated/clo_avatars/user_m_001_001_avatar.obj`
 ### Stage 1 — Generate 2D patterns
 
 ```powershell
-.\.venv\Scripts\python.exe 2d_patterned_garment_generation_clo3d\generate_patterns_clo3d.py
+.\.venv\Scripts\python.exe product_ingestion\run_product_ingestion.py
 ```
 
-This produces a new `output/run_NNN/patterns_dxf/` folder with 4 DXF files (in centimetres):
+This produces a new `product_ingestion/output/<cloth_id>-<size_id>-<run>/panels/dxf/` folder with 4 DXF files (in centimetres):
 
 ```
 front_panel.dxf    — 19 edges (hem, side seams, armhole curves, shoulder, neckline)
@@ -89,9 +89,10 @@ This reads the DXF files directly (no CLO needed) and prints the 26-seam map use
 **Only needed when `RestPlugin.cpp` source changes.**
 
 ```powershell
-cd C:\Users\Anant\mirra-mvp
-$env:PATH += ";C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+.\venv\Scripts\activate
 cd clo_workspace\plugins
+# Optional when SDK is not in the default location used by build_rest_plugin.bat
+# $env:CLO_SDK_PATH = "D:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN"
 .\build_rest_plugin.bat
 ```
 
@@ -106,8 +107,9 @@ Output: `C:\setup\CLO_SDK_v2025.2.236_WIN\...\Samples\RestPlugin\build\Release\R
 **CLO must be closed for this step.**
 
 ```powershell
-Copy-Item "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN\Samples\RestPlugin\build\Release\RestPlugin.dll" `
-          -Destination "C:\Program Files\CLO Standalone OnlineAuth\plugins\" -Force
+$sdk = if ($env:CLO_SDK_PATH) { $env:CLO_SDK_PATH } else { "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN" }
+$cloPlugins = if ($env:CLO_PLUGINS_DIR) { $env:CLO_PLUGINS_DIR } else { "C:\Program Files\CLO Standalone OnlineAuth\plugins" }
+Copy-Item "$sdk\Samples\RestPlugin\build\Release\RestPlugin.dll" -Destination "$cloPlugins\RestPlugin.dll" -Force
 ```
 
 ---
@@ -136,7 +138,6 @@ A confirmation dialog appears: *"REST server started on port 50505"*. Click OK.
 ### Stage 7 — Run the full Python automation pipeline
 
 ```powershell
-cd C:\Users\Anant\mirra-mvp
 .\.venv\Scripts\python.exe clo_workspace\plugins\clo_automation_client.py
 ```
 
@@ -146,7 +147,7 @@ The script runs 10 active steps and prints live status for each:
 |------|-------------|
 | **[1]** Health check | Verifies HTTP server is reachable |
 | **[2]** New project | Clears CLO scene |
-| **[3]** Import avatar | Loads `user_m_001_001_avatar.obj` at 100× scale (metres → cm) |
+| **[3]** Import avatar | Loads `avatar_generation/output/<run_id>/avatar.obj` at 100× scale (metres → cm) |
 | **[4]** Import patterns | Queues all 4 DXF files; waits up to 60 s for CLO to load them |
 | **[5]** Verify count | Confirms 4 patterns are in the CLO scene |
 | **[6]** Read edge data | Queries edge count per pattern; prints layout info |
@@ -255,7 +256,7 @@ All CLO SDK calls **must** run on CLO's main thread. The HTTP server runs on a b
 ### Units
 | Data | Unit | How handled |
 |------|------|-------------|
-| Avatar OBJ (pipeline_star output) | metres | `scale=100.0f` in `ImportOBJ` |
+| Avatar OBJ (avatar_generation output) | metres | `scale=100.0f` in `ImportOBJ` |
 | DXF pattern pieces | centimetres | `scale=1.0f` (CLO native) |
 | `SetArrangementPosition` offsets | millimetres | `offset_z=100` = 10 cm from body |
 | Simulation steps | unitless | 150 steps ≈ natural drape |
@@ -305,10 +306,10 @@ clo_workspace/
 
 ```powershell
 # 1. Generate avatar (once)
-.\.venv\Scripts\python.exe pipeline_star\run_avatar_pipeline.py
+.\.venv\Scripts\python.exe avatar_generation\run_avatar.py
 
 # 2. Generate patterns
-.\.venv\Scripts\python.exe 2d_patterned_garment_generation_clo3d\generate_patterns_clo3d.py
+.\.venv\Scripts\python.exe product_ingestion\run_product_ingestion.py
 
 # 3. Build & install DLL (only when C++ source changes)
 cd clo_workspace\plugins ; .\build_rest_plugin.bat
@@ -334,7 +335,7 @@ cd C:\Users\Anant\mirra-mvp
 |---------|-------------|-----|
 | `Failed to connect to CLO REST server` | Plugin not started | Click **Plugins → REST Server & Execute** in CLO |
 | `queue did not drain within Xs` | CLO not processing | Click the menu item once to nudge; check CLO isn't showing a modal dialog |
-| `Patterns in CLO scene: 0` | Wrong DXF path | Run `generate_patterns_clo3d.py` first; check `output/run_NNN/patterns_dxf/` exists |
+| `Patterns in CLO scene: 0` | Wrong DXF path | Run `run_product_ingestion.py` first; check `product_ingestion/output/<cloth>-<size>-<run>/panels/dxf/` exists |
 | Avatar is 1.78 cm tall | Wrong scale | Make sure the installed DLL is the latest build (`scale=100.0f`) |
 | Patterns all stack in one spot | Arrangement slots empty | CLO may not populate slots from OBJ avatar — pipeline falls back to position-only mode (`slot=-1`) |
 | CLO crashes after export | Physics still settling | Leave export disabled; export manually after simulation stabilises |

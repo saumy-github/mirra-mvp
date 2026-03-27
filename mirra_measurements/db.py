@@ -14,8 +14,8 @@ MONGODB_URI   = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
 DATABASE_NAME = "mirratest"
 
 # Collection names
-AVATAR_COLLECTION_NAME   = "measurements"   # body measurements from avatar pipeline
-GARMENTS_COLLECTION_NAME = "garments"       # generated garment pattern data
+AVATAR_COLLECTION_NAME = "measurements"  # body measurements from avatar pipeline
+SIZES_COLLECTION_NAME = "sizes"          # product size templates and cloth metadata
 
 _client = None
 _db = None
@@ -62,10 +62,10 @@ def get_measurements_collection():
 get_avatar_collection = get_measurements_collection
 
 
-def get_garments_collection():
-    """Garment-pattern collection with garment_id unique index."""
-    col = get_db()[GARMENTS_COLLECTION_NAME]
-    col.create_index([("garment_id", ASCENDING)], unique=True, name="garment_id_unique")
+def get_sizes_collection():
+    """Size collection with size_id unique index."""
+    col = get_db()[SIZES_COLLECTION_NAME]
+    col.create_index([("size_id", ASCENDING)], unique=True, name="size_id_unique")
     return col
 
 

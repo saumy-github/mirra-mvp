@@ -2,16 +2,16 @@
 
 # Golden user IDs in priority order (highest to lowest)
 GOLDEN_USER_IDS = [
-    'user_m_001',
-    'user_m_002',
-    'user_f_001',
-    'user_f_002',
+    'u_001',
+    'u_002',
+    'u_006',
+    'u_007',
 ]
 
 # Mapping of user_id to priority integer (lower number = higher priority)
 GOLDEN_USER_PRIORITY = {
-    'user_m_001': 1,
-    'user_m_002': 2,
-    'user_f_001': 3,
-    'user_f_002': 4,
+    'u_001': 1,
+    'u_002': 2,
+    'u_006': 3,
+    'u_007': 4,
 }

@@ -7,7 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Add paths for CLO SDK
-set(CLO_SDK_ROOT "C:/setup/CLO_SDK_v2025.2.236_WIN/CLO_SDK_v2025.2.236_WIN")
+# Prefer environment variable set by build_rest_plugin.bat caller.
+if(DEFINED ENV{CLO_SDK_PATH} AND NOT "$ENV{CLO_SDK_PATH}" STREQUAL "")
+    file(TO_CMAKE_PATH "$ENV{CLO_SDK_PATH}" CLO_SDK_ROOT)
+else()
+    set(CLO_SDK_ROOT "C:/setup/CLO_SDK_v2025.2.236_WIN/CLO_SDK_v2025.2.236_WIN")
+endif()
 set(CLO_API_INTERFACE_DIR "${CLO_SDK_ROOT}/CLOAPIInterface")
 
 # Create shared library

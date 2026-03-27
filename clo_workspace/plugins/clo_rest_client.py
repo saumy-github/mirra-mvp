@@ -6,8 +6,16 @@ This lets your Python scripts control CLO automation.
 """
 
 import requests
+import sys
 import time
 from pathlib import Path
+
+workspace_root = Path(__file__).resolve().parents[2]
+if str(workspace_root) not in sys.path:
+    sys.path.insert(0, str(workspace_root))
+
+from avatar_generation.run_manifest import get_latest_avatar_obj_path
+from product_ingestion.run_manifest import get_latest_panels_dxf_dir
 
 
 class CLORestClient:
@@ -135,22 +143,24 @@ def test_clo_automation():
         return False
     
     # Test workflow
-    workspace = Path("C:/Users/Anant/mirra-mvp")
+    workspace = workspace_root
     
     # 1. Import avatar
-    avatar_path = workspace / "clo_workspace/user_m_001_patterns/user_m_001_001_avatar.obj"
+    try:
+        avatar_path = Path(get_latest_avatar_obj_path())
+    except FileNotFoundError:
+        avatar_path = workspace / "avatar_generation/output/u_001-001/avatar.obj"
+
     if avatar_path.exists():
         clo.import_avatar(avatar_path)
     else:
         print(f"⚠ Avatar not found: {avatar_path}")
     
     # 2. Import patterns
-    _pat_base = workspace / "2d_patterned_garment_generation_clo3d/output"
-    _pat_runs = sorted(
-        [d for d in (_pat_base.iterdir() if _pat_base.exists() else []) if d.is_dir() and d.name.startswith("run_")],
-        key=lambda d: int(d.name.split("_")[1]) if len(d.name.split("_")) > 1 and d.name.split("_")[1].isdigit() else 0
-    )
-    pattern_dir = (_pat_runs[-1] / "patterns_dxf") if _pat_runs else (_pat_base / "patterns_dxf")
+    try:
+        pattern_dir = Path(get_latest_panels_dxf_dir())
+    except FileNotFoundError:
+        pattern_dir = workspace / "product_ingestion/output/panels/dxf"
     patterns = list(pattern_dir.glob("*.dxf"))
     
     if patterns:

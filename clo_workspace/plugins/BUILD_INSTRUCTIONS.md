@@ -7,7 +7,7 @@
 3. Run it
 4. Navigate to plugins folder:
    ```cmd
-   cd C:\Users\Anant\mirra-mvp\clo_workspace\plugins
+   cd <your-mirra-mvp-root>\clo_workspace\plugins
    ```
 5. Run the build script:
    ```cmd
@@ -23,8 +23,8 @@ If you prefer PowerShell, here are the commands:
 ```powershell
 # Set paths
 $cmake = "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
-$workspace = "C:\Users\Anant\mirra-mvp\clo_workspace\plugins"
-$sdkPath = "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN"
+$workspace = (Resolve-Path ".").Path
+$sdkPath = if ($env:CLO_SDK_PATH) { $env:CLO_SDK_PATH } else { "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN" }
 $pluginDir = "$sdkPath\Samples\RestPlugin"
 
 # Create and copy files
@@ -58,8 +58,8 @@ if (Test-Path "Release\RestPlugin.dll") {
 1. Close CLO (if running)
 2. Copy DLL to CLO plugins:
    ```powershell
-   Copy-Item "C:\setup\CLO_SDK_v2025.2.236_WIN\CLO_SDK_v2025.2.236_WIN\Samples\RestPlugin\build\Release\RestPlugin.dll" `
-             -Destination "C:\Program Files\CLO Standalone OnlineAuth\plugins\RestPlugin.dll" -Force
+   $cloPlugins = if ($env:CLO_PLUGINS_DIR) { $env:CLO_PLUGINS_DIR } else { "C:\Program Files\CLO Standalone OnlineAuth\plugins" }
+   Copy-Item "$sdkPath\Samples\RestPlugin\build\Release\RestPlugin.dll" -Destination "$cloPlugins\RestPlugin.dll" -Force
    ```
 3. Start CLO
 4. Check Plugin Manager
