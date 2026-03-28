@@ -48,6 +48,18 @@ std::vector<CommandResult>   g_lastResults;
 std::mutex                   g_resultsMutex;
 bool                         g_queueProcessing = false;
 
+struct ImportScaleEntry {
+    std::string path;
+    float scale = 1.0f;
+    bool success = false;
+};
+
+std::mutex g_importDebugMutex;
+float g_lastAvatarImportScale = 1.0f;
+std::string g_lastAvatarImportPath;
+bool g_lastAvatarImportSuccess = false;
+std::vector<ImportScaleEntry> g_lastPatternImports;
+
 // Global flag to keep server running
 bool g_serverRunning = false;
 std::thread g_serverThread;
@@ -84,9 +96,127 @@ void StartRESTServer()
             json response = {
                 {"status", "ok"},
                 {"plugin", "CLO REST Automation"},
-                {"version", "1.0"}
+                {"version", "1.0"},
+                {"plugin_built_at", std::string(__DATE__) + " " + std::string(__TIME__)}
             };
             res.set_content(response.dump(), "application/json");
+        });
+
+        // Capability descriptor for orchestration layer.
+        svr.Get("/capabilities", [](const Request&, Response& res) {
+            json response = {
+                {"success", true},
+                {"has_scene_geometry_probe", true},
+                {"has_pattern_line_count", false},
+                {"has_pattern_bbox", true},
+                {"has_pattern_line_length_probe", true},
+                {"has_pattern_input_info", true},
+                {"has_arrangement_list", true},
+                {"has_pattern_arrangements", true},
+                {"has_avatar_debug", true},
+                {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
+            };
+            res.set_content(response.dump(), "application/json");
+        });
+
+        // Debug endpoint exposing actual import scales used in the last runs.
+        svr.Get("/debug/import-scales", [](const Request&, Response& res) {
+            json patternImports = json::array();
+            float avatarScale = 1.0f;
+            std::string avatarPath;
+            bool avatarSuccess = false;
+
+            {
+                std::lock_guard<std::mutex> lock(g_importDebugMutex);
+                avatarScale = g_lastAvatarImportScale;
+                avatarPath = g_lastAvatarImportPath;
+                avatarSuccess = g_lastAvatarImportSuccess;
+                for (const auto& row : g_lastPatternImports) {
+                    patternImports.push_back({
+                        {"path", row.path},
+                        {"scale", row.scale},
+                        {"success", row.success}
+                    });
+                }
+            }
+
+            json response = {
+                {"success", true},
+                {"avatar_import", {
+                    {"path", avatarPath},
+                    {"scale", avatarScale},
+                    {"success", avatarSuccess}
+                }},
+                {"pattern_imports", patternImports}
+            };
+            res.set_content(response.dump(), "application/json");
+        });
+
+        // Avatar + arrangement readiness debug endpoint.
+        svr.Get("/avatar/debug", [](const Request&, Response& res) {
+            try {
+                float avatarScale = 1.0f;
+                std::string avatarPath;
+                bool avatarSuccess = false;
+
+                {
+                    std::lock_guard<std::mutex> lock(g_importDebugMutex);
+                    avatarScale = g_lastAvatarImportScale;
+                    avatarPath = g_lastAvatarImportPath;
+                    avatarSuccess = g_lastAvatarImportSuccess;
+                }
+
+                int patternCount = 0;
+                try { patternCount = PATTERN_API->GetPatternCount(); } catch (...) {}
+
+                auto slotList = PATTERN_API->GetArrangementList();
+                int slotCount = (int)slotList.size();
+
+                int patternArrangementCount = 0;
+                for (int i = 0; i < patternCount; i++) {
+                    try {
+                        auto rec = PATTERN_API->GetArrangementOfPattern(i);
+                        if (!rec.empty()) patternArrangementCount++;
+                    }
+                    catch (...) {}
+                }
+
+                std::string anchorMode = "none";
+                std::string semanticsQuality = "none";
+
+                if (avatarSuccess && slotCount > 0) {
+                    anchorMode = "semantic_slots";
+                    semanticsQuality = (slotCount >= 4 ? "high" : "medium");
+                }
+                else if (avatarSuccess && slotCount == 0 && patternArrangementCount > 0) {
+                    anchorMode = "generic_arrangement_point";
+                    semanticsQuality = "low";
+                }
+                else if (avatarSuccess) {
+                    anchorMode = "imported_mesh_avatar";
+                    semanticsQuality = "none";
+                }
+
+                json response = {
+                    {"success", true},
+                    {"avatar_import", {
+                        {"path", avatarPath},
+                        {"scale", avatarScale},
+                        {"success", avatarSuccess}
+                    }},
+                    {"pattern_count", patternCount},
+                    {"arrangement_list_populated", slotCount > 0},
+                    {"arrangement_slot_count", slotCount},
+                    {"pattern_arrangement_count", patternArrangementCount},
+                    {"avatar_anchor_mode", anchorMode},
+                    {"arrangement_semantics_quality", semanticsQuality}
+                };
+                res.set_content(response.dump(), "application/json");
+            }
+            catch (const std::exception& e) {
+                json response = {{"success", false}, {"error", e.what()}};
+                res.set_content(response.dump(), "application/json");
+            }
         });
 
     // Import Avatar (OBJ file) - QUEUED
@@ -94,10 +224,12 @@ void StartRESTServer()
         try {
             auto j = json::parse(req.body);
             std::string filePath = j["path"];
+            float scale = j.value("scale", 1.0f);
             
             APICommand cmd;
             cmd.type = "import-avatar";
             cmd.param1 = filePath;
+            cmd.floatParam1 = scale;
             
             {
                 std::lock_guard<std::mutex> lock(g_queueMutex);
@@ -108,6 +240,7 @@ void StartRESTServer()
                 {"success", true},
                 {"message", "Avatar import queued. Call /execute to process."},
                 {"path", filePath},
+                {"scale", scale},
                 {"queue_size", g_commandQueue.size()}
             };
             res.set_content(response.dump(), "application/json");
@@ -123,10 +256,12 @@ void StartRESTServer()
         try {
             auto j = json::parse(req.body);
             std::string filePath = j["path"];
+            float scale = j.value("scale", 1.0f);
             
             APICommand cmd;
             cmd.type = "import-pattern";
             cmd.param1 = filePath;
+            cmd.floatParam1 = scale;
             
             {
                 std::lock_guard<std::mutex> lock(g_queueMutex);
@@ -137,6 +272,7 @@ void StartRESTServer()
                 {"success", true},
                 {"message", "Pattern import queued. Call /execute to process."},
                 {"path", filePath},
+                {"scale", scale},
                 {"queue_size", g_commandQueue.size()}
             };
             res.set_content(response.dump(), "application/json");
@@ -293,6 +429,104 @@ void StartRESTServer()
                 {"success", true},
                 {"pattern_index", patternIndex},
                 {"info", json::parse(info)}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // Get Pattern Bounding Box / area (SDK-backed geometry signal)
+    svr.Get("/patterns/(\\d+)/bbox", [](const Request& req, Response& res) {
+        try {
+            int patternIndex = std::stoi(req.matches[1]);
+            auto raw = PATTERN_API->GetBoundingBoxOfPattern(patternIndex);
+            json bbox = json::object();
+            for (auto& kv : raw)
+                bbox[kv.first] = kv.second;
+
+            json response = {
+                {"success", true},
+                {"pattern_index", patternIndex},
+                {"bbox", bbox},
+                {"area", PATTERN_API->GetPatternPieceArea(patternIndex)}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // Get Pattern Input Information (raw + parsed when possible)
+    svr.Get("/patterns/(\\d+)/input", [](const Request& req, Response& res) {
+        try {
+            int patternIndex = std::stoi(req.matches[1]);
+            std::string inputInfo = PATTERN_API->GetPatternInputInformation(patternIndex);
+            json parsed;
+            bool parsedOk = false;
+            try {
+                parsed = json::parse(inputInfo);
+                parsedOk = true;
+            }
+            catch (...) {
+                parsed = json::object();
+            }
+
+            json response = {
+                {"success", true},
+                {"pattern_index", patternIndex},
+                {"parsed", parsedOk},
+                {"input", parsedOk ? parsed : json(inputInfo)}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // Probe line lengths by index when line_count is missing from metadata.
+    svr.Get("/patterns/(\\d+)/line-lengths", [](const Request& req, Response& res) {
+        try {
+            int patternIndex = std::stoi(req.matches[1]);
+            int maxLines = 256;
+            int stopAfterConsecutiveZero = 12;
+            if (req.has_param("max")) {
+                try { maxLines = std::stoi(req.get_param_value("max")); } catch (...) {}
+            }
+
+            json lines = json::array();
+            int zeroStreak = 0;
+            for (int i = 0; i < maxLines; i++) {
+                float len = 0.0f;
+                try {
+                    len = PATTERN_API->GetLineLength(patternIndex, i);
+                }
+                catch (...) {
+                    len = 0.0f;
+                }
+
+                if (len > 0.0001f) {
+                    lines.push_back({{"line_index", i}, {"length", len}});
+                    zeroStreak = 0;
+                }
+                else {
+                    zeroStreak++;
+                    if (!lines.empty() && zeroStreak >= stopAfterConsecutiveZero)
+                        break;
+                }
+            }
+
+            json response = {
+                {"success", true},
+                {"pattern_index", patternIndex},
+                {"line_count", (int)lines.size()},
+                {"lines", lines}
             };
             res.set_content(response.dump(), "application/json");
         }
@@ -459,6 +693,44 @@ void StartRESTServer()
         }
     });
 
+    // ── Arrangement debug payload: raw slots + per-pattern arrangement in one call.
+    svr.Get("/arrangement/debug", [](const Request&, Response& res) {
+        try {
+            json slots = json::array();
+            auto list = PATTERN_API->GetArrangementList();
+            for (int i = 0; i < (int)list.size(); i++) {
+                json entry = {{"index", i}};
+                for (auto& kv : list[i])
+                    entry[kv.first] = kv.second;
+                slots.push_back(entry);
+            }
+
+            json patterns = json::array();
+            int count = 0;
+            try { count = PATTERN_API->GetPatternCount(); } catch (...) {}
+            for (int i = 0; i < count; i++) {
+                json entry = {{"pattern_index", i}};
+                auto info = PATTERN_API->GetArrangementOfPattern(i);
+                for (auto& kv : info)
+                    entry[kv.first] = kv.second;
+                patterns.push_back(entry);
+            }
+
+            json response = {
+                {"success", true},
+                {"slot_count", (int)slots.size()},
+                {"slots", slots},
+                {"pattern_arrangement_count", (int)patterns.size()},
+                {"patterns", patterns}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
     // ── Status — queue state + last batch results (read-only, no queue) ──────
     svr.Get("/status", [](const Request&, Response& res) {
         try {
@@ -564,24 +836,35 @@ void ProcessCommandQueue()
             // ── Avatar import ─────────────────────────────────────────────
             if (cmd.type == "import-avatar") {
                 Marvelous::ImportExportOption options;
-                // Avatar OBJ is exported by avatar_generation in metres.
-                // CLO works in centimetres, so scale by 100.
-                options.scale           = 100.0f;
+                // Avatar scale is provided by pipeline based on export metadata units.
+                options.scale           = (cmd.floatParam1 > 0.0f ? cmd.floatParam1 : 1.0f);
                 options.ImportObjectType = 0;   // Avatar
                 options.bAutoTranslate  = true; // moves feet to Y=0 (ground)
                 result.success  = IMPORT_API->ImportOBJ(cmd.param1, options);
+                {
+                    std::lock_guard<std::mutex> lock(g_importDebugMutex);
+                    g_lastAvatarImportScale = options.scale;
+                    g_lastAvatarImportPath = cmd.param1;
+                    g_lastAvatarImportSuccess = result.success;
+                }
                 result.message  = result.success
-                    ? "Imported avatar: " + cmd.param1
+                    ? "Imported avatar: " + cmd.param1 + " (scale=" + std::to_string(options.scale) + ")"
                     : "Failed to import avatar: " + cmd.param1;
             }
             // ── Pattern import ────────────────────────────────────────────
             else if (cmd.type == "import-pattern") {
                 Marvelous::ImportDxfOption options;
-                options.m_Scale   = 1.0f;
+                options.m_Scale   = (cmd.floatParam1 > 0.0f ? cmd.floatParam1 : 1.0f);
                 options.m_bAppend = true;
                 result.success = IMPORT_API->ImportDXF(cmd.param1, options);
+                {
+                    std::lock_guard<std::mutex> lock(g_importDebugMutex);
+                    g_lastPatternImports.push_back({cmd.param1, options.m_Scale, result.success});
+                    if (g_lastPatternImports.size() > 64)
+                        g_lastPatternImports.erase(g_lastPatternImports.begin(), g_lastPatternImports.begin() + 32);
+                }
                 result.message = result.success
-                    ? "Imported pattern: " + cmd.param1
+                    ? "Imported pattern: " + cmd.param1 + " (scale=" + std::to_string(options.m_Scale) + ")"
                     : "Failed to import pattern: " + cmd.param1;
             }
             // ── Create seam ───────────────────────────────────────────────
@@ -623,6 +906,13 @@ void ProcessCommandQueue()
             // ── New project ───────────────────────────────────────────────
             else if (cmd.type == "new-project") {
                 UTILITY_API->NewProject();
+                {
+                    std::lock_guard<std::mutex> lock(g_importDebugMutex);
+                    g_lastPatternImports.clear();
+                    g_lastAvatarImportPath.clear();
+                    g_lastAvatarImportScale = 1.0f;
+                    g_lastAvatarImportSuccess = false;
+                }
                 result.success = true;
                 result.message = "New project created";
             }

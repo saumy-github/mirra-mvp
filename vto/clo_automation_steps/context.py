@@ -1,5 +1,6 @@
 """Pipeline context object and initializer."""
 
+import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -12,7 +13,7 @@ if str(workspace_root) not in sys.path:
 from avatar_generation.run_manifest import get_latest_avatar_obj_path
 from .client import CLORestClient
 from .helpers import resolve_patterns_dir
-from .seams import DEFAULT_SEAMS
+from .seams import DEFAULT_SEAMS, load_seams_from_manifest
 
 
 @dataclass
@@ -32,20 +33,62 @@ class PipelineContext:
     loaded_patterns: int = 0
     slots: list[dict] = field(default_factory=list)
     slot_map: dict[str, int] = field(default_factory=dict)
+    imported_files: list[str] = field(default_factory=list)
+    imported_pattern_names: list[str] = field(default_factory=list)
+    edge_ok: bool = False
+    slot_ok: bool = False
+    arrangement_ok: bool = False
+    ready_for_sewing: bool = False
+    expected_pattern_count: int = 4
+    imported_pieces: list[str] = field(default_factory=list)
+    piece_to_index: dict[str, int] = field(default_factory=dict)
+    index_to_piece: dict[int, str] = field(default_factory=dict)
+    pattern_import_scale: float = 1.0
+    pattern_import_scales: dict[str, float] = field(default_factory=dict)
+    pattern_hashes: dict[str, str] = field(default_factory=dict)
+    pattern_geometry_hash: str = ""
+    scale_metrics: dict = field(default_factory=dict)
+    slot_candidates: dict[str, list[dict]] = field(default_factory=dict)
+    slot_fallback_mode: str = ""
+    edge_counts: dict[str, int] = field(default_factory=dict)
+    edge_sources: dict[str, str] = field(default_factory=dict)
+    sdk_capabilities: dict = field(default_factory=dict)
+    avatar_debug: dict = field(default_factory=dict)
+    import_scale_debug: dict = field(default_factory=dict)
+    slot_diagnostics: list[dict] = field(default_factory=list)
+    seam_results: list[dict] = field(default_factory=list)
+    step_results: list[dict] = field(default_factory=list)
+    # Edge manifest loaded from panels_dir/../edge_manifest.json
+    edge_manifest: dict = field(default_factory=dict)
+
+
+def _load_manifest(patterns_dir: Path) -> dict:
+    """Try to load edge_manifest.json from the panels directory.
+
+    patterns_dir is typically …/panels/dxf; the manifest lives one level up
+    at …/panels/edge_manifest.json.
+    """
+    manifest_path = patterns_dir.parent / "edge_manifest.json"
+    if not manifest_path.exists():
+        return {}
+    try:
+        return json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
 def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patterns_dir: Optional[Path | str] = None):
     """Build a pipeline context with default paths and seam map.
 
-    Optional `avatar_path` and `patterns_dir` can be provided to force inputs
-    from a previously-created `vto/input/<run>/input.json` selection.
+    Seam resolution order:
+    1. Explicit seam_map argument (highest priority).
+    2. edge_manifest.json found alongside the DXF patterns (auto-generated).
+    3. DEFAULT_SEAMS fallback (hardcoded 10-seam map).
     """
     output_dir = workspace_root / "clo_workspace/exports"
     output_dir.mkdir(exist_ok=True)
     project_dir = workspace_root / "clo_workspace/projects"
     project_dir.mkdir(exist_ok=True)
-
-    using_default_seams = seam_map is None
 
     if avatar_path:
         avatar_path = Path(avatar_path)
@@ -60,7 +103,29 @@ def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patt
     else:
         patterns_dir = resolve_patterns_dir()
 
-    return PipelineContext(
+    # Determine seams and whether they come from the manifest
+    using_default_seams = True
+    edge_manifest: dict = {}
+
+    if seam_map is not None:
+        resolved_seams = seam_map
+        using_default_seams = False
+    else:
+        edge_manifest = _load_manifest(patterns_dir)
+        if edge_manifest:
+            manifest_path = patterns_dir.parent / "edge_manifest.json"
+            manifest_seams = load_seams_from_manifest(manifest_path)
+            if manifest_seams:
+                resolved_seams = manifest_seams
+                using_default_seams = False
+                print(f"  Loaded {len(manifest_seams)} seams from edge manifest.")
+            else:
+                resolved_seams = DEFAULT_SEAMS
+                print("  Edge manifest found but incomplete — using DEFAULT_SEAMS.")
+        else:
+            resolved_seams = DEFAULT_SEAMS
+
+    ctx = PipelineContext(
         client=CLORestClient(),
         workspace_root=workspace_root,
         avatar_path=avatar_path,
@@ -73,6 +138,8 @@ def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patt
             "sleeve_left.dxf",
             "sleeve_right.dxf",
         ],
-        seams=seam_map if seam_map else DEFAULT_SEAMS,
+        seams=resolved_seams,
         using_default_seams=using_default_seams,
+        edge_manifest=edge_manifest,
     )
+    return ctx

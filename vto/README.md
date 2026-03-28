@@ -1,4 +1,4 @@
-python vto/run_vto 
+python vto/run_vto.py 
 
 
-python vto/clo_automation_client 
+python vto/clo_automation_client.py 

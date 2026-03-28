@@ -34,3 +34,34 @@ def find_slot(slots, keywords):
         if all(keyword.lower() in blob for keyword in keywords):
             return int(slot.get("index", -1))
     return -1
+
+
+def score_slots(slots, required_keywords, optional_keywords=None):
+    """Score arrangement slots by keyword evidence and return ranked candidates.
+
+    Each candidate is {'index': int, 'score': int, 'slot': dict}.
+    """
+    optional_keywords = optional_keywords or []
+    ranked = []
+    for slot in slots:
+        blob = " ".join(str(v) for v in slot.values()).lower()
+        score = 0
+        for kw in required_keywords:
+            if kw.lower() in blob:
+                score += 10
+        for kw in optional_keywords:
+            if kw.lower() in blob:
+                score += 3
+
+        # Small preference for explicit arrangement names if present.
+        name_blob = str(slot.get("name", "")).lower()
+        for kw in required_keywords:
+            if kw.lower() in name_blob:
+                score += 2
+
+        idx = int(slot.get("index", -1))
+        if idx >= 0 and score > 0:
+            ranked.append({"index": idx, "score": score, "slot": slot})
+
+    ranked.sort(key=lambda item: item["score"], reverse=True)
+    return ranked

@@ -186,7 +186,12 @@ def main():
                     print("Orchestration aborted - missing inputs:", ", ".join(missing))
                     ok = False
                 else:
-                    ok = run_pipeline(avatar_path=avatar_p, patterns_dir=patterns_p)
+                    pipeline_report_path = run_dir / "pipeline_report.json"
+                    ok = run_pipeline(
+                        avatar_path=avatar_p,
+                        patterns_dir=patterns_p,
+                        report_path=str(pipeline_report_path),
+                    )
             except KeyboardInterrupt:
                 print("\n\nOrchestration cancelled by user")
                 ok = False
@@ -197,7 +202,17 @@ def main():
             # Update run_summary.json with result
             summary_path = run_dir / "run_summary.json"
             try:
-                s = {"status": "completed" if ok else "failed", "completed_at": utc_now_iso_z()}
+                s = {
+                    "status": "completed" if ok else "failed",
+                    "completed_at": utc_now_iso_z(),
+                    "inputs": {
+                        "avatar": avatar_p,
+                        "patterns_dir": patterns_p,
+                    },
+                    "outputs": {
+                        "pipeline_report": str(run_dir / "pipeline_report.json"),
+                    },
+                }
                 with summary_path.open("w", encoding="utf8") as f:
                     json.dump(s, f, indent=2)
             except Exception:
