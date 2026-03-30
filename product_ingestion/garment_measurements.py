@@ -20,7 +20,31 @@ except Exception:
 
 @dataclass
 class GarmentMeasurements:
-    """Calculated garment pattern measurements in centimeters."""
+    """Calculated garment pattern measurements in centimeters.
+
+    Measurement conventions (IMPORTANT — read before adding new fields)
+    -------------------------------------------------------------------
+    All width/girth fields use the FLAT SEAM-TO-SEAM (half-girth) convention:
+
+      half_chest_width  — half the full chest circumference.
+                          One body panel = this width.  Front + Back together
+                          form the full tube (2 × half_chest_width).
+
+      shoulder_width    — half the full shoulder span, measured from centre-
+                          back to shoulder point.  Matches half_chest_width
+                          convention so edge algebra is consistent.
+
+      bicep_width       — flat seam-to-seam measurement of the FOLDED sleeve
+                          (= half the bicep tube circumference).
+                          Pattern generators must multiply by 2 to get the
+                          UNFOLDED sleeve piece width (full tube circumference).
+                          Do NOT store the full circumference here — the *2
+                          factor is applied in panels.py generate_sleeve().
+
+    All other linear measurements (garment_length, sleeve_length, armhole_depth,
+    neck_width, neck_depth_*) are absolute values in centimetres with no
+    halving convention.
+    """
 
     # Body measurements
     body_height: float
@@ -28,15 +52,16 @@ class GarmentMeasurements:
     body_shoulder: float
 
     # Calculated garment dimensions (with ease)
-    half_chest_width: float
-    garment_length: float
-    shoulder_width: float
-    neck_width: float
-    neck_depth_front: float
-    neck_depth_back: float
-    sleeve_length: float
-    bicep_width: float
-    armhole_depth: float
+    # See class docstring for the half-girth convention on width fields.
+    half_chest_width: float    # half chest girth (one panel width), cm
+    garment_length: float      # full torso length hem-to-shoulder, cm
+    shoulder_width: float      # half shoulder span (centre to shoulder point), cm
+    neck_width: float          # full neck opening width, cm
+    neck_depth_front: float    # front neckline drop from shoulder line, cm
+    neck_depth_back: float     # back neckline drop from shoulder line, cm
+    sleeve_length: float       # full sleeve length cuff-to-underarm, cm
+    bicep_width: float         # flat half-girth of folded sleeve (× 2 = unfolded), cm
+    armhole_depth: float       # depth of armhole opening on body panel, cm
     seam_allowance: float = 1.0
 
     # Fit details

@@ -224,15 +224,18 @@ class DynamicPatternGenerator:
     ) -> tuple[PieceEdge, PieceEdge, float]:
         """Build cap_front and cap_back edges and return total arc length.
 
-        The sleeve cap MUST bulge outward (convex) beyond the sleeve body so
-        that the arc length can reach the target armhole circumference + ease.
-        Control points are placed OUTSIDE [0, sleeve_width] — to the right for
-        cap_front, to the left for cap_back.  Both the chord length and the
-        outward bulge scale with cap_height, making total_arc monotonically
-        increasing with cap_height (required for binary search to converge).
+        sleeve_width is the full unfolded sleeve width (bicep_width * 2).
+        bicep_width is the flat seam-to-seam half-girth, so the full tube
+        circumference = bicep_width * 2.  Using the correct full width gives
+        a naturally wide base, which means the binary search converges at a
+        shallow cap_height (the correct "rectangle + shallow cap" shape).
+
+        A small outward bulge on the control points adds curvature so the arc
+        length grows monotonically with cap_height, which is required for the
+        binary search to converge reliably.
         """
         m = self.m
-        sleeve_width = m.bicep_width / 2
+        sleeve_width = m.bicep_width * 2
 
         cap_start_y = m.sleeve_length - cap_height
         apex = (sleeve_width / 2, m.sleeve_length + cap_height * 0.25)
@@ -397,7 +400,9 @@ class DynamicPatternGenerator:
         """
         m = self.m
         cfg = self.cfg
-        sleeve_width = m.bicep_width / 2
+        # Full unfolded sleeve width = full tube circumference.
+        # bicep_width is the flat half-girth (seam-to-seam), so multiply by 2.
+        sleeve_width = m.bicep_width * 2
 
         if target_armhole_length is None:
             cap_height = m.armhole_depth * cfg.cap_height_start_frac
