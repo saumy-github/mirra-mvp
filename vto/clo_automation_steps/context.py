@@ -3,7 +3,7 @@
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 workspace_root = Path(__file__).resolve().parents[2]
 if str(workspace_root) not in sys.path:
@@ -34,7 +34,7 @@ class PipelineContext:
     slot_map: dict[str, int] = field(default_factory=dict)
 
 
-def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patterns_dir: Optional[Path | str] = None):
+def create_context(seam_map=None, avatar_path: Optional[Union[Path, str]] = None, patterns_dir: Optional[Union[Path, str]] = None):
     """Build a pipeline context with default paths and seam map.
 
     Optional `avatar_path` and `patterns_dir` can be provided to force inputs
