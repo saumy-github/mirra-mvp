@@ -1,5 +1,6 @@
 """Pipeline orchestrator for modular CLO automation steps."""
 
+from typing import Optional
 from .context import create_context
 from .step_01_health import run as step_01_health
 from .step_02_new_project import run as step_02_new_project
@@ -14,7 +15,7 @@ from .step_10_simulate import run as step_10_simulate
 from .step_11_export_note import run as step_11_export_note
 
 
-def run_pipeline(seam_map=None, avatar_path: str | None = None, patterns_dir: str | None = None):
+def run_pipeline(seam_map=None, avatar_path: Optional[str] = None, patterns_dir: Optional[str] = None):
     """Run full CLO automation pipeline by executing all step modules.
 
     Optional `avatar_path` and `patterns_dir` may be provided to override
