@@ -1,0 +1,47 @@
+{
+  "contract_name": "clo-rest-plugin",
+  "api_version": "v1",
+  "parity_rule": {
+    "windows_and_mac_must_match": [
+      "endpoint list",
+      "request schema",
+      "response schema",
+      "capability flags"
+    ]
+  },
+  "read_endpoints": [
+    "GET /health",
+    "GET /capabilities",
+    "GET /status",
+    "GET /debug/import-scales",
+    "GET /avatar/debug",
+    "GET /avatar/native-debug",
+    "GET /avatars/state",
+    "GET /patterns/count",
+    "GET /patterns/{index}",
+    "GET /patterns/{index}/bbox",
+    "GET /patterns/{index}/input",
+    "GET /patterns/{index}/line-lengths",
+    "GET /arrangement-list",
+    "GET /pattern-arrangements",
+    "GET /arrangement/debug"
+  ],
+  "write_endpoints": [
+    "POST /new-project",
+    "POST /execute",
+    "POST /import-avatar",
+    "POST /import-avatar-avt",
+    "POST /import-avatar-measurements",
+    "POST /import-pattern",
+    "POST /arrange-pattern",
+    "POST /set-fabric",
+    "POST /create-seam",
+    "POST /simulate",
+    "POST /export",
+    "POST /save-project"
+  ],
+  "notes": [
+    "Any endpoint or schema change should be reflected here and in the current version file before teammates rebuild.",
+    "The full route list is intentionally preserved for both active workflows and future plugin consumers."
+  ]
+}

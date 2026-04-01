@@ -1,6 +1,9 @@
 """Pipeline orchestrator for modular CLO automation steps."""
 
-from typing import Optional
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+
 from .context import create_context
 from .step_01_health import run as step_01_health
 from .step_02_new_project import run as step_02_new_project
@@ -15,7 +18,47 @@ from .step_10_simulate import run as step_10_simulate
 from .step_11_export_note import run as step_11_export_note
 
 
-def run_pipeline(seam_map=None, avatar_path: Optional[str] = None, patterns_dir: Optional[str] = None):
+def _utc_now_iso_z() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _build_report(ctx, overall_ok, step_results):
+    return {
+        "status": "completed" if overall_ok else "failed",
+        "created_at": _utc_now_iso_z(),
+        "steps": step_results,
+        "diagnostics": {
+            "loaded_patterns": ctx.loaded_patterns,
+            "piece_to_index": ctx.piece_to_index,
+            "index_to_piece": {str(k): v for k, v in ctx.index_to_piece.items()},
+            "pattern_import_scale": ctx.pattern_import_scale,
+            "pattern_import_scales": ctx.pattern_import_scales,
+            "pattern_geometry_hash": ctx.pattern_geometry_hash,
+            "pattern_hashes": ctx.pattern_hashes,
+            "sdk_pattern_names": ctx.imported_pattern_names,
+            "slot_map": ctx.slot_map,
+            "slot_candidates": ctx.slot_candidates,
+            "slot_fallback_mode": ctx.slot_fallback_mode,
+            "edge_counts": ctx.edge_counts,
+            "edge_sources": ctx.edge_sources,
+            "sdk_capabilities": ctx.sdk_capabilities,
+            "avatar_debug": ctx.avatar_debug,
+            "import_scale_debug": ctx.import_scale_debug,
+            "slot_diagnostics": ctx.slot_diagnostics,
+            "scale_metrics": ctx.scale_metrics,
+            "seam_results": ctx.seam_results,
+            "arrangement_ok": ctx.arrangement_ok,
+            "ready_for_sewing": ctx.ready_for_sewing,
+        },
+    }
+
+
+def run_pipeline(
+    seam_map=None,
+    avatar_path: Path | str | None = None,
+    patterns_dir: Path | str | None = None,
+    report_path: Path | str | None = None,
+):
     """Run full CLO automation pipeline by executing all step modules.
 
     Optional `avatar_path` and `patterns_dir` may be provided to override
@@ -41,9 +84,22 @@ def run_pipeline(seam_map=None, avatar_path: Optional[str] = None, patterns_dir:
         step_11_export_note,
     ]
 
+    step_results = []
+    overall_ok = True
     for step in steps:
-        if not step(ctx):
-            return False
+        step_name = getattr(step, "__module__", "step").split(".")[-1]
+        try:
+            ok = bool(step(ctx))
+        except Exception as exc:
+            ok = False
+            step_results.append({"step": step_name, "success": False, "error": str(exc)})
+            overall_ok = False
+            break
+
+        step_results.append({"step": step_name, "success": ok})
+        if not ok:
+            overall_ok = False
+            break
 
     print("\n" + "=" * 64)
     try:
@@ -53,7 +109,21 @@ def run_pipeline(seam_map=None, avatar_path: Optional[str] = None, patterns_dir:
     except Exception:
         succeeded, total = 0, 0
 
-    print("Simulation complete.")
+    if overall_ok:
+        print("Simulation complete.")
+    else:
+        print("Pipeline ended before completion due to a failed gate/step.")
     print(f"Last batch: {succeeded}/{total} commands succeeded.")
     print("=" * 64)
-    return True
+
+    report = _build_report(ctx, overall_ok, step_results)
+    if report_path:
+        try:
+            p = Path(report_path)
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps(report, indent=2), encoding="utf-8")
+            print(f"Pipeline report written: {p}")
+        except Exception as exc:
+            print(f"Warning: failed to write pipeline report: {exc}")
+
+    return overall_ok

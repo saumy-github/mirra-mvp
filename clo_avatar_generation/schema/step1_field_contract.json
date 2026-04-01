@@ -1,0 +1,101 @@
+{
+  "version": "v1-draft",
+  "scope": "male_only",
+  "unit": "cm",
+  "round_decimals": 2,
+  "default_base_avatar": "clo_avatar_generation/input/base-1.avt",
+  "human_readable_payload": "input.json",
+  "preferred_clo_payload": "avs",
+  "preferred_error_source": "plugin_api_readback",
+  "fallback_error_source": "saved_avs_and_avt",
+  "fields": [
+    {
+      "mongo_field": "height_cm",
+      "clo_target": "Total Height",
+      "included_in_v1": true,
+      "genders": ["male"],
+      "unit": "cm",
+      "mapping_type": "direct",
+      "notes": "Primary height driver for v1."
+    },
+    {
+      "mongo_field": "weight_kg",
+      "clo_target": "Weight",
+      "included_in_v1": true,
+      "genders": ["male"],
+      "unit": "kg",
+      "mapping_type": "direct",
+      "notes": "Primary width driver for v1. Weight remains in kg."
+    },
+    {
+      "mongo_field": "shoulder_width_cm",
+      "clo_target": "Across Shoulder (Curvilinear)",
+      "included_in_v1": true,
+      "genders": ["male"],
+      "unit": "cm",
+      "mapping_type": "approximate",
+      "notes": "Current closest direct CLO field for shoulder width."
+    },
+    {
+      "mongo_field": "chest_circumference_cm",
+      "clo_target": "Chest",
+      "included_in_v1": true,
+      "genders": ["male"],
+      "unit": "cm",
+      "mapping_type": "direct",
+      "notes": "Male chest circumference maps to CLO Chest."
+    },
+    {
+      "mongo_field": "waist_circumference_cm",
+      "clo_target": "Waist",
+      "included_in_v1": true,
+      "genders": ["male"],
+      "unit": "cm",
+      "mapping_type": "direct",
+      "notes": "Direct waist mapping."
+    },
+    {
+      "mongo_field": "hip_circumference_cm",
+      "clo_target": "Low Hip",
+      "included_in_v1": true,
+      "genders": ["male"],
+      "unit": "cm",
+      "mapping_type": "closest_direct_field",
+      "notes": "Current closest CLO field to Mirra hip circumference."
+    },
+    {
+      "mongo_field": "leg_length_cm",
+      "clo_target": "Inseam",
+      "included_in_v1": true,
+      "genders": ["male"],
+      "unit": "cm",
+      "mapping_type": "closest_direct_field",
+      "notes": "Current closest CLO field to Mirra leg length."
+    },
+    {
+      "mongo_field": "bust_circumference_cm",
+      "clo_target": "Bust",
+      "included_in_v1": false,
+      "genders": ["female"],
+      "unit": "cm",
+      "mapping_type": "direct",
+      "notes": "Reserved for future female workflow."
+    },
+    {
+      "mongo_field": "under_bust_circumference_cm",
+      "clo_target": "Under Bust",
+      "included_in_v1": false,
+      "genders": ["female"],
+      "unit": "cm",
+      "mapping_type": "direct",
+      "notes": "Reserved for future female workflow."
+    }
+  ],
+  "out_of_scope_notes": {
+    "Head/Neck": "Head and neck simplification logic is not a current target.",
+    "Hands": "Hands below the wrist are not a current target.",
+    "Feet": "Feet below the ankle are not a current target.",
+    "Crotch Area": "Crotch realism work is not a current target."
+  },
+  "implementation_note": "If CLO behavior later proves sensitive to the order of value application, ordering rules will be decided at that point."
+}

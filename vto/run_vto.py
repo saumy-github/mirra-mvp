@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Optional
 
@@ -22,6 +22,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_ROOT = REPO_ROOT / "vto" / "output"
 AVATAR_OUTPUT_ROOT = REPO_ROOT / "avatar_generation" / "output"
 PRODUCT_OUTPUT_ROOT = REPO_ROOT / "product_ingestion" / "output"
+
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 
 def find_latest_avatar_run() -> Optional[Path]:
@@ -43,6 +46,18 @@ def prompt_with_default(prompt: str, default: Optional[str]) -> str:
         resp = input(f"{prompt} [{default}]: ").strip()
         return resp if resp else default
     return input(f"{prompt}: ").strip()
+
+
+def prompt_yes_no(prompt: str, default_yes: bool = True) -> bool:
+    suffix = "(Y/n)" if default_yes else "(y/N)"
+    resp = input(f"{prompt} {suffix}: ").strip().lower()
+    if not resp:
+        return default_yes
+    return resp in {"y", "yes"}
+
+
+def utc_timestamp() -> str:
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def next_vto_run_number(avatar_run: str, product_run: str) -> str:
@@ -74,7 +89,7 @@ def write_input_json(run_dir: Path, avatar_run: str, product_run: str, resolved:
         "avatar_run": avatar_run,
         "product_run": product_run,
         "resolved_paths": resolved,
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": utc_timestamp(),
     }
     with (run_dir / "input.json").open("w", encoding="utf8") as f:
         json.dump(payload, f, indent=2)
@@ -84,7 +99,7 @@ def write_run_summary(run_dir: Path, status: str = "initialized") -> None:
     summary = {
         "status": status,
         "steps": [],
-        "created_at": datetime.utcnow().isoformat() + "Z",
+        "created_at": utc_timestamp(),
     }
     with (run_dir / "run_summary.json").open("w", encoding="utf8") as f:
         json.dump(summary, f, indent=2)
@@ -128,8 +143,7 @@ def main():
 
     print(f"\nSelected avatar run: {avatar_run_path}")
     print(f"Selected product run: {product_run_path}\n")
-    confirm = input("Confirm selection? (y/N): ").strip().lower()
-    if confirm != "y":
+    if not prompt_yes_no("Confirm selection?", default_yes=True):
         print("Aborted by user")
         sys.exit(0)
 
@@ -146,12 +160,10 @@ def main():
 
     # By default run the orchestration immediately. Prompt with default Yes.
     try:
-        resp = input("Run CLO orchestration now? [Y/n]: ").strip().lower()
+        run_now = prompt_yes_no("Run CLO orchestration now?", default_yes=True)
     except KeyboardInterrupt:
         print("\n\nAborted by user")
         sys.exit(130)
-
-    run_now = (resp == "" or resp in ["y", "yes"]) 
     if run_now:
         print("Starting CLO orchestration using created run...")
         # Import here to avoid module load at top-level if not needed
@@ -178,7 +190,12 @@ def main():
                     print("Orchestration aborted - missing inputs:", ", ".join(missing))
                     ok = False
                 else:
-                    ok = run_pipeline(avatar_path=avatar_p, patterns_dir=patterns_p)
+                    pipeline_report_path = run_dir / "pipeline_report.json"
+                    ok = run_pipeline(
+                        avatar_path=avatar_p,
+                        patterns_dir=patterns_p,
+                        report_path=str(pipeline_report_path),
+                    )
             except KeyboardInterrupt:
                 print("\n\nOrchestration cancelled by user")
                 ok = False
@@ -189,7 +206,7 @@ def main():
             # Update run_summary.json with result
             summary_path = run_dir / "run_summary.json"
             try:
-                s = {"status": "completed" if ok else "failed", "completed_at": datetime.utcnow().isoformat() + "Z"}
+                s = {"status": "completed" if ok else "failed", "completed_at": utc_timestamp()}
                 with summary_path.open("w", encoding="utf8") as f:
                     json.dump(s, f, indent=2)
             except Exception:

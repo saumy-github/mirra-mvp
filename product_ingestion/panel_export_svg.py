@@ -1,22 +1,35 @@
 """SVG export for canonical Step 2 panel outputs."""
-
 from __future__ import annotations
 
 from pathlib import Path
 
 
-def export_panels_svg(patterns: dict[str, list[tuple[float, float]]], output_dir: Path) -> None:
-    """Export panel outlines as SVG previews."""
+def export_panels_svg(
+    layouts: "dict[str, object]",
+    output_dir: Path,
+) -> None:
+    """Export panel outlines as SVG previews.
+
+    Accepts either:
+    - dict[str, PieceLayout]  (new — calls layout.polygon())
+    - dict[str, list[tuple]]  (legacy — used directly)
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for name, points in patterns.items():
+    for name, item in layouts.items():
+        # Support both PieceLayout objects and raw point lists
+        if hasattr(item, "polygon"):
+            points = item.polygon()
+        else:
+            points = item
+
         if not points:
             continue
 
-        min_x = min(point[0] for point in points)
-        max_x = max(point[0] for point in points)
-        min_y = min(point[1] for point in points)
-        max_y = max(point[1] for point in points)
+        min_x = min(p[0] for p in points)
+        max_x = max(p[0] for p in points)
+        min_y = min(p[1] for p in points)
+        max_y = max(p[1] for p in points)
 
         margin = 5
         width = max_x - min_x + margin * 2
@@ -29,7 +42,6 @@ def export_panels_svg(patterns: dict[str, list[tuple[float, float]]], output_dir
         svg_width = width * scale
         svg_height = height * scale
 
-        # Start SVG - viewBox always starts at 0,0 for maximum viewer compatibility
         svg_content = f"""<?xml version="1.0" encoding="UTF-8"?>
     <svg xmlns="http://www.w3.org/2000/svg"
          width="{svg_width}"
@@ -39,9 +51,7 @@ def export_panels_svg(patterns: dict[str, list[tuple[float, float]]], output_dir
         <rect x="0" y="0" width="{svg_width}" height="{svg_height}" fill="white" stroke="none"/>
         <!-- Grid (1cm squares) -->
         <g id="grid" stroke="#e0e0e0" stroke-width="0.5">
-    """
-
-        # Add grid lines (translated into positive space)
+"""
         for grid_x in range(int(min_x - margin), int(max_x + margin + 1)):
             line_x = grid_x * scale + origin_x
             svg_content += f'        <line x1="{line_x}" y1="0" x2="{line_x}" y2="{svg_height}"/>\n'
@@ -51,26 +61,24 @@ def export_panels_svg(patterns: dict[str, list[tuple[float, float]]], output_dir
 
         svg_content += "    </g>\n\n"
 
-        # Add pattern outline (translated)
         path_data = "M " + " L ".join(
-            f"{point[0] * scale + origin_x},{point[1] * scale + origin_y}" for point in points
+            f"{p[0] * scale + origin_x},{p[1] * scale + origin_y}" for p in points
         ) + " Z"
         svg_content += f"""    <!-- Pattern Outline -->
-    <path d="{path_data}" 
-          fill="#f0f8ff" 
-          stroke="#000080" 
+    <path d="{path_data}"
+          fill="#f0f8ff"
+          stroke="#000080"
           stroke-width="2.0"/>
 
 """
-
-        center_x = sum(point[0] for point in points) / len(points)
-        center_y = sum(point[1] for point in points) / len(points)
+        center_x = sum(p[0] for p in points) / len(points)
+        center_y = sum(p[1] for p in points) / len(points)
         grain_y_start = min_y + 5
         grain_y_end = max_y - 5
         grain_center_x = center_x * scale + origin_x
         grain_start_y = grain_y_start * scale + origin_y
         grain_end_y = grain_y_end * scale + origin_y
-        # Add grain line (translated)
+
         svg_content += f"""    <line x1="{grain_center_x}" y1="{grain_start_y}"
           x2="{grain_center_x}" y2="{grain_end_y}"
           stroke="#ff0000" stroke-width="1.5" stroke-dasharray="5,5"/>
@@ -78,8 +86,6 @@ def export_panels_svg(patterns: dict[str, list[tuple[float, float]]], output_dir
              fill="#ff0000"/>
 
     """
-
-        # Add text label (translated)
         svg_content += f"""    <!-- Label -->
         <text x="{center_x * scale + origin_x}" y="{center_y * scale + origin_y}"
           font-family="Arial" font-size="40"
@@ -87,7 +93,7 @@ def export_panels_svg(patterns: dict[str, list[tuple[float, float]]], output_dir
           fill="#000080" font-weight="bold">
         {name.replace('_', ' ').title()}
         </text>
-    
+
         <!-- Dimensions -->
         <text x="{center_x * scale + origin_x}" y="{(max_y + margin - 1) * scale + origin_y}"
           font-family="Arial" font-size="20"

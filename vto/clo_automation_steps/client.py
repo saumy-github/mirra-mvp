@@ -39,13 +39,25 @@ class CLORestClient:
     def health_check(self):
         return self._get("/health")
 
-    def import_avatar(self, obj_path):
-        obj_path = str(Path(obj_path).as_posix())
-        return self._post("/import-avatar", {"path": obj_path})
+    def get_capabilities(self):
+        return self._get("/capabilities")
 
-    def import_pattern(self, dxf_path):
+    def get_import_scale_debug(self):
+        return self._get("/debug/import-scales")
+
+    def get_arrangement_debug(self):
+        return self._get("/arrangement/debug")
+
+    def get_avatar_debug(self):
+        return self._get("/avatar/debug")
+
+    def import_avatar(self, obj_path, scale=1.0):
+        obj_path = str(Path(obj_path).as_posix())
+        return self._post("/import-avatar", {"path": obj_path, "scale": float(scale)})
+
+    def import_pattern(self, dxf_path, scale=1.0):
         dxf_path = str(Path(dxf_path).as_posix())
-        return self._post("/import-pattern", {"path": dxf_path})
+        return self._post("/import-pattern", {"path": dxf_path, "scale": float(scale)})
 
     def new_project(self):
         return self._post("/new-project", {})
@@ -148,6 +160,15 @@ class CLORestClient:
 
     def get_pattern_info(self, pattern_index):
         return self._get(f"/patterns/{pattern_index}")
+
+    def get_pattern_bbox(self, pattern_index):
+        return self._get(f"/patterns/{pattern_index}/bbox")
+
+    def get_pattern_input_info(self, pattern_index):
+        return self._get(f"/patterns/{pattern_index}/input")
+
+    def get_pattern_line_lengths(self, pattern_index):
+        return self._get(f"/patterns/{pattern_index}/line-lengths")
 
     def save_project(self, zprj_path, thumbnail=True):
         zprj_path = str(Path(zprj_path).as_posix())
