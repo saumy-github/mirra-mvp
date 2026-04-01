@@ -4,7 +4,6 @@ import json
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 workspace_root = Path(__file__).resolve().parents[2]
 if str(workspace_root) not in sys.path:
@@ -77,7 +76,11 @@ def _load_manifest(patterns_dir: Path) -> dict:
         return {}
 
 
-def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patterns_dir: Optional[Path | str] = None):
+def create_context(
+    seam_map=None,
+    avatar_path: Path | str | None = None,
+    patterns_dir: Path | str | None = None,
+):
     """Build a pipeline context with default paths and seam map.
 
     Seam resolution order:

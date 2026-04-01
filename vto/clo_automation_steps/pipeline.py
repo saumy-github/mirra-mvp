@@ -55,9 +55,9 @@ def _build_report(ctx, overall_ok, step_results):
 
 def run_pipeline(
     seam_map=None,
-    avatar_path: str | None = None,
-    patterns_dir: str | None = None,
-    report_path: str | None = None,
+    avatar_path: Path | str | None = None,
+    patterns_dir: Path | str | None = None,
+    report_path: Path | str | None = None,
 ):
     """Run full CLO automation pipeline by executing all step modules.
 

@@ -15,6 +15,118 @@ SLOT_WARMUP_RETRIES = 3
 SLOT_WARMUP_SIM_STEPS = 1
 
 
+def _slot_name(slot: dict) -> str:
+    return str(
+        slot.get("ArrangementName")
+        or slot.get("name")
+        or slot.get("description")
+        or ""
+    )
+
+
+def _exact_name_candidates(slots: list[dict], preferred_names: list[str]) -> list[dict]:
+    ranked = []
+    for slot in slots:
+        name = _slot_name(slot)
+        if name in preferred_names:
+            idx = int(slot.get("index", -1))
+            if idx >= 0:
+                ranked.append(
+                    {
+                        "index": idx,
+                        "score": 1000 - preferred_names.index(name),
+                        "slot": slot,
+                    }
+                )
+    ranked.sort(key=lambda item: item["score"], reverse=True)
+    return ranked
+
+
+def _name_fragment_candidates(slots: list[dict], required_fragments: list[str]) -> list[dict]:
+    ranked = []
+    for slot in slots:
+        name = _slot_name(slot).lower()
+        if all(fragment in name for fragment in required_fragments):
+            idx = int(slot.get("index", -1))
+            if idx >= 0:
+                ranked.append({"index": idx, "score": 100, "slot": slot})
+    return ranked
+
+
+def _resolve_front_candidates(slots: list[dict]) -> list[dict]:
+    preferred = [
+        "Body_Front_Center_2",
+        "Body_Front_Center_3",
+        "Body_Front_Center_1",
+        "Body_Front_2_L",
+        "Body_Front_2_R",
+        "Body_Front_3_L",
+        "Body_Front_3_R",
+        "Body_Front_1_L",
+        "Body_Front_1_R",
+        "Body_Front_Waist",
+    ]
+    return (
+        _exact_name_candidates(slots, preferred)
+        or score_slots(slots, ["body", "front"], optional_keywords=["torso", "chest"])
+        or score_slots(slots, ["front"], optional_keywords=["body", "torso", "chest"])
+    )
+
+
+def _resolve_back_candidates(slots: list[dict]) -> list[dict]:
+    preferred = [
+        "Body_Back_Center_2",
+        "Body_Back_Center_3",
+        "Body_Back_Center_1",
+        "Body_Back_2_L",
+        "Body_Back_2_R",
+        "Body_Back_3_L",
+        "Body_Back_3_R",
+        "Body_Back_1_L",
+        "Body_Back_1_R",
+        "Body_Back_Waist",
+    ]
+    return (
+        _exact_name_candidates(slots, preferred)
+        or score_slots(slots, ["body", "back"], optional_keywords=["torso"])
+        or score_slots(slots, ["back"], optional_keywords=["body", "torso"])
+    )
+
+
+def _resolve_left_sleeve_candidates(slots: list[dict]) -> list[dict]:
+    preferred = [
+        "Shoulder_L",
+        "Arm_Outside_1_L",
+        "Arm_Outside_2_L",
+        "Arm_Front_1_L",
+        "Arm_Back_1_L",
+        "Arm_Outside_3_L",
+    ]
+    return (
+        _exact_name_candidates(slots, preferred)
+        or _name_fragment_candidates(slots, ["arm", "_l"])
+        or _name_fragment_candidates(slots, ["shoulder", "_l"])
+        or score_slots(slots, ["left", "sleeve"], optional_keywords=["arm"])
+    )
+
+
+def _resolve_right_sleeve_candidates(slots: list[dict]) -> list[dict]:
+    preferred = [
+        "Shoulder_R",
+        "Arm_Outside_1_R",
+        "Arm_Outside_2_R",
+        "Arm_Front_1_R",
+        "Arm_Back_1_R",
+        "Arm_Outside_3_R",
+    ]
+    return (
+        _exact_name_candidates(slots, preferred)
+        or _name_fragment_candidates(slots, ["arm", "_r"])
+        or _name_fragment_candidates(slots, ["shoulder", "_r"])
+        or score_slots(slots, ["right", "sleeve"], optional_keywords=["arm"])
+    )
+
+
 def _record_slot_snapshot(ctx, stage: str, arr_resp: dict, dbg: dict):
     slots = arr_resp.get("slots", []) if isinstance(arr_resp, dict) else []
     patterns = dbg.get("patterns", []) if isinstance(dbg, dict) else []
@@ -31,6 +143,32 @@ def _record_slot_snapshot(ctx, stage: str, arr_resp: dict, dbg: dict):
 def _query_slots(ctx, stage: str):
     arr_resp = ctx.client.get_arrangement_list()
     dbg = ctx.client.get_arrangement_debug()
+    if (
+        isinstance(arr_resp, dict)
+        and not arr_resp.get("success", True)
+        and isinstance(dbg, dict)
+        and dbg.get("success")
+        and dbg.get("slots")
+    ):
+        arr_resp = {
+            "success": True,
+            "count": len(dbg.get("slots", [])),
+            "slots": dbg.get("slots", []),
+            "source": "arrangement-debug-fallback",
+        }
+    elif (
+        isinstance(arr_resp, dict)
+        and not arr_resp.get("slots")
+        and isinstance(dbg, dict)
+        and dbg.get("success")
+        and dbg.get("slots")
+    ):
+        arr_resp = {
+            "success": True,
+            "count": len(dbg.get("slots", [])),
+            "slots": dbg.get("slots", []),
+            "source": "arrangement-debug-fallback",
+        }
     _record_slot_snapshot(ctx, stage=stage, arr_resp=arr_resp, dbg=dbg)
     return arr_resp, dbg
 
@@ -174,10 +312,10 @@ def run(ctx):
                 f"patterns:{dbg.get('pattern_arrangement_count', 0)}"
             )
 
-    front_candidates = score_slots(ctx.slots, ["front"], optional_keywords=["chest", "torso"])
-    back_candidates = score_slots(ctx.slots, ["back"], optional_keywords=["torso"])
-    left_candidates = score_slots(ctx.slots, ["left", "sleeve"], optional_keywords=["arm"])
-    right_candidates = score_slots(ctx.slots, ["right", "sleeve"], optional_keywords=["arm"])
+    front_candidates = _resolve_front_candidates(ctx.slots)
+    back_candidates = _resolve_back_candidates(ctx.slots)
+    left_candidates = _resolve_left_sleeve_candidates(ctx.slots)
+    right_candidates = _resolve_right_sleeve_candidates(ctx.slots)
 
     ctx.slot_candidates = {
         "front": front_candidates,
