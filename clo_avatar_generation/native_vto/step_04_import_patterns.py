@@ -177,9 +177,17 @@ def run(ctx):
             print(f"    - {r.get('message', 'Unknown import failure')}")
         return False
 
-    after_count_resp = ctx.client.get_pattern_count()
-    after_count = int(after_count_resp.get("count", 0)) if after_count_resp.get("success", True) else 0
+    import time
     expected_new = len(ctx.imported_pieces)
+    expected_total = before_count + expected_new
+    after_count = 0
+    deadline = time.time() + 30
+    while time.time() < deadline:
+        resp = ctx.client.get_pattern_count()
+        after_count = int(resp.get("count", 0)) if resp.get("success", True) else 0
+        if after_count >= expected_total:
+            break
+        time.sleep(0.5)
     print(f"  Patterns after import: {after_count}")
 
     if after_count - before_count != expected_new:

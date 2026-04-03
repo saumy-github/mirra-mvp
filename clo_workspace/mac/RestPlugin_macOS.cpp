@@ -220,13 +220,13 @@ static void ProcessCommandQueue();
 
 static json BuildArrangementDebugPayload()
 {
-    json slots = json::array();
+    json slot_list = json::array();
     auto list = PATTERN_API->GetArrangementList();
     for (int i = 0; i < static_cast<int>(list.size()); i++) {
         json entry = {{"index", i}};
         for (const auto& kv : list[i])
             entry[kv.first] = kv.second;
-        slots.push_back(entry);
+        slot_list.push_back(entry);
     }
 
     json patterns = json::array();
@@ -242,8 +242,8 @@ static json BuildArrangementDebugPayload()
 
     return {
         {"success", true},
-        {"slot_count", static_cast<int>(slots.size())},
-        {"slots", slots},
+        {"slot_count", static_cast<int>(slot_list.size())},
+        {"slots", slot_list},
         {"pattern_arrangement_count", static_cast<int>(patterns.size())},
         {"patterns", patterns}
     };

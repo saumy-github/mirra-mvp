@@ -13,16 +13,16 @@ Windows:
 
 - Python
 - CLO SDK matching your CLO build
-- Visual Studio with C++ toolchain
+- Visual Studio with C++ toolchain (2019 or 2022 recommended)
 - CMake
 
 macOS:
 
-- Python
-- CLO SDK matching your CLO build
-- Xcode Command Line Tools
-- CMake
-- Qt 5.15.16 for the CLO C++ plugin build
+- Python 3.9+
+- CLO SDK matching your CLO build (download from CLO developer portal)
+- Xcode Command Line Tools — install with `xcode-select --install`
+- CMake — install with `brew install cmake`
+- Qt 5 — install with `brew install qt@5` (Homebrew, recommended) or via the Qt online installer
 
 ## Local Config
 
@@ -44,17 +44,33 @@ Windows-only fields:
 
 macOS fields:
 
-- set `PLUGIN_PLATFORM=mac`
-- set `CLO_PLUGINS_DIR` when you want build/install helpers to know the real CLO plugin folder
-- set `CMAKE_PREFIX_PATH` or `Qt5_DIR` when CMake does not find Qt 5.15.16 automatically
-- set `CMAKE_OSX_ARCHITECTURES` when you need something other than the default `arm64`
+- `PLUGIN_PLATFORM=mac` — required
+- `CLO_SDK_PATH` — path to your extracted CLO SDK folder (must match your CLO version)
+- `CLO_PLUGINS_DIR` — CLO plugin folder, typically `~/Documents/CLO/Plugins`
+- `CMAKE_PREFIX_PATH` or `Qt5_DIR` — only needed if CMake cannot find Qt 5 automatically
+- `CMAKE_OSX_ARCHITECTURES` — set to `arm64` for Apple Silicon (M1/M2/M3/M4) or `x86_64` for Intel Mac
 
-Typical macOS values:
+Typical macOS values using Homebrew Qt (Apple Silicon):
 
-- `CLO_PLUGINS_DIR=/Users/yourname/Documents/CLO/Plugins`
-- `CMAKE_PREFIX_PATH=/Users/yourname/Qt/5.15.16/macos`
-- `Qt5_DIR=/Users/yourname/Qt/5.15.16/macos/lib/cmake/Qt5`
-- `CMAKE_OSX_ARCHITECTURES=arm64`
+```
+PLUGIN_PLATFORM=mac
+CLO_SDK_PATH=/Users/yourname/Downloads/CLO_SDK_vYYYY.X.XXX_Mac
+CLO_PLUGINS_DIR=/Users/yourname/Documents/CLO/Plugins
+CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
+Qt5_DIR=/opt/homebrew/opt/qt@5/lib/cmake/Qt5
+CMAKE_OSX_ARCHITECTURES=arm64
+```
+
+Typical macOS values using Qt online installer:
+
+```
+PLUGIN_PLATFORM=mac
+CLO_SDK_PATH=/Users/yourname/Downloads/CLO_SDK_vYYYY.X.XXX_Mac
+CLO_PLUGINS_DIR=/Users/yourname/Documents/CLO/Plugins
+CMAKE_PREFIX_PATH=/Users/yourname/Qt/5.15.16/macos
+Qt5_DIR=/Users/yourname/Qt/5.15.16/macos/lib/cmake/Qt5
+CMAKE_OSX_ARCHITECTURES=arm64
+```
 
 ## Build Entrypoints
 
@@ -176,20 +192,32 @@ If the build fails, the log is the first place to inspect because it shows the s
 
 Use the helper script to inspect the installed plugin artifact on disk:
 
-```powershell
+```bash
 python clo_workspace/scripts/get_installed_plugin_info.py
 ```
 
-The helper does not guess a plugin install path. It reads `CLO_PLUGINS_DIR` from `clo_workspace/.env`, or you can pass `--plugin-dir` explicitly.
+The helper reads `CLO_PLUGINS_DIR` from `clo_workspace/.env`, or pass `--plugin-dir` explicitly.
 
-You can also point it at a custom install directory:
+Windows — point at a custom install directory:
 
 ```powershell
 python clo_workspace/scripts/get_installed_plugin_info.py --plugin-dir "C:/Program Files/CLO Standalone OnlineAuth/plugins"
 ```
 
-To check the live running plugin version inside CLO, use:
+macOS — point at a custom install directory:
 
+```bash
+python clo_workspace/scripts/get_installed_plugin_info.py --plugin-dir "/Users/yourname/Documents/CLO/Plugins"
+```
+
+To check the live running plugin version inside CLO:
+
+Windows (PowerShell):
 ```powershell
 Invoke-RestMethod http://127.0.0.1:50505/health
+```
+
+macOS (Terminal):
+```bash
+curl http://127.0.0.1:50505/health
 ```
