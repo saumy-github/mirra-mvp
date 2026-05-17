@@ -94,31 +94,3 @@ set_target_properties(RestPlugin PROPERTIES
     BUILD_WITH_INSTALL_RPATH TRUE
     INSTALL_RPATH "@loader_path;@loader_path/../Frameworks"
 )
-
-# ─── Install target ───────────────────────────────────────────────────────────
-# Copies the dylib to the default CLO plugin search directory.
-if(DEFINED ENV{CLO_PLUGINS_DIR} AND NOT "$ENV{CLO_PLUGINS_DIR}" STREQUAL "")
-    file(TO_CMAKE_PATH "$ENV{CLO_PLUGINS_DIR}" CLO_PLUGIN_INSTALL_DIR)
-else()
-    set(CLO_PLUGIN_INSTALL_DIR "$ENV{HOME}/Documents/CLO/Plugins")
-endif()
-
-install(TARGETS RestPlugin
-    LIBRARY DESTINATION "${CLO_PLUGIN_INSTALL_DIR}"
-)
-
-# ─── Post-build verification hints ────────────────────────────────────────────
-add_custom_command(TARGET RestPlugin POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-    COMMAND ${CMAKE_COMMAND} -E echo "========================================================="
-    COMMAND ${CMAKE_COMMAND} -E echo "Build complete: $<TARGET_FILE:RestPlugin>"
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-    COMMAND ${CMAKE_COMMAND} -E echo "Verify the dylib:"
-    COMMAND ${CMAKE_COMMAND} -E echo "  file $<TARGET_FILE:RestPlugin>"
-    COMMAND ${CMAKE_COMMAND} -E echo "  otool -L $<TARGET_FILE:RestPlugin>"
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-    COMMAND ${CMAKE_COMMAND} -E echo "Install to CLO plugin folder:"
-    COMMAND ${CMAKE_COMMAND} -E echo "  cmake --install ."
-    COMMAND ${CMAKE_COMMAND} -E echo "  Target: ${CLO_PLUGIN_INSTALL_DIR}/"
-    COMMAND ${CMAKE_COMMAND} -E echo "========================================================="
-)

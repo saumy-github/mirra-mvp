@@ -83,13 +83,53 @@ Both seam tracks should remain visible during this phase:
 - the active 10-seam mapping used by current automation flows
 - the older 26-seam references and discovery path that still matter for debugging and future comparison
 
+## Versioned Builds & Vault
+
+Every installed plugin build carries its version in the filename:
+- Windows: `RestPlugin_v1.1.1.dll`
+- macOS: `libRestPlugin_v1.1.1.dylib`
+
+Older builds are kept in a machine-local **vault** folder (`CLO_PLUGIN_VAULT_DIR` in `.env`).
+CLO never loads from the vault. Only one versioned DLL lives in the CLO plugins folder at a time.
+
+**Build and install the latest version:**
+```
+python clo_workspace/build_plugin.py --install
+```
+
+**Check what is installed and what is in the vault:**
+```
+python clo_workspace/scripts/get_installed_plugin_info.py
+```
+
+**List vault versions:**
+```
+python clo_workspace/scripts/switch_plugin.py --list
+```
+
+**Roll back to a previous version:**
+```
+python clo_workspace/scripts/switch_plugin.py --activate 1.1.0
+```
+Then restart CLO to apply the change.
+
+> **Warning**: CLO must be closed before installing or switching. If two versioned DLLs
+> end up in the plugins folder at the same time, both will be loaded and will fight over
+> port 50505. The install and switch scripts enforce single-version invariant automatically.
+
+> **Note**: Rebuilding without bumping the version number overwrites the vault entry for
+> that version. Always bump the version in `clo_workspace/versions/` before a meaningful build.
+
+---
+
 ## Local Generated Folders
 
 These folders are local/generated workspace output and should not be committed:
 
 - `clo_workspace/logs/`
-- `clo_workspace/exports/`
-- `clo_workspace/projects/`
+- `clo_workspace/exports/` for local plugin exports and other disposable build outputs
+- `clo_workspace/projects/` for local CLO project files and run artifacts
+- `clo_workspace/temp/` for scratch work such as manual CMake compile-check trees
 
 ## Next docs
 

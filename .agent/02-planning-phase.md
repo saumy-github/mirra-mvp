@@ -10,7 +10,7 @@ The Planning Phase transforms our discussion into a structured, actionable plan.
 
 ## Files Generated
 
-For each plan, four files are created in the `plans/` directory with the same number prefix:
+For each plan, one file is created in the `plans/` directory with the same number prefix:
 
 ### 1. `<number>-plan.md` - The Plan File
 
@@ -68,70 +68,6 @@ Brief description of what this plan accomplishes
 - AI will NOT verify automatically unless specifically asked by the user
 - Keep the checklist concise and actionable
 
-### 2. `<number>-probs.md` - Problems File
-
-**Purpose**: Track problems encountered during execution and their solutions.
-
-**Structure**:
-
-```markdown
-# Problems: Plan <number>
-
-1. **Problem**: [Brief Problem Title]
-
-   [Detailed description of what went wrong and impact]
-
-   **Found in**: Phase X, Step Y ([context/location])
-
-   **Evidence**: [Root cause analysis, attempted solutions, and fix options]
-```
-
-**Important**:
-
-- **Only created/updated when you explicitly ask me to document a problem**
-- Starts empty when the plan is first created
-- Added to incrementally as issues arise
-
-**CRITICAL WORKFLOW** (AI must follow):
-
-1. When AI encounters a problem during execution, AI **MUST**:
-   - STOP and report the problem to you in chat
-   - Explain the root cause and proposed solution
-   - Wait for your explicit approval
-2. Only when you say **"add this to the problems file"** or similar command:
-   - Then AI updates the `<number>-probs.md` file
-3. AI **MUST NOT** update this file without your approval
-
-### 3. `<number>-flag.md` - Flags File
-
-**Purpose**: Document vulnerabilities, limitations, and items deferred for future work.
-
-**Structure**:
-
-```markdown
-# Flags: Plan <number>
-
-1. 🚩 **Vulnerability**: Brief description of security/robustness issue and mitigation.
-2. 🔮 **Future**: Feature or improvement deferred to post-MVP with brief reason.
-3. 🔮 **Learn**: Topic or concept to understand better (research item).
-4. ⚡ **Performance**: Known performance issue and potential optimization.
-5. 🔧 **Tooling**: Development tool or infrastructure improvement.
-6. ⚠️ **Limitation**: Known constraint by design or MVP scope decision.
-```
-
-**Emoji Guide**:
-
-- 🚩 Vulnerability/Risk
-- 🔮 Future work/Learn
-- ⚡ Performance
-- 🔧 Tooling
-- ⚠️ Limitation
-
-**Important**:
-
-- **Only created/updated when you explicitly ask me to document a flag**
-- Starts empty when the plan is first created
-- Used to track things we're aware of but not addressing immediately
 
 **CRITICAL WORKFLOW** (AI must follow):
 
@@ -139,54 +75,14 @@ Brief description of what this plan accomplishes
    - STOP and report it to you in chat
    - Explain why it should be flagged
    - Wait for your explicit approval
-2. Only when you say **"add this to the flags file"** or similar command:
-   - Then AI updates the `<number>-flag.md` file
-3. AI **MUST NOT** update this file without your approval
 
-### 4. `<number>-learning.md` - Learning File
-
-**Purpose**: Document new topics, patterns, and technical knowledge discovered while working with the codebase.
-
-**Structure**:
-
-```markdown
-# Learning: Plan <number>
-
-## [Topic/Concept Name]
-
-**Category**: Architecture / Pattern / Library / API / etc.
-**Description**: What was learned
-**Context**: Where this was found in the codebase
-**Resources**: Links or references for further reading (if applicable)
-**Date**: YYYY-MM-DD
-
----
-
-## [Another Topic]
-
-...
-```
-
-**Important**:
-
-- **Only created/updated when you explicitly ask me to document learnings**
-- Starts empty when the plan is first created
-- Used to capture knowledge discovered during code exploration
-
-## Workflow
-
-1. **I create the plan file** (`<number>-plan.md`) with phases and steps
-2. **I create empty placeholder files** for `<number>-probs.md`, `<number>-flag.md`, and `<number>-learning.md`
-3. **You review the plan** and provide feedback
-4. **We iterate** on the plan until you approve it
-5. **During execution**, you tell me when to document problems, flags, or learnings
 
 ## Numbering Convention
 
 Plans are numbered sequentially with 3-digit zero-padding:
 
-- `001-plan.md`, `001-probs.md`, `001-flag.md`, `001-learning.md`
-- `002-plan.md`, `002-probs.md`, `002-flag.md`, `002-learning.md`
+- `001-plan.md`, 
+- `002-plan.md`, 
 - etc.
 
 ## When This Phase Ends
@@ -194,7 +90,6 @@ Plans are numbered sequentially with 3-digit zero-padding:
 This phase concludes when:
 
 - ✅ The plan file is complete and approved
-- ✅ Placeholder files are created for probs, flags, and learning
 - ✅ You explicitly ask to move to the Execution Phase
 
 ## Output
@@ -202,9 +97,6 @@ This phase concludes when:
 Four files in the `plans/` directory:
 
 - `<number>-plan.md` (complete)
-- `<number>-probs.md` (empty initially)
-- `<number>-flag.md` (empty initially)
-- `<number>-learning.md` (empty initially)
 
 ## Next Phase
 
