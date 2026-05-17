@@ -3,7 +3,9 @@
 #include "CloNativePluginSupport.h"
 #include "PluginBuildInfo.h"
 #include "httplib.h"
+#include <atomic>
 #include <string>
+#include <map>
 #include <json.hpp>  // nlohmann json library
 
 using json = nlohmann::json;
@@ -16,6 +18,82 @@ static const char* AvatarGenderLabel(int gender)
     case 1: return "female";
     default: return "unknown";
     }
+}
+
+static std::string JsonPrimitiveToString(const json& value)
+{
+    if (value.is_string()) {
+        return value.get<std::string>();
+    }
+    if (value.is_boolean() || value.is_number() || value.is_null()) {
+        return value.dump();
+    }
+    throw std::runtime_error("Avatar property values must be JSON primitives");
+}
+
+static std::map<std::string, std::string> JsonObjectToStringMap(const json& objectValue)
+{
+    if (!objectValue.is_object()) {
+        throw std::runtime_error("properties must be a JSON object");
+    }
+
+    std::map<std::string, std::string> result;
+    for (auto it = objectValue.begin(); it != objectValue.end(); ++it) {
+        result[it.key()] = JsonPrimitiveToString(it.value());
+    }
+    return result;
+}
+
+static json StringMapToJson(const std::map<std::string, std::string>& values)
+{
+    json out = json::object();
+    for (const auto& [key, value] : values) {
+        out[key] = value;
+    }
+    return out;
+}
+
+static json StringVectorToJson(const std::vector<std::string>& values)
+{
+    json out = json::array();
+    for (const auto& value : values) {
+        out.push_back(value);
+    }
+    return out;
+}
+
+static std::vector<std::string> ComputeChangedPropertyKeys(
+    const std::map<std::string, std::string>& before,
+    const std::map<std::string, std::string>& after,
+    const std::map<std::string, std::string>& requested
+)
+{
+    std::vector<std::string> changed;
+    for (const auto& [key, _] : requested) {
+        auto beforeIt = before.find(key);
+        auto afterIt = after.find(key);
+        if (afterIt == after.end()) {
+            continue;
+        }
+        if (beforeIt == before.end() || beforeIt->second != afterIt->second) {
+            changed.push_back(key);
+        }
+    }
+    return changed;
+}
+
+static std::vector<std::string> ComputeMissingAfterKeys(
+    const std::map<std::string, std::string>& after,
+    const std::map<std::string, std::string>& requested
+)
+{
+    std::vector<std::string> missing;
+    for (const auto& [key, _] : requested) {
+        if (after.find(key) == after.end()) {
+            missing.push_back(key);
+        }
+    }
+    return missing;
 }
 
 // Command queue system for thread-safe API calls
@@ -44,6 +122,7 @@ struct APICommand {
     float floatParam4 = 0.0f; // rotation.rx
     float floatParam5 = 0.0f; // rotation.ry
     float floatParam6 = 0.0f; // rotation.rz
+    std::map<std::string, std::string> stringMapParam1; // avatar properties
 };
 
 // ─── Result tracking ────────────────────────────────────────────────────────
@@ -57,7 +136,9 @@ std::queue<APICommand>       g_commandQueue;
 std::mutex                   g_queueMutex;
 std::vector<CommandResult>   g_lastResults;
 std::mutex                   g_resultsMutex;
-bool                         g_queueProcessing = false;
+std::atomic<bool>            g_queueProcessing{false};
+static std::atomic<int>      g_patternsLoaded{0};
+static Server*               g_server = nullptr;
 
 struct ImportScaleEntry {
     std::string path;
@@ -73,15 +154,46 @@ std::vector<ImportScaleEntry> g_lastPatternImports;
 std::mutex g_nativeAvatarDebugMutex;
 NativeAvatarDebugState g_nativeAvatarDebugState;
 
+struct AvatarPropertyDebugState {
+    unsigned int avatar_index = 0;
+    bool success = false;
+    std::string unit = "raw";
+    std::string last_message;
+    std::map<std::string, std::string> requested_properties;
+    std::map<std::string, std::string> properties_before;
+    std::map<std::string, std::string> properties_after;
+    std::vector<std::string> changed_keys;
+    std::vector<std::string> missing_after_keys;
+};
+
+std::mutex g_avatarPropertyDebugMutex;
+AvatarPropertyDebugState g_avatarPropertyDebugState;
+
+static json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
+{
+    return {
+        {"success", true},
+        {"avatar_index", state.avatar_index},
+        {"apply_success", state.success},
+        {"unit", state.unit},
+        {"requested_properties", StringMapToJson(state.requested_properties)},
+        {"properties_before", StringMapToJson(state.properties_before)},
+        {"properties_after", StringMapToJson(state.properties_after)},
+        {"changed_keys", StringVectorToJson(state.changed_keys)},
+        {"missing_after_keys", StringVectorToJson(state.missing_after_keys)},
+        {"last_message", state.last_message}
+    };
+}
+
 // Global flag to keep server running
-bool g_serverRunning = false;
+std::atomic<bool> g_serverRunning{false};
 std::thread g_serverThread;
 
 // Forward declaration — defined later in this file.
 void ProcessCommandQueue();
 
 // Windows timer used to drain the command queue on CLO's main thread.
-// SetTimer is called once from DoFunction(); the callback fires every 500 ms
+// SetTimer is called once from DoFunction(); the callback fires every 500ms
 // via CLO's Win32 message pump — no menu click needed after the first one.
 UINT_PTR g_timerId = 0;
 
@@ -103,6 +215,7 @@ void StartRESTServer()
 {
     try {
         Server svr;
+        g_server = &svr;
 
         // Health check endpoint
         svr.Get("/health", [](const Request&, Response& res) {
@@ -141,7 +254,10 @@ void StartRESTServer()
                 {"has_native_avatar_import", true},
                 {"has_avatar_measurement_import", true},
                 {"has_native_avatar_debug", true},
-                {"has_avatar_state_readback", true},
+                {"has_avatar_property_set", true},
+                {"has_avatar_property_debug", true},
+                {"has_avatar_state_readback", false},
+                {"has_avatar_avt_export", false},
                 {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
             };
             res.set_content(response.dump(), "application/json");
@@ -303,55 +419,33 @@ void StartRESTServer()
             }
         });
 
-        // Avatar state readback endpoint for Step-1 generation workflow.
-        svr.Get("/avatars/state", [](const Request&, Response& res) {
+        // Experimental avatar-property debug endpoint for JSON/property mutation research.
+        svr.Get("/avatar/property-debug", [](const Request&, Response& res) {
             try {
-                unsigned int avatarCount = 0;
-                std::vector<std::string> avatarNames;
-                std::vector<int> avatarGenders;
-                json avatars = json::array();
-
-                try { avatarCount = EXPORT_API->GetAvatarCount(); } catch (...) {}
-                try { avatarNames = EXPORT_API->GetAvatarNameList(); } catch (...) {}
-                try { avatarGenders = EXPORT_API->GetAvatarGenderList(); } catch (...) {}
-
-                for (unsigned int i = 0; i < avatarCount; ++i) {
-                    std::map<std::string, std::string> properties;
-                    try {
-                        properties = UTILITY_API->GetAvatarProperties(i);
-                    }
-                    catch (...) {}
-
-                    json propertyJson = json::object();
-                    for (const auto& [key, value] : properties) {
-                        propertyJson[key] = value;
-                    }
-
-                    std::string avatarName =
-                        (i < avatarNames.size() ? avatarNames[i] : ("avatar_" + std::to_string(i)));
-                    int avatarGender =
-                        (i < avatarGenders.size() ? avatarGenders[i] : -1);
-
-                    avatars.push_back({
-                        {"index", i},
-                        {"name", avatarName},
-                        {"gender_code", avatarGender},
-                        {"gender", AvatarGenderLabel(avatarGender)},
-                        {"properties", propertyJson}
-                    });
+                AvatarPropertyDebugState snapshot;
+                {
+                    std::lock_guard<std::mutex> lock(g_avatarPropertyDebugMutex);
+                    snapshot = g_avatarPropertyDebugState;
                 }
-
-                json response = {
-                    {"success", true},
-                    {"avatar_count", avatarCount},
-                    {"avatars", avatars}
-                };
-                res.set_content(response.dump(), "application/json");
+                res.set_content(BuildAvatarPropertyDebugJson(snapshot).dump(), "application/json");
             }
             catch (const std::exception& e) {
                 json response = {{"success", false}, {"error", e.what()}};
                 res.set_content(response.dump(), "application/json");
             }
+        });
+
+        // Avatar state readback endpoint.
+        // CLO API calls (GetAvatarCount, GetAvatarNameList, GetAvatarProperties) cannot be
+        // made safely from the HTTP thread on Windows — they raise SEH exceptions that
+        // catch(...) does not intercept under /EHs, crashing the server thread.
+        // This endpoint returns an error until avatar state is cached on the main thread.
+        svr.Get("/avatars/state", [](const Request&, Response& res) {
+            json response = {
+                {"success", false},
+                {"error", "avatars/state: CLO API calls not safe from HTTP thread on Windows; pending main-thread caching"}
+            };
+            res.set_content(response.dump(), "application/json");
         });
 
     // Import Avatar (OBJ file) - QUEUED
@@ -438,6 +532,51 @@ void StartRESTServer()
                 {"csv_path", csvPath},
                 {"template_path", templatePath},
                 {"queue_size", g_commandQueue.size()}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // Experimental JSON/property path for avatar mutation research.
+    // This does not replace CSV import; it gives us a second route to test
+    // whether CLO's avatar property setter can control body values directly.
+    svr.Post("/avatar/set-properties", [](const Request& req, Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            if (!j.contains("properties")) {
+                throw std::runtime_error("Missing required field: properties");
+            }
+
+            APICommand cmd;
+            cmd.type = "avatar-set-properties";
+            cmd.param3 = j.value("avatar_index", 0);
+            cmd.param2 = j.value("unit", std::string("raw"));
+            cmd.stringMapParam1 = JsonObjectToStringMap(j["properties"]);
+
+            json propertyKeys = json::array();
+            for (const auto& [key, _] : cmd.stringMapParam1) {
+                propertyKeys.push_back(key);
+            }
+
+            int queueSize = 0;
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+                queueSize = (int)g_commandQueue.size();
+            }
+
+            json response = {
+                {"success", true},
+                {"message", "Avatar property update queued"},
+                {"avatar_index", cmd.param3},
+                {"unit", cmd.param2},
+                {"property_count", (int)cmd.stringMapParam1.size()},
+                {"property_keys", propertyKeys},
+                {"queue_size", queueSize}
             };
             res.set_content(response.dump(), "application/json");
         }
@@ -760,6 +899,35 @@ void StartRESTServer()
         }
     });
 
+    // Export current avatar as AVT - QUEUED (main-thread safe)
+    svr.Post("/export-avatar-avt", [](const Request& req, Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            APICommand cmd;
+            cmd.type = "export-avatar-avt";
+            cmd.param1 = j["path"];
+
+            int queueSize = 0;
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+                queueSize = (int)g_commandQueue.size();
+            }
+
+            json response = {
+                {"success", true},
+                {"message", "Avatar AVT export queued"},
+                {"path", cmd.param1},
+                {"queue_size", queueSize}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
     // ── New Project / Clear Scene ────────────────────────────────────────────
     svr.Post("/new-project", [](const Request&, Response& res) {
         try {
@@ -935,17 +1103,15 @@ void StartRESTServer()
     // ── Status — queue state + last batch results (read-only, no queue) ──────
     svr.Get("/status", [](const Request&, Response& res) {
         try {
-            int  queueSize      = 0;
-            int  patternsLoaded = 0;
-            bool processing     = g_queueProcessing;
+            int  queueSize  = 0;
+            bool processing = g_queueProcessing;
 
             {
                 std::lock_guard<std::mutex> lock(g_queueMutex);
                 queueSize = (int)g_commandQueue.size();
             }
 
-            // GetPatternCount is a lightweight read — safe to call here
-            try { patternsLoaded = PATTERN_API->GetPatternCount(); } catch (...) {}
+            int patternsLoaded = g_patternsLoaded.load();
 
             json lastResults = json::array();
             {
@@ -980,7 +1146,7 @@ void StartRESTServer()
     svr.set_write_timeout(5, 0); // 5 seconds
     
     while (g_serverRunning) {
-        bool success = svr.listen("0.0.0.0", 50505);
+        bool success = svr.listen("127.0.0.1", 50505);
         if (!success && g_serverRunning) {
             // Server failed - wait and retry
             std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -993,12 +1159,18 @@ void StartRESTServer()
     } // end try
     catch (const std::exception& e) {
         g_serverRunning = false;
-        // Exception during server operation
     }
     catch (...) {
         g_serverRunning = false;
-        // Unknown exception
     }
+    g_server = nullptr;
+}
+
+void PluginShutdown()
+{
+    g_serverRunning = false;
+    if (g_timerId != 0) { KillTimer(NULL, g_timerId); g_timerId = 0; }
+    if (g_server != nullptr) { g_server->stop(); }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1093,6 +1265,61 @@ void ProcessCommandQueue()
                     ? "Imported native avatar measurements: " + cmd.param1
                     : "Failed to import native avatar measurements: " + cmd.param1;
             }
+            else if (cmd.type == "avatar-set-properties") {
+                AvatarPropertyDebugState debugState;
+                debugState.avatar_index = (cmd.param3 >= 0 ? static_cast<unsigned int>(cmd.param3) : 0);
+                debugState.unit = (cmd.param2.empty() ? "raw" : cmd.param2);
+                debugState.requested_properties = cmd.stringMapParam1;
+
+                try {
+                    try {
+                        debugState.properties_before = UTILITY_API->GetAvatarProperties(debugState.avatar_index);
+                    }
+                    catch (...) {}
+
+                    UTILITY_API->SetAvatarProperties(debugState.avatar_index, cmd.stringMapParam1);
+
+                    try {
+                        debugState.properties_after = UTILITY_API->GetAvatarProperties(debugState.avatar_index);
+                    }
+                    catch (...) {}
+
+                    debugState.changed_keys = ComputeChangedPropertyKeys(
+                        debugState.properties_before,
+                        debugState.properties_after,
+                        debugState.requested_properties
+                    );
+                    debugState.missing_after_keys = ComputeMissingAfterKeys(
+                        debugState.properties_after,
+                        debugState.requested_properties
+                    );
+                    result.success = true;
+                    result.message =
+                        "Avatar properties applied to avatar " + std::to_string(debugState.avatar_index) +
+                        " (requested=" + std::to_string(debugState.requested_properties.size()) +
+                        ", changed=" + std::to_string(debugState.changed_keys.size()) +
+                        ", missing_after=" + std::to_string(debugState.missing_after_keys.size()) + ")";
+                    debugState.success = true;
+                    debugState.last_message = result.message;
+                }
+                catch (const std::exception& e) {
+                    result.success = false;
+                    result.message = "Failed to set avatar properties: " + std::string(e.what());
+                    debugState.success = false;
+                    debugState.last_message = result.message;
+                }
+                catch (...) {
+                    result.success = false;
+                    result.message = "Failed to set avatar properties: unknown exception";
+                    debugState.success = false;
+                    debugState.last_message = result.message;
+                }
+
+                {
+                    std::lock_guard<std::mutex> lock(g_avatarPropertyDebugMutex);
+                    g_avatarPropertyDebugState = debugState;
+                }
+            }
             else if (cmd.type == "import-pattern") {
                 Marvelous::ImportDxfOption options;
                 options.m_Scale   = (cmd.floatParam1 > 0.0f ? cmd.floatParam1 : 1.0f);
@@ -1107,6 +1334,8 @@ void ProcessCommandQueue()
                 result.message = result.success
                     ? "Imported pattern: " + cmd.param1 + " (scale=" + std::to_string(options.m_Scale) + ")"
                     : "Failed to import pattern: " + cmd.param1;
+                if (result.success)
+                    g_patternsLoaded++;
             }
             // ── Create seam ───────────────────────────────────────────────
             else if (cmd.type == "create-seam") {
@@ -1147,6 +1376,7 @@ void ProcessCommandQueue()
             // ── New project ───────────────────────────────────────────────
             else if (cmd.type == "new-project") {
                 UTILITY_API->NewProject();
+                g_patternsLoaded = 0;
                 {
                     std::lock_guard<std::mutex> lock(g_importDebugMutex);
                     g_lastPatternImports.clear();
@@ -1157,6 +1387,10 @@ void ProcessCommandQueue()
                 {
                     std::lock_guard<std::mutex> lock(g_nativeAvatarDebugMutex);
                     g_nativeAvatarDebugState = NativeAvatarDebugState{};
+                }
+                {
+                    std::lock_guard<std::mutex> lock(g_avatarPropertyDebugMutex);
+                    g_avatarPropertyDebugState = AvatarPropertyDebugState{};
                 }
                 result.success = true;
                 result.message = "New project created";
@@ -1202,6 +1436,12 @@ void ProcessCommandQueue()
                     ? "Project saved: " + out
                     : "Save failed";
             }
+            else if (cmd.type == "export-avatar-avt") {
+                // ExportAVT raises SEH exceptions that are not caught by catch(std::exception&)
+                // under /EHs, crashing CLO's main thread. Disabled until SEH handling is added.
+                result.success = false;
+                result.message = "export-avatar-avt: ExportAVT crashes CLO main thread via SEH; use zprj extraction instead";
+            }
             else {
                 result.message = "Unknown command type: " + cmd.type;
             }
@@ -1244,12 +1484,12 @@ CLO_PLUGIN_SPECIFIER void DoFunction()
         // First, start server if not running
         if (!g_serverRunning) {
             UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 500 ms — no further menu clicks needed.");
-            
+
             g_serverRunning = true;
             g_serverThread = std::thread(StartRESTServer);
             g_serverThread.detach();
 
-            // Register a 500 ms Windows timer so the queue is drained on the
+            // Register a 500ms Windows timer so the queue is drained on the
             // main thread automatically (CLO v2025 has no DoFunctionContinuously).
             if (g_timerId == 0) {
                 g_timerId = SetTimer(NULL, 0, 500, QueueDrainTimer);
@@ -1291,5 +1531,5 @@ CLO_PLUGIN_SPECIFIER void DoFunctionAfterLoadingCLOFile(const char* fileExtensio
 }
 
 // DoFunctionContinuously is NOT called by CLO v2025 (not in SDK).
-// Queue draining is handled by QueueDrainTimer (SetTimer, 500 ms).
+// Queue draining is handled by QueueDrainTimer (SetTimer, 500ms).
 CLO_PLUGIN_SPECIFIER void DoFunctionContinuously() { }

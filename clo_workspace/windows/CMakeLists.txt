@@ -32,12 +32,6 @@ target_include_directories(RestPlugin PRIVATE
 find_library(CLO_API_INTERFACE NAMES CLOAPIInterface HINTS ${CLO_API_INTERFACE_DIR}/Lib REQUIRED)
 find_file(CLO_API_INTERFACE_DLL NAMES CLOAPIInterface.dll HINTS ${CLO_API_INTERFACE_DIR}/Lib REQUIRED)
 
-if(DEFINED ENV{CLO_PLUGINS_DIR} AND NOT "$ENV{CLO_PLUGINS_DIR}" STREQUAL "")
-    file(TO_CMAKE_PATH "$ENV{CLO_PLUGINS_DIR}" WINDOWS_PLUGIN_INSTALL_DIR)
-else()
-    set(WINDOWS_PLUGIN_INSTALL_DIR "<set CLO_PLUGINS_DIR in clo_workspace/.env>")
-endif()
-
 # Windows specific settings
 if(MSVC)
     # Runtime library
@@ -61,19 +55,3 @@ if(MSVC)
         ${CLO_API_INTERFACE}
     )
 endif()
-
-# Post build message
-add_custom_command(TARGET RestPlugin POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-    COMMAND ${CMAKE_COMMAND} -E echo "========================================="
-    COMMAND ${CMAKE_COMMAND} -E echo "Build complete!"
-    COMMAND ${CMAKE_COMMAND} -E echo "========================================="
-    COMMAND ${CMAKE_COMMAND} -E echo "DLL Location: ${CMAKE_BINARY_DIR}/Release/RestPlugin.dll"
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-    COMMAND ${CMAKE_COMMAND} -E echo "To install:"
-    COMMAND ${CMAKE_COMMAND} -E echo "1. Close CLO if running"
-    COMMAND ${CMAKE_COMMAND} -E echo "2. Copy to: ${WINDOWS_PLUGIN_INSTALL_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E echo "3. Restart CLO"
-    COMMAND ${CMAKE_COMMAND} -E echo "========================================="
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-)

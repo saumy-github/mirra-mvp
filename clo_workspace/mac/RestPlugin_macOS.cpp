@@ -55,6 +55,7 @@ extern ImportAPI* IMPORT_API;
 struct ExportAPI {
     std::string ExportGLTF(const std::string&, const Marvelous::ImportExportOption&, bool) { return std::string(); }
     std::string ExportZPrj(const std::string&, bool) { return std::string(); }
+    std::string ExportAVT(const std::string&) { return std::string(); }
     unsigned int GetAvatarCount() { return 0; }
     std::vector<std::string> GetAvatarNameList() { return {}; }
     std::vector<int> GetAvatarGenderList() { return {}; }
@@ -65,6 +66,7 @@ struct UtilityAPI {
     void NewProject() {}
     bool Simulate(unsigned int) { return false; }
     std::map<std::string, std::string> GetAvatarProperties(unsigned int) { return {}; }
+    void SetAvatarProperties(unsigned int, const std::map<std::string, std::string>&) {}
 };
 extern UtilityAPI* UTILITY_API;
 
@@ -139,6 +141,17 @@ public:
 using json = nlohmann::json;
 using namespace httplib;
 
+#if defined(__GNUC__) || defined(__clang__)
+#  define CLO_EXPORT      extern "C" __attribute__((visibility("default")))
+#  define DYLIB_DESTRUCTOR __attribute__((destructor))
+#else
+// Windows IntelliSense / MSVC: strip Clang/GCC-only attributes so the editor
+// can parse this file without false-positive errors. The actual build always
+// uses Clang on macOS where both attributes are supported.
+#  define CLO_EXPORT      extern "C"
+#  define DYLIB_DESTRUCTOR
+#endif
+
 static const char* AvatarGenderLabel(int gender)
 {
     switch (gender) {
@@ -168,6 +181,7 @@ struct APICommand {
     float floatParam4 = 0.f;
     float floatParam5 = 0.f;
     float floatParam6 = 0.f;
+    std::map<std::string, std::string> stringMapParam1; // avatar properties
 
     // Sync-read support: if isSync==true the result is delivered via syncPromise
     // instead of appended to g_lastResults.
@@ -215,18 +229,109 @@ static QTimer* g_drainTimer = nullptr;
 // Raw pointer to the httplib server so the destructor can call stop().
 static Server* g_server = nullptr;
 
+// ─── Avatar property helpers (pure C++, no platform dependency) ──────────────
+
+static std::string JsonPrimitiveToString(const json& value)
+{
+    if (value.is_string()) return value.get<std::string>();
+    if (value.is_boolean() || value.is_number() || value.is_null()) return value.dump();
+    throw std::runtime_error("Avatar property values must be JSON primitives");
+}
+
+static std::map<std::string, std::string> JsonObjectToStringMap(const json& obj)
+{
+    if (!obj.is_object()) throw std::runtime_error("properties must be a JSON object");
+    std::map<std::string, std::string> result;
+    for (auto it = obj.begin(); it != obj.end(); ++it)
+        result[it.key()] = JsonPrimitiveToString(it.value());
+    return result;
+}
+
+static json StringMapToJson(const std::map<std::string, std::string>& values)
+{
+    json out = json::object();
+    for (const auto& [k, v] : values) out[k] = v;
+    return out;
+}
+
+static json StringVectorToJson(const std::vector<std::string>& values)
+{
+    json out = json::array();
+    for (const auto& v : values) out.push_back(v);
+    return out;
+}
+
+static std::vector<std::string> ComputeChangedPropertyKeys(
+    const std::map<std::string, std::string>& before,
+    const std::map<std::string, std::string>& after,
+    const std::map<std::string, std::string>& requested)
+{
+    std::vector<std::string> changed;
+    for (const auto& [key, _] : requested) {
+        auto beforeIt = before.find(key);
+        auto afterIt  = after.find(key);
+        if (afterIt == after.end()) continue;
+        if (beforeIt == before.end() || beforeIt->second != afterIt->second)
+            changed.push_back(key);
+    }
+    return changed;
+}
+
+static std::vector<std::string> ComputeMissingAfterKeys(
+    const std::map<std::string, std::string>& after,
+    const std::map<std::string, std::string>& requested)
+{
+    std::vector<std::string> missing;
+    for (const auto& [key, _] : requested)
+        if (after.find(key) == after.end()) missing.push_back(key);
+    return missing;
+}
+
+// ─── Avatar property debug state ─────────────────────────────────────────────
+
+struct AvatarPropertyDebugState {
+    unsigned int avatar_index = 0;
+    bool success = false;
+    std::string unit = "raw";
+    std::string last_message;
+    std::map<std::string, std::string> requested_properties;
+    std::map<std::string, std::string> properties_before;
+    std::map<std::string, std::string> properties_after;
+    std::vector<std::string> changed_keys;
+    std::vector<std::string> missing_after_keys;
+};
+
+static std::mutex g_avatarPropertyDebugMutex;
+static AvatarPropertyDebugState g_avatarPropertyDebugState;
+
+static json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
+{
+    return {
+        {"success", true},
+        {"avatar_index", state.avatar_index},
+        {"apply_success", state.success},
+        {"unit", state.unit},
+        {"requested_properties", StringMapToJson(state.requested_properties)},
+        {"properties_before", StringMapToJson(state.properties_before)},
+        {"properties_after", StringMapToJson(state.properties_after)},
+        {"changed_keys", StringVectorToJson(state.changed_keys)},
+        {"missing_after_keys", StringVectorToJson(state.missing_after_keys)},
+        {"last_message", state.last_message}
+    };
+}
+
 // ─── Forward declaration ──────────────────────────────────────────────────────
 static void ProcessCommandQueue();
 
 static json BuildArrangementDebugPayload()
 {
-    json slots = json::array();
+    json slot_list = json::array();
     auto list = PATTERN_API->GetArrangementList();
     for (int i = 0; i < static_cast<int>(list.size()); i++) {
         json entry = {{"index", i}};
         for (const auto& kv : list[i])
             entry[kv.first] = kv.second;
-        slots.push_back(entry);
+        slot_list.push_back(entry);
     }
 
     json patterns = json::array();
@@ -242,8 +347,8 @@ static json BuildArrangementDebugPayload()
 
     return {
         {"success", true},
-        {"slot_count", static_cast<int>(slots.size())},
-        {"slots", slots},
+        {"slot_count", static_cast<int>(slot_list.size())},
+        {"slots", slot_list},
         {"pattern_arrangement_count", static_cast<int>(patterns.size())},
         {"patterns", patterns}
     };
@@ -484,6 +589,47 @@ static void ProcessCommandQueue()
                     ? "Project saved: " + out
                     : "Save failed";
             }
+            // ── Export avatar as AVT ──────────────────────────────────────────
+            else if (cmd.type == "export-avatar-avt") {
+                auto out = EXPORT_API->ExportAVT(cmd.param1);
+                asyncResult.success = !out.empty();
+                asyncResult.message = asyncResult.success
+                    ? "Avatar AVT exported: " + out
+                    : "Avatar AVT export failed";
+            }
+            // ── Avatar property mutation ──────────────────────────────────────
+            else if (cmd.type == "avatar-set-properties") {
+                AvatarPropertyDebugState debugState;
+                debugState.avatar_index = (cmd.param3 >= 0 ? static_cast<unsigned int>(cmd.param3) : 0);
+                debugState.unit = (cmd.param2.empty() ? "raw" : cmd.param2);
+                debugState.requested_properties = cmd.stringMapParam1;
+                try {
+                    try { debugState.properties_before = UTILITY_API->GetAvatarProperties(debugState.avatar_index); } catch (...) {}
+                    UTILITY_API->SetAvatarProperties(debugState.avatar_index, cmd.stringMapParam1);
+                    try { debugState.properties_after = UTILITY_API->GetAvatarProperties(debugState.avatar_index); } catch (...) {}
+                    debugState.changed_keys = ComputeChangedPropertyKeys(
+                        debugState.properties_before, debugState.properties_after, debugState.requested_properties);
+                    debugState.missing_after_keys = ComputeMissingAfterKeys(
+                        debugState.properties_after, debugState.requested_properties);
+                    asyncResult.success = true;
+                    asyncResult.message =
+                        "Avatar properties applied to avatar " + std::to_string(debugState.avatar_index) +
+                        " (requested=" + std::to_string(debugState.requested_properties.size()) +
+                        ", changed=" + std::to_string(debugState.changed_keys.size()) +
+                        ", missing_after=" + std::to_string(debugState.missing_after_keys.size()) + ")";
+                    debugState.success = true;
+                    debugState.last_message = asyncResult.message;
+                } catch (const std::exception& e) {
+                    asyncResult.success = false;
+                    asyncResult.message = "Failed to set avatar properties: " + std::string(e.what());
+                    debugState.success = false;
+                    debugState.last_message = asyncResult.message;
+                }
+                {
+                    std::lock_guard<std::mutex> lock(g_avatarPropertyDebugMutex);
+                    g_avatarPropertyDebugState = debugState;
+                }
+            }
             // ── Sync reads ────────────────────────────────────────────────────
             else if (cmd.type == "read-pattern-count") {
                 int cnt = PATTERN_API->GetPatternCount();
@@ -709,6 +855,14 @@ static void ProcessCommandQueue()
                     slotNames
                 );
             }
+            else if (cmd.type == "read-avatar-property-debug") {
+                AvatarPropertyDebugState snapshot;
+                {
+                    std::lock_guard<std::mutex> lock(g_avatarPropertyDebugMutex);
+                    snapshot = g_avatarPropertyDebugState;
+                }
+                syncResult = BuildAvatarPropertyDebugJson(snapshot);
+            }
             else if (cmd.type == "read-avatar-state") {
                 unsigned int avatarCount = 0;
                 std::vector<std::string> avatarNames;
@@ -825,7 +979,10 @@ static void StartRESTServer()
             {"has_native_avatar_import", true},
             {"has_avatar_measurement_import", true},
             {"has_native_avatar_debug", true},
+            {"has_avatar_property_set", true},
+            {"has_avatar_property_debug", true},
             {"has_avatar_state_readback", true},
+            {"has_avatar_avt_export", true},
             {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
         };
         res.set_content(r.dump(), "application/json");
@@ -1245,6 +1402,73 @@ static void StartRESTServer()
         }
     });
 
+    // ── POST /export-avatar-avt ───────────────────────────────────────────────
+    svr.Post("/export-avatar-avt", [](const httplib::Request& req, httplib::Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            APICommand cmd;
+            cmd.type   = "export-avatar-avt";
+            cmd.param1 = j.at("path");
+            int qsize = 0;
+            {
+                std::lock_guard<std::mutex> lk(g_queueMutex);
+                g_commandQueue.push(cmd);
+                qsize = static_cast<int>(g_commandQueue.size());
+            }
+            json r = {{"success", true}, {"message", "Avatar AVT export queued"},
+                      {"path", cmd.param1}, {"queue_size", qsize}};
+            res.set_content(r.dump(), "application/json");
+        } catch (const std::exception& e) {
+            json r = {{"success", false}, {"error", e.what()}};
+            res.status = 400;
+            res.set_content(r.dump(), "application/json");
+        }
+    });
+
+    // ── POST /avatar/set-properties ───────────────────────────────────────────
+    svr.Post("/avatar/set-properties", [](const httplib::Request& req, httplib::Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            if (!j.contains("properties"))
+                throw std::runtime_error("Missing required field: properties");
+            APICommand cmd;
+            cmd.type   = "avatar-set-properties";
+            cmd.param3 = j.value("avatar_index", 0);
+            cmd.param2 = j.value("unit", std::string("raw"));
+            cmd.stringMapParam1 = JsonObjectToStringMap(j["properties"]);
+            json propertyKeys = json::array();
+            for (const auto& [key, _] : cmd.stringMapParam1)
+                propertyKeys.push_back(key);
+            int qsize = 0;
+            {
+                std::lock_guard<std::mutex> lk(g_queueMutex);
+                g_commandQueue.push(cmd);
+                qsize = static_cast<int>(g_commandQueue.size());
+            }
+            json r = {
+                {"success", true},
+                {"message", "Avatar property update queued"},
+                {"avatar_index", cmd.param3},
+                {"unit", cmd.param2},
+                {"property_count", static_cast<int>(cmd.stringMapParam1.size())},
+                {"property_keys", propertyKeys},
+                {"queue_size", qsize}
+            };
+            res.set_content(r.dump(), "application/json");
+        } catch (const std::exception& e) {
+            json r = {{"success", false}, {"error", e.what()}};
+            res.status = 400;
+            res.set_content(r.dump(), "application/json");
+        }
+    });
+
+    // ── GET /avatar/property-debug ────────────────────────────────────────────
+    svr.Get("/avatar/property-debug", [](const httplib::Request&, httplib::Response& res) {
+        json r = dispatchSyncRead("read-avatar-property-debug");
+        res.status = r.value("success", false) ? 200 : 503;
+        res.set_content(r.dump(), "application/json");
+    });
+
     // ── POST /save-project ────────────────────────────────────────────────────
     // Expects: {"path": "...", "thumbnail": true}
     svr.Post("/save-project", [](const httplib::Request& req, httplib::Response& res) {
@@ -1278,7 +1502,7 @@ static void StartRESTServer()
 }
 
 // ─── dylib destructor — called on unload (main thread on macOS) ───────────────
-__attribute__((destructor))
+DYLIB_DESTRUCTOR
 static void PluginShutdown()
 {
     g_serverRunning = false;
@@ -1294,7 +1518,6 @@ static void PluginShutdown()
 }
 
 // ─── CLO plugin entry points ──────────────────────────────────────────────────
-#define CLO_EXPORT extern "C" __attribute__((visibility("default")))
 
 CLO_EXPORT const char* GetActionName()
 {

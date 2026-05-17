@@ -84,12 +84,17 @@ def _write_output_json(ctx: Step1Context) -> None:
             "target_measurements": str(ctx.artifact_path("target_measurements.json")) if (ctx.artifact_path("target_measurements.json")).exists() else None,
             "clo_payload_json": str(ctx.clo_payload_json_path) if ctx.clo_payload_json_path else None,
             "clo_payload_bridge": str(ctx.clo_payload_bridge_path) if ctx.clo_payload_bridge_path else None,
+            "clo_payload_properties": str(ctx.clo_payload_property_path) if ctx.clo_payload_property_path else None,
+            "clo_payload_avt_patch": str(ctx.clo_payload_avt_patch_path) if ctx.clo_payload_avt_patch_path else None,
             "import_result": str(ctx.artifact_path("import_result.json")) if (ctx.artifact_path("import_result.json")).exists() else None,
             "apply_result": str(ctx.artifact_path("apply_result.json")) if (ctx.artifact_path("apply_result.json")).exists() else None,
             "readback_measurements": str(ctx.artifact_path("readback_measurements.json")) if (ctx.artifact_path("readback_measurements.json")).exists() else None,
             "error_report": str(ctx.artifact_path("error_report.json")) if (ctx.artifact_path("error_report.json")).exists() else None,
+            "measurement_verification": str(ctx.artifact_path("measurement_verification.json")) if (ctx.artifact_path("measurement_verification.json")).exists() else None,
+            "save_outputs": str(ctx.artifact_path("save_outputs.json")) if (ctx.artifact_path("save_outputs.json")).exists() else None,
             "run_summary": str(ctx.artifact_path("run_summary.json")),
             "saved_project": str(ctx.exported_project_path) if ctx.exported_project_path else None,
+            "saved_avatar_direct": str(ctx.direct_avatar_export_path) if ctx.direct_avatar_export_path else None,
             "saved_avatar": str(ctx.extracted_avatar_path) if ctx.extracted_avatar_path else None,
             "saved_artifacts": dict(ctx.extracted_artifacts),
         },
@@ -149,7 +154,7 @@ def run_pipeline(ctx: Step1Context) -> Step1Context:
         ("step_08_apply_measurements", step_08_apply_measurements, True, False),
         ("step_09_readback", step_09_readback, False, False),
         ("step_10_compute_error", step_10_compute_error, False, False),
-        ("step_11_save_outputs", step_11_save_outputs, False, True),
+        ("step_11_save_outputs", step_11_save_outputs, True, True),
     ]
 
     pipeline_failed = False

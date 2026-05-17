@@ -54,6 +54,9 @@ class CLORestClient:
     def get_native_avatar_debug(self) -> dict:
         return self._get("/avatar/native-debug")
 
+    def get_avatar_property_debug(self) -> dict:
+        return self._get("/avatar/property-debug")
+
     def get_avatar_state(self) -> dict:
         return self._get("/avatars/state")
 
@@ -72,6 +75,21 @@ class CLORestClient:
             payload["template_path"] = str(Path(template_path).as_posix())
         return self._post("/import-avatar-measurements", payload)
 
+    def set_avatar_properties(
+        self,
+        properties: dict[str, object],
+        *,
+        avatar_index: int = 0,
+        unit: str | None = None,
+    ) -> dict:
+        payload: dict[str, object] = {
+            "avatar_index": int(avatar_index),
+            "properties": properties,
+        }
+        if unit is not None:
+            payload["unit"] = unit
+        return self._post("/avatar/set-properties", payload)
+
     def save_project(self, zprj_path: str | Path, thumbnail: bool = True) -> dict:
         payload = {
             "path": str(Path(zprj_path).as_posix()),
@@ -79,16 +97,29 @@ class CLORestClient:
         }
         return self._post("/save-project", payload)
 
-    def wait_for_queue(self, timeout: int = 30, poll_interval: float = 0.3) -> dict:
+    def export_avatar_avt(self, avt_path: str | Path) -> dict:
+        payload = {"path": str(Path(avt_path).as_posix())}
+        return self._post("/export-avatar-avt", payload)
+
+    def wait_for_queue(
+        self,
+        timeout: int = 30,
+        poll_interval: float = 0.3,
+        *,
+        trigger_execute_fallback: bool = False,
+    ) -> dict:
         deadline = time.time() + timeout
         last_trigger = 0.0
+        last_status: dict = {}
         while time.time() < deadline:
             status = self.get_status()
+            last_status = status
             if status.get("queue_size", 1) == 0 and not status.get("queue_processing", True):
                 return status
 
             if (
-                status.get("queue_size", 0) > 0
+                trigger_execute_fallback
+                and status.get("queue_size", 0) > 0
                 and not status.get("queue_processing", False)
                 and time.time() - last_trigger > 3.0
             ):
@@ -98,5 +129,5 @@ class CLORestClient:
             time.sleep(poll_interval)
 
         raise TimeoutError(
-            f"CLO queue did not drain within {timeout}s. Last status: {self.get_status()}"
+            f"CLO queue did not drain within {timeout}s. Last status: {last_status or self.get_status()}"
         )

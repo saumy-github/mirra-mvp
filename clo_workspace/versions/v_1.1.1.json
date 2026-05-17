@@ -1,0 +1,49 @@
+{
+  "plugin_name": "CLO REST Automation",
+  "plugin_version": "1.1.1",
+  "api_version": "v1",
+  "release_date": "2026-05-17",
+  "status": "unstable",
+  "platforms": {
+    "windows": "in_sync",
+    "mac": "in_sync"
+  },
+  "changes": {
+    "added": [
+      "/avatars/state",
+      "/avatar/property-debug",
+      "/avatar/set-properties",
+      "/export-avatar-avt",
+      "Build metadata in /health",
+      "Shared plugin build/version infrastructure",
+      "Versioned artifact naming (RestPlugin_v1.1.1.dll / libRestPlugin_v1.1.1.dylib)",
+      "Machine-local vault (CLO_PLUGIN_VAULT_DIR) for rollback support",
+      "switch_plugin.py for activating vault versions without rebuilding"
+    ],
+    "changed": [
+      "/capabilities now advertises avatar-property mutation and direct avatar export support",
+      "/save-project now queues work onto the main-thread command queue",
+      "Build flow moves to env-driven shared build entry point",
+      "Windows: g_serverRunning and g_queueProcessing converted to std::atomic<bool>",
+      "Windows: /status reads g_patternsLoaded atomic instead of calling CLO API from HTTP thread",
+      "Windows: listen address changed from 0.0.0.0 to 127.0.0.1",
+      "Windows: queue drain timer interval reduced from 500ms to 200ms",
+      "Windows: PluginShutdown() wired to DLL_PROCESS_DETACH for clean unload",
+      "Mac: /export-avatar-avt, /avatar/set-properties, /avatar/property-debug endpoints added (parity with Windows)",
+      "Mac: CLO_EXPORT and DYLIB_DESTRUCTOR macros guarded for Windows IntelliSense compatibility"
+    ],
+    "fixed": [
+      "Direct save-project execution from the HTTP thread"
+    ],
+    "resolved": [
+      "Machine-specific build values are no longer intended to live in active hardcoded scripts"
+    ],
+    "known_issues": [
+      "Native avatar measurement CSV import remains under investigation",
+      "Windows read endpoints (GET /patterns/*, /arrangement-list, etc.) call CLO API from HTTP thread — Mac uses safer dispatchSyncRead pattern",
+      "Windows /avatars/state: CLO API calls crash server thread via unhandled SEH exception — stubbed out, returns error",
+      "Windows export-avatar-avt: ExportAVT crashes CLO main thread via SEH exception — stubbed out, has_avatar_avt_export advertised as false; use zprj extraction"
+    ]
+  },
+  "notes": "Use the latest allowed plugin only. Windows and Mac should match endpoint behavior before both are marked in_sync."
+}

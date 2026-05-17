@@ -12,7 +12,10 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from clo_avatar_generation.avatar_runtime.context import Step1Context
-from clo_avatar_generation.avatar_runtime.field_contract import get_default_base_avatar
+from clo_avatar_generation.avatar_runtime.field_contract import (
+    get_default_base_avatar,
+    get_preferred_measurement_apply_mode,
+)
 from clo_avatar_generation.avatar_runtime.pipeline import run_pipeline
 from clo_avatar_generation.avatar_runtime.run_manifest import get_latest_user_id, get_next_run_number
 
@@ -38,11 +41,33 @@ def _resolve_default_base_avatar() -> str:
     return str(default_path.resolve())
 
 
+def _resolve_default_measurement_file(user_id: str | None) -> str | None:
+    if not user_id:
+        return None
+    candidate = REPO_ROOT / "clo_avatar_generation" / "input" / f"{user_id}.measurements.json"
+    if candidate.exists():
+        return str(candidate.resolve())
+    return None
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the Step-1 CLO avatar-generation workflow.")
     parser.add_argument("--user-id", default=None, help="Measurement user_id (for example u_001).")
     parser.add_argument("--run-number", type=int, default=None, help="Optional explicit run number.")
     parser.add_argument("--base-avatar", default=None, help="Optional override for the base .avt path.")
+    parser.add_argument("--measurement-file", default=None, help="Optional override for the JSON measurement source.")
+    parser.add_argument(
+        "--apply-mode",
+        choices=("auto", "csv", "avatar_properties", "avt_patch"),
+        default=None,
+        help="Measurement apply mode. auto prefers the verified AVT patch route when supported fields are present.",
+    )
+    parser.add_argument(
+        "--active-field",
+        action="append",
+        default=None,
+        help="Optional CLO target or source field name to isolate for this run. Repeat to pass multiple values.",
+    )
     parser.add_argument("--non-interactive", action="store_true", help="Use provided/default values without prompts.")
     return parser.parse_args()
 
@@ -56,6 +81,7 @@ def main() -> int:
     try:
         latest_user_id = get_latest_user_id()
         default_user_id = args.user_id or latest_user_id
+        default_apply_mode = args.apply_mode or get_preferred_measurement_apply_mode()
 
         if args.non_interactive:
             user_id = default_user_id
@@ -64,6 +90,9 @@ def main() -> int:
                 return 1
             run_number = args.run_number or get_next_run_number(user_id)
             base_avatar = args.base_avatar or _resolve_default_base_avatar()
+            measurement_file = args.measurement_file or _resolve_default_measurement_file(user_id)
+            apply_mode = default_apply_mode
+            active_fields = list(args.active_field or [])
         else:
             user_id = _prompt_with_default("Enter user_id", default_user_id).strip()
             if not user_id:
@@ -93,10 +122,21 @@ def main() -> int:
                 args.base_avatar or _resolve_default_base_avatar(),
             ).strip()
 
+            measurement_file = _prompt_with_default(
+                "Measurement JSON path",
+                args.measurement_file or _resolve_default_measurement_file(user_id),
+            ).strip()
+            measurement_file = measurement_file or None
+            apply_mode = default_apply_mode
+            active_fields = list(args.active_field or [])
+
         ctx = Step1Context(
             user_id=user_id,
             requested_run_number=run_number,
             base_avatar_path_input=base_avatar,
+            measurement_file_input=measurement_file,
+            measurement_apply_mode_input=apply_mode,
+            active_field_filters=active_fields,
             interactive=not args.non_interactive,
         )
         ctx = run_pipeline(ctx)

@@ -122,8 +122,6 @@ def validate_config(env: dict[str, str], platform_name: str) -> dict[str, str]:
         )
 
     required = ["CLO_SDK_PATH", "BUILD_CONFIG"]
-    if platform_name == "windows":
-        required.append("CLO_PLUGINS_DIR")
 
     missing = [key for key in required if not env.get(key)]
     if missing:
@@ -133,10 +131,24 @@ def validate_config(env: dict[str, str], platform_name: str) -> dict[str, str]:
             + f". Copy {ENV_EXAMPLE_PATH.name} to .env and fill them in."
         )
 
+    vault_dir = env.get("CLO_PLUGIN_VAULT_DIR", "").strip()
+    if vault_dir:
+        vault_path = Path(vault_dir).resolve()
+        try:
+            vault_path.relative_to(WORKSPACE_DIR.parent.resolve())
+            raise SystemExit(
+                f"CLO_PLUGIN_VAULT_DIR must be outside the repository.\n"
+                f"  '{vault_path}' is inside '{WORKSPACE_DIR.parent.resolve()}'.\n"
+                f"  Set it to a path outside the repo, e.g., next to the CLO plugins folder."
+            )
+        except ValueError:
+            pass  # not inside repo — good
+
     return {
         "platform": platform_name,
         "sdk_path": env["CLO_SDK_PATH"],
         "clo_plugins_dir": env.get("CLO_PLUGINS_DIR", "").strip(),
+        "vault_dir": vault_dir,
         "cmake_exe": env.get("CMAKE_EXE", "").strip(),
         "cmake_generator": env.get("CMAKE_GENERATOR", "").strip(),
         "cmake_arch": env.get("CMAKE_ARCH", "").strip(),
@@ -242,18 +254,40 @@ def find_build_artifact(build_dir: Path, build_config: str) -> Path | None:
     return None
 
 
-def maybe_install_artifact(artifact: Path, config: dict[str, str]) -> Path | None:
-    install_dir = config.get("clo_plugins_dir", "")
-    if not install_dir:
+def versioned_artifact_name(version: str, platform: str) -> str:
+    if platform == "windows":
+        return f"RestPlugin_v{version}.dll"
+    return f"libRestPlugin_v{version}.dylib"
+
+
+def versioned_plugin_glob(platform: str) -> str:
+    if platform == "windows":
+        return "RestPlugin_v*.dll"
+    return "libRestPlugin_v*.dylib"
+
+
+
+def copy_to_vault(artifact: Path, version_data: dict, config: dict[str, str]) -> Path | None:
+    platform = config["platform"]
+    version = version_data["plugin_version"]
+    versioned_name = versioned_artifact_name(version, platform)
+    vault_dir_str = config.get("vault_dir", "")
+
+    if not vault_dir_str:
+        log("Warning: CLO_PLUGIN_VAULT_DIR not set — skipping vault copy. "
+            "Set it in .env to enable rollback support.")
         return None
-    destination = Path(install_dir) / artifact.name
-    shutil.copy2(artifact, destination)
-    return destination
+
+    vault_dir = Path(vault_dir_str)
+    vault_dir.mkdir(parents=True, exist_ok=True)
+    vault_dest = vault_dir / versioned_name
+    shutil.copy2(artifact, vault_dest)
+    log(f"Vault copy: {vault_dest}")
+    return vault_dest
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build the CLO REST plugin")
-    parser.add_argument("--install", action="store_true", help="Copy the built plugin into the CLO plugins folder after build")
     parser.add_argument("--allow-blocked", action="store_true", help="Build even if the current version file marks this version as blocked")
     parser.add_argument("--sync-only", action="store_true", help="Only generate build metadata and copy files into the SDK sample folder")
     return parser.parse_args()
@@ -305,21 +339,23 @@ def main() -> int:
     artifact = configure_and_build(sdk_dir, config, child_env)
     log(f"Built plugin artifact: {artifact}")
 
-    installed_to = None
-    if args.install:
-        if not config.get("clo_plugins_dir"):
-            raise SystemExit(
-                "--install requires CLO_PLUGINS_DIR to be set in .env "
-                "or provided through the environment."
-            )
-        installed_to = maybe_install_artifact(artifact, config)
-        if installed_to is not None:
-            log(f"Installed plugin artifact to: {installed_to}")
+    versioned_name = versioned_artifact_name(version_data["plugin_version"], config["platform"])
+    vault_dest = copy_to_vault(artifact, version_data, config)
 
-    if installed_to is None and config.get("clo_plugins_dir"):
-        log("Manual install step:")
-        log(f"  Copy {artifact}")
-        log(f"  to   {Path(config['clo_plugins_dir']) / artifact.name}")
+    default_plugins_dir = {
+        "windows": "C:/Program Files/CLO Standalone OnlineAuth/plugins",
+        "mac": "~/Documents/CLO/Plugins",
+    }
+    plugins_dir = config.get("clo_plugins_dir") or default_plugins_dir.get(config["platform"], "<CLO plugins folder>")
+
+    log("")
+    log("Manual install step:")
+    log(f"  1. Close CLO")
+    log(f"  2. Copy: {vault_dest or artifact}")
+    log(f"     To:   {plugins_dir}/{versioned_name}")
+    if config["platform"] == "windows":
+        log(f"  3. Requires admin rights — copy from an Administrator terminal")
+    log(f"  4. Restart CLO")
 
     return 0
 

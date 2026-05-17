@@ -30,13 +30,42 @@ def get_v1_fields_for_gender(gender: str) -> list[dict[str, Any]]:
     return fields
 
 
+def get_v1_property_fields_for_gender(gender: str) -> list[dict[str, Any]]:
+    return [
+        entry
+        for entry in get_v1_fields_for_gender(gender)
+        if str(entry.get("property_key", "")).strip()
+    ]
+
+
+def get_v1_avt_patch_fields_for_gender(gender: str) -> list[dict[str, Any]]:
+    return [
+        entry
+        for entry in get_v1_fields_for_gender(gender)
+        if entry.get("avt_feature_index") is not None
+    ]
+
+
 def get_round_decimals() -> int:
     contract = load_field_contract()
     return int(contract.get("round_decimals", 2))
 
 
+def get_preferred_measurement_apply_mode() -> str:
+    contract = load_field_contract()
+    return str(contract.get("preferred_measurement_apply_mode", "auto")).strip().lower() or "auto"
+
+
 def get_default_base_avatar() -> Path:
     contract = load_field_contract()
     relative = contract.get("default_base_avatar", "clo_avatar_generation/input/base-1.avt")
+    return Path(relative)
+
+
+def get_measurement_bridge_template_csv() -> Path | None:
+    contract = load_field_contract()
+    relative = contract.get("measurement_bridge_template_csv")
+    if not relative:
+        return None
     return Path(relative)
 
