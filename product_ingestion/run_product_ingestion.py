@@ -21,6 +21,9 @@ Canonical output layout:
 
 from __future__ import annotations
 
+import os
+os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
+
 import argparse
 import json
 import sys
@@ -120,6 +123,9 @@ def write_colors_json(output_path: Path, colour_result) -> Path:
     """Write colors.json into image_info/."""
     payload = {
         "base_colour_hex": colour_result.base_colour_hex,
+        "clo3d_base_hex": colour_result.clo3d_base_hex,
+        "k_used": colour_result.k_used,
+        "skin_pixels_removed": colour_result.skin_pixels_removed,
         "palette": [entry.to_dict() for entry in colour_result.palette],
     }
     output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -170,6 +176,7 @@ def write_extraction_metadata(
     if design_result is not None:
         payload["design"] = {
             "has_design": design_result.has_design,
+            "design_type": design_result.design_type,
             "coverage_percent": round(design_result.design_coverage_percent, 2),
             "message": design_result.message,
         }
