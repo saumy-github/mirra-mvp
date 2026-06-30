@@ -99,6 +99,7 @@ static std::vector<std::string> ComputeMissingAfterKeys(
 // Command queue system for thread-safe API calls
 #include <queue>
 #include <mutex>
+#include <future>
 #include <condition_variable>
 #include <windows.h>  // SetTimer / KillTimer
 
@@ -123,6 +124,11 @@ struct APICommand {
     float floatParam5 = 0.0f; // rotation.ry
     float floatParam6 = 0.0f; // rotation.rz
     std::map<std::string, std::string> stringMapParam1; // avatar properties
+
+    // Sync-read support: if isSync==true the result is delivered via syncPromise
+    // instead of appended to g_lastResults.
+    bool                                   isSync      = false;
+    std::shared_ptr<std::promise<json>>    syncPromise;
 };
 
 // ─── Result tracking ────────────────────────────────────────────────────────
@@ -132,11 +138,11 @@ struct CommandResult {
     std::string message;
 };
 
-std::queue<APICommand>       g_commandQueue;
-std::mutex                   g_queueMutex;
-std::vector<CommandResult>   g_lastResults;
-std::mutex                   g_resultsMutex;
-std::atomic<bool>            g_queueProcessing{false};
+static std::queue<APICommand>       g_commandQueue;
+static std::mutex                   g_queueMutex;
+static std::vector<CommandResult>   g_lastResults;
+static std::mutex                   g_resultsMutex;
+static std::atomic<bool>            g_queueProcessing{false};
 static std::atomic<int>      g_patternsLoaded{0};
 static Server*               g_server = nullptr;
 
@@ -146,13 +152,13 @@ struct ImportScaleEntry {
     bool success = false;
 };
 
-std::mutex g_importDebugMutex;
-float g_lastAvatarImportScale = 1.0f;
-std::string g_lastAvatarImportPath;
-bool g_lastAvatarImportSuccess = false;
-std::vector<ImportScaleEntry> g_lastPatternImports;
-std::mutex g_nativeAvatarDebugMutex;
-NativeAvatarDebugState g_nativeAvatarDebugState;
+static std::mutex g_importDebugMutex;
+static float g_lastAvatarImportScale = 1.0f;
+static std::string g_lastAvatarImportPath;
+static bool g_lastAvatarImportSuccess = false;
+static std::vector<ImportScaleEntry> g_lastPatternImports;
+static std::mutex g_nativeAvatarDebugMutex;
+static NativeAvatarDebugState g_nativeAvatarDebugState;
 
 struct AvatarPropertyDebugState {
     unsigned int avatar_index = 0;
@@ -166,8 +172,8 @@ struct AvatarPropertyDebugState {
     std::vector<std::string> missing_after_keys;
 };
 
-std::mutex g_avatarPropertyDebugMutex;
-AvatarPropertyDebugState g_avatarPropertyDebugState;
+static std::mutex g_avatarPropertyDebugMutex;
+static AvatarPropertyDebugState g_avatarPropertyDebugState;
 
 static json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
 {
@@ -186,14 +192,14 @@ static json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
 }
 
 // Global flag to keep server running
-std::atomic<bool> g_serverRunning{false};
-std::thread g_serverThread;
+static std::atomic<bool> g_serverRunning{false};
+static std::thread g_serverThread;
 
 // Forward declaration — defined later in this file.
 void ProcessCommandQueue();
 
 // Windows timer used to drain the command queue on CLO's main thread.
-// SetTimer is called once from DoFunction(); the callback fires every 500ms
+// SetTimer is called once from DoFunction(); the callback fires every 200ms
 // via CLO's Win32 message pump — no menu click needed after the first one.
 UINT_PTR g_timerId = 0;
 
@@ -208,6 +214,66 @@ VOID CALLBACK QueueDrainTimer(HWND, UINT, UINT_PTR, DWORD)
     if (hasCommands) {
         ProcessCommandQueue();
     }
+}
+
+// ─── Arrangement debug helper ─────────────────────────────────────────────────
+static json BuildArrangementDebugPayload()
+{
+    json slot_list = json::array();
+    auto list = PATTERN_API->GetArrangementList();
+    for (int i = 0; i < (int)list.size(); i++) {
+        json entry = {{"index", i}};
+        for (const auto& kv : list[i])
+            entry[kv.first] = kv.second;
+        slot_list.push_back(entry);
+    }
+
+    json patterns = json::array();
+    int count = 0;
+    try { count = PATTERN_API->GetPatternCount(); } catch (...) {}
+    for (int i = 0; i < count; i++) {
+        json entry = {{"pattern_index", i}};
+        auto info = PATTERN_API->GetArrangementOfPattern(i);
+        for (const auto& kv : info)
+            entry[kv.first] = kv.second;
+        patterns.push_back(entry);
+    }
+
+    return {
+        {"success", true},
+        {"slot_count", (int)slot_list.size()},
+        {"slots", slot_list},
+        {"pattern_arrangement_count", (int)patterns.size()},
+        {"patterns", patterns}
+    };
+}
+
+// ─── Sync-read helper ─────────────────────────────────────────────────────────
+// Pushes a read command and blocks up to 3 s for the main thread result.
+static json dispatchSyncRead(const std::string& type, int param3 = 0, int param4 = 0)
+{
+    auto promisePtr = std::make_shared<std::promise<json>>();
+    auto future     = promisePtr->get_future();
+
+    APICommand cmd;
+    cmd.type        = type;
+    cmd.param3      = param3;
+    cmd.param4      = param4;
+    cmd.isSync      = true;
+    cmd.syncPromise = promisePtr;
+    {
+        std::lock_guard<std::mutex> lk(g_queueMutex);
+        g_commandQueue.push(cmd);
+    }
+
+    if (future.wait_for(std::chrono::seconds(3)) == std::future_status::ready)
+        return future.get();
+
+    return {
+        {"success", false},
+        {"error",   "timeout"},
+        {"message", "Main thread did not respond within 3 s — CLO may be busy"}
+    };
 }
 
 // HTTP Server Implementation
@@ -256,7 +322,7 @@ void StartRESTServer()
                 {"has_native_avatar_debug", true},
                 {"has_avatar_property_set", true},
                 {"has_avatar_property_debug", true},
-                {"has_avatar_state_readback", false},
+                {"has_avatar_state_readback", true},
                 {"has_avatar_avt_export", false},
                 {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
             };
@@ -298,125 +364,14 @@ void StartRESTServer()
 
         // Avatar + arrangement readiness debug endpoint.
         svr.Get("/avatar/debug", [](const Request&, Response& res) {
-            try {
-                float avatarScale = 1.0f;
-                std::string avatarPath;
-                bool avatarSuccess = false;
-
-                {
-                    std::lock_guard<std::mutex> lock(g_importDebugMutex);
-                    avatarScale = g_lastAvatarImportScale;
-                    avatarPath = g_lastAvatarImportPath;
-                    avatarSuccess = g_lastAvatarImportSuccess;
-                }
-
-                int patternCount = 0;
-                try { patternCount = PATTERN_API->GetPatternCount(); } catch (...) {}
-
-                auto slotList = PATTERN_API->GetArrangementList();
-                int slotCount = (int)slotList.size();
-
-                int patternArrangementCount = 0;
-                for (int i = 0; i < patternCount; i++) {
-                    try {
-                        auto rec = PATTERN_API->GetArrangementOfPattern(i);
-                        if (!rec.empty()) patternArrangementCount++;
-                    }
-                    catch (...) {}
-                }
-
-                std::string anchorMode = "none";
-                std::string semanticsQuality = "none";
-
-                if (avatarSuccess && slotCount > 0) {
-                    anchorMode = "semantic_slots";
-                    semanticsQuality = (slotCount >= 4 ? "high" : "medium");
-                }
-                else if (avatarSuccess && slotCount == 0 && patternArrangementCount > 0) {
-                    anchorMode = "generic_arrangement_point";
-                    semanticsQuality = "low";
-                }
-                else if (avatarSuccess) {
-                    anchorMode = "imported_mesh_avatar";
-                    semanticsQuality = "none";
-                }
-
-                json response = {
-                    {"success", true},
-                    {"avatar_import", {
-                        {"path", avatarPath},
-                        {"scale", avatarScale},
-                        {"success", avatarSuccess}
-                    }},
-                    {"pattern_count", patternCount},
-                    {"arrangement_list_populated", slotCount > 0},
-                    {"arrangement_slot_count", slotCount},
-                    {"pattern_arrangement_count", patternArrangementCount},
-                    {"avatar_anchor_mode", anchorMode},
-                    {"arrangement_semantics_quality", semanticsQuality}
-                };
-                res.set_content(response.dump(), "application/json");
-            }
-            catch (const std::exception& e) {
-                json response = {{"success", false}, {"error", e.what()}};
-                res.set_content(response.dump(), "application/json");
-            }
+            json r = dispatchSyncRead("read-avatar-debug");
+            res.set_content(r.dump(), "application/json");
         });
 
         // Native-avatar debug endpoint for the isolated CLO-native experiment.
         svr.Get("/avatar/native-debug", [](const Request&, Response& res) {
-            try {
-                NativeAvatarDebugState snapshot;
-                int patternCount = 0;
-                int patternArrangementCount = 0;
-                int arrangementSlotCount = 0;
-                std::vector<std::string> slotNames;
-                {
-                    std::lock_guard<std::mutex> lock(g_nativeAvatarDebugMutex);
-                    snapshot = g_nativeAvatarDebugState;
-                }
-                try { patternCount = PATTERN_API->GetPatternCount(); } catch (...) {}
-                try {
-                    auto list = PATTERN_API->GetArrangementList();
-                    arrangementSlotCount = (int)list.size();
-                    for (const auto& row : list) {
-                        auto it = row.find("name");
-                        if (it != row.end()) {
-                            slotNames.push_back(it->second);
-                            continue;
-                        }
-                        auto arrangementName = row.find("ArrangementName");
-                        if (arrangementName != row.end()) {
-                            slotNames.push_back(arrangementName->second);
-                            continue;
-                        }
-                        auto desc = row.find("description");
-                        if (desc != row.end()) {
-                            slotNames.push_back(desc->second);
-                        }
-                    }
-                } catch (...) {}
-                for (int i = 0; i < patternCount; i++) {
-                    try {
-                        auto rec = PATTERN_API->GetArrangementOfPattern(i);
-                        if (!rec.empty()) patternArrangementCount++;
-                    } catch (...) {}
-                }
-                res.set_content(
-                    BuildNativeAvatarDebugJson(
-                        snapshot,
-                        arrangementSlotCount,
-                        patternArrangementCount,
-                        patternCount,
-                        slotNames
-                    ).dump(),
-                    "application/json"
-                );
-            }
-            catch (const std::exception& e) {
-                json response = {{"success", false}, {"error", e.what()}};
-                res.set_content(response.dump(), "application/json");
-            }
+            json r = dispatchSyncRead("read-avatar-native-debug");
+            res.set_content(r.dump(), "application/json");
         });
 
         // Experimental avatar-property debug endpoint for JSON/property mutation research.
@@ -435,17 +390,10 @@ void StartRESTServer()
             }
         });
 
-        // Avatar state readback endpoint.
-        // CLO API calls (GetAvatarCount, GetAvatarNameList, GetAvatarProperties) cannot be
-        // made safely from the HTTP thread on Windows — they raise SEH exceptions that
-        // catch(...) does not intercept under /EHs, crashing the server thread.
-        // This endpoint returns an error until avatar state is cached on the main thread.
+        // Avatar state readback — routes to main thread via dispatchSyncRead.
         svr.Get("/avatars/state", [](const Request&, Response& res) {
-            json response = {
-                {"success", false},
-                {"error", "avatars/state: CLO API calls not safe from HTTP thread on Windows; pending main-thread caching"}
-            };
-            res.set_content(response.dump(), "application/json");
+            json r = dispatchSyncRead("read-avatar-state");
+            res.set_content(r.dump(), "application/json");
         });
 
     // Import Avatar (OBJ file) - QUEUED
@@ -740,135 +688,40 @@ void StartRESTServer()
 
     // Get Pattern Count
     svr.Get("/patterns/count", [](const Request&, Response& res) {
-        try {
-            int count = PATTERN_API->GetPatternCount();
-            json response = {
-                {"success", true},
-                {"count", count}
-            };
-            res.set_content(response.dump(), "application/json");
-        }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        json r = dispatchSyncRead("read-pattern-count");
+        res.set_content(r.dump(), "application/json");
     });
 
     // Get Pattern Information
     svr.Get("/patterns/(\\d+)", [](const Request& req, Response& res) {
-        try {
-            int patternIndex = std::stoi(req.matches[1]);
-            std::string info = PATTERN_API->GetPatternInformation(patternIndex);
-            
-            json response = {
-                {"success", true},
-                {"pattern_index", patternIndex},
-                {"info", json::parse(info)}
-            };
-            res.set_content(response.dump(), "application/json");
-        }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        int patternIndex = std::stoi(req.matches[1]);
+        json r = dispatchSyncRead("read-pattern-info", patternIndex);
+        res.set_content(r.dump(), "application/json");
     });
 
     // Get Pattern Bounding Box / area (SDK-backed geometry signal)
     svr.Get("/patterns/(\\d+)/bbox", [](const Request& req, Response& res) {
-        try {
-            int patternIndex = std::stoi(req.matches[1]);
-            auto raw = PATTERN_API->GetBoundingBoxOfPattern(patternIndex);
-            json bbox = json::object();
-            for (auto& kv : raw)
-                bbox[kv.first] = kv.second;
-
-            json response = {
-                {"success", true},
-                {"pattern_index", patternIndex},
-                {"bbox", bbox},
-                {"area", PATTERN_API->GetPatternPieceArea(patternIndex)}
-            };
-            res.set_content(response.dump(), "application/json");
-        }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        int patternIndex = std::stoi(req.matches[1]);
+        json r = dispatchSyncRead("read-pattern-bbox", patternIndex);
+        res.set_content(r.dump(), "application/json");
     });
 
     // Get Pattern Input Information (raw + parsed when possible)
     svr.Get("/patterns/(\\d+)/input", [](const Request& req, Response& res) {
-        try {
-            int patternIndex = std::stoi(req.matches[1]);
-            std::string inputInfo = PATTERN_API->GetPatternInputInformation(patternIndex);
-            json parsed;
-            bool parsedOk = false;
-            try {
-                parsed = json::parse(inputInfo);
-                parsedOk = true;
-            }
-            catch (...) {
-                parsed = json::object();
-            }
-
-            json response = {
-                {"success", true},
-                {"pattern_index", patternIndex},
-                {"parsed", parsedOk},
-                {"input", parsedOk ? parsed : json(inputInfo)}
-            };
-            res.set_content(response.dump(), "application/json");
-        }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        int patternIndex = std::stoi(req.matches[1]);
+        json r = dispatchSyncRead("read-pattern-input", patternIndex);
+        res.set_content(r.dump(), "application/json");
     });
 
     // Probe line lengths by index when line_count is missing from metadata.
     svr.Get("/patterns/(\\d+)/line-lengths", [](const Request& req, Response& res) {
-        try {
-            int patternIndex = std::stoi(req.matches[1]);
-            int maxLines = 256;
-            int stopAfterConsecutiveZero = 12;
-            if (req.has_param("max")) {
-                try { maxLines = std::stoi(req.get_param_value("max")); } catch (...) {}
-            }
-
-            json lines = json::array();
-            int zeroStreak = 0;
-            for (int i = 0; i < maxLines; i++) {
-                float len = 0.0f;
-                try {
-                    len = PATTERN_API->GetLineLength(patternIndex, i);
-                }
-                catch (...) {
-                    len = 0.0f;
-                }
-
-                if (len > 0.0001f) {
-                    lines.push_back({{"line_index", i}, {"length", len}});
-                    zeroStreak = 0;
-                }
-                else {
-                    zeroStreak++;
-                    if (!lines.empty() && zeroStreak >= stopAfterConsecutiveZero)
-                        break;
-                }
-            }
-
-            json response = {
-                {"success", true},
-                {"pattern_index", patternIndex},
-                {"line_count", (int)lines.size()},
-                {"lines", lines}
-            };
-            res.set_content(response.dump(), "application/json");
+        int patternIndex = std::stoi(req.matches[1]);
+        int maxLines = 256;
+        if (req.has_param("max")) {
+            try { maxLines = std::stoi(req.get_param_value("max")); } catch (...) {}
         }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        json r = dispatchSyncRead("read-pattern-line-lengths", patternIndex, maxLines);
+        res.set_content(r.dump(), "application/json");
     });
 
     // Save Project as ZPRJ - QUEUED (main-thread safe)
@@ -1022,82 +875,20 @@ void StartRESTServer()
 
     // ── Arrangement list — read CLO's avatar arrangement slots (read-only) ──────
     svr.Get("/arrangement-list", [](const Request&, Response& res) {
-        try {
-            json slots = json::array();
-            auto list = PATTERN_API->GetArrangementList();
-            for (int i = 0; i < (int)list.size(); i++) {
-                json entry = {{"index", i}};
-                for (auto& kv : list[i])
-                    entry[kv.first] = kv.second;
-                slots.push_back(entry);
-            }
-            json response = {{"success", true}, {"count", (int)slots.size()}, {"slots", slots}};
-            res.set_content(response.dump(), "application/json");
-        }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        json r = dispatchSyncRead("read-arrangement-list");
+        res.set_content(r.dump(), "application/json");
     });
 
     // ── Arrangement of loaded patterns — read current arrangement per pattern ──
     svr.Get("/pattern-arrangements", [](const Request&, Response& res) {
-        try {
-            json patterns = json::array();
-            int count = 0;
-            try { count = PATTERN_API->GetPatternCount(); } catch (...) {}
-            for (int i = 0; i < count; i++) {
-                json entry = {{"pattern_index", i}};
-                auto info = PATTERN_API->GetArrangementOfPattern(i);
-                for (auto& kv : info)
-                    entry[kv.first] = kv.second;
-                patterns.push_back(entry);
-            }
-            json response = {{"success", true}, {"patterns", patterns}};
-            res.set_content(response.dump(), "application/json");
-        }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        json r = dispatchSyncRead("read-pattern-arrangements");
+        res.set_content(r.dump(), "application/json");
     });
 
     // ── Arrangement debug payload: raw slots + per-pattern arrangement in one call.
     svr.Get("/arrangement/debug", [](const Request&, Response& res) {
-        try {
-            json slots = json::array();
-            auto list = PATTERN_API->GetArrangementList();
-            for (int i = 0; i < (int)list.size(); i++) {
-                json entry = {{"index", i}};
-                for (auto& kv : list[i])
-                    entry[kv.first] = kv.second;
-                slots.push_back(entry);
-            }
-
-            json patterns = json::array();
-            int count = 0;
-            try { count = PATTERN_API->GetPatternCount(); } catch (...) {}
-            for (int i = 0; i < count; i++) {
-                json entry = {{"pattern_index", i}};
-                auto info = PATTERN_API->GetArrangementOfPattern(i);
-                for (auto& kv : info)
-                    entry[kv.first] = kv.second;
-                patterns.push_back(entry);
-            }
-
-            json response = {
-                {"success", true},
-                {"slot_count", (int)slots.size()},
-                {"slots", slots},
-                {"pattern_arrangement_count", (int)patterns.size()},
-                {"patterns", patterns}
-            };
-            res.set_content(response.dump(), "application/json");
-        }
-        catch (const std::exception& e) {
-            json response = {{"success", false}, {"error", e.what()}};
-            res.set_content(response.dump(), "application/json");
-        }
+        json r = dispatchSyncRead("read-arrangement-debug");
+        res.set_content(r.dump(), "application/json");
     });
 
     // ── Status — queue state + last batch results (read-only, no queue) ──────
@@ -1175,69 +966,73 @@ void PluginShutdown()
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ProcessCommandQueue — MUST be called from CLO's main thread.
-// Called automatically every frame by DoFunctionContinuously().
-// Also called manually when the user clicks Plugins → REST Server & Execute.
 // ─────────────────────────────────────────────────────────────────────────────
 void ProcessCommandQueue()
 {
-    // Drain the queue under the mutex, swap to a local list so we don't hold
-    // the lock while executing (CLO API calls can be slow).
+    // Atomic re-entrancy guard: exchange returns the previous value.
+    // If already true, another drain is in progress — bail immediately.
+    if (g_queueProcessing.exchange(true)) return;
+
     std::vector<APICommand> batch;
     {
         std::lock_guard<std::mutex> lock(g_queueMutex);
-        if (g_commandQueue.empty()) return;
+        if (g_commandQueue.empty()) {
+            g_queueProcessing = false;
+            return;
+        }
         while (!g_commandQueue.empty()) {
-            batch.push_back(g_commandQueue.front());
+            batch.push_back(std::move(g_commandQueue.front()));
             g_commandQueue.pop();
         }
     }
 
-    g_queueProcessing = true;
-
-    // Clear previous results
-    {
+    // Clear previous async results only when a new async batch arrives.
+    // Pure sync-read batches (e.g. /avatars/state) must not wipe the last results.
+    bool hasAsync = false;
+    for (const auto& c : batch) if (!c.isSync) { hasAsync = true; break; }
+    if (hasAsync) {
         std::lock_guard<std::mutex> rlock(g_resultsMutex);
         g_lastResults.clear();
     }
 
-    for (const auto& cmd : batch) {
-        CommandResult result;
-        result.type    = cmd.type;
-        result.success = false;
+    for (auto& cmd : batch) {
+        json syncResult;
+        CommandResult asyncResult;
+        asyncResult.type    = cmd.type;
+        asyncResult.success = false;
 
         try {
             // ── Avatar import ─────────────────────────────────────────────
             if (cmd.type == "import-avatar") {
                 Marvelous::ImportExportOption options;
-                // Avatar scale is provided by pipeline based on export metadata units.
                 options.scale           = (cmd.floatParam1 > 0.0f ? cmd.floatParam1 : 1.0f);
-                options.ImportObjectType = 0;   // Avatar
-                options.bAutoTranslate  = true; // moves feet to Y=0 (ground)
-                result.success  = IMPORT_API->ImportOBJ(cmd.param1, options);
+                options.ImportObjectType = 0;
+                options.bAutoTranslate  = true;
+                asyncResult.success  = IMPORT_API->ImportOBJ(cmd.param1, options);
                 {
                     std::lock_guard<std::mutex> lock(g_importDebugMutex);
-                    g_lastAvatarImportScale = options.scale;
-                    g_lastAvatarImportPath = cmd.param1;
-                    g_lastAvatarImportSuccess = result.success;
+                    g_lastAvatarImportScale   = options.scale;
+                    g_lastAvatarImportPath    = cmd.param1;
+                    g_lastAvatarImportSuccess = asyncResult.success;
                 }
-                result.message  = result.success
+                asyncResult.message = asyncResult.success
                     ? "Imported avatar: " + cmd.param1 + " (scale=" + std::to_string(options.scale) + ")"
                     : "Failed to import avatar: " + cmd.param1;
             }
-            // ── Pattern import ────────────────────────────────────────────
+            // ── Native avatar import (.avt) ───────────────────────────────
             else if (cmd.type == "import-avatar-avt") {
                 Marvelous::ImportExportOption options;
                 options.scale = 1.0f;
-                result.success = IMPORT_API->ImportAvatar(cmd.param1, options);
+                asyncResult.success = IMPORT_API->ImportAvatar(cmd.param1, options);
                 {
                     std::lock_guard<std::mutex> lock(g_nativeAvatarDebugMutex);
-                    g_nativeAvatarDebugState.last_native_avatar_path = cmd.param1;
-                    g_nativeAvatarDebugState.last_native_avatar_success = result.success;
-                    g_nativeAvatarDebugState.last_message = result.success
+                    g_nativeAvatarDebugState.last_native_avatar_path    = cmd.param1;
+                    g_nativeAvatarDebugState.last_native_avatar_success = asyncResult.success;
+                    g_nativeAvatarDebugState.last_message = asyncResult.success
                         ? "Imported native avatar template"
                         : "Failed to import native avatar template";
                 }
-                result.message = result.success
+                asyncResult.message = asyncResult.success
                     ? "Imported native avatar template: " + cmd.param1
                     : "Failed to import native avatar template: " + cmd.param1;
             }
@@ -1251,25 +1046,25 @@ void ProcessCommandQueue()
                 else {
                     measurementOk = IMPORT_API->ImportMeasurement(cmd.param1);
                 }
-                result.success = measurementOk;
+                asyncResult.success = measurementOk;
                 {
                     std::lock_guard<std::mutex> lock(g_nativeAvatarDebugMutex);
-                    g_nativeAvatarDebugState.last_measurement_csv_path = cmd.param1;
+                    g_nativeAvatarDebugState.last_measurement_csv_path      = cmd.param1;
                     g_nativeAvatarDebugState.last_measurement_template_path = cmd.param2;
-                    g_nativeAvatarDebugState.last_measurement_csv_success = result.success;
-                    g_nativeAvatarDebugState.last_message = result.success
+                    g_nativeAvatarDebugState.last_measurement_csv_success   = asyncResult.success;
+                    g_nativeAvatarDebugState.last_message = asyncResult.success
                         ? "Imported native avatar measurement CSV"
                         : "Failed to import native avatar measurement CSV";
                 }
-                result.message = result.success
+                asyncResult.message = asyncResult.success
                     ? "Imported native avatar measurements: " + cmd.param1
                     : "Failed to import native avatar measurements: " + cmd.param1;
             }
             else if (cmd.type == "avatar-set-properties") {
                 AvatarPropertyDebugState debugState;
-                debugState.avatar_index = (cmd.param3 >= 0 ? static_cast<unsigned int>(cmd.param3) : 0);
-                debugState.unit = (cmd.param2.empty() ? "raw" : cmd.param2);
-                debugState.requested_properties = cmd.stringMapParam1;
+                debugState.avatar_index          = (cmd.param3 >= 0 ? static_cast<unsigned int>(cmd.param3) : 0);
+                debugState.unit                  = (cmd.param2.empty() ? "raw" : cmd.param2);
+                debugState.requested_properties  = cmd.stringMapParam1;
 
                 try {
                     try {
@@ -1293,26 +1088,26 @@ void ProcessCommandQueue()
                         debugState.properties_after,
                         debugState.requested_properties
                     );
-                    result.success = true;
-                    result.message =
+                    asyncResult.success = true;
+                    asyncResult.message =
                         "Avatar properties applied to avatar " + std::to_string(debugState.avatar_index) +
                         " (requested=" + std::to_string(debugState.requested_properties.size()) +
                         ", changed=" + std::to_string(debugState.changed_keys.size()) +
                         ", missing_after=" + std::to_string(debugState.missing_after_keys.size()) + ")";
-                    debugState.success = true;
-                    debugState.last_message = result.message;
+                    debugState.success      = true;
+                    debugState.last_message = asyncResult.message;
                 }
                 catch (const std::exception& e) {
-                    result.success = false;
-                    result.message = "Failed to set avatar properties: " + std::string(e.what());
-                    debugState.success = false;
-                    debugState.last_message = result.message;
+                    asyncResult.success     = false;
+                    asyncResult.message     = "Failed to set avatar properties: " + std::string(e.what());
+                    debugState.success      = false;
+                    debugState.last_message = asyncResult.message;
                 }
                 catch (...) {
-                    result.success = false;
-                    result.message = "Failed to set avatar properties: unknown exception";
-                    debugState.success = false;
-                    debugState.last_message = result.message;
+                    asyncResult.success     = false;
+                    asyncResult.message     = "Failed to set avatar properties: unknown exception";
+                    debugState.success      = false;
+                    debugState.last_message = asyncResult.message;
                 }
 
                 {
@@ -1324,27 +1119,27 @@ void ProcessCommandQueue()
                 Marvelous::ImportDxfOption options;
                 options.m_Scale   = (cmd.floatParam1 > 0.0f ? cmd.floatParam1 : 1.0f);
                 options.m_bAppend = true;
-                result.success = IMPORT_API->ImportDXF(cmd.param1, options);
+                asyncResult.success = IMPORT_API->ImportDXF(cmd.param1, options);
                 {
                     std::lock_guard<std::mutex> lock(g_importDebugMutex);
-                    g_lastPatternImports.push_back({cmd.param1, options.m_Scale, result.success});
+                    g_lastPatternImports.push_back({cmd.param1, options.m_Scale, asyncResult.success});
                     if (g_lastPatternImports.size() > 64)
                         g_lastPatternImports.erase(g_lastPatternImports.begin(), g_lastPatternImports.begin() + 32);
                 }
-                result.message = result.success
+                asyncResult.message = asyncResult.success
                     ? "Imported pattern: " + cmd.param1 + " (scale=" + std::to_string(options.m_Scale) + ")"
                     : "Failed to import pattern: " + cmd.param1;
-                if (result.success)
+                if (asyncResult.success)
                     g_patternsLoaded++;
             }
             // ── Create seam ───────────────────────────────────────────────
             else if (cmd.type == "create-seam") {
-                result.success = PATTERN_API->AddSeamlinePairGroup(
+                asyncResult.success = PATTERN_API->AddSeamlinePairGroup(
                     cmd.param3, cmd.param4,
                     cmd.param5, cmd.param6,
                     cmd.boolParam1, cmd.boolParam2
                 );
-                result.message = result.success
+                asyncResult.message = asyncResult.success
                     ? "Seam: pattern " + std::to_string(cmd.param3) +
                       " edge " + std::to_string(cmd.param4) +
                       " <-> pattern " + std::to_string(cmd.param5) +
@@ -1353,8 +1148,8 @@ void ProcessCommandQueue()
             }
             // ── Simulation ────────────────────────────────────────────────
             else if (cmd.type == "simulate") {
-                result.success = UTILITY_API->Simulate((unsigned int)cmd.param3);
-                result.message = result.success
+                asyncResult.success = UTILITY_API->Simulate((unsigned int)cmd.param3);
+                asyncResult.message = asyncResult.success
                     ? "Simulation complete (" + std::to_string(cmd.param3) + " steps)"
                     : "Simulation failed";
             }
@@ -1368,8 +1163,8 @@ void ProcessCommandQueue()
                 options.bEmbedded      = asGLB;
                 std::vector<std::string> out =
                     EXPORT_API->ExportGLTF(cmd.param1, options, asGLB);
-                result.success = !out.empty();
-                result.message = result.success
+                asyncResult.success = !out.empty();
+                asyncResult.message = asyncResult.success
                     ? "Exported to: " + cmd.param1
                     : "Export failed";
             }
@@ -1381,7 +1176,7 @@ void ProcessCommandQueue()
                     std::lock_guard<std::mutex> lock(g_importDebugMutex);
                     g_lastPatternImports.clear();
                     g_lastAvatarImportPath.clear();
-                    g_lastAvatarImportScale = 1.0f;
+                    g_lastAvatarImportScale   = 1.0f;
                     g_lastAvatarImportSuccess = false;
                 }
                 {
@@ -1392,12 +1187,10 @@ void ProcessCommandQueue()
                     std::lock_guard<std::mutex> lock(g_avatarPropertyDebugMutex);
                     g_avatarPropertyDebugState = AvatarPropertyDebugState{};
                 }
-                result.success = true;
-                result.message = "New project created";
+                asyncResult.success = true;
+                asyncResult.message = "New project created";
             }
             // ── Arrange pattern in 3D space ───────────────────────────────
-            // SetArrangement assigns the pattern to a named avatar slot (front/back/sleeve).
-            // SetArrangementPosition then fine-tunes with mm offsets from that slot centre.
             // param3 = patternIndex, param4 = arrangementIndex (-1 = skip SetArrangement)
             // floatParam1/2/3 = X/Y/Z offset in mm, param5 = orientation enum
             else if (cmd.type == "arrange-pattern") {
@@ -1411,49 +1204,320 @@ void ProcessCommandQueue()
                 );
                 if (cmd.param5 != 0)
                     PATTERN_API->SetArrangementOrientation(cmd.param3, cmd.param5);
-                result.success = true;
-                result.message = "Pattern " + std::to_string(cmd.param3) +
+                asyncResult.success = true;
+                asyncResult.message = "Pattern " + std::to_string(cmd.param3) +
                     (cmd.param4 >= 0 ? " -> arrangement slot " + std::to_string(cmd.param4) : " position set") +
                     " pos=(" + std::to_string((int)cmd.floatParam1) +
                     "," + std::to_string((int)cmd.floatParam2) +
                     "," + std::to_string((int)cmd.floatParam3) + ")mm";
             }
-            // ── Set fabric preset + colour ─────────────────────────────────
+            // ── Set fabric ────────────────────────────────────────────────
             else if (cmd.type == "set-fabric") {
-                // Assigns a fabric from CLO's internal fabric list to a pattern piece.
-                // fabric_index 0 = first fabric in the project (add fabrics via CLO UI first).
                 PATTERN_API->SetPatternPieceFabricIndex(cmd.param3, cmd.param4);
-                result.success = true;
-                result.message = "Fabric index " + std::to_string(cmd.param4) +
+                asyncResult.success = true;
+                asyncResult.message = "Fabric index " + std::to_string(cmd.param4) +
                     " applied to pattern " + std::to_string(cmd.param3);
             }
             // ── Save project ──────────────────────────────────────────────
             else if (cmd.type == "save-project") {
                 bool thumb  = (cmd.param3 != 0);
                 std::string out = EXPORT_API->ExportZPrj(cmd.param1, thumb);
-                result.success  = !out.empty();
-                result.message  = result.success
+                asyncResult.success = !out.empty();
+                asyncResult.message = asyncResult.success
                     ? "Project saved: " + out
                     : "Save failed";
             }
             else if (cmd.type == "export-avatar-avt") {
-                // ExportAVT raises SEH exceptions that are not caught by catch(std::exception&)
-                // under /EHs, crashing CLO's main thread. Disabled until SEH handling is added.
-                result.success = false;
-                result.message = "export-avatar-avt: ExportAVT crashes CLO main thread via SEH; use zprj extraction instead";
+                // ExportAVT raises SEH exceptions not caught by catch(std::exception&)
+                // under /EHs — disabled until __try/__except wrapper is added (Phase 3).
+                asyncResult.success = false;
+                asyncResult.message = "export-avatar-avt: ExportAVT crashes CLO main thread via SEH; use zprj extraction instead";
+            }
+            // ── Sync reads (all called via dispatchSyncRead) ──────────────
+            else if (cmd.type == "read-pattern-count") {
+                int cnt = 0;
+                bool ok = false;
+                try { cnt = PATTERN_API->GetPatternCount(); ok = true; } catch (...) {}
+                if (ok) g_patternsLoaded = cnt;
+                syncResult = {{"success", ok}, {"count", cnt}};
+            }
+            else if (cmd.type == "read-pattern-info") {
+                int total = 0;
+                try { total = PATTERN_API->GetPatternCount(); } catch (...) {}
+                int idx = cmd.param3;
+                if (idx < 0 || idx >= total) {
+                    syncResult = {
+                        {"success", false},
+                        {"error",   "invalid index"},
+                        {"message", "Pattern index " + std::to_string(idx) +
+                                    " out of range (count=" + std::to_string(total) + ")"}
+                    };
+                } else {
+                    std::string raw;
+                    bool cloOk = false;
+                    try { raw = PATTERN_API->GetPatternInformation(idx); cloOk = true; } catch (...) {}
+                    json parsed;
+                    try { parsed = json::parse(raw); }
+                    catch (...) { parsed = raw; }
+                    syncResult = {
+                        {"success",       cloOk},
+                        {"pattern_index", idx},
+                        {"info",          parsed}
+                    };
+                }
+            }
+            else if (cmd.type == "read-pattern-bbox") {
+                int patternIndex = cmd.param3;
+                json bbox = json::object();
+                float area = 0.0f;
+                bool bboxOk = false;
+                try {
+                    auto raw = PATTERN_API->GetBoundingBoxOfPattern(patternIndex);
+                    for (const auto& kv : raw)
+                        bbox[kv.first] = kv.second;
+                    bboxOk = true;
+                } catch (...) {}
+                try { area = PATTERN_API->GetPatternPieceArea(patternIndex); } catch (...) {}
+                syncResult = {
+                    {"success",       bboxOk},
+                    {"pattern_index", patternIndex},
+                    {"bbox",          bbox},
+                    {"area",          area}
+                };
+            }
+            else if (cmd.type == "read-pattern-input") {
+                int patternIndex = cmd.param3;
+                std::string inputInfo;
+                bool cloOk = false;
+                try { inputInfo = PATTERN_API->GetPatternInputInformation(patternIndex); cloOk = true; } catch (...) {}
+                json parsed;
+                bool parsedOk = false;
+                try {
+                    parsed   = json::parse(inputInfo);
+                    parsedOk = true;
+                }
+                catch (...) {
+                    parsed = json::object();
+                }
+                syncResult = {
+                    {"success",       cloOk},
+                    {"pattern_index", patternIndex},
+                    {"parsed",        parsedOk},
+                    {"input",         parsedOk ? parsed : json(inputInfo)}
+                };
+            }
+            else if (cmd.type == "read-pattern-line-lengths") {
+                int patternIndex = cmd.param3;
+                int maxLines     = (cmd.param4 > 0 ? cmd.param4 : 256);
+                int stopAfterConsecutiveZero = 12;
+                json lines = json::array();
+                int zeroStreak = 0;
+                for (int i = 0; i < maxLines; i++) {
+                    float len = 0.0f;
+                    try { len = PATTERN_API->GetLineLength(patternIndex, i); }
+                    catch (...) { len = 0.0f; }
+                    if (len > 0.0001f) {
+                        lines.push_back({{"line_index", i}, {"length", len}});
+                        zeroStreak = 0;
+                    } else {
+                        zeroStreak++;
+                        if (!lines.empty() && zeroStreak >= stopAfterConsecutiveZero)
+                            break;
+                    }
+                }
+                syncResult = {
+                    {"success",       true},
+                    {"pattern_index", patternIndex},
+                    {"line_count",    (int)lines.size()},
+                    {"lines",         lines}
+                };
+            }
+            else if (cmd.type == "read-arrangement-list") {
+                json slotList = json::array();
+                bool ok = false;
+                try {
+                    auto list = PATTERN_API->GetArrangementList();
+                    ok = true;
+                    for (int i = 0; i < (int)list.size(); i++) {
+                        json entry = {{"index", i}};
+                        for (const auto& kv : list[i])
+                            entry[kv.first] = kv.second;
+                        slotList.push_back(entry);
+                    }
+                } catch (...) {}
+                syncResult = {
+                    {"success", ok},
+                    {"count",   (int)slotList.size()},
+                    {"slots",   slotList}
+                };
+            }
+            else if (cmd.type == "read-pattern-arrangements") {
+                json patterns = json::array();
+                int count = 0;
+                try { count = PATTERN_API->GetPatternCount(); } catch (...) {}
+                for (int i = 0; i < count; i++) {
+                    json entry = {{"pattern_index", i}};
+                    try {
+                        auto info = PATTERN_API->GetArrangementOfPattern(i);
+                        for (const auto& kv : info)
+                            entry[kv.first] = kv.second;
+                    } catch (...) {}
+                    patterns.push_back(entry);
+                }
+                syncResult = {{"success", true}, {"patterns", patterns}};
+            }
+            else if (cmd.type == "read-arrangement-debug") {
+                try { syncResult = BuildArrangementDebugPayload(); }
+                catch (...) { syncResult = {{"success", false}, {"error", "exception in BuildArrangementDebugPayload"}}; }
+            }
+            else if (cmd.type == "read-avatar-debug") {
+                float avatarScale = 1.0f;
+                std::string avatarPath;
+                bool avatarSuccess = false;
+                {
+                    std::lock_guard<std::mutex> lock(g_importDebugMutex);
+                    avatarScale   = g_lastAvatarImportScale;
+                    avatarPath    = g_lastAvatarImportPath;
+                    avatarSuccess = g_lastAvatarImportSuccess;
+                }
+                int patternCount = 0;
+                try { patternCount = PATTERN_API->GetPatternCount(); } catch (...) {}
+                int slotCount = 0;
+                try {
+                    auto slotList = PATTERN_API->GetArrangementList();
+                    slotCount = (int)slotList.size();
+                } catch (...) {}
+                int patternArrangementCount = 0;
+                for (int i = 0; i < patternCount; i++) {
+                    try {
+                        auto rec = PATTERN_API->GetArrangementOfPattern(i);
+                        if (!rec.empty()) patternArrangementCount++;
+                    }
+                    catch (...) {}
+                }
+                std::string anchorMode = "none";
+                std::string semanticsQuality = "none";
+                if (avatarSuccess && slotCount > 0) {
+                    anchorMode        = "semantic_slots";
+                    semanticsQuality  = (slotCount >= 4 ? "high" : "medium");
+                } else if (avatarSuccess && slotCount == 0 && patternArrangementCount > 0) {
+                    anchorMode        = "generic_arrangement_point";
+                    semanticsQuality  = "low";
+                } else if (avatarSuccess) {
+                    anchorMode        = "imported_mesh_avatar";
+                    semanticsQuality  = "none";
+                }
+                syncResult = {
+                    {"success", true},
+                    {"avatar_import", {
+                        {"path",    avatarPath},
+                        {"scale",   avatarScale},
+                        {"success", avatarSuccess}
+                    }},
+                    {"pattern_count",               patternCount},
+                    {"arrangement_list_populated",  slotCount > 0},
+                    {"arrangement_slot_count",      slotCount},
+                    {"pattern_arrangement_count",   patternArrangementCount},
+                    {"avatar_anchor_mode",          anchorMode},
+                    {"arrangement_semantics_quality", semanticsQuality}
+                };
+            }
+            else if (cmd.type == "read-avatar-native-debug") {
+                NativeAvatarDebugState snapshot;
+                int patternCount = 0;
+                int patternArrangementCount = 0;
+                int arrangementSlotCount = 0;
+                std::vector<std::string> slotNames;
+                {
+                    std::lock_guard<std::mutex> lock(g_nativeAvatarDebugMutex);
+                    snapshot = g_nativeAvatarDebugState;
+                }
+                try { patternCount = PATTERN_API->GetPatternCount(); } catch (...) {}
+                try {
+                    auto list = PATTERN_API->GetArrangementList();
+                    arrangementSlotCount = (int)list.size();
+                    for (const auto& row : list) {
+                        auto it = row.find("name");
+                        if (it != row.end()) { slotNames.push_back(it->second); continue; }
+                        auto an = row.find("ArrangementName");
+                        if (an != row.end()) { slotNames.push_back(an->second); continue; }
+                        auto desc = row.find("description");
+                        if (desc != row.end()) slotNames.push_back(desc->second);
+                    }
+                } catch (...) {}
+                for (int i = 0; i < patternCount; i++) {
+                    try {
+                        auto rec = PATTERN_API->GetArrangementOfPattern(i);
+                        if (!rec.empty()) patternArrangementCount++;
+                    } catch (...) {}
+                }
+                syncResult = BuildNativeAvatarDebugJson(
+                    snapshot,
+                    arrangementSlotCount,
+                    patternArrangementCount,
+                    patternCount,
+                    slotNames
+                );
+            }
+            else if (cmd.type == "read-avatar-state") {
+                unsigned int avatarCount = 0;
+                std::vector<std::string> avatarNames;
+                std::vector<int> avatarGenders;
+                json avatars = json::array();
+
+                try { avatarCount   = EXPORT_API->GetAvatarCount();    } catch (...) {}
+                try { avatarNames   = EXPORT_API->GetAvatarNameList();  } catch (...) {}
+                try { avatarGenders = EXPORT_API->GetAvatarGenderList(); } catch (...) {}
+
+                for (unsigned int i = 0; i < avatarCount; ++i) {
+                    std::map<std::string, std::string> properties;
+                    try { properties = UTILITY_API->GetAvatarProperties(i); } catch (...) {}
+
+                    json propertyJson = json::object();
+                    for (const auto& kv : properties)
+                        propertyJson[kv.first] = kv.second;
+
+                    std::string avatarName =
+                        (i < avatarNames.size() ? avatarNames[i] : ("avatar_" + std::to_string(i)));
+                    int avatarGender =
+                        (i < avatarGenders.size() ? avatarGenders[i] : -1);
+
+                    avatars.push_back({
+                        {"index",       i},
+                        {"name",        avatarName},
+                        {"gender_code", avatarGender},
+                        {"gender",      AvatarGenderLabel(avatarGender)},
+                        {"properties",  propertyJson}
+                    });
+                }
+
+                syncResult = {
+                    {"success",      true},
+                    {"avatar_count", avatarCount},
+                    {"avatars",      avatars}
+                };
             }
             else {
-                result.message = "Unknown command type: " + cmd.type;
+                asyncResult.message = "Unknown command type: " + cmd.type;
+                syncResult = {{"success", false}, {"error", "unknown command: " + cmd.type}};
             }
         }
         catch (const std::exception& e) {
-            result.success = false;
-            result.message = "Exception in '" + cmd.type + "': " + std::string(e.what());
+            asyncResult.success = false;
+            asyncResult.message = "Exception in '" + cmd.type + "': " + std::string(e.what());
+            syncResult = {{"success", false}, {"error", e.what()}};
+        }
+        catch (...) {
+            asyncResult.success = false;
+            asyncResult.message = "Unknown exception in '" + cmd.type + "'";
+            syncResult = {{"success", false}, {"error", "unknown exception — CLO threw a non-std type"}};
         }
 
-        {
+        if (cmd.isSync && cmd.syncPromise) {
+            cmd.syncPromise->set_value(syncResult);
+        } else {
             std::lock_guard<std::mutex> rlock(g_resultsMutex);
-            g_lastResults.push_back(result);
+            g_lastResults.push_back(asyncResult);
         }
     }
 
@@ -1483,16 +1547,16 @@ CLO_PLUGIN_SPECIFIER void DoFunction()
     try {
         // First, start server if not running
         if (!g_serverRunning) {
-            UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 500 ms — no further menu clicks needed.");
+            UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 200 ms — no further menu clicks needed.");
 
             g_serverRunning = true;
             g_serverThread = std::thread(StartRESTServer);
             g_serverThread.detach();
 
-            // Register a 500ms Windows timer so the queue is drained on the
+            // Register a 200ms Windows timer so the queue is drained on the
             // main thread automatically (CLO v2025 has no DoFunctionContinuously).
             if (g_timerId == 0) {
-                g_timerId = SetTimer(NULL, 0, 500, QueueDrainTimer);
+                g_timerId = SetTimer(NULL, 0, 200, QueueDrainTimer);
             }
             
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -1531,5 +1595,5 @@ CLO_PLUGIN_SPECIFIER void DoFunctionAfterLoadingCLOFile(const char* fileExtensio
 }
 
 // DoFunctionContinuously is NOT called by CLO v2025 (not in SDK).
-// Queue draining is handled by QueueDrainTimer (SetTimer, 500ms).
+// Queue draining is handled by QueueDrainTimer (SetTimer, 200ms).
 CLO_PLUGIN_SPECIFIER void DoFunctionContinuously() { }
