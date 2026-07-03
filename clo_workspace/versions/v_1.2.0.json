@@ -1,0 +1,40 @@
+{
+  "plugin_name": "CLO REST Automation",
+  "plugin_version": "1.2.0",
+  "api_version": "v1",
+  "release_date": "2026-07-02",
+  "status": "unstable",
+  "platforms": {
+    "windows": "in_sync",
+    "mac": "in_sync"
+  },
+  "changes": {
+    "added": [
+      "Windows: dispatchSyncRead ported from Mac — sync-read promise/future queue for GET endpoints",
+      "Windows: BuildArrangementDebugPayload ported from Mac"
+    ],
+    "changed": [
+      "Windows: all 16 module-level globals declared static, matching Mac",
+      "Windows: APICommand gained isSync and syncPromise fields, matching Mac",
+      "Windows: /avatars/state, /avatar/debug, /avatar/native-debug, /patterns/count, /patterns/{index}, /patterns/{index}/bbox, /patterns/{index}/input, /patterns/{index}/line-lengths, /arrangement-list, /pattern-arrangements, /arrangement/debug now route through dispatchSyncRead instead of calling CLO APIs from the HTTP thread",
+      "Windows: has_avatar_state_readback now advertised as true",
+      "Windows: queue drain timer corrected from 500ms to 200ms, matching Mac",
+      "Windows: every CLO API call inside a sync-read handler wrapped in try/catch so a single failed call cannot block the HTTP thread for the full timeout",
+      "Windows: read-pattern-count, read-pattern-info, read-pattern-bbox, read-pattern-input, read-arrangement-list now report success based on whether the primary CLO call actually returned, instead of always reporting success",
+      "AvatarPropertyDebugState struct, BuildAvatarPropertyDebugJson, StringMapToJson, and StringVectorToJson moved into shared/CloNativePluginSupport.h, removing duplicate definitions from the Windows and Mac source files"
+    ],
+    "fixed": [
+      "Windows: GET /avatars/state no longer crashes the plugin server via unhandled SEH — reads are now marshaled through the main-thread command queue",
+      "Windows: outer command-processing catch block now also catches non-std::exception throws via catch(...), so a sync command's promise is still fulfilled with a failure payload instead of leaving the HTTP thread to time out"
+    ],
+    "resolved": [
+      "Windows GET read endpoints calling CLO API directly from the HTTP thread — now uses the same dispatchSyncRead pattern as Mac"
+    ],
+    "known_issues": [
+      "Native avatar measurement CSV import remains under investigation",
+      "Windows export-avatar-avt: ExportAVT crashes CLO main thread via SEH exception — stubbed out, has_avatar_avt_export advertised as false; use zprj extraction",
+      "catch(...) in ProcessCommandQueue does not catch Windows SEH (hardware) exceptions under /EHs — a CLO read API raising SEH still blocks the sync promise for the full 3s timeout; full fix requires __try/__except wrappers (deferred to Phase 3)"
+    ]
+  },
+  "notes": "Use the latest allowed plugin only. Windows and Mac should match endpoint behavior before both are marked in_sync."
+}

@@ -53,5 +53,6 @@ if(MSVC)
     # Link against CLOAPIInterface
     target_link_libraries(RestPlugin PRIVATE
         ${CLO_API_INTERFACE}
+        Dbghelp.lib
     )
 endif()

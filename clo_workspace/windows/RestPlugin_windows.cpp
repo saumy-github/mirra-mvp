@@ -6,7 +6,10 @@
 #include <atomic>
 #include <string>
 #include <map>
+#include <cstdio>    // sprintf_s — Phase 3 crash-dump filename formatting
 #include <json.hpp>  // nlohmann json library
+#include <dbghelp.h> // MiniDumpWriteDump — Phase 3 SEH crash dumps
+#pragma comment(lib, "Dbghelp.lib")
 
 using json = nlohmann::json;
 using namespace httplib;
@@ -42,24 +45,6 @@ static std::map<std::string, std::string> JsonObjectToStringMap(const json& obje
         result[it.key()] = JsonPrimitiveToString(it.value());
     }
     return result;
-}
-
-static json StringMapToJson(const std::map<std::string, std::string>& values)
-{
-    json out = json::object();
-    for (const auto& [key, value] : values) {
-        out[key] = value;
-    }
-    return out;
-}
-
-static json StringVectorToJson(const std::vector<std::string>& values)
-{
-    json out = json::array();
-    for (const auto& value : values) {
-        out.push_back(value);
-    }
-    return out;
 }
 
 static std::vector<std::string> ComputeChangedPropertyKeys(
@@ -160,36 +145,16 @@ static std::vector<ImportScaleEntry> g_lastPatternImports;
 static std::mutex g_nativeAvatarDebugMutex;
 static NativeAvatarDebugState g_nativeAvatarDebugState;
 
-struct AvatarPropertyDebugState {
-    unsigned int avatar_index = 0;
-    bool success = false;
-    std::string unit = "raw";
-    std::string last_message;
-    std::map<std::string, std::string> requested_properties;
-    std::map<std::string, std::string> properties_before;
-    std::map<std::string, std::string> properties_after;
-    std::vector<std::string> changed_keys;
-    std::vector<std::string> missing_after_keys;
-};
-
 static std::mutex g_avatarPropertyDebugMutex;
 static AvatarPropertyDebugState g_avatarPropertyDebugState;
 
-static json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
-{
-    return {
-        {"success", true},
-        {"avatar_index", state.avatar_index},
-        {"apply_success", state.success},
-        {"unit", state.unit},
-        {"requested_properties", StringMapToJson(state.requested_properties)},
-        {"properties_before", StringMapToJson(state.properties_before)},
-        {"properties_after", StringMapToJson(state.properties_after)},
-        {"changed_keys", StringVectorToJson(state.changed_keys)},
-        {"missing_after_keys", StringVectorToJson(state.missing_after_keys)},
-        {"last_message", state.last_message}
-    };
-}
+// ─── Dynamic capability flags (Phase 3) ────────────────────────────────────
+// Set once at startup by RunCapabilityProbesOnce() (called from DoFunction's
+// first invocation) and refreshed after every real ExportAVT call. Replaces
+// the previously hardcoded /capabilities values for these two fields.
+static std::atomic<bool> g_capabilityAvatarAvtExport{false};
+static std::atomic<bool> g_capabilityAvatarStateReadback{false};
+static std::atomic<bool> g_capabilityProbesRun{false};
 
 // Global flag to keep server running
 static std::atomic<bool> g_serverRunning{false};
@@ -276,6 +241,142 @@ static json dispatchSyncRead(const std::string& type, int param3 = 0, int param4
     };
 }
 
+// ─── SEH crash protection (Phase 3) ────────────────────────────────────────
+// MSVC forbids mixing __try/__except with local C++ objects that require
+// unwinding in the SAME function (compiler error C2712). Every function
+// below that contains __try therefore has NO local objects with
+// destructors — it only calls out to ordinary helper functions (which may
+// freely use std::string etc.) to do the real work.
+
+static std::string GetCrashDumpDirectory()
+{
+    char modulePath[MAX_PATH] = { 0 };
+    HMODULE hModule = nullptr;
+    GetModuleHandleExA(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        reinterpret_cast<LPCSTR>(&GetCrashDumpDirectory),
+        &hModule
+    );
+    GetModuleFileNameA(hModule, modulePath, MAX_PATH);
+
+    std::string dir = modulePath;
+    size_t pos = dir.find_last_of("\\/");
+    dir = (pos == std::string::npos) ? "." : dir.substr(0, pos);
+    dir += "\\CrashDumps";
+    CreateDirectoryA(dir.c_str(), nullptr);
+    return dir;
+}
+
+// Ordinary function (no __try) — safe to use std::string/SYSTEMTIME/etc.
+// Called synchronously from the __except filter expression below while the
+// EXCEPTION_POINTERS* is still valid.
+static void WriteMiniDumpToDisk(EXCEPTION_POINTERS* exceptionPointers, const char* label)
+{
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    char stamp[32];
+    sprintf_s(stamp, sizeof(stamp), "%04d%02d%02d_%02d%02d%02d",
+        st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
+
+    std::string path = GetCrashDumpDirectory() + "\\" + label + "_" + stamp + ".dmp";
+
+    HANDLE hFile = CreateFileA(path.c_str(), GENERIC_WRITE, 0, nullptr,
+        CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (hFile == INVALID_HANDLE_VALUE) return;
+
+    MINIDUMP_EXCEPTION_INFORMATION mdei;
+    mdei.ThreadId          = GetCurrentThreadId();
+    mdei.ExceptionPointers = exceptionPointers;
+    mdei.ClientPointers    = FALSE;
+
+    MiniDumpWriteDump(
+        GetCurrentProcess(),
+        GetCurrentProcessId(),
+        hFile,
+        MiniDumpWithFullMemory,
+        exceptionPointers ? &mdei : nullptr,
+        nullptr,
+        nullptr
+    );
+    CloseHandle(hFile);
+}
+
+// Valid only as (or from) the direct operand of __except — must be evaluated
+// while the EXCEPTION_POINTERS* from GetExceptionInformation() is still live.
+static LONG SEHFilterWriteDump(EXCEPTION_POINTERS* ep, const char* label)
+{
+    WriteMiniDumpToDisk(ep, label);
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
+typedef bool (*SEHProbeFn)(void* context);
+
+// The only function in this file whose __try scope must stay free of any
+// local C++ object with a destructor: fn is a function pointer, context is a
+// raw void*, both PODs. All real work happens inside fn(), an ordinary
+// function that is free to use std::string, exceptions, etc.
+static bool RunSEHGuarded(SEHProbeFn fn, void* context, const char* label)
+{
+    __try
+    {
+        return fn(context);
+    }
+    __except (SEHFilterWriteDump(GetExceptionInformation(), label))
+    {
+        return false;
+    }
+}
+
+// ── ExportAVT: known to raise SEH exceptions even on the main thread ───────
+static bool CallExportAVTOnce(void* context)
+{
+    const std::string* pathIn = static_cast<const std::string*>(context);
+    return !EXPORT_API->ExportAVT(*pathIn).empty();
+}
+
+static bool ExportAVT_SEHSafe(const std::string& path)
+{
+    return RunSEHGuarded(
+        CallExportAVTOnce,
+        const_cast<void*>(static_cast<const void*>(&path)),
+        "ExportAVT"
+    );
+}
+
+// ── Startup capability probes ───────────────────────────────────────────────
+// Runs once per plugin session (guarded by g_capabilityProbesRun), from the
+// first DoFunction() invocation — the earliest point in this SDK's plugin
+// lifecycle where the CLO API pointers (IMPORT_API/EXPORT_API/etc.) are known
+// to be initialized. There is no DLL-load-time hook in this SDK sample that
+// is safe for this (DllMain runs under the loader lock, before CLO has wired
+// up the API pointers), so "plugin load" is interpreted as "first click."
+//
+// IMPORTANT: neither probe actually runs automatically right now. A live
+// test (2026-07-03) showed CLO closing immediately when the ExportAVT probe
+// ran automatically at startup, with no .dmp written to CrashDumps —
+// meaning the fault bypassed the __try/__except wrapper entirely (this can
+// happen if the real crash is on another thread, a stack overflow, an
+// internal abort()/assertion, or a vectored exception handler CLO itself
+// registers ahead of our frame-based handler). Calling any previously-
+// unexercised CLO API unconditionally on every plugin session start — before
+// the server thread even exists — is worse than the capability flag being
+// stale, since it blocks the whole pipeline.
+//
+// CallAvatarStateProbeOnce() has no known crash history the way ExportAVT
+// does, but it is exercised here at the exact same early, untested point in
+// the lifecycle (right after the message box, before the timer/server
+// start), so it is left disabled too until there is a reason to believe it's
+// safe there. has_avatar_state_readback is instead set to true from real
+// usage inside the "read-avatar-state" branch of ProcessCommandQueue, which
+// already existed before Phase 3 and has an established track record via
+// dispatchSyncRead. has_avatar_avt_export is likewise only set from a real
+// /export-avatar-avt request (see ProcessCommandQueue), via ExportAVT_SEHSafe.
+static void RunCapabilityProbesOnce()
+{
+    if (g_capabilityProbesRun.exchange(true)) return;
+    // Intentionally empty for now — see comment above.
+}
+
 // HTTP Server Implementation
 void StartRESTServer()
 {
@@ -322,9 +423,9 @@ void StartRESTServer()
                 {"has_native_avatar_debug", true},
                 {"has_avatar_property_set", true},
                 {"has_avatar_property_debug", true},
-                {"has_avatar_state_readback", true},
-                {"has_avatar_avt_export", false},
-                {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
+                {"has_avatar_state_readback", g_capabilityAvatarStateReadback.load()},
+                {"has_avatar_avt_export", g_capabilityAvatarAvtExport.load()},
+                {"notes", "has_avatar_state_readback and has_avatar_avt_export are set from a startup SEH-guarded probe (Phase 3), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
             };
             res.set_content(response.dump(), "application/json");
         });
@@ -1228,10 +1329,15 @@ void ProcessCommandQueue()
                     : "Save failed";
             }
             else if (cmd.type == "export-avatar-avt") {
-                // ExportAVT raises SEH exceptions not caught by catch(std::exception&)
-                // under /EHs — disabled until __try/__except wrapper is added (Phase 3).
-                asyncResult.success = false;
-                asyncResult.message = "export-avatar-avt: ExportAVT crashes CLO main thread via SEH; use zprj extraction instead";
+                // Phase 3: routed through the SEH-safe wrapper so a hardware
+                // exception from ExportAVT is contained (minidump written,
+                // false returned) instead of crashing CLO's main thread.
+                bool exportOk = ExportAVT_SEHSafe(cmd.param1);
+                g_capabilityAvatarAvtExport = exportOk;
+                asyncResult.success = exportOk;
+                asyncResult.message = exportOk
+                    ? "Avatar exported via ExportAVT: " + cmd.param1
+                    : "ExportAVT failed or raised a hardware exception (SEH) — check the CrashDumps folder next to the plugin DLL for a .dmp if one was written";
             }
             // ── Sync reads (all called via dispatchSyncRead) ──────────────
             else if (cmd.type == "read-pattern-count") {
@@ -1491,6 +1597,11 @@ void ProcessCommandQueue()
                     });
                 }
 
+                // Reached without a hard crash — this handler has run
+                // successfully (real GetAvatarCount/NameList/GenderList
+                // calls, individually try/catch-guarded above since Phase 1).
+                g_capabilityAvatarStateReadback = true;
+
                 syncResult = {
                     {"success",      true},
                     {"avatar_count", avatarCount},
@@ -1548,6 +1659,11 @@ CLO_PLUGIN_SPECIFIER void DoFunction()
         // First, start server if not running
         if (!g_serverRunning) {
             UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 200 ms — no further menu clicks needed.");
+
+            // Phase 3: probe SEH-crash-prone CLO APIs once, on the main
+            // thread, before the server starts taking requests, so
+            // /capabilities reflects what actually works this session.
+            RunCapabilityProbesOnce();
 
             g_serverRunning = true;
             g_serverThread = std::thread(StartRESTServer);

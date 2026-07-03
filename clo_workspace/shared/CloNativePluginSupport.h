@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 #include <json.hpp>
@@ -42,6 +43,52 @@ inline nlohmann::json BuildNativeAvatarDebugJson(
         {"arrangement_slot_count", arrangementSlotCount},
         {"pattern_arrangement_count", patternArrangementCount},
         {"slot_names", slotNameArray},
+        {"last_message", state.last_message}
+    };
+}
+
+inline nlohmann::json StringMapToJson(const std::map<std::string, std::string>& values)
+{
+    nlohmann::json out = nlohmann::json::object();
+    for (const auto& [key, value] : values) {
+        out[key] = value;
+    }
+    return out;
+}
+
+inline nlohmann::json StringVectorToJson(const std::vector<std::string>& values)
+{
+    nlohmann::json out = nlohmann::json::array();
+    for (const auto& value : values) {
+        out.push_back(value);
+    }
+    return out;
+}
+
+struct AvatarPropertyDebugState {
+    unsigned int avatar_index = 0;
+    bool success = false;
+    std::string unit = "raw";
+    std::string last_message;
+    std::map<std::string, std::string> requested_properties;
+    std::map<std::string, std::string> properties_before;
+    std::map<std::string, std::string> properties_after;
+    std::vector<std::string> changed_keys;
+    std::vector<std::string> missing_after_keys;
+};
+
+inline nlohmann::json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
+{
+    return {
+        {"success", true},
+        {"avatar_index", state.avatar_index},
+        {"apply_success", state.success},
+        {"unit", state.unit},
+        {"requested_properties", StringMapToJson(state.requested_properties)},
+        {"properties_before", StringMapToJson(state.properties_before)},
+        {"properties_after", StringMapToJson(state.properties_after)},
+        {"changed_keys", StringVectorToJson(state.changed_keys)},
+        {"missing_after_keys", StringVectorToJson(state.missing_after_keys)},
         {"last_message", state.last_message}
     };
 }

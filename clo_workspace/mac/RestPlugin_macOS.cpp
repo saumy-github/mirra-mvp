@@ -138,6 +138,13 @@ public:
 #include <thread>
 #include <vector>
 
+// Phase 3 crash protection: POSIX signal handling for SIGSEGV/SIGBUS/SIGILL.
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <fcntl.h>
+#include <unistd.h>
+
 using json = nlohmann::json;
 using namespace httplib;
 
@@ -158,6 +165,89 @@ static const char* AvatarGenderLabel(int gender)
     case 0: return "male";
     case 1: return "female";
     default: return "unknown";
+    }
+}
+
+// ─── Crash protection (Phase 3) ────────────────────────────────────────────
+// macOS has no equivalent to Windows SEH (__try/__except) that lets a caught
+// hardware fault resume execution safely — after SIGSEGV/SIGBUS/SIGILL, the
+// heap/global state may already be corrupted, so "catch and continue" via
+// sigsetjmp/siglongjmp is not attempted here (this is not just a scoping
+// choice: it is widely considered unsafe in production, which is part of why
+// browsers isolate crash-prone work in separate sandboxed processes instead
+// of recovering in-process). This handler only writes a small diagnostic
+// breadcrumb next to macOS's own automatic crash report, then restores the
+// default handler and re-raises so the OS's normal crash path (.ips report +
+// process termination) still happens exactly as it would without this file.
+//
+// The handler body only calls write()/open()/close()/snprintf() into a stack
+// buffer — no malloc, no std::string, no iostream — to stay as close to
+// async-signal-safe as practical C++ allows.
+static void MirraCrashSignalHandler(int signalNumber)
+{
+    const char* label = "UNKNOWN";
+    if (signalNumber == SIGSEGV) label = "SIGSEGV";
+    else if (signalNumber == SIGBUS) label = "SIGBUS";
+    else if (signalNumber == SIGILL) label = "SIGILL";
+
+    char path[512];
+    const char* home = getenv("HOME");
+    if (home) {
+        snprintf(path, sizeof(path), "%s/Library/Logs/DiagnosticReports/MirraRestPlugin_crash.log", home);
+    } else {
+        snprintf(path, sizeof(path), "/tmp/MirraRestPlugin_crash.log");
+    }
+
+    int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, 0644);
+    if (fd >= 0) {
+        char line[256];
+        int len = snprintf(line, sizeof(line),
+            "[MirraRestPlugin] signal=%s (%d) pid=%d — see the accompanying macOS crash report in this directory\n",
+            label, signalNumber, (int)getpid());
+        if (len > 0) write(fd, line, (size_t)len);
+        close(fd);
+    }
+
+    signal(signalNumber, SIG_DFL);
+    raise(signalNumber);
+}
+
+static void InstallCrashSignalHandlers()
+{
+    signal(SIGSEGV, MirraCrashSignalHandler);
+    signal(SIGBUS,  MirraCrashSignalHandler);
+    signal(SIGILL,  MirraCrashSignalHandler);
+}
+
+// ─── Dynamic capability flags (Phase 3) ────────────────────────────────────
+// Mirrors the Windows probe pattern: exercise each historically crash-prone
+// CLO API once at startup and set the corresponding capability flag from the
+// real result instead of a hardcoded value. Unlike Windows there is no
+// per-call recovery wrapper around these calls (see above) — a genuine
+// SIGSEGV/SIGBUS/SIGILL during the probe is still fatal to the CLO process,
+// just now with a breadcrumb logged first.
+static std::atomic<bool> g_capabilityAvatarAvtExport{false};
+static std::atomic<bool> g_capabilityAvatarStateReadback{false};
+static std::atomic<bool> g_capabilityProbesRun{false};
+
+static void RunCapabilityProbesOnce()
+{
+    if (g_capabilityProbesRun.exchange(true)) return;
+
+    try {
+        g_capabilityAvatarAvtExport =
+            !EXPORT_API->ExportAVT("/tmp/mirra_rest_plugin_probe_export.avt").empty();
+    } catch (...) {
+        g_capabilityAvatarAvtExport = false;
+    }
+
+    try {
+        (void)EXPORT_API->GetAvatarCount();
+        (void)EXPORT_API->GetAvatarNameList();
+        (void)EXPORT_API->GetAvatarGenderList();
+        g_capabilityAvatarStateReadback = true;
+    } catch (...) {
+        g_capabilityAvatarStateReadback = false;
     }
 }
 
@@ -247,20 +337,6 @@ static std::map<std::string, std::string> JsonObjectToStringMap(const json& obj)
     return result;
 }
 
-static json StringMapToJson(const std::map<std::string, std::string>& values)
-{
-    json out = json::object();
-    for (const auto& [k, v] : values) out[k] = v;
-    return out;
-}
-
-static json StringVectorToJson(const std::vector<std::string>& values)
-{
-    json out = json::array();
-    for (const auto& v : values) out.push_back(v);
-    return out;
-}
-
 static std::vector<std::string> ComputeChangedPropertyKeys(
     const std::map<std::string, std::string>& before,
     const std::map<std::string, std::string>& after,
@@ -288,37 +364,11 @@ static std::vector<std::string> ComputeMissingAfterKeys(
 }
 
 // ─── Avatar property debug state ─────────────────────────────────────────────
-
-struct AvatarPropertyDebugState {
-    unsigned int avatar_index = 0;
-    bool success = false;
-    std::string unit = "raw";
-    std::string last_message;
-    std::map<std::string, std::string> requested_properties;
-    std::map<std::string, std::string> properties_before;
-    std::map<std::string, std::string> properties_after;
-    std::vector<std::string> changed_keys;
-    std::vector<std::string> missing_after_keys;
-};
+// AvatarPropertyDebugState and BuildAvatarPropertyDebugJson now live in
+// CloNativePluginSupport.h, shared with the Windows plugin.
 
 static std::mutex g_avatarPropertyDebugMutex;
 static AvatarPropertyDebugState g_avatarPropertyDebugState;
-
-static json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
-{
-    return {
-        {"success", true},
-        {"avatar_index", state.avatar_index},
-        {"apply_success", state.success},
-        {"unit", state.unit},
-        {"requested_properties", StringMapToJson(state.requested_properties)},
-        {"properties_before", StringMapToJson(state.properties_before)},
-        {"properties_after", StringMapToJson(state.properties_after)},
-        {"changed_keys", StringVectorToJson(state.changed_keys)},
-        {"missing_after_keys", StringVectorToJson(state.missing_after_keys)},
-        {"last_message", state.last_message}
-    };
-}
 
 // ─── Forward declaration ──────────────────────────────────────────────────────
 static void ProcessCommandQueue();
@@ -981,9 +1031,9 @@ static void StartRESTServer()
             {"has_native_avatar_debug", true},
             {"has_avatar_property_set", true},
             {"has_avatar_property_debug", true},
-            {"has_avatar_state_readback", true},
-            {"has_avatar_avt_export", true},
-            {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
+            {"has_avatar_state_readback", g_capabilityAvatarStateReadback.load()},
+            {"has_avatar_avt_export", g_capabilityAvatarAvtExport.load()},
+            {"notes", "has_avatar_state_readback and has_avatar_avt_export are set from a startup probe (Phase 3), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
         };
         res.set_content(r.dump(), "application/json");
     });
@@ -1551,6 +1601,12 @@ CLO_EXPORT void DoFunction()
     }
 
     // ── First invocation: start server + Qt drain timer ──────────────────────
+    // Phase 3: install crash-log signal handlers and probe SEH-crash-prone
+    // (on Windows) CLO APIs once, before the server starts taking requests,
+    // so /capabilities reflects what actually works this session.
+    InstallCrashSignalHandlers();
+    RunCapabilityProbesOnce();
+
     g_serverRunning = true;
 
     g_serverThread = std::thread(StartRESTServer);
