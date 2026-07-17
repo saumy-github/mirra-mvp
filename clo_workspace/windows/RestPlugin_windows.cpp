@@ -7,9 +7,59 @@
 #include <string>
 #include <map>
 #include <json.hpp>  // nlohmann json library
+#include <fstream>
+#include <chrono>
+#include <ctime>
+#include <mutex>
+#include <thread>
+#include <filesystem>
 
 using json = nlohmann::json;
 using namespace httplib;
+
+// ── Crash-forensic trace log ────────────────────────────────────────────────
+// Investigating: CLO crashes hard (process dies) during/after seam creation,
+// with no exception surfacing through catch(const std::exception&) or even
+// catch(...) — consistent with a genuine SEH/access-violation-class crash
+// inside the CLO SDK (same class of bug already documented for ExportAVT in
+// this file). A hard crash means g_lastResults (in-memory) and the HTTP
+// response are both lost — Python never learns which command was in flight.
+//
+// This log brackets every CAPI call that has ever been implicated (avatar
+// import, pattern import, seam creation) with a BEGIN line written and
+// flushed to disk *before* the call, and an END line *after* it returns.
+// Opened + flushed + closed on every single call (not held open) specifically
+// so a hard crash between BEGIN and END still leaves BEGIN on disk with no
+// matching END — that unmatched BEGIN is the crash site. Postmortem: grep the
+// file for the last BEGIN with no following END.
+static std::mutex g_traceLogMutex;
+
+static std::string TraceLogPath()
+{
+    // Repo-relative logs dir, matching build_plugin.py's own LOGS_DIR convention.
+    return "C:/Users/Anant/mirra-mvp/clo_workspace/logs/plugin_crash_trace.log";
+}
+
+static void TraceLog(const std::string& message)
+{
+    std::lock_guard<std::mutex> lock(g_traceLogMutex);
+    try {
+        std::filesystem::path p(TraceLogPath());
+        std::filesystem::create_directories(p.parent_path());
+        std::ofstream f(p, std::ios::app);
+        if (!f.is_open()) return;
+        auto now = std::chrono::system_clock::now();
+        std::time_t t = std::chrono::system_clock::to_time_t(now);
+        std::tm tm_buf{};
+        localtime_s(&tm_buf, &t);
+        char buf[16];
+        std::strftime(buf, sizeof(buf), "%H:%M:%S", &tm_buf);
+        f << "[" << buf << "] [tid=" << std::this_thread::get_id() << "] " << message << "\n";
+        f.flush();
+    } catch (...) {
+        // Never let logging itself be a new crash source.
+    }
+}
 
 static const char* AvatarGenderLabel(int gender)
 {
@@ -140,6 +190,36 @@ std::atomic<bool>            g_queueProcessing{false};
 static std::atomic<int>      g_patternsLoaded{0};
 static Server*               g_server = nullptr;
 
+// ── Fabric dispatch globals ───────────────────────────────────────────────────
+// SetFabricPBRMaterialBaseColor and SetBaseTextureMapImageGivenFilePath cannot
+// be called from inside QueueDrainTimer (a Win32 TIMERPROC). They internally
+// post Qt/Win32 events that cannot be pumped while the message loop is already
+// inside the callback frame — causing a deadlock/hang.
+//
+// Fix: use PostMessage with custom WM_APP messages so the CAPI calls execute
+// at the top of the next Win32 message loop iteration with a clean call stack.
+
+#define WM_MIRRA_SET_COLOR    (WM_APP + 101)
+#define WM_MIRRA_SET_TEXTURE  (WM_APP + 102)
+#define WM_MIRRA_DRAIN_QUEUE  (WM_APP + 103)
+
+struct FabricColorParams  { int fabric_idx; float r, g, b; };
+struct FabricTextureParams { int fabric_idx; std::string path; };
+
+// Atomic counters so /fabric-status can report completion without holding a lock.
+struct FabricStatus {
+    std::atomic<int>  pending{0};      // incremented before PostMessage
+    std::atomic<int>  completed{0};    // incremented after CAPI call returns
+    std::atomic<int>  failed{0};       // incremented if CAPI throws
+    std::atomic<bool> lastSuccess{true};
+    std::mutex        msgMutex;
+    std::string       lastMessage;
+};
+static FabricStatus g_fabricStatus;
+
+static HWND    g_cloMainWnd  = nullptr;  // CLO top-level HWND (discovered once at startup)
+static WNDPROC g_origWndProc = nullptr;  // CLO's original WndProc (restored on shutdown)
+
 struct ImportScaleEntry {
     std::string path;
     float scale = 1.0f;
@@ -192,6 +272,179 @@ std::thread g_serverThread;
 // Forward declaration — defined later in this file.
 void ProcessCommandQueue();
 
+// ── CLO SDK Guard ─────────────────────────────────────────────────────────────
+// Every CAPI call must pass these checks. CLO's SDK pointers can be null during
+// scene transitions or on certain CLO versions. Failing loudly here prevents
+// silent hangs and makes diagnostics clear in /fabric-status.
+namespace CLOGuard {
+
+inline bool fabricReady(std::string& outError) {
+    if (!FABRIC_API) { outError = "FABRIC_API is null (CLO SDK not ready)"; return false; }
+    return true;
+}
+
+inline bool patternIndexValid(int idx, std::string& outError) {
+    if (!PATTERN_API) { outError = "PATTERN_API is null"; return false; }
+    int count = 0;
+    try { count = PATTERN_API->GetPatternCount(); }
+    catch (...) { outError = "GetPatternCount threw — CLO may be in scene transition"; return false; }
+    if (idx < 0 || idx >= count) {
+        outError = "pattern_index " + std::to_string(idx) +
+                   " out of range (count=" + std::to_string(count) + ")";
+        return false;
+    }
+    return true;
+}
+
+inline bool fileExists(const std::string& path, std::string& outError) {
+    DWORD attr = GetFileAttributesA(path.c_str());
+    if (attr == INVALID_FILE_ATTRIBUTES) {
+        outError = "File not found: " + path; return false;
+    }
+    return true;
+}
+
+} // namespace CLOGuard
+
+// ── MirraWndProc — receives WM_MIRRA_* messages on CLO's main thread ─────────
+// Executes the deferred CAPI calls with a clean call stack (outside the timer
+// callback frame). Updates g_fabricStatus counters so /fabric-status reflects
+// real completion, not just queue drain.
+static LRESULT CALLBACK MirraWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
+{
+    if (msg == WM_MIRRA_SET_COLOR) {
+        auto* p = reinterpret_cast<FabricColorParams*>(lp);
+        try {
+            FABRIC_API->SetFabricPBRMaterialBaseColor(
+                static_cast<unsigned int>(p->fabric_idx), 0u, p->r, p->g, p->b, 1.0f);
+            g_fabricStatus.lastSuccess = true;
+            { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+              g_fabricStatus.lastMessage = "Color applied to fabric " + std::to_string(p->fabric_idx); }
+            g_fabricStatus.completed++;
+        } catch (const std::exception& e) {
+            g_fabricStatus.failed++;
+            g_fabricStatus.lastSuccess = false;
+            { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+              g_fabricStatus.lastMessage = std::string("SetFabricPBRMaterialBaseColor threw: ") + e.what(); }
+        } catch (...) {
+            g_fabricStatus.failed++;
+            g_fabricStatus.lastSuccess = false;
+        }
+        delete p;
+        return 0;
+    }
+    if (msg == WM_MIRRA_SET_TEXTURE) {
+        auto* p = reinterpret_cast<FabricTextureParams*>(lp);
+        try {
+            FABRIC_API->SetBaseTextureMapImageGivenFilePath(p->path, p->fabric_idx);
+            g_fabricStatus.lastSuccess = true;
+            { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+              g_fabricStatus.lastMessage = "Texture applied to fabric " + std::to_string(p->fabric_idx) + ": " + p->path; }
+            g_fabricStatus.completed++;
+        } catch (const std::exception& e) {
+            g_fabricStatus.failed++;
+            g_fabricStatus.lastSuccess = false;
+            { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+              g_fabricStatus.lastMessage = std::string("SetBaseTextureMapImageGivenFilePath threw: ") + e.what(); }
+        } catch (...) {
+            g_fabricStatus.failed++;
+            g_fabricStatus.lastSuccess = false;
+        }
+        delete p;
+        return 0;
+    }
+    if (msg == WM_MIRRA_DRAIN_QUEUE) {
+        // Posted by POST /execute so a client can force an immediate drain
+        // instead of waiting on QueueDrainTimer. Runs here — on CLO's main
+        // thread, clean call stack — for the same reason fabric calls do.
+        // ProcessCommandQueue() already no-ops on an empty queue and is
+        // guarded by g_queueMutex, so redundant posts are harmless.
+        ProcessCommandQueue();
+        return 0;
+    }
+    return CallWindowProc(g_origWndProc, hwnd, msg, wp, lp);
+}
+
+// ── WndProc health-check ──────────────────────────────────────────────────────
+// CLO may reinstall its own WndProc on scene reload or project open. This check
+// runs every 500 ms inside QueueDrainTimer to re-chain from the new proc so our
+// WM_MIRRA_* messages are never silently dropped.
+static void EnsureWndProcSubclass()
+{
+    if (!g_cloMainWnd || !g_origWndProc) return;
+
+    // g_cloMainWnd can go stale (CLO destroys/recreates its main window on
+    // scene reload). GetWindowLongPtr on a dead handle returns 0, which used
+    // to be indistinguishable from "CLO installed a new WndProc" below — that
+    // false read overwrote g_origWndProc with nullptr, and every future
+    // message on the (still MirraWndProc-subclassed, now-dangling) handle
+    // fell through to `CallWindowProc(nullptr, ...)`: an access violation with
+    // no catchable C++ exception. Bail out and let startup HWND discovery
+    // rediscover the real window instead of corrupting the chain on a guess.
+    if (!IsWindow(g_cloMainWnd)) {
+        TraceLog("EnsureWndProcSubclass: g_cloMainWnd is no longer a valid window — clearing for rediscovery");
+        g_cloMainWnd = nullptr;
+        g_origWndProc = nullptr;
+        return;
+    }
+
+    auto current = reinterpret_cast<WNDPROC>(
+        GetWindowLongPtr(g_cloMainWnd, GWLP_WNDPROC));
+
+    // A null read from a *valid* window handle means GetWindowLongPtr failed
+    // (see GetLastError) rather than "no WndProc" — never treat that as "CLO
+    // replaced the proc," since chaining through a null WNDPROC crashes on
+    // the next message. Only re-chain when we got a real, different pointer.
+    if (current != nullptr && current != MirraWndProc) {
+        // CLO replaced the WndProc — chain from it and re-install ours.
+        g_origWndProc = current;
+        SetWindowLongPtr(g_cloMainWnd, GWLP_WNDPROC,
+                         reinterpret_cast<LONG_PTR>(MirraWndProc));
+    }
+}
+
+// ── FabricDispatcher ──────────────────────────────────────────────────────────
+// Unified interface for ProcessCommandQueue. Increments pending before posting
+// so /fabric-status can track in-flight vs. completed calls.
+namespace FabricDispatcher {
+
+inline bool available() { return g_cloMainWnd != nullptr; }
+
+inline void dispatchColor(int fabric_idx, float r, float g, float b)
+{
+    g_fabricStatus.pending++;
+    if (!available()) {
+        // HWND not found — direct call fallback (may hang if called during timer).
+        // This path is only reached if CLO HWND discovery failed at startup.
+        try {
+            FABRIC_API->SetFabricPBRMaterialBaseColor(
+                static_cast<unsigned int>(fabric_idx), 0u, r, g, b, 1.0f);
+            g_fabricStatus.completed++;
+            g_fabricStatus.lastSuccess = true;
+        } catch (...) { g_fabricStatus.failed++; g_fabricStatus.lastSuccess = false; }
+        return;
+    }
+    auto* p = new FabricColorParams{fabric_idx, r, g, b};
+    PostMessage(g_cloMainWnd, WM_MIRRA_SET_COLOR, 0, reinterpret_cast<LPARAM>(p));
+}
+
+inline void dispatchTexture(int fabric_idx, const std::string& path)
+{
+    g_fabricStatus.pending++;
+    if (!available()) {
+        try {
+            FABRIC_API->SetBaseTextureMapImageGivenFilePath(path, fabric_idx);
+            g_fabricStatus.completed++;
+            g_fabricStatus.lastSuccess = true;
+        } catch (...) { g_fabricStatus.failed++; g_fabricStatus.lastSuccess = false; }
+        return;
+    }
+    auto* p = new FabricTextureParams{fabric_idx, path};
+    PostMessage(g_cloMainWnd, WM_MIRRA_SET_TEXTURE, 0, reinterpret_cast<LPARAM>(p));
+}
+
+} // namespace FabricDispatcher
+
 // Windows timer used to drain the command queue on CLO's main thread.
 // SetTimer is called once from DoFunction(); the callback fires every 500ms
 // via CLO's Win32 message pump — no menu click needed after the first one.
@@ -199,14 +452,36 @@ UINT_PTR g_timerId = 0;
 
 VOID CALLBACK QueueDrainTimer(HWND, UINT, UINT_PTR, DWORD)
 {
-    if (!g_serverRunning || g_queueProcessing) return;
+    // Re-check WndProc subclass every tick — handles CLO scene reloads.
+    EnsureWndProcSubclass();
+
+    // Heartbeat: proves whether this timer is actually firing at all in a
+    // given CLO session (its reliability has been in question — the whole
+    // reason /execute needed a real dispatch path instead of just polling
+    // status). Throttled to every ~100th tick (~50s at 500ms) so the log
+    // stays readable; every tick that finds real work logs unconditionally.
+    static std::atomic<long> s_tickCount{0};
+    long tick = ++s_tickCount;
+    if (tick % 100 == 1) {
+        TraceLog("QueueDrainTimer heartbeat tick=" + std::to_string(tick)
+            + " serverRunning=" + std::string(g_serverRunning ? "true" : "false")
+            + " queueProcessing=" + std::string(g_queueProcessing ? "true" : "false"));
+    }
+
+    if (!g_serverRunning) return;
+    if (g_queueProcessing) {
+        TraceLog("QueueDrainTimer tick=" + std::to_string(tick) + " SKIPPED — g_queueProcessing already true (stuck flag or genuinely mid-batch)");
+        return;
+    }
     bool hasCommands;
     {
         std::lock_guard<std::mutex> lock(g_queueMutex);
         hasCommands = !g_commandQueue.empty();
     }
     if (hasCommands) {
+        TraceLog("QueueDrainTimer tick=" + std::to_string(tick) + " draining queue");
         ProcessCommandQueue();
+        TraceLog("QueueDrainTimer tick=" + std::to_string(tick) + " drain call returned");
     }
 }
 
@@ -258,6 +533,9 @@ void StartRESTServer()
                 {"has_avatar_property_debug", true},
                 {"has_avatar_state_readback", false},
                 {"has_avatar_avt_export", false},
+                {"has_set_fabric_color", true},
+                {"has_set_fabric_texture", true},
+                {"has_set_fabric_graphic", true},
                 {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
             };
             res.set_content(response.dump(), "application/json");
@@ -618,9 +896,18 @@ void StartRESTServer()
         }
     });
 
-    // Execute queued commands — DoFunctionContinuously drains the queue
-    // automatically on the main thread every frame, so this endpoint just
-    // returns the current queue status without touching the queue itself.
+    // Execute queued commands.
+    // NOTE (history): this used to be a no-op — its old comment claimed
+    // "DoFunctionContinuously drains the queue automatically on the main
+    // thread every frame" and this endpoint "just returns the current queue
+    // status without touching the queue itself". That assumption is false
+    // for CLO v2025 (DoFunctionContinuously is never called — see its
+    // definition below) and QueueDrainTimer (SetTimer-based) does not fire
+    // reliably in every session, which silently stalled the whole pipeline
+    // until someone clicked the plugin's Plugins-menu entry by hand.
+    //
+    // Fix: actively request a drain via the same PostMessage/main-thread
+    // pattern used for fabric calls, instead of just polling status.
     svr.Post("/execute", [](const Request& req, Response& res) {
         try {
             int qsize;
@@ -630,11 +917,35 @@ void StartRESTServer()
                 qsize = (int)g_commandQueue.size();
                 processing = g_queueProcessing;
             }
+
+            std::string dispatchNote = "queue empty";
+            if (qsize > 0 && !processing) {
+                if (g_cloMainWnd) {
+                    PostMessage(g_cloMainWnd, WM_MIRRA_DRAIN_QUEUE, 0, 0);
+                    dispatchNote = "drain posted to main thread";
+                } else {
+                    // g_cloMainWnd was never discovered (should not happen once
+                    // DoFunction() has run once) — same last-resort fallback
+                    // FabricDispatcher uses; carries the same risk of calling
+                    // CAPI off the main thread, but beats never draining at all.
+                    TraceLog("/execute: g_cloMainWnd NOT SET — calling ProcessCommandQueue() "
+                        "directly on the HTTP server thread (cross-thread CAPI risk)");
+                    ProcessCommandQueue();
+                    dispatchNote = "drain called directly [no HWND — fallback]";
+                }
+            } else if (processing) {
+                dispatchNote = "drain already in progress";
+            }
+            TraceLog("/execute called: qsize=" + std::to_string(qsize)
+                + " processing=" + std::string(processing ? "true" : "false")
+                + " hwndKnown=" + std::string(g_cloMainWnd ? "true" : "false")
+                + " -> " + dispatchNote);
+
             json response = {
                 {"success",          true},
                 {"queue_size",       qsize},
                 {"queue_processing", processing},
-                {"message",          qsize > 0 ? "Queue pending (DoFunctionContinuously will drain it)" : "Queue empty"}
+                {"message",          dispatchNote}
             };
             res.set_content(response.dump(), "application/json");
         }
@@ -1020,6 +1331,138 @@ void StartRESTServer()
         }
     });
 
+    // ── Set fabric diffuse color ─────────────────────────────────────────────
+    // Expects: {pattern_index, r, g, b}  (r/g/b in 0–255)
+    svr.Post("/set-fabric-color", [](const Request& req, Response& res) {
+        try {
+            auto j = json::parse(req.body);
+
+            APICommand cmd;
+            cmd.type        = "set-fabric-color";
+            cmd.param3      = j["pattern_index"].get<int>();
+            cmd.floatParam1 = (float)j["r"].get<int>();
+            cmd.floatParam2 = (float)j["g"].get<int>();
+            cmd.floatParam3 = (float)j["b"].get<int>();
+
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+            }
+
+            json response = {
+                {"success",       true},
+                {"message",       "Fabric color queued"},
+                {"pattern_index", cmd.param3},
+                {"queue_size",    (int)g_commandQueue.size()}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // ── Set fabric diffuse texture ───────────────────────────────────────────
+    // Expects: {pattern_index, texture_path}
+    svr.Post("/set-fabric-texture", [](const Request& req, Response& res) {
+        try {
+            auto j = json::parse(req.body);
+
+            APICommand cmd;
+            cmd.type   = "set-fabric-texture";
+            cmd.param3 = j["pattern_index"].get<int>();
+            cmd.param1 = j["texture_path"].get<std::string>();
+
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+            }
+
+            json response = {
+                {"success",       true},
+                {"message",       "Fabric texture queued"},
+                {"pattern_index", cmd.param3},
+                {"queue_size",    (int)g_commandQueue.size()}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // ── Set fabric graphic overlay ───────────────────────────────────────────
+    // Expects: {pattern_index, graphic_path, u?, v?, scale?}
+    svr.Post("/set-fabric-graphic", [](const Request& req, Response& res) {
+        try {
+            auto j = json::parse(req.body);
+
+            APICommand cmd;
+            cmd.type        = "set-fabric-graphic";
+            cmd.param3      = j["pattern_index"].get<int>();
+            cmd.param1      = j["graphic_path"].get<std::string>();
+            cmd.floatParam4 = (float)j.value("u",     0.5);
+            cmd.floatParam5 = (float)j.value("v",     0.3);
+            cmd.floatParam6 = (float)j.value("scale", 1.0);
+
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+            }
+
+            json response = {
+                {"success",       true},
+                {"message",       "Fabric graphic queued"},
+                {"pattern_index", cmd.param3},
+                {"queue_size",    (int)g_commandQueue.size()}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // ── Fabric dispatch status endpoints ────────────────────────────────────────
+    // GET /fabric-status — returns pending/completed/failed counters so
+    // Python can poll for async fabric call completion after PostMessage.
+    svr.Get("/fabric-status", [](const Request&, Response& res) {
+        std::string lastMsg;
+        { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+          lastMsg = g_fabricStatus.lastMessage; }
+        bool allDone = (g_fabricStatus.completed.load() + g_fabricStatus.failed.load())
+                       >= g_fabricStatus.pending.load();
+        json response = {
+            {"success",      true},
+            {"pending",      g_fabricStatus.pending.load()},
+            {"completed",    g_fabricStatus.completed.load()},
+            {"failed",       g_fabricStatus.failed.load()},
+            {"all_done",     allDone},
+            {"last_success", g_fabricStatus.lastSuccess.load()},
+            {"last_message", lastMsg},
+            {"dispatcher",   FabricDispatcher::available() ? "PostMessage" : "direct"}
+        };
+        res.set_content(response.dump(), "application/json");
+    });
+
+    // POST /fabric-status/reset — clears counters before a new fabric batch.
+    // Call this from Python before issuing a set of color/texture commands.
+    svr.Post("/fabric-status/reset", [](const Request&, Response& res) {
+        g_fabricStatus.pending   = 0;
+        g_fabricStatus.completed = 0;
+        g_fabricStatus.failed    = 0;
+        g_fabricStatus.lastSuccess = true;
+        { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+          g_fabricStatus.lastMessage.clear(); }
+        res.set_content(
+            json{{"success", true}, {"message", "fabric status reset"}}.dump(),
+            "application/json"
+        );
+    });
+
     // ── Arrangement list — read CLO's avatar arrangement slots (read-only) ──────
     svr.Get("/arrangement-list", [](const Request&, Response& res) {
         try {
@@ -1146,7 +1589,7 @@ void StartRESTServer()
     svr.set_write_timeout(5, 0); // 5 seconds
     
     while (g_serverRunning) {
-        bool success = svr.listen("127.0.0.1", 50505);
+        bool success = svr.listen("127.0.0.1", 50600);
         if (!success && g_serverRunning) {
             // Server failed - wait and retry
             std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -1168,6 +1611,13 @@ void StartRESTServer()
 
 void PluginShutdown()
 {
+    // Restore original WndProc before shutting down so CLO's own message
+    // handling is fully intact after the plugin is unloaded.
+    if (g_origWndProc && g_cloMainWnd) {
+        SetWindowLongPtr(g_cloMainWnd, GWLP_WNDPROC,
+                         reinterpret_cast<LONG_PTR>(g_origWndProc));
+        g_origWndProc = nullptr;
+    }
     g_serverRunning = false;
     if (g_timerId != 0) { KillTimer(NULL, g_timerId); g_timerId = 0; }
     if (g_server != nullptr) { g_server->stop(); }
@@ -1178,8 +1628,44 @@ void PluginShutdown()
 // Called automatically every frame by DoFunctionContinuously().
 // Also called manually when the user clicks Plugins → REST Server & Execute.
 // ─────────────────────────────────────────────────────────────────────────────
+// The reentrancy guard below (ReentrancyResetGuard) is RAII so g_queueProcessing
+// always resets to false when ProcessCommandQueue returns — including via an
+// exception that escapes the per-command try/catch below (e.g. a non-std::exception
+// type thrown by a CLO SDK call). Before this was RAII, a single bad command could
+// permanently stick the flag at true, silently disabling QueueDrainTimer AND the
+// /execute-triggered drain for the rest of the CLO session; a manual menu click
+// still worked as a last resort because DoFunction() called ProcessCommandQueue()
+// unconditionally, ignoring the flag. That bypass is no longer required for
+// recovery now that the flag always resets — see the reentrancy-guard comment
+// inside the function for why DoFunction's call site still goes through it.
 void ProcessCommandQueue()
 {
+    // Reentrancy guard (parity with macOS, which already has this via
+    // g_queueProcessing.exchange(true)). Windows previously had none here —
+    // only QueueDrainTimer checked the flag before *calling* this function;
+    // ProcessCommandQueue() itself would run again if re-entered from another
+    // call site while already mid-batch. That's reachable now that
+    // WM_MIRRA_DRAIN_QUEUE (posted from POST /execute) calls this directly:
+    // if a CLO SDK call inside the batch below pumps the Win32 message loop
+    // internally (the same reentrancy class that forced fabric calls off the
+    // timer callback onto PostMessage in the first place), a pending
+    // WM_MIRRA_DRAIN_QUEUE could dispatch and re-enter this function on the
+    // same thread mid-batch. Without this guard, the inner call's RAII reset
+    // would flip g_queueProcessing back to false while the outer call is
+    // still executing — letting the timer schedule a second overlapping
+    // drain that interleaves with in-flight CLO SDK state. A plausible
+    // contributor to both the seam-creation crash and corrupted seam
+    // ordering ("avatar distortion"). The DoFunction() manual-menu-click path
+    // used to bypass g_queueProcessing entirely as a way to unstick a
+    // permanently-true flag from a pre-RAII bug; that recovery is no longer
+    // needed now that this guard always resets the flag on exit (see
+    // ReentrancyResetGuard below), so honoring the guard here does not
+    // reintroduce the stuck-flag problem.
+    if (g_queueProcessing.exchange(true)) return;
+    struct ReentrancyResetGuard {
+        ~ReentrancyResetGuard() { g_queueProcessing = false; }
+    } reentrancyGuard;
+
     // Drain the queue under the mutex, swap to a local list so we don't hold
     // the lock while executing (CLO API calls can be slow).
     std::vector<APICommand> batch;
@@ -1191,8 +1677,6 @@ void ProcessCommandQueue()
             g_commandQueue.pop();
         }
     }
-
-    g_queueProcessing = true;
 
     // Clear previous results
     {
@@ -1228,7 +1712,9 @@ void ProcessCommandQueue()
             else if (cmd.type == "import-avatar-avt") {
                 Marvelous::ImportExportOption options;
                 options.scale = 1.0f;
+                TraceLog("BEGIN import-avatar-avt path=" + cmd.param1 + " scale=" + std::to_string(options.scale));
                 result.success = IMPORT_API->ImportAvatar(cmd.param1, options);
+                TraceLog("END   import-avatar-avt success=" + std::string(result.success ? "true" : "false"));
                 {
                     std::lock_guard<std::mutex> lock(g_nativeAvatarDebugMutex);
                     g_nativeAvatarDebugState.last_native_avatar_path = cmd.param1;
@@ -1324,7 +1810,10 @@ void ProcessCommandQueue()
                 Marvelous::ImportDxfOption options;
                 options.m_Scale   = (cmd.floatParam1 > 0.0f ? cmd.floatParam1 : 1.0f);
                 options.m_bAppend = true;
+                TraceLog("BEGIN import-pattern path=" + cmd.param1 + " scale=" + std::to_string(options.m_Scale));
                 result.success = IMPORT_API->ImportDXF(cmd.param1, options);
+                TraceLog("END   import-pattern success=" + std::string(result.success ? "true" : "false")
+                    + " patternsLoaded=" + std::to_string(g_patternsLoaded.load()));
                 {
                     std::lock_guard<std::mutex> lock(g_importDebugMutex);
                     g_lastPatternImports.push_back({cmd.param1, options.m_Scale, result.success});
@@ -1339,11 +1828,33 @@ void ProcessCommandQueue()
             }
             // ── Create seam ───────────────────────────────────────────────
             else if (cmd.type == "create-seam") {
+                // Investigating a hard CLO crash that happens during/after the
+                // 10-seam batch this pipeline sends. Two of those ten are
+                // self-seams (pattern_a == pattern_b, e.g. sleeve-L-tube joins
+                // edge 1 to edge 4 of the SAME sleeve piece to roll it into a
+                // tube) — architecturally different from the other eight,
+                // which join two distinct pieces. Flagging that explicitly
+                // here since it's the leading hypothesis for what
+                // AddSeamlinePairGroup might not handle safely.
+                bool isSelfSeam = (cmd.param3 == cmd.param5);
+                int patternCountNow = -1;
+                try { patternCountNow = PATTERN_API->GetPatternCount(); } catch (...) {}
+                TraceLog(
+                    "BEGIN create-seam pattern_a=" + std::to_string(cmd.param3) +
+                    " edge_a=" + std::to_string(cmd.param4) +
+                    " pattern_b=" + std::to_string(cmd.param5) +
+                    " edge_b=" + std::to_string(cmd.param6) +
+                    " dirA=" + std::to_string(cmd.boolParam1) +
+                    " dirB=" + std::to_string(cmd.boolParam2) +
+                    " selfSeam=" + std::string(isSelfSeam ? "true" : "false") +
+                    " livePatternCount=" + std::to_string(patternCountNow)
+                );
                 result.success = PATTERN_API->AddSeamlinePairGroup(
                     cmd.param3, cmd.param4,
                     cmd.param5, cmd.param6,
                     cmd.boolParam1, cmd.boolParam2
                 );
+                TraceLog("END   create-seam success=" + std::string(result.success ? "true" : "false"));
                 result.message = result.success
                     ? "Seam: pattern " + std::to_string(cmd.param3) +
                       " edge " + std::to_string(cmd.param4) +
@@ -1427,6 +1938,71 @@ void ProcessCommandQueue()
                 result.message = "Fabric index " + std::to_string(cmd.param4) +
                     " applied to pattern " + std::to_string(cmd.param3);
             }
+            // ── Set fabric diffuse color ──────────────────────────────────────
+            // floatParam1/2/3 = R/G/B (0–255); param3 = pattern_index
+            // Uses CLOGuard to validate SDK state + pattern index before
+            // dispatching via FabricDispatcher (PostMessage, non-blocking).
+            else if (cmd.type == "set-fabric-color") {
+                std::string guardErr;
+                if (!CLOGuard::fabricReady(guardErr) ||
+                    !CLOGuard::patternIndexValid(cmd.param3, guardErr)) {
+                    result.success = false;
+                    result.message = "[Guard] " + guardErr;
+                } else {
+                    int fabric_idx = FABRIC_API->GetFabricIndexForPattern(cmd.param3);
+                    if (fabric_idx < 0) fabric_idx = 0;
+                    float r = std::clamp(cmd.floatParam1, 0.0f, 255.0f) / 255.0f;
+                    float g = std::clamp(cmd.floatParam2, 0.0f, 255.0f) / 255.0f;
+                    float b = std::clamp(cmd.floatParam3, 0.0f, 255.0f) / 255.0f;
+                    FabricDispatcher::dispatchColor(fabric_idx, r, g, b);
+                    result.success = true;
+                    result.message = "Color RGB(" +
+                        std::to_string((int)cmd.floatParam1) + "," +
+                        std::to_string((int)cmd.floatParam2) + "," +
+                        std::to_string((int)cmd.floatParam3) +
+                        ") dispatched to fabric " + std::to_string(fabric_idx) +
+                        (FabricDispatcher::available() ? " [PostMessage]" : " [direct]");
+                }
+            }
+            // ── Set fabric base texture ───────────────────────────────────────
+            // param1 = texture file path (PNG/JPEG); param3 = pattern_index
+            else if (cmd.type == "set-fabric-texture") {
+                std::string guardErr;
+                if (!CLOGuard::fabricReady(guardErr)       ||
+                    !CLOGuard::patternIndexValid(cmd.param3, guardErr) ||
+                    !CLOGuard::fileExists(cmd.param1, guardErr)) {
+                    result.success = false;
+                    result.message = "[Guard] " + guardErr;
+                } else {
+                    int fabric_idx = FABRIC_API->GetFabricIndexForPattern(cmd.param3);
+                    if (fabric_idx < 0) fabric_idx = 0;
+                    FabricDispatcher::dispatchTexture(fabric_idx, cmd.param1);
+                    result.success = true;
+                    result.message = "Texture dispatched to fabric " +
+                        std::to_string(fabric_idx) + ": " + cmd.param1 +
+                        (FabricDispatcher::available() ? " [PostMessage]" : " [direct]");
+                }
+            }
+            // ── Set fabric graphic overlay ────────────────────────────────────
+            // param1 = graphic file path; param3 = pattern_index.
+            // Dispatched identically to set-fabric-texture (base texture replacement).
+            else if (cmd.type == "set-fabric-graphic") {
+                std::string guardErr;
+                if (!CLOGuard::fabricReady(guardErr)       ||
+                    !CLOGuard::patternIndexValid(cmd.param3, guardErr) ||
+                    !CLOGuard::fileExists(cmd.param1, guardErr)) {
+                    result.success = false;
+                    result.message = "[Guard] " + guardErr;
+                } else {
+                    int fabric_idx = FABRIC_API->GetFabricIndexForPattern(cmd.param3);
+                    if (fabric_idx < 0) fabric_idx = 0;
+                    FabricDispatcher::dispatchTexture(fabric_idx, cmd.param1);
+                    result.success = true;
+                    result.message = "Graphic dispatched to fabric " +
+                        std::to_string(fabric_idx) + ": " + cmd.param1 +
+                        (FabricDispatcher::available() ? " [PostMessage]" : " [direct]");
+                }
+            }
             // ── Save project ──────────────────────────────────────────────
             else if (cmd.type == "save-project") {
                 bool thumb  = (cmd.param3 != 0);
@@ -1450,6 +2026,15 @@ void ProcessCommandQueue()
             result.success = false;
             result.message = "Exception in '" + cmd.type + "': " + std::string(e.what());
         }
+        catch (...) {
+            // Non-std::exception throw (e.g. a CLO SDK internal type). Record it
+            // and keep draining the rest of the batch instead of letting it
+            // escape the loop — ReentrancyResetGuard would still reset the flag
+            // either way, but catching here keeps subsequent queued commands
+            // from being silently dropped along with the crashing one.
+            result.success = false;
+            result.message = "Exception in '" + cmd.type + "': non-standard exception (unknown type)";
+        }
 
         {
             std::lock_guard<std::mutex> rlock(g_resultsMutex);
@@ -1457,7 +2042,9 @@ void ProcessCommandQueue()
         }
     }
 
-    g_queueProcessing = false;
+    // processingGuard's destructor resets g_queueProcessing = false here,
+    // whether we reach this point normally or via an exception unwinding
+    // out of the loop above.
 }
 
 // CLO Plugin Callbacks - Required by CLO
@@ -1483,7 +2070,7 @@ CLO_PLUGIN_SPECIFIER void DoFunction()
     try {
         // First, start server if not running
         if (!g_serverRunning) {
-            UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 500 ms — no further menu clicks needed.");
+            UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50600\n\nQueue drains automatically every 500 ms — no further menu clicks needed.");
 
             g_serverRunning = true;
             g_serverThread = std::thread(StartRESTServer);
@@ -1494,11 +2081,46 @@ CLO_PLUGIN_SPECIFIER void DoFunction()
             if (g_timerId == 0) {
                 g_timerId = SetTimer(NULL, 0, 500, QueueDrainTimer);
             }
-            
+
+            // Discover CLO's top-level HWND and subclass it so WM_MIRRA_* messages
+            // are delivered safely outside the timer callback frame.
+            // Done once at startup; EnsureWndProcSubclass() re-installs on scene reload.
+            if (g_cloMainWnd == nullptr) {
+                EnumWindows([](HWND hwnd, LPARAM) -> BOOL {
+                    DWORD pid = 0;
+                    GetWindowThreadProcessId(hwnd, &pid);
+                    if (pid == GetCurrentProcessId() && IsWindowVisible(hwnd)) {
+                        g_cloMainWnd = hwnd;
+                        return FALSE;
+                    }
+                    return TRUE;
+                }, 0);
+                if (g_cloMainWnd) {
+                    // Sanity-log which window we actually picked — EnumWindows
+                    // takes the FIRST visible top-level window of this process,
+                    // which is not guaranteed to be CLO's real main frame (could
+                    // be a splash/tool window depending on startup timing). If
+                    // WM_MIRRA_* messages ever silently vanish, check this line
+                    // first — subclassing the wrong HWND would explain it.
+                    char title[256] = {0};
+                    char cls[256] = {0};
+                    GetWindowTextA(g_cloMainWnd, title, sizeof(title));
+                    GetClassNameA(g_cloMainWnd, cls, sizeof(cls));
+                    TraceLog(std::string("DoFunction: g_cloMainWnd discovered hwnd=")
+                        + std::to_string(reinterpret_cast<uintptr_t>(g_cloMainWnd))
+                        + " title='" + title + "' class='" + cls + "'");
+                }
+                if (g_cloMainWnd && g_origWndProc == nullptr) {
+                    g_origWndProc = reinterpret_cast<WNDPROC>(
+                        SetWindowLongPtr(g_cloMainWnd, GWLP_WNDPROC,
+                                         reinterpret_cast<LONG_PTR>(MirraWndProc)));
+                }
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             return;
         }
-        
+
         // Server is running - process any queued commands
         int queue_size;
         {
@@ -1507,10 +2129,12 @@ CLO_PLUGIN_SPECIFIER void DoFunction()
         }
         
         if (queue_size > 0) {
+            TraceLog("DoFunction: manual menu click, queue_size=" + std::to_string(queue_size) + " — calling ProcessCommandQueue() directly (now honors the reentrancy guard; no-ops if a batch is already in flight)");
             ProcessCommandQueue();
+            TraceLog("DoFunction: ProcessCommandQueue() returned normally (no crash)");
         }
         else {
-            UTILITY_API->DisplayMessageBox("REST server is running on http://localhost:50505\n\nNo commands in queue.\n\nQueue commands via REST API, then click this menu item again to execute them.");
+            UTILITY_API->DisplayMessageBox("REST server is running on http://localhost:50600\n\nNo commands in queue.\n\nQueue commands via REST API, then click this menu item again to execute them.");
         }
     }
     catch (const std::exception& e) {

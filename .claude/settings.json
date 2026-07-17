@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(PYTHONIOENCODING=utf-8 .venv-win312/Scripts/python.exe clo_vto/run_clo_vto.py --use-default-panels --ingestion-output-dir \"product_ingestion/output/c_001-s_001-014\" --report-path \"clo_vto/output/test_run_report.json\")",
+      "Bash(echo \"EXITCODE=$?\")",
+      "Bash(.venv-win312/Scripts/python.exe clo_workspace/build_plugin.py)",
+      "Bash(curl -s -m 5 -X POST http://localhost:50600/execute)",
+      "Bash(curl -s -m 5 http://localhost:50600/debug/native-avatar)",
+      "Bash(.venv-win312/Scripts/python.exe -c ' *)"
+    ]
+  }
+}

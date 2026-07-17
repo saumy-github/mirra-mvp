@@ -51,8 +51,18 @@ def run(ctx):
             )
             return False
     else:
+        # P07: In strict mode, require a non-empty baseline hash so geometry
+        # drift is always caught rather than silently allowed.
+        if ctx.strict_seam_hash:
+            print(
+                "  Seam hash check FAILED (strict mode): no baseline hash configured. "
+                "Set a geometry_hash in DEFAULT_SEAM_META or disable strict_seam_hash."
+            )
+            return False
         if ctx.pattern_geometry_hash:
             print("  Seam hash check: no baseline configured; proceeding with runtime mapping.")
+        else:
+            print("  Seam hash check: no baseline and no runtime hash; proceeding.")
 
     ok_count = 0
     fail_count = 0
@@ -85,8 +95,15 @@ def run(ctx):
             fail_count += 1
             ctx.seam_results.append({"name": seam.get("name", "?"), "success": False, "a": pa, "b": pb})
 
-    ctx.client.wait_for_queue(timeout=60)
+    print(f"  Seams queued: {ok_count} OK, {fail_count} failed — waiting for CLO to stitch ...")
+    try:
+        ctx.client.wait_for_queue(timeout=120)
+        print("  Queue drained — seams applied in CLO.")
+    except Exception as exc:
+        print(f"  [WARN] Seam queue drain timed out: {exc}")
+        print("         Seams are queued in CLO and will be stitched before simulation runs.")
 
+    # Only fail if seam COMMANDS were rejected — a slow drain is not a failure.
     if fail_count > 0:
         print(f"  Seam creation failed for {fail_count} seam(s) out of {ok_count + fail_count}.")
         return False

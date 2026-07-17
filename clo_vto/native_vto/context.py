@@ -13,7 +13,7 @@ if str(workspace_root) not in sys.path:
 
 from .client import CLORestClient
 from .helpers import resolve_patterns_dir
-from .seams import DEFAULT_SEAMS, load_seams_from_manifest
+from .seams import DEFAULT_SEAMS, SeamManifestError, load_seams_from_manifest
 
 
 @dataclass
@@ -60,6 +60,30 @@ class PipelineContext:
     step_results: list[dict] = field(default_factory=list)
     # Edge manifest loaded from panels_dir/../edge_manifest.json
     edge_manifest: dict = field(default_factory=dict)
+    # P07: When True, step_09 requires a non-empty geometry hash baseline and
+    # aborts if missing.  False = warn-only (default for backward compat).
+    strict_seam_hash: bool = False
+    # P10: When True, step_04 aborts if DXF units cannot be determined.
+    # False = fall back to scale 1.0 with a warning (default for backward compat).
+    strict_dxf_units: bool = False
+    # Texture pipeline paths (resolved from ingestion output).
+    # step_08 falls back to deriving these from patterns_dir if not set.
+    colors_json_path: Optional[Path] = None
+    textures_dir: Optional[Path] = None
+    graphic_diffuse_path: Optional[Path] = None
+    # Default panels mode — decouples VTO from panel generation.
+    # When True, patterns_dir points at clo_vto/default_panels/dxf/ and
+    # texture paths are resolved from ingestion_output_dir instead.
+    use_default_panels: bool = False
+    default_panels_dir: Optional[Path] = None
+    ingestion_output_dir: Optional[Path] = None
+    # Phase 2: GLB post-processing paths.
+    # glb_path is set by step_11 after CLO exports; step_12 reads it.
+    # textured_glb_path is set by step_12 after texture injection.
+    # skip_glb_postprocess=True disables step_12 entirely.
+    glb_path: Optional[Path] = None
+    textured_glb_path: Optional[Path] = None
+    skip_glb_postprocess: bool = False
 
 
 def _load_manifest(patterns_dir: Path) -> dict:
@@ -104,13 +128,42 @@ def _discover_default_native_avatar() -> Path:
     return output_root / "clo_test.avt"
 
 
-def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patterns_dir: Optional[Path | str] = None):
+_DEFAULT_PANELS_DIR = Path(__file__).resolve().parents[1] / "default_panels"
+
+
+def create_context(
+    seam_map=None,
+    avatar_path: Optional[Path | str] = None,
+    patterns_dir: Optional[Path | str] = None,
+    allow_seam_fallback: bool = True,
+    strict_seam_hash: bool = False,
+    strict_dxf_units: bool = False,
+    use_default_panels: bool = False,
+    ingestion_output_dir: Optional[Path | str] = None,
+):
     """Build a pipeline context with default paths and seam map.
 
     Seam resolution order:
     1. Explicit seam_map argument (highest priority).
     2. edge_manifest.json found alongside the DXF patterns (auto-generated).
-    3. DEFAULT_SEAMS fallback (hardcoded 10-seam map).
+    3. DEFAULT_SEAMS fallback (only if allow_seam_fallback=True; P08).
+
+    Parameters
+    ----------
+    allow_seam_fallback : bool
+        If False, raise SeamManifestError instead of silently falling back to
+        DEFAULT_SEAMS when the manifest is missing or incomplete (P08).
+    strict_seam_hash : bool
+        If True, step_09 requires a non-empty geometry hash baseline (P07).
+    strict_dxf_units : bool
+        If True, step_04 aborts when DXF units cannot be determined (P10).
+    use_default_panels : bool
+        If True, patterns_dir is overridden to clo_vto/default_panels/dxf/.
+        Texture artifact paths are derived from ingestion_output_dir instead
+        of from patterns_dir. Decouples VTO from panel generation.
+    ingestion_output_dir : Path | str | None
+        Root directory of the product ingestion run output (contains
+        image_info/ and panels/). Only used when use_default_panels=True.
     """
     output_dir = package_root / "output"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -118,14 +171,20 @@ def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patt
     project_dir.mkdir(parents=True, exist_ok=True)
 
     if avatar_path:
-        avatar_path = Path(avatar_path)
+        avatar_path = Path(avatar_path).resolve()
     else:
-        avatar_path = _discover_default_native_avatar()
+        avatar_path = _discover_default_native_avatar().resolve()
 
-    if patterns_dir:
-        patterns_dir = Path(patterns_dir)
+    if use_default_panels:
+        patterns_dir = (_DEFAULT_PANELS_DIR / "dxf").resolve()
+        print(f"  [DEFAULT PANELS MODE] patterns_dir → {patterns_dir}")
+    elif patterns_dir:
+        patterns_dir = Path(patterns_dir).resolve()
     else:
-        patterns_dir = resolve_patterns_dir()
+        patterns_dir = Path(resolve_patterns_dir()).resolve()
+
+    if ingestion_output_dir:
+        ingestion_output_dir = Path(ingestion_output_dir).resolve()
 
     # Determine seams and whether they come from the manifest
     using_default_seams = True
@@ -144,9 +203,21 @@ def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patt
                 using_default_seams = False
                 print(f"  Loaded {len(manifest_seams)} seams from edge manifest.")
             else:
+                # P08: manifest present but incomplete — fallback only if allowed.
+                if not allow_seam_fallback:
+                    raise SeamManifestError(
+                        "Edge manifest found but incomplete and allow_seam_fallback=False. "
+                        "Regenerate panels to produce a valid edge_manifest.json."
+                    )
                 resolved_seams = DEFAULT_SEAMS
-                print("  Edge manifest found but incomplete — using DEFAULT_SEAMS.")
+                print("  WARNING: Edge manifest found but incomplete — using DEFAULT_SEAMS.")
         else:
+            # P08: no manifest at all — fallback only if allowed.
+            if not allow_seam_fallback:
+                raise SeamManifestError(
+                    "No edge_manifest.json found and allow_seam_fallback=False. "
+                    f"Expected at: {patterns_dir.parent / 'edge_manifest.json'}"
+                )
             resolved_seams = DEFAULT_SEAMS
 
     ctx = PipelineContext(
@@ -165,5 +236,10 @@ def create_context(seam_map=None, avatar_path: Optional[Path | str] = None, patt
         seams=resolved_seams,
         using_default_seams=using_default_seams,
         edge_manifest=edge_manifest,
+        strict_seam_hash=strict_seam_hash,
+        strict_dxf_units=strict_dxf_units,
+        use_default_panels=use_default_panels,
+        default_panels_dir=_DEFAULT_PANELS_DIR if use_default_panels else None,
+        ingestion_output_dir=ingestion_output_dir,
     )
     return ctx

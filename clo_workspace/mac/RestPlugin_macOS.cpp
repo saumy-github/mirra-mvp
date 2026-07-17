@@ -3,7 +3,7 @@
  * CLO3D REST Automation Plugin — macOS port
  *
  * Architecture:
- *   - Background thread runs cpp-httplib server on 127.0.0.1:50505
+ *   - Background thread runs cpp-httplib server on 127.0.0.1:50600
  *   - HTTP thread NEVER calls CLO APIs directly
  *   - Async write commands are queued; a Qt timer drains them on the CLO main thread
  *   - Sync read commands (patterns/count, patterns/{idx}, etc.) use std::promise/future
@@ -12,7 +12,7 @@
  *     it without a CLO API call so polling stays fast
  *
  * Compatibility target: vto/clo_automation_steps/client.py (unchanged)
- * Port number: 50505
+ * Port number: 50600
  * Build: arm64 Release dylib, Qt 5.15.x, CLO SDK v2025
  */
 
@@ -69,6 +69,13 @@ struct UtilityAPI {
     void SetAvatarProperties(unsigned int, const std::map<std::string, std::string>&) {}
 };
 extern UtilityAPI* UTILITY_API;
+
+struct FabricAPI {
+    int  GetFabricIndexForPattern(int) { return 0; }
+    bool SetFabricPBRMaterialBaseColor(unsigned int, unsigned int, float, float, float, float) { return false; }
+    void SetBaseTextureMapImageGivenFilePath(const std::string&, int) {}
+};
+extern FabricAPI* FABRIC_API;
 
 struct PatternAPI {
     void SetArrangement(int, int) {}
@@ -127,6 +134,7 @@ public:
 #include "PluginBuildInfo.h"
 
 // Standard library
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <future>
@@ -229,6 +237,25 @@ static QTimer* g_drainTimer = nullptr;
 // Raw pointer to the httplib server so the destructor can call stop().
 static Server* g_server = nullptr;
 
+// ── Fabric dispatch globals ───────────────────────────────────────────────────
+// SetFabricPBRMaterialBaseColor and SetBaseTextureMapImageGivenFilePath cannot
+// be called directly from inside a Qt timer slot. They internally post Qt events
+// that cannot be delivered while the event loop is executing the slot — deadlock.
+//
+// Fix: QMetaObject::invokeMethod with Qt::QueuedConnection posts the call to the
+// Qt event queue. It executes at the top of the next event loop iteration, after
+// the current timer slot has returned and the call stack is clean.
+struct FabricStatus {
+    std::atomic<int>  pending{0};
+    std::atomic<int>  completed{0};
+    std::atomic<int>  failed{0};
+    std::atomic<bool> lastSuccess{true};
+    std::mutex        msgMutex;
+    std::string       lastMessage;
+};
+static FabricStatus g_fabricStatus;
+
+
 // ─── Avatar property helpers (pure C++, no platform dependency) ──────────────
 
 static std::string JsonPrimitiveToString(const json& value)
@@ -323,6 +350,106 @@ static json BuildAvatarPropertyDebugJson(const AvatarPropertyDebugState& state)
 // ─── Forward declaration ──────────────────────────────────────────────────────
 static void ProcessCommandQueue();
 
+// ── CLO SDK Guard ─────────────────────────────────────────────────────────────
+namespace CLOGuard {
+
+inline bool fabricReady(std::string& outError) {
+    if (!FABRIC_API) { outError = "FABRIC_API is null (CLO SDK not ready)"; return false; }
+    return true;
+}
+
+inline bool patternIndexValid(int idx, std::string& outError) {
+    if (!PATTERN_API) { outError = "PATTERN_API is null"; return false; }
+    int count = 0;
+    try { count = PATTERN_API->GetPatternCount(); }
+    catch (...) { outError = "GetPatternCount threw — CLO may be in scene transition"; return false; }
+    if (idx < 0 || idx >= count) {
+        outError = "pattern_index " + std::to_string(idx) +
+                   " out of range (count=" + std::to_string(count) + ")";
+        return false;
+    }
+    return true;
+}
+
+inline bool fileExists(const std::string& path, std::string& outError) {
+#if __has_include(<unistd.h>)
+    if (::access(path.c_str(), F_OK) != 0) {
+        outError = "File not found: " + path; return false;
+    }
+#else
+    FILE* f = ::fopen(path.c_str(), "rb");
+    if (!f) { outError = "File not found: " + path; return false; }
+    ::fclose(f);
+#endif
+    return true;
+}
+
+} // namespace CLOGuard
+
+// ── FabricDispatcher (macOS) ────────────────────────────────────────────────────
+// Uses QMetaObject::invokeMethod(Qt::QueuedConnection) to run the CAPI call at
+// the top of the next Qt event loop iteration — outside the timer slot frame.
+// Lambdas capture by value; no heap allocation needed (Qt ref-counts internally).
+namespace FabricDispatcher {
+
+inline void dispatchColor(int fabric_idx, float r, float g, float b)
+{
+    g_fabricStatus.pending++;
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(),
+        [fabric_idx, r, g, b]() {
+            try {
+                FABRIC_API->SetFabricPBRMaterialBaseColor(
+                    static_cast<unsigned int>(fabric_idx), 0u, r, g, b, 1.0f);
+                g_fabricStatus.lastSuccess = true;
+                { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+                  g_fabricStatus.lastMessage = "Color applied to fabric " + std::to_string(fabric_idx); }
+                g_fabricStatus.completed++;
+            } catch (const std::exception& e) {
+                g_fabricStatus.failed++;
+                g_fabricStatus.lastSuccess = false;
+                { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+                  g_fabricStatus.lastMessage = std::string("SetFabricPBRMaterialBaseColor threw: ") + e.what(); }
+            } catch (...) {
+                g_fabricStatus.failed++;
+                g_fabricStatus.lastSuccess = false;
+            }
+        },
+        Qt::QueuedConnection
+    );
+}
+
+inline void dispatchTexture(int fabric_idx, const std::string& path)
+{
+    g_fabricStatus.pending++;
+    QString qpath = QString::fromStdString(path);
+    QMetaObject::invokeMethod(
+        QCoreApplication::instance(),
+        [fabric_idx, qpath]() {
+            try {
+                FABRIC_API->SetBaseTextureMapImageGivenFilePath(
+                    qpath.toStdString(), fabric_idx);
+                g_fabricStatus.lastSuccess = true;
+                { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+                  g_fabricStatus.lastMessage = "Texture applied to fabric " + std::to_string(fabric_idx); }
+                g_fabricStatus.completed++;
+            } catch (const std::exception& e) {
+                g_fabricStatus.failed++;
+                g_fabricStatus.lastSuccess = false;
+                { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+                  g_fabricStatus.lastMessage = std::string("SetBaseTextureMapImageGivenFilePath threw: ") + e.what(); }
+            } catch (...) {
+                g_fabricStatus.failed++;
+                g_fabricStatus.lastSuccess = false;
+            }
+        },
+        Qt::QueuedConnection
+    );
+}
+
+} // namespace FabricDispatcher
+
+
 static json BuildArrangementDebugPayload()
 {
     json slot_list = json::array();
@@ -388,12 +515,19 @@ static void ProcessCommandQueue()
     // Re-entrancy guard: exchange returns previous value; if already true, bail.
     if (g_queueProcessing.exchange(true)) return;
 
+    // RAII reset: guarantees g_queueProcessing goes back to false on every exit
+    // path below (early return, normal completion, or an exception unwinding
+    // out of the per-command loop) — including a non-std::exception type that
+    // the per-command catch doesn't cover. Without this, one bad command could
+    // permanently strand the flag at true, silently disabling all future
+    // automatic drains for the rest of the CLO session.
+    struct ProcessingResetGuard { ~ProcessingResetGuard() { g_queueProcessing = false; } } resetGuard;
+
     // Drain the queue under the mutex; release before calling any CLO API.
     std::vector<APICommand> batch;
     {
         std::lock_guard<std::mutex> lk(g_queueMutex);
         if (g_commandQueue.empty()) {
-            g_queueProcessing = false;
             return;
         }
         while (!g_commandQueue.empty()) {
@@ -543,6 +677,70 @@ static void ProcessCommandQueue()
                 asyncResult.success = true;
                 asyncResult.message = "Fabric " + std::to_string(cmd.param4) +
                     " applied to pattern " + std::to_string(cmd.param3);
+            }
+            // ── Set fabric diffuse color ─────────────────────────────────────────────────
+            // floatParam1/2/3 = R/G/B (0–255); param3 = pattern_index
+            // Uses CLOGuard + FabricDispatcher (Qt::QueuedConnection, non-blocking).
+            else if (cmd.type == "set-fabric-color") {
+                std::string guardErr;
+                if (!CLOGuard::fabricReady(guardErr) ||
+                    !CLOGuard::patternIndexValid(cmd.param3, guardErr)) {
+                    asyncResult.success = false;
+                    asyncResult.message = "[Guard] " + guardErr;
+                } else {
+                    int fabric_idx = FABRIC_API->GetFabricIndexForPattern(cmd.param3);
+                    if (fabric_idx < 0) fabric_idx = 0;
+                    float r = std::clamp(cmd.floatParam1, 0.0f, 255.0f) / 255.0f;
+                    float g = std::clamp(cmd.floatParam2, 0.0f, 255.0f) / 255.0f;
+                    float b = std::clamp(cmd.floatParam3, 0.0f, 255.0f) / 255.0f;
+                    FabricDispatcher::dispatchColor(fabric_idx, r, g, b);
+                    asyncResult.success = true;
+                    asyncResult.message = "Color RGB(" +
+                        std::to_string((int)cmd.floatParam1) + "," +
+                        std::to_string((int)cmd.floatParam2) + "," +
+                        std::to_string((int)cmd.floatParam3) +
+                        ") dispatched to fabric " + std::to_string(fabric_idx) +
+                        " [QueuedConnection]";
+                }
+            }
+            // ── Set fabric base texture ───────────────────────────────────────
+            // param1 = texture file path (PNG/JPEG); param3 = pattern_index
+            else if (cmd.type == "set-fabric-texture") {
+                std::string guardErr;
+                if (!CLOGuard::fabricReady(guardErr)       ||
+                    !CLOGuard::patternIndexValid(cmd.param3, guardErr) ||
+                    !CLOGuard::fileExists(cmd.param1, guardErr)) {
+                    asyncResult.success = false;
+                    asyncResult.message = "[Guard] " + guardErr;
+                } else {
+                    int fabric_idx = FABRIC_API->GetFabricIndexForPattern(cmd.param3);
+                    if (fabric_idx < 0) fabric_idx = 0;
+                    FabricDispatcher::dispatchTexture(fabric_idx, cmd.param1);
+                    asyncResult.success = true;
+                    asyncResult.message = "Texture dispatched to fabric " +
+                        std::to_string(fabric_idx) + ": " + cmd.param1 +
+                        " [QueuedConnection]";
+                }
+            }
+            // ── Set fabric graphic overlay ────────────────────────────────────
+            // param1 = graphic file path; param3 = pattern_index.
+            // Dispatched identically to set-fabric-texture (base texture replacement).
+            else if (cmd.type == "set-fabric-graphic") {
+                std::string guardErr;
+                if (!CLOGuard::fabricReady(guardErr)       ||
+                    !CLOGuard::patternIndexValid(cmd.param3, guardErr) ||
+                    !CLOGuard::fileExists(cmd.param1, guardErr)) {
+                    asyncResult.success = false;
+                    asyncResult.message = "[Guard] " + guardErr;
+                } else {
+                    int fabric_idx = FABRIC_API->GetFabricIndexForPattern(cmd.param3);
+                    if (fabric_idx < 0) fabric_idx = 0;
+                    FabricDispatcher::dispatchTexture(fabric_idx, cmd.param1);
+                    asyncResult.success = true;
+                    asyncResult.message = "Graphic dispatched to fabric " +
+                        std::to_string(fabric_idx) + ": " + cmd.param1 +
+                        " [QueuedConnection]";
+                }
             }
             // ── Create seam ───────────────────────────────────────────────────
             // param3/4 = patternA/lineA, param5/6 = patternB/lineB
@@ -914,6 +1112,13 @@ static void ProcessCommandQueue()
             asyncResult.message = "Exception in '" + cmd.type + "': " + e.what();
             syncResult = {{"success", false}, {"error", e.what()}};
         }
+        catch (...) {
+            // Non-std::exception throw. Record it and keep draining the rest
+            // of the batch instead of letting it escape the loop.
+            asyncResult.success = false;
+            asyncResult.message = "Exception in '" + cmd.type + "': non-standard exception (unknown type)";
+            syncResult = {{"success", false}, {"error", "non-standard exception (unknown type)"}};
+        }
 
         if (cmd.isSync && cmd.syncPromise) {
             cmd.syncPromise->set_value(syncResult);
@@ -923,7 +1128,7 @@ static void ProcessCommandQueue()
         }
     }
 
-    g_queueProcessing = false;
+    // resetGuard's destructor resets g_queueProcessing = false here.
 }
 
 // ─── HTTP server ──────────────────────────────────────────────────────────────
@@ -959,8 +1164,41 @@ static void StartRESTServer()
         res.set_content(r.dump(), "application/json");
     });
 
-    // ── GET /status ───────────────────────────────────────────────────────────
-    // Reads only atomic/mutex state — no CLO API call needed; fast for polling.
+    // ── Fabric dispatch status endpoints ──────────────────────────────────────
+    // GET /fabric-status: pending/completed/failed counters for async fabric calls.
+    // POST /fabric-status/reset: clears counters before a new batch.
+    svr.Get("/fabric-status", [](const Request&, Response& res) {
+        std::string lastMsg;
+        { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+          lastMsg = g_fabricStatus.lastMessage; }
+        bool allDone = (g_fabricStatus.completed.load() + g_fabricStatus.failed.load())
+                       >= g_fabricStatus.pending.load();
+        json response = {
+            {"success",      true},
+            {"pending",      g_fabricStatus.pending.load()},
+            {"completed",    g_fabricStatus.completed.load()},
+            {"failed",       g_fabricStatus.failed.load()},
+            {"all_done",     allDone},
+            {"last_success", g_fabricStatus.lastSuccess.load()},
+            {"last_message", lastMsg},
+            {"dispatcher",   "QueuedConnection"}
+        };
+        res.set_content(response.dump(), "application/json");
+    });
+
+    svr.Post("/fabric-status/reset", [](const Request&, Response& res) {
+        g_fabricStatus.pending   = 0;
+        g_fabricStatus.completed = 0;
+        g_fabricStatus.failed    = 0;
+        g_fabricStatus.lastSuccess = true;
+        { std::lock_guard<std::mutex> lk(g_fabricStatus.msgMutex);
+          g_fabricStatus.lastMessage.clear(); }
+        res.set_content(
+            json{{"success", true}, {"message", "fabric status reset"}}.dump(),
+            "application/json"
+        );
+    });
+
     svr.Get("/capabilities", [](const Request&, Response& res) {
         json r = {
             {"success", true},
@@ -983,6 +1221,9 @@ static void StartRESTServer()
             {"has_avatar_property_debug", true},
             {"has_avatar_state_readback", true},
             {"has_avatar_avt_export", true},
+            {"has_set_fabric_color", true},
+            {"has_set_fabric_texture", true},
+            {"has_set_fabric_graphic", true},
             {"notes", "Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
         };
         res.set_content(r.dump(), "application/json");
@@ -1067,9 +1308,15 @@ static void StartRESTServer()
         res.set_content(r.dump(), "application/json");
     });
 
-    // ── POST /execute — compatibility nudge endpoint ──────────────────────────
-    // wait_for_queue() in client.py calls this when queue is stuck.
-    // Our Qt timer already drains automatically; this just returns queue state.
+    // ── POST /execute ────────────────────────────────────────────────────────
+    // NOTE (history): this used to be a pure "compatibility nudge" that only
+    // reported queue state, on the assumption the QTimer drains automatically.
+    // That assumption doesn't always hold — the timer can silently stop firing
+    // for a session, stalling the whole pipeline until someone clicks the
+    // plugin's menu item by hand. wait_for_queue() in client.py already calls
+    // this endpoint every few seconds while polling, so make it actually
+    // request a drain via the same Qt::QueuedConnection pattern FabricDispatcher
+    // uses, instead of just reporting status.
     svr.Post("/execute", [](const httplib::Request&, httplib::Response& res) {
         int  qsize      = 0;
         bool processing = false;
@@ -1078,11 +1325,26 @@ static void StartRESTServer()
             qsize = static_cast<int>(g_commandQueue.size());
         }
         processing = g_queueProcessing.load();
+
+        std::string dispatchNote = "queue empty";
+        if (qsize > 0 && !processing) {
+            // ProcessCommandQueue() guards its own re-entrancy via
+            // g_queueProcessing.exchange(true), so redundant posts are safe.
+            QMetaObject::invokeMethod(
+                QCoreApplication::instance(),
+                []() { ProcessCommandQueue(); },
+                Qt::QueuedConnection
+            );
+            dispatchNote = "drain posted to main thread";
+        } else if (processing) {
+            dispatchNote = "drain already in progress";
+        }
+
         json r = {
             {"success",          true},
             {"queue_size",       qsize},
             {"queue_processing", processing},
-            {"message",          qsize > 0 ? "Queue pending — timer will drain it" : "Queue empty"}
+            {"message",          dispatchNote}
         };
         res.set_content(r.dump(), "application/json");
     });
@@ -1321,6 +1583,86 @@ static void StartRESTServer()
         }
     });
 
+    // ── POST /set-fabric-color ────────────────────────────────────────────────
+    // Expects: {pattern_index, r, g, b}  (r/g/b in 0–255)
+    svr.Post("/set-fabric-color", [](const httplib::Request& req, httplib::Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            APICommand cmd;
+            cmd.type        = "set-fabric-color";
+            cmd.param3      = j.at("pattern_index").get<int>();
+            cmd.floatParam1 = (float)j.at("r").get<int>();
+            cmd.floatParam2 = (float)j.at("g").get<int>();
+            cmd.floatParam3 = (float)j.at("b").get<int>();
+            int qsize = 0;
+            {
+                std::lock_guard<std::mutex> lk(g_queueMutex);
+                g_commandQueue.push(cmd);
+                qsize = static_cast<int>(g_commandQueue.size());
+            }
+            json r = {{"success", true}, {"message", "Fabric color queued"},
+                      {"pattern_index", cmd.param3}, {"queue_size", qsize}};
+            res.set_content(r.dump(), "application/json");
+        } catch (const std::exception& e) {
+            json r = {{"success", false}, {"error", e.what()}};
+            res.status = 400;
+            res.set_content(r.dump(), "application/json");
+        }
+    });
+
+    // ── POST /set-fabric-texture ──────────────────────────────────────────────
+    // Expects: {pattern_index, texture_path}
+    svr.Post("/set-fabric-texture", [](const httplib::Request& req, httplib::Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            APICommand cmd;
+            cmd.type   = "set-fabric-texture";
+            cmd.param3 = j.at("pattern_index").get<int>();
+            cmd.param1 = j.at("texture_path").get<std::string>();
+            int qsize = 0;
+            {
+                std::lock_guard<std::mutex> lk(g_queueMutex);
+                g_commandQueue.push(cmd);
+                qsize = static_cast<int>(g_commandQueue.size());
+            }
+            json r = {{"success", true}, {"message", "Fabric texture queued"},
+                      {"pattern_index", cmd.param3}, {"queue_size", qsize}};
+            res.set_content(r.dump(), "application/json");
+        } catch (const std::exception& e) {
+            json r = {{"success", false}, {"error", e.what()}};
+            res.status = 400;
+            res.set_content(r.dump(), "application/json");
+        }
+    });
+
+    // ── POST /set-fabric-graphic ──────────────────────────────────────────────
+    // Expects: {pattern_index, graphic_path, u?, v?, scale?}
+    svr.Post("/set-fabric-graphic", [](const httplib::Request& req, httplib::Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            APICommand cmd;
+            cmd.type        = "set-fabric-graphic";
+            cmd.param3      = j.at("pattern_index").get<int>();
+            cmd.param1      = j.at("graphic_path").get<std::string>();
+            cmd.floatParam4 = (float)j.value("u",     0.5);
+            cmd.floatParam5 = (float)j.value("v",     0.3);
+            cmd.floatParam6 = (float)j.value("scale", 1.0);
+            int qsize = 0;
+            {
+                std::lock_guard<std::mutex> lk(g_queueMutex);
+                g_commandQueue.push(cmd);
+                qsize = static_cast<int>(g_commandQueue.size());
+            }
+            json r = {{"success", true}, {"message", "Fabric graphic queued"},
+                      {"pattern_index", cmd.param3}, {"queue_size", qsize}};
+            res.set_content(r.dump(), "application/json");
+        } catch (const std::exception& e) {
+            json r = {{"success", false}, {"error", e.what()}};
+            res.status = 400;
+            res.set_content(r.dump(), "application/json");
+        }
+    });
+
     // ── POST /create-seam ─────────────────────────────────────────────────────
     // Expects: {patternA_index, lineA_index, patternB_index, lineB_index, directionA, directionB}
     // Pipeline submits up to 26 seams in sequence — queue must remain stable.
@@ -1496,7 +1838,7 @@ static void StartRESTServer()
 
     // ── Bind and listen ───────────────────────────────────────────────────────
     // 127.0.0.1 only — no external network exposure.
-    svr.listen("127.0.0.1", 50505);
+    svr.listen("127.0.0.1", 50600);
 
     g_server = nullptr;
 }

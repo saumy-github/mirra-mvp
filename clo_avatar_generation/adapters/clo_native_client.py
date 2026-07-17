@@ -15,7 +15,7 @@ import requests
 class CLONativeClient:
     """Wrapper around additive native-avatar REST endpoints."""
 
-    def __init__(self, base_url: str = "http://localhost:50505") -> None:
+    def __init__(self, base_url: str = "http://localhost:50600") -> None:
         self.base_url = base_url
 
     def _post(self, endpoint: str, payload: dict) -> dict:

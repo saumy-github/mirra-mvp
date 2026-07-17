@@ -89,12 +89,15 @@ def _onnx_providers(device: str) -> list[str]:
 @dataclass
 class SegmentationResult:
     """Result from Stage 1: Segmentation."""
-    rgba_image: Optional[np.ndarray] = None  # H×W×4  RGBA
-    mask: Optional[np.ndarray] = None        # H×W    uint8 (0/255)
+    rgba_image: Optional[np.ndarray] = None      # H×W×4  RGBA (hard mask)
+    mask: Optional[np.ndarray] = None            # H×W    uint8 (0/255)
+    rgba_feathered: Optional[np.ndarray] = None  # H×W×4  RGBA (soft 3px feather)
     area_percent: float = 0.0
     is_valid: bool = False
     method: str = ""
     message: str = ""
+    quality_score: float = 0.0        # [0, 1] composite quality
+    quality_metrics: Optional[dict] = None  # detailed breakdown
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -312,39 +315,57 @@ class GarmentSegmentor:
     # ── Orchestrator ──────────────────────────────────────────────────────────
 
     def segment(self, image_path: str) -> SegmentationResult:
-        """
-        Run segmentation with fallback chain:  SAM 2 → U²-Net
-        """
+        """Run segmentation with fallback chain: SAM 2 → U²-Net."""
         # 1. SAM 2 (primary)
         if HAS_SAM2:
             result = self.segment_sam2(image_path)
             if result.is_valid:
-                return result
+                return self._finalize_result(result, image_path)
             print(f"    ⚠  SAM2 invalid ({result.message}), falling back to U²-Net …")
 
         # 2. U²-Net (worst-case fallback)
         if HAS_U2NET:
             result = self.segment_u2net(image_path)
             if result.is_valid:
-                return result
+                return self._finalize_result(result, image_path)
             print(f"    ⚠  U²-Net invalid ({result.message})")
 
-        # Both failed — return last result (is_valid = False) so caller can handle it
         return SegmentationResult(
             is_valid=False,
             method="none",
             message="All segmentation methods failed for this image.",
         )
 
+    def _finalize_result(
+        self, result: SegmentationResult, image_path: str
+    ) -> SegmentationResult:
+        """Compute quality metrics and feathered RGBA for a valid result."""
+        quality_score, quality_metrics = GarmentSegmentor._compute_quality(result.mask)
+        result.quality_score = quality_score
+        result.quality_metrics = quality_metrics
+
+        pil_img = Image.open(image_path).convert("RGB")
+        rgb = np.array(pil_img)
+        result.rgba_feathered = GarmentSegmentor._feather_mask(result.mask, rgb)
+
+        print(
+            f"    Quality: {quality_score:.3f} "
+            f"(coverage={quality_metrics['area_percent']:.1f}%, "
+            f"sharpness={quality_metrics['edge_sharpness_score']:.2f}, "
+            f"holes={quality_metrics['hole_count']})"
+        )
+        return result
+
     # ── Shared utilities ──────────────────────────────────────────────────────
 
     @staticmethod
     def _clean_mask(mask: np.ndarray) -> np.ndarray:
-        """Morphological open + close, then keep the largest connected component."""
+        """Morphological open + close → largest component → fill holes."""
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
         mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN,  kernel, iterations=2)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
-        return GarmentSegmentor._keep_largest_component(mask)
+        mask = GarmentSegmentor._keep_largest_component(mask)
+        return GarmentSegmentor._fill_holes(mask)
 
     @staticmethod
     def _keep_largest_component(mask: np.ndarray) -> np.ndarray:
@@ -358,6 +379,96 @@ class GarmentSegmentor:
         out = np.zeros_like(mask)
         out[labels == largest_idx] = 255
         return out
+
+    @staticmethod
+    def _fill_holes(mask: np.ndarray) -> np.ndarray:
+        """Fill enclosed holes in the binary mask via flood-fill inversion.
+
+        Algorithm:
+          1. Invert mask → background is 255, garment is 0.
+          2. Flood-fill the external background (from corner) to 0.
+          3. Whatever remains 255 in the flooded image = isolated internal holes.
+          4. OR with original mask to fill those holes.
+        """
+        inverted = cv2.bitwise_not(mask)
+        flooded = inverted.copy()
+        h, w = flooded.shape
+        flood_mask = np.zeros((h + 2, w + 2), np.uint8)
+        cv2.floodFill(flooded, flood_mask, (0, 0), 0)
+        # flooded now contains only internal hole pixels (255); external bg is 0
+        return cv2.bitwise_or(mask, flooded)
+
+    @staticmethod
+    def _feather_mask(mask: np.ndarray, rgb: np.ndarray, radius: int = 3) -> np.ndarray:
+        """Return RGBA with a soft alpha feather at mask edges.
+
+        Inside the mask: alpha = 255.  At the boundary: gaussian-blurred falloff.
+        Outside: alpha = 0.  Used for texture projection (base_garment_feathered).
+        """
+        blur_size = radius * 4 + 1  # must be odd
+        soft = cv2.GaussianBlur(mask.astype(np.float32), (blur_size, blur_size), 0)
+        alpha = np.where(mask > 0, 255, soft).astype(np.uint8)
+        return np.dstack([rgb, alpha])
+
+    @staticmethod
+    def _compute_quality(mask: np.ndarray) -> tuple[float, dict]:
+        """Compute composite quality score and per-metric breakdown.
+
+        Returns (quality_score in [0, 1], metrics dict).
+        """
+        area_pct = float(np.sum(mask > 0) / max(1, mask.size) * 100)
+
+        # Coverage score: peak [10%, 80%], drops off outside that range.
+        if 10.0 <= area_pct <= 80.0:
+            coverage_score = 1.0
+        elif area_pct < 10.0:
+            coverage_score = area_pct / 10.0
+        else:
+            coverage_score = max(0.0, (95.0 - area_pct) / 15.0)
+
+        # Edge sharpness: Sobel gradient magnitude averaged over the boundary.
+        d_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+        dilated  = cv2.dilate(mask, d_kernel, iterations=1)
+        eroded   = cv2.erode(mask,  d_kernel, iterations=1)
+        boundary = (dilated.astype(np.int32) - eroded.astype(np.int32)).clip(0, 255).astype(np.uint8)
+        boundary_count = int(np.sum(boundary > 0))
+        if boundary_count > 0:
+            sx = cv2.Sobel(mask.astype(np.float32), cv2.CV_32F, 1, 0, ksize=3)
+            sy = cv2.Sobel(mask.astype(np.float32), cv2.CV_32F, 0, 1, ksize=3)
+            grad_mag = cv2.magnitude(sx, sy)
+            boundary_sharpness = float(np.mean(grad_mag[boundary > 0]))
+            edge_sharpness_score = min(1.0, boundary_sharpness / 100.0)
+        else:
+            # No boundary pixels = mask is entirely empty or entirely full.
+            # Empty mask → worst score; full mask → treat as sharp (edge at image border).
+            edge_sharpness_score = 0.0 if area_pct < 1.0 else 1.0
+
+        # Hole count: connected components in the inverted mask (excluding external bg).
+        n_labels, _, stats, _ = cv2.connectedComponentsWithStats(
+            cv2.bitwise_not(mask), connectivity=8
+        )
+        # Label 0 = background (external); labels 1..n = holes + noise.
+        # Discard tiny components (< 50px) as noise.
+        hole_count = sum(
+            1 for i in range(1, n_labels)
+            if stats[i, cv2.CC_STAT_AREA] >= 50
+        )
+        hole_penalty = min(1.0, hole_count / 10.0)
+
+        quality_score = (
+            0.5 * coverage_score
+            + 0.3 * edge_sharpness_score
+            + 0.2 * (1.0 - hole_penalty)
+        )
+
+        return quality_score, {
+            "area_percent":          round(area_pct, 2),
+            "coverage_score":        round(coverage_score, 3),
+            "edge_sharpness_score":  round(edge_sharpness_score, 3),
+            "hole_count":            hole_count,
+            "hole_penalty":          round(hole_penalty, 3),
+            "quality_score":         round(quality_score, 3),
+        }
 
 
 # ─────────────────────────────────────────────────────────────────────────────

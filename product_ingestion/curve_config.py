@@ -29,6 +29,13 @@ class ArmholeConfig:
     # as a fraction of the same horizontal distance.  0 = no flare.
     shoulder_flare_frac: float = 0.05
 
+    def __post_init__(self) -> None:
+        # P01: Clamp all fractions to garment-realistic bounds so extreme
+        # measurement inputs cannot produce self-intersecting armholes.
+        self.hollow_position_frac = max(0.30, min(0.70, self.hollow_position_frac))
+        self.hollow_depth_frac    = max(0.05, min(0.30, self.hollow_depth_frac))
+        self.shoulder_flare_frac  = max(0.00, min(0.20, self.shoulder_flare_frac))
+
 
 @dataclass
 class CurveConfig:
@@ -105,8 +112,26 @@ class CurveConfig:
     neckline_fit_points: int = 20
 
     # ------------------------------------------------------------------ #
+    # Sleeve cap shape                                                      #
+    # ------------------------------------------------------------------ #
+    # P03: Outward control-point overshoot as a fraction of cap_height.
+    # Controls how rounded (vs triangular) the cap crown appears.
+    # Clamped to [0.25, 0.45] in __post_init__ to prevent degenerate shapes.
+    cap_bulge_frac: float = 0.35
+
+    # P04: Optional gentle inward bow on sleeve underarm seams (cm).
+    # 0 = straight seams (default); up to 1.5 cm improves drape at the armpit.
+    underarm_bow_cm: float = 0.0
+
+    # ------------------------------------------------------------------ #
     # Curve tessellation (for SPLINE fit-point export and SVG)             #
     # ------------------------------------------------------------------ #
     # Number of fit points sampled along each curved edge for DXF export.
     # Has no effect on the mathematical shape — only on CLO's approximation.
     curve_fit_points: int = 24
+
+    def __post_init__(self) -> None:
+        # P03: Clamp cap bulge to prevent triangular or pancake sleeves.
+        self.cap_bulge_frac = max(0.25, min(0.45, self.cap_bulge_frac))
+        # P04: Clamp underarm bow to safe range.
+        self.underarm_bow_cm = max(0.0, min(1.5, self.underarm_bow_cm))

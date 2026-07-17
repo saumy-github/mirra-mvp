@@ -55,8 +55,12 @@ def _name_fragment_candidates(slots: list[dict], required_fragments: list[str]) 
 
 def _resolve_front_candidates(slots: list[dict]) -> list[dict]:
     preferred = [
-        "Body_Front_Center_2",
+        # Center_3 (OffsetY=55) matches Back_Center_3 (OffsetY=55) so both
+        # panels sit at the same height and their top edges align.
+        # Center_2 (OffsetY=75) puts the front panel one tier higher, causing
+        # the front to sit above the back.
         "Body_Front_Center_3",
+        "Body_Front_Center_2",
         "Body_Front_Center_1",
         "Body_Front_2_L",
         "Body_Front_2_R",
@@ -74,9 +78,12 @@ def _resolve_front_candidates(slots: list[dict]) -> list[dict]:
 
 
 def _resolve_back_candidates(slots: list[dict]) -> list[dict]:
+    # Center_3 matches front panel's effective vertical position (Center_3, offsetY≈55%).
+    # Center_2 is lower on the avatar (offsetY≈75%) and causes a height mismatch that
+    # makes side seams cross diagonally through the avatar's head.
     preferred = [
-        "Body_Back_Center_2",
         "Body_Back_Center_3",
+        "Body_Back_Center_2",
         "Body_Back_Center_1",
         "Body_Back_2_L",
         "Body_Back_2_R",
@@ -94,13 +101,17 @@ def _resolve_back_candidates(slots: list[dict]) -> list[dict]:
 
 
 def _resolve_left_sleeve_candidates(slots: list[dict]) -> list[dict]:
+    # Arm_Outside_1_L centers the sleeve panel on the outside of the arm so the
+    # tube seam (where the two underarm edges join) falls at the inside/armpit.
+    # Shoulder_L is the shoulder *joint* (arm-body junction) — placing a sleeve there
+    # puts the panel at the wrong position and orientation, so it goes last.
     preferred = [
-        "Shoulder_L",
         "Arm_Outside_1_L",
         "Arm_Outside_2_L",
+        "Arm_Outside_3_L",
         "Arm_Front_1_L",
         "Arm_Back_1_L",
-        "Arm_Outside_3_L",
+        "Shoulder_L",
     ]
     return (
         _exact_name_candidates(slots, preferred)
@@ -111,13 +122,15 @@ def _resolve_left_sleeve_candidates(slots: list[dict]) -> list[dict]:
 
 
 def _resolve_right_sleeve_candidates(slots: list[dict]) -> list[dict]:
+    # Arm_Outside_1_R centers the sleeve panel on the outside of the arm so the
+    # tube seam falls at the inside/armpit. Shoulder_R goes last.
     preferred = [
-        "Shoulder_R",
         "Arm_Outside_1_R",
         "Arm_Outside_2_R",
+        "Arm_Outside_3_R",
         "Arm_Front_1_R",
         "Arm_Back_1_R",
-        "Arm_Outside_3_R",
+        "Shoulder_R",
     ]
     return (
         _exact_name_candidates(slots, preferred)
@@ -253,6 +266,15 @@ def run(ctx):
             if probe_count > 0:
                 resolved_count = probe_count
                 source = "sdk_probe"
+                # Print per-edge lengths so the user can identify which edge is
+                # which anatomically when the manifest edge count mismatches.
+                # API response: {"lines": [{"line_index": 0, "length": 52.3}, ...]}
+                line_objs = probe.get("lines", [])
+                if line_objs:
+                    for obj in line_objs:
+                        ei = obj.get("line_index", "?")
+                        elen = float(obj.get("length", 0))
+                        print(f"    edge {ei}: {elen:.1f} cm")
 
         if resolved_count is None:
             edge_capability_missing = True
@@ -285,10 +307,36 @@ def run(ctx):
     if getattr(ctx, "edge_manifest", None):
         manifest_ok = validate_edge_counts(ctx)
         if not manifest_ok:
+            # CRITICAL (was warn-only): a mismatch here means step_09 would send
+            # seam edge indices from the manifest that are out of range for the
+            # pattern CLO actually imported (e.g. manifest assumes 10 edges/panel,
+            # CLO reports 8). CLO's CreateSeam call has no bounds-checking that
+            # surfaces as a catchable exception for an invalid line index — it
+            # hard-crashes the process (see plugin_crash_trace.log investigation
+            # in RestPlugin_windows.cpp). Failing the pipeline here, in Python,
+            # converts that native crash into a clean, diagnosable abort.
+            edge_ok = False
             print(
-                "  Warning: edge count mismatch vs manifest — seam indices may be wrong. "
-                "Verify DXF export and re-run."
+                "  ! Edge count mismatch vs manifest — seam indices would be out of range "
+                "for the imported pattern. Aborting before seam creation to avoid a native "
+                "CLO crash. Verify DXF export / edge_manifest.json and re-run."
             )
+            # Dump per-edge lengths so the user can identify which CLO edge
+            # index maps to which anatomical edge and update edge_manifest.json.
+            # API: GET /patterns/{idx}/line-lengths → {"lines": [{"line_index":N, "length":cm}, ...]}
+            print("  ── Edge length dump (update edge_manifest.json with these indices) ──")
+            for pidx in range(ctx.loaded_patterns):
+                piece = ctx.index_to_piece.get(pidx, f"pattern_{pidx}")
+                probe = ctx.client.get_pattern_line_lengths(pidx)
+                if probe.get("success"):
+                    line_objs = probe.get("lines", [])
+                    print(f"  {piece} ({len(line_objs)} edges):")
+                    for obj in line_objs:
+                        ei = obj.get("line_index", "?")
+                        elen = float(obj.get("length", 0))
+                        print(f"    edge {ei:2d}: {elen:6.1f} cm")
+                else:
+                    print(f"  {piece}: probe failed — {probe.get('error', '?')}")
 
     print("\n[6b] Querying CLO arrangement slots ...")
     arr_resp, dbg = _query_slots(ctx, stage="post-import")

@@ -252,7 +252,7 @@ class DesignExtractor:
 
         # ── Step 4: find and filter contours by area ──────────────────────
         contours, _ = cv2.findContours(
-            edges_closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+            edges_closed, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
         )
 
         min_area = garment_area * self.min_area_ratio
@@ -285,6 +285,16 @@ class DesignExtractor:
         # check FFT. If it detects a repeating pattern, treat the ENTIRE
         # garment as the design region.
         is_pattern, fft_energy = _has_repeating_pattern(gray_masked, garment_mask)
+
+        # Override FFT pattern classification if the contours are sparse / small coverage.
+        # Repeating all-over patterns cover most of the garment and have many contours.
+        if is_pattern and design_contours:
+            merged_temp = np.zeros_like(garment_mask)
+            cv2.drawContours(merged_temp, design_contours, -1, 255, -1)
+            temp_area = int(np.sum(merged_temp > 0))
+            temp_coverage = temp_area / garment_area
+            if temp_coverage < 0.35 or len(design_contours) < 15:
+                is_pattern = False
 
         if not design_contours and not is_pattern:
             return DesignResult(

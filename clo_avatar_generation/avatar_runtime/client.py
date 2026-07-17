@@ -9,7 +9,7 @@ import requests
 
 class CLORestClient:
     """Small JSON client for the local CLO REST plugin."""
-    def __init__(self, base_url: str = "http://localhost:50505", timeout: int = 30) -> None:
+    def __init__(self, base_url: str = "http://localhost:50600", timeout: int = 30) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
 
