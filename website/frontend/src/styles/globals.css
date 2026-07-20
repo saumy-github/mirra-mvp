@@ -1,0 +1,317 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+/*
+ * Merged design system: app tokens (from user-side, canonical — covers most
+ * routes: auth/capture/onboarding/studio/profile) + landing's unique tokens
+ * (marketing pages only). Where both defined the same name (ink, silver,
+ * font-sans) the app's value wins — the two are visually close, and the app
+ * surface is the majority of the site. Revisit visually if this ever looks
+ * off on the marketing pages; nothing here is load-bearing for app pages.
+ */
+@theme inline {
+  --color-canvas: #f5f5f7;
+  --color-surface: #fbfbfd;
+  --color-paper: #ffffff;
+  --color-ink: #1d1d1f;
+  --color-ink-soft: #424245;
+  --color-muted: #6e6e73;
+  --color-faint: #98989d;
+  --color-line: #e5e5e7;
+  --color-line-strong: #d2d2d7;
+  --color-mist: #eeeef0;
+  --color-silver: #c7c7cc;
+  --color-blue: #0071e3;
+  --color-blue-dark: #0066cc;
+  --color-error: #b3261e;
+  --color-ok: #2d7d46;
+
+  /* Landing-only tokens, additive — no collision with the above */
+  --color-bg: #f8f3f2;
+  --color-wine: #6b1f2a;
+  --color-rose: #a9364a;
+  --color-soft-green: #12855c;
+  --color-accent-black: #1f1825;
+  --color-silver-light: #eef0f2;
+  --color-silver-strong: #7c7f87;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --font-sans: var(--font-system);
+  --font-mono: var(--font-system-mono);
+
+  --radius-card: 18px;
+  --radius-field: 10px;
+
+  --shadow-lift: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -16px rgb(0 0 0 / 0.22);
+  --shadow-frost: 0 1px 0 rgb(255 255 255 / 0.8) inset, 0 24px 64px -28px rgb(50 44 38 / 0.34);
+}
+
+:root {
+  --font-system:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  --font-system-mono: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
+  --glass-light: rgb(255 255 255 / 0.68);
+  --glass-heavy: rgb(248 248 250 / 0.88);
+  --spring-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --radius-control: 10px;
+  --radius-compact: 8px;
+  --radius-panel: 18px;
+  color-scheme: light;
+  font: 100%/1.5 var(--font-system);
+
+  /* Plain (non `--color-`) vars used directly by landing's raw CSS files
+     (ProductReveal.css, ProblemTeardown.css) via var(--x) — kept as their
+     own namespace, no collision with the --color-* tokens above. */
+  --bg: #f8f3f2;
+  --surface: #eee6e6;
+  --ink: #1f1825;
+  --muted: #685b64;
+  --line: #c7c6cb;
+  --wine: #6b1f2a;
+  --silver: #c4c6cc;
+  --silver-strong: #7c7f87;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+html {
+  background: var(--color-canvas);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+  overflow-x: clip;
+}
+
+::selection {
+  background: rgb(0 113 227 / 0.2);
+}
+
+.mono-tag {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+:focus-visible {
+  outline: 3px solid rgb(0 113 227 / 0.5);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a[href] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.glass {
+  background: var(--glass-light);
+  border: 1px solid rgb(255 255 255 / 0.72);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.8) inset,
+    0 14px 40px -24px rgb(0 0 0 / 0.3);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+}
+
+.glass-heavy {
+  background: var(--glass-heavy);
+  border: 1px solid rgb(255 255 255 / 0.88);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.92) inset,
+    0 22px 64px -30px rgb(0 0 0 / 0.32);
+  -webkit-backdrop-filter: blur(34px) saturate(180%);
+  backdrop-filter: blur(34px) saturate(180%);
+}
+
+.pressable {
+  transform: translateZ(0);
+  transition:
+    transform 180ms var(--spring-ease),
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease;
+}
+
+.pressable:active:not(:disabled) {
+  transform: scale(0.97);
+  transition-duration: 90ms;
+}
+
+.edge-fade-x {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 18px,
+    black calc(100% - 18px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 18px,
+    black calc(100% - 18px),
+    transparent
+  );
+}
+
+.edge-fade-y {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 18px,
+    black calc(100% - 18px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 18px,
+    black calc(100% - 18px),
+    transparent
+  );
+}
+
+/* Cross-browser <input type="range"> thumb styling. The vendor pseudo-elements
+   are mutually exclusive per browser engine, so expressing this as Tailwind's
+   [&::-webkit-slider-thumb]:x [&::-moz-range-thumb]:x arbitrary variants is
+   correct but trips the editor's cssConflict linter (it can't see that only
+   one selector ever matches in a given browser). Plain CSS sidesteps that and
+   reads a lot cleaner besides -- the track itself stays Tailwind utilities. */
+.range-thumb::-webkit-slider-thumb {
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid var(--color-paper);
+  background: var(--color-ink);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.24);
+}
+
+.range-thumb::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid var(--color-paper);
+  background: var(--color-ink);
+}
+
+.range-thumb-sm::-webkit-slider-thumb {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--color-ink);
+}
+
+.range-track-sm {
+  width: 100%;
+  height: 0.125rem;
+  cursor: pointer;
+  appearance: none;
+  background: var(--color-line);
+  outline: none;
+}
+
+.range-track-sm::-webkit-slider-runnable-track {
+  height: 0.125rem;
+  background: var(--color-line);
+}
+
+.range-track-sm::-moz-range-track {
+  height: 0.125rem;
+  background: var(--color-line);
+}
+
+.rail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+.rail-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.rail-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 999px;
+}
+
+@supports (height: 100svh) {
+  .safe-screen {
+    min-height: 100svh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 140ms !important;
+    transition-property: opacity, color, background-color, border-color, box-shadow !important;
+  }
+
+  .pressable:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-light: rgb(255 255 255 / 0.96);
+    --glass-heavy: rgb(248 248 250 / 0.98);
+  }
+
+  .glass,
+  .glass-heavy {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-muted: #4b4b4f;
+    --color-faint: #5d5d62;
+    --color-line: #b7b7bc;
+    --color-line-strong: #8e8e93;
+    --glass-light: rgb(255 255 255 / 0.98);
+    --glass-heavy: #ffffff;
+  }
+
+  .glass,
+  .glass-heavy {
+    border-color: var(--color-ink);
+  }
+}
