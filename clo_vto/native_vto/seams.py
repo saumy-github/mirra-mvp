@@ -26,11 +26,29 @@ Sleeve (left and right, same geometry) — 5 edges:
   0 cuff           2 cap_front        4 left_underarm
   1 right_underarm 3 cap_back
 
+IMPORTANT — all four sleeve edges are misnamed relative to their visual role
+(found by direct DXF vertex coordinate analysis, 2026-07-20 — walked the raw
+polyline, matched cumulative arc-length to CLO's reported per-edge lengths to
+get exact (x,y) for every edge boundary; see
+.agent/clo-avatar-vto/seam-edge-mapping.md for the full derivation history):
+
+  left_underarm(4) is the flat WRIST OPENING (384.7, bottom of the pattern) —
+    not "cuff". This is the edge that should stay unseamed.
+  cuff(0) and cap_back(3) are the two short corner risers connecting that
+    flat bottom up to where the cap curve begins (138.5 and 135.3 — 2.3%
+    apart, i.e. true mirror-image partners). These are the real "underarm"
+    seam — sewn to each other to close the sleeve into a tube.
+  right_underarm(1) and cap_front(2) are the two long curves meeting at the
+    peak (284.3 and 266.9) — these are the true cap halves, confirmed by
+    length-matching against front_armhole/back_armhole (within 2-3%).
+
 Armhole wiring (front panel also cross-paired: DXF right = avatar left):
-  Right sleeve cap_front (edge 2) → front panel LEFT_armhole  (edge 7)  [avatar's right arm]
-  Right sleeve cap_back  (edge 3) → back  panel LEFT_armhole  (edge 2)  [avatar's right arm]
-  Left  sleeve cap_back  (edge 3) → front panel RIGHT_armhole (edge 2)  [avatar's left arm]
-  Left  sleeve cap_front (edge 2) → back  panel RIGHT_armhole (edge 7)  [avatar's left arm]
+  Right sleeve right_underarm (edge 1) → front panel LEFT_armhole  (edge 7)  [avatar's right arm]
+  Right sleeve cap_front      (edge 2) → back  panel RIGHT_armhole (edge 7)  [avatar's right arm]
+  Left  sleeve right_underarm (edge 1) → front panel RIGHT_armhole (edge 2)  [avatar's left arm]
+  Left  sleeve cap_front      (edge 2) → back  panel LEFT_armhole  (edge 2)  [avatar's left arm]
+  Tube-closing (each sleeve, self-seam): cuff(0) ↔ cap_back(3).
+  left_underarm(4) is left unseamed (wrist opening).
 """
 from __future__ import annotations
 
@@ -62,18 +80,28 @@ DEFAULT_SEAMS = [
     # Side seams (front-right ↔ back-left = same anatomical side seam)
     {"name": "side-right",     "a": "front_panel", "la": 3, "b": "back_panel",    "lb": 1, "da": True, "db": False},
     {"name": "side-left",      "a": "front_panel", "la": 6, "b": "back_panel",    "lb": 8, "da": True, "db": False},
-    # Sleeve tube seams (underarm seam on each sleeve)
-    {"name": "sleeve-L-tube",  "a": "sleeve_left",  "la": 1, "b": "sleeve_left",  "lb": 4, "da": False, "db": False},
-    {"name": "sleeve-R-tube",  "a": "sleeve_right", "la": 1, "b": "sleeve_right", "lb": 4, "da": False, "db": False},
-    # Armhole seams — right sleeve
+    # Sleeve tube seams (closes the underarm gap; see note at top of file —
+    # cuff(0) and cap_back(3) are the two short corner-riser edges that are
+    # true mirror partners of each other; left_underarm(4) is actually the
+    # flat wrist opening and stays unseamed).
+    # da flipped to True (2026-07-20): edges confirmed correct, but seam was
+    # crisscrossing — the two riser edges were being walked in opposite
+    # winding order relative to each other.
+    {"name": "sleeve-L-tube",  "a": "sleeve_left",  "la": 0, "b": "sleeve_left",  "lb": 3, "da": True, "db": False},
+    {"name": "sleeve-R-tube",  "a": "sleeve_right", "la": 0, "b": "sleeve_right", "lb": 3, "da": True, "db": False},
+    # Armhole seams — right sleeve (sleeve edges: right_underarm=1, cap_front=2 —
+    # the true two cap halves meeting at the shoulder peak; see note at top of file)
     # Front: avatar's right arm = front DXF left_armhole (edge 7, cross-paired like shoulder/side)
     # Back:  avatar's right arm = back DXF right_armhole (edge 7, back naming is anatomically direct)
-    {"name": "arm-R-front",    "a": "front_panel", "la": 7, "b": "sleeve_right",  "lb": 2, "da": True, "db": False},
-    {"name": "arm-R-back",     "a": "back_panel",  "la": 7, "b": "sleeve_right",  "lb": 3, "da": True, "db": False},
+    # db flipped to True (2026-07-20): edge pairing confirmed correct visually,
+    # but seam was twisted — sleeve_right is mirrored at placement (unlike
+    # sleeve_left), so its armhole seams need the opposite direction parity.
+    {"name": "arm-R-front",    "a": "front_panel", "la": 7, "b": "sleeve_right",  "lb": 1, "da": True, "db": True},
+    {"name": "arm-R-back",     "a": "back_panel",  "la": 7, "b": "sleeve_right",  "lb": 2, "da": True, "db": True},
     # Armhole seams — left sleeve
     # Front: avatar's left arm = front DXF right_armhole (edge 2, cross-paired)
     # Back:  avatar's left arm = back DXF left_armhole (edge 2, anatomically direct)
-    {"name": "arm-L-front",    "a": "front_panel", "la": 2, "b": "sleeve_left",   "lb": 3, "da": True, "db": False},
+    {"name": "arm-L-front",    "a": "front_panel", "la": 2, "b": "sleeve_left",   "lb": 1, "da": True, "db": False},
     {"name": "arm-L-back",     "a": "back_panel",  "la": 2, "b": "sleeve_left",   "lb": 2, "da": True, "db": False},
 ]
 
@@ -126,11 +154,22 @@ def load_seams_from_manifest(manifest_path: Path) -> list[dict] | None:
         {"name": "shoulder-left",  "a": "front_panel", "la": _idx("front_panel", "left_shoulder"),  "b": "back_panel",    "lb": _idx("back_panel",    "right_shoulder"), "da": True, "db": False},
         {"name": "side-right",     "a": "front_panel", "la": _idx("front_panel", "right_side"),     "b": "back_panel",    "lb": _idx("back_panel",    "left_side"),      "da": True, "db": False},
         {"name": "side-left",      "a": "front_panel", "la": _idx("front_panel", "left_side"),      "b": "back_panel",    "lb": _idx("back_panel",    "right_side"),     "da": True, "db": False},
-        {"name": "sleeve-L-tube",  "a": "sleeve_left",  "la": _idx("sleeve_left",  "right_underarm"), "b": "sleeve_left",  "lb": _idx("sleeve_left",  "left_underarm"), "da": False, "db": False},
-        {"name": "sleeve-R-tube",  "a": "sleeve_right", "la": _idx("sleeve_right", "right_underarm"), "b": "sleeve_right", "lb": _idx("sleeve_right", "left_underarm"), "da": False, "db": False},
-        {"name": "arm-R-front",    "a": "front_panel", "la": _idx("front_panel", "left_armhole"),   "b": "sleeve_right",  "lb": _idx("sleeve_right", "cap_front"),      "da": True, "db": False},
-        {"name": "arm-R-back",     "a": "back_panel",  "la": _idx("back_panel",  "right_armhole"),  "b": "sleeve_right",  "lb": _idx("sleeve_right", "cap_back"),       "da": True, "db": False},
-        {"name": "arm-L-front",    "a": "front_panel", "la": _idx("front_panel", "right_armhole"),  "b": "sleeve_left",   "lb": _idx("sleeve_left",  "cap_back"),       "da": True, "db": False},
+        # Tube-closing seam: cuff(0) and cap_back(3) are the true mirror-image
+        # corner-riser edges (see note at top of file); left_underarm(4) is
+        # actually the flat wrist opening and is left unseamed.
+        # da flipped to True (2026-07-20): edges confirmed correct, but seam was
+        # crisscrossing until direction was untwisted.
+        {"name": "sleeve-L-tube",  "a": "sleeve_left",  "la": _idx("sleeve_left",  "cuff"), "b": "sleeve_left",  "lb": _idx("sleeve_left",  "cap_back"), "da": True, "db": False},
+        {"name": "sleeve-R-tube",  "a": "sleeve_right", "la": _idx("sleeve_right", "cuff"), "b": "sleeve_right", "lb": _idx("sleeve_right", "cap_back"), "da": True, "db": False},
+        # Armhole seams: right_underarm(1) and cap_front(2) are the true two cap
+        # halves meeting at the shoulder peak (see note at top of file) — cap_back
+        # was never shaped to sew into an armhole and is not used here.
+        # db flipped to True on right sleeve (2026-07-20): sleeve_right is mirrored
+        # at placement (sleeve_left is not), so its armhole seams need opposite
+        # direction parity from sleeve_left's to avoid twisting.
+        {"name": "arm-R-front",    "a": "front_panel", "la": _idx("front_panel", "left_armhole"),   "b": "sleeve_right",  "lb": _idx("sleeve_right", "right_underarm"), "da": True, "db": True},
+        {"name": "arm-R-back",     "a": "back_panel",  "la": _idx("back_panel",  "right_armhole"),  "b": "sleeve_right",  "lb": _idx("sleeve_right", "cap_front"),      "da": True, "db": True},
+        {"name": "arm-L-front",    "a": "front_panel", "la": _idx("front_panel", "right_armhole"),  "b": "sleeve_left",   "lb": _idx("sleeve_left",  "right_underarm"), "da": True, "db": False},
         {"name": "arm-L-back",     "a": "back_panel",  "la": _idx("back_panel",  "left_armhole"),   "b": "sleeve_left",   "lb": _idx("sleeve_left",  "cap_front"),      "da": True, "db": False},
     ]
     return seams

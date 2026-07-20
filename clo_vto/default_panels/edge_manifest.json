@@ -1,5 +1,5 @@
 {
-  "_note": "10-edge layout derived from DXF geometry analysis. Front panel POLYLINE starts at neckline center (0,1522), back panel starts at left-hem corner. Indices are 0-based CLO seam line indices. Verify with Step 06 edge-length dump after next pipeline run.",
+  "_note": "10-edge layout derived from DXF geometry analysis. Front panel POLYLINE starts at neckline center (0,1522), back panel starts at left-hem corner. Indices are 0-based CLO seam line indices. Verified against Step 06 edge-length dump from a live pipeline run (2026-07-17). NOTE (2026-07-20): all 4 sleeve edge names are rotated relative to their visual role, confirmed by matching cumulative DXF arc-length to exact vertex coordinates — left_underarm(4) is actually the flat wrist opening (left unseamed); cuff(0) and cap_back(3) are the two short mirror-image corner risers (sewn to each other as the tube seam); right_underarm(1) and cap_front(2) are the true two cap halves meeting at the peak (sewn to the panel armholes). Names left as-is here to avoid desync with seams.py's by-name lookups — see .agent/clo-avatar-vto/seam-edge-mapping.md.",
   "front_panel": [
     {"name": "right_neckline",  "index": 0},
     {"name": "right_shoulder",  "index": 1},
