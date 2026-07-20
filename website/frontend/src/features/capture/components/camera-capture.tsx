@@ -10,6 +10,9 @@ export interface CapturedImage {
   byteSize: number;
   width: number;
   height: number;
+  /** Actual photo bytes — not captured yet (demo sends metadata only); the
+   * live backend uploads this when present. */
+  blob?: Blob;
 }
 
 /**

@@ -55,7 +55,16 @@ export interface MirraRuntimeProvider {
   submitCaptureAsset(
     token: string,
     stepId: string,
-    payload: { mimeType: string; byteSize: number; width: number; height: number },
+    payload: {
+      mimeType: string;
+      byteSize: number;
+      width: number;
+      height: number;
+      /** Actual photo bytes — required by the live backend, ignored by the
+       * mock. When absent in live mode a placeholder is uploaded so the
+       * flow still completes (demo engine only). */
+      blob?: Blob;
+    },
   ): Promise<CaptureSession>;
   completeCapture(token: string): Promise<CaptureSession>;
   cancelCaptureSession(sessionId: string): Promise<CaptureSession>;

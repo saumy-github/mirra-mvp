@@ -83,7 +83,7 @@ async def delete_all_for_user(user_id: str) -> None:
 async def sign_up(email: str, password: str, name: str | None) -> tuple[dict, str, str, datetime]:
     email = email.strip().lower()
     if await users_col().find_one({"email": email}, {"_id": 1}):
-        raise Conflict("An account with this email already exists")
+        raise Conflict("An account with this email already exists", code="account_exists")
     now = _now()
     verification_code = f"{secrets.randbelow(1_000_000):06d}"
     user: dict[str, Any] = {
