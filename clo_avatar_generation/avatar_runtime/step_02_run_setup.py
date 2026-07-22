@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .context import Step1Context, utc_timestamp
+from .logging_setup import attach_run_file_handler
 from .run_manifest import RunIdentity, get_next_run_number, get_run_dir
 
 
@@ -11,6 +12,8 @@ def run(ctx: Step1Context) -> bool:
     ctx.run_identity = RunIdentity(user_id=ctx.user_id, number=run_number)
     ctx.run_dir = get_run_dir(ctx.run_identity)
     ctx.run_dir.mkdir(parents=True, exist_ok=True)
+    attach_run_file_handler(ctx.logger, ctx.run_dir)
+    ctx.logger.info("Run directory created: %s", ctx.run_dir)
 
     ctx.input_payload = {
         "run_id": ctx.run_identity.run_id,
@@ -32,6 +35,5 @@ def run(ctx: Step1Context) -> bool:
         ],
     }
 
-    ctx.write_json("input.json", ctx.input_payload)
     return True
 

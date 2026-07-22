@@ -24,6 +24,7 @@ def _resolve_candidate(base_avatar_path_input: str | None) -> Path:
 
 def run(ctx: Step1Context) -> bool:
     candidate = _resolve_candidate(ctx.base_avatar_path_input)
+    ctx.logger.info("Resolving base avatar: %s", candidate)
     if not candidate.exists():
         raise FileNotFoundError(f"Base avatar not found: {candidate}")
     if candidate.suffix.lower() != ".avt":
@@ -46,6 +47,7 @@ def run(ctx: Step1Context) -> bool:
     }
 
     ctx.input_payload["base_avatar"] = ctx.base_avatar_metadata
-    ctx.write_json("input.json", ctx.input_payload)
+    ctx.log_json("input", ctx.input_payload)
+    ctx.logger.info("Base avatar resolved: %s (%d bytes)", candidate.name, candidate.stat().st_size)
     return True
 

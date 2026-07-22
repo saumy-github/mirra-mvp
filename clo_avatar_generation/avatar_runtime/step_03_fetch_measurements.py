@@ -126,6 +126,7 @@ def _validate_ranges(doc: dict[str, Any]) -> None:
 
 
 def run(ctx: Step1Context) -> bool:
+    ctx.logger.info("Fetching measurements for user_id=%s", ctx.user_id)
     doc: dict[str, Any] | None = None
     source = "mongodb"
     source_path: Path | None = None
@@ -167,6 +168,7 @@ def run(ctx: Step1Context) -> bool:
                 "MongoDB fetch failed; using the latest clo_avatar_generation snapshot "
                 f"for user {ctx.user_id} instead."
             )
+            ctx.logger.warning("MongoDB fetch failed; falling back to latest local snapshot")
             doc = local_snapshot
             source = "clo_avatar_generation_snapshot"
 
@@ -178,11 +180,11 @@ def run(ctx: Step1Context) -> bool:
                 "No live MongoDB document was found; using the latest clo_avatar_generation snapshot "
                 f"for user {ctx.user_id} instead."
             )
+            ctx.logger.warning("No live MongoDB document found; falling back to latest local snapshot")
             doc = local_snapshot
             source = "clo_avatar_generation_snapshot"
 
-    _validate_required_fields(doc)
-    _validate_ranges(doc)
+    ctx.logger.info("Measurement source: %s%s", source, f" ({source_path})" if source_path else "")
 
     ctx.measurement_source = source
     ctx.measurement_source_path = source_path
@@ -194,6 +196,12 @@ def run(ctx: Step1Context) -> bool:
 
     ctx.input_payload["measurement_source"] = source
     ctx.input_payload["measurement_source_path"] = str(source_path) if source_path else None
-    ctx.write_json("input.json", ctx.input_payload)
-    ctx.write_json("mongo_snapshot.json", ctx.mongo_snapshot)
+    # Logged before validation so the actual fetched document is always captured,
+    # even when validation below rejects it — otherwise a validation failure would
+    # leave no record of what data was actually present.
+    ctx.log_json("mongo_snapshot", ctx.mongo_snapshot)
+
+    _validate_required_fields(doc)
+    _validate_ranges(doc)
+    ctx.logger.info("Measurement validation passed (gender=%s)", str(doc.get("gender", "")).strip().lower())
     return True

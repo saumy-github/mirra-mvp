@@ -6,6 +6,7 @@ from .context import Step1Context
 
 
 def run(ctx: Step1Context) -> bool:
+    ctx.logger.info("Reading back avatar/native/property debug state")
     native_debug = ctx.client.get_native_avatar_debug()
     property_debug = ctx.client.get_avatar_property_debug()
     # /avatars/state calls CLO API (GetAvatarCount etc.) from the HTTP thread on Windows,
@@ -29,5 +30,6 @@ def run(ctx: Step1Context) -> bool:
             "avatar_state readback is disabled: /avatars/state calls CLO API from the HTTP thread on Windows, causing a server crash.",
         ],
     }
-    ctx.write_json("readback_measurements.json", ctx.readback_measurements)
+    ctx.log_json("readback_measurements", ctx.readback_measurements)
+    ctx.logger.info("Readback complete (avatar_state readback disabled)")
     return True

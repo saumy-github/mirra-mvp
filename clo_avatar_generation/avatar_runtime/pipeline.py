@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Callable
 
 from .context import Step1Context, utc_timestamp
+from .health_watchdog import POLL_INTERVAL_SECONDS, HealthWatchdog
+from .logging_setup import attach_run_file_handler, configure_console_logger
 from .run_manifest import get_next_run_number, get_run_dir, RunIdentity
 from .step_01_health import run as step_01_health
 from .step_02_run_setup import run as step_02_run_setup
@@ -31,6 +31,7 @@ def _bootstrap_failure_run_dir(ctx: Step1Context) -> None:
     ctx.run_identity = RunIdentity(user_id=ctx.user_id, number=run_number)
     ctx.run_dir = get_run_dir(ctx.run_identity)
     ctx.run_dir.mkdir(parents=True, exist_ok=True)
+    attach_run_file_handler(ctx.logger, ctx.run_dir)
     if not ctx.input_payload:
         ctx.input_payload = {
             "run_id": ctx.run_identity.run_id,
@@ -41,15 +42,7 @@ def _bootstrap_failure_run_dir(ctx: Step1Context) -> None:
             "workflow": "clo_avatar_generation.step1",
             "bootstrapped_after_failure": True,
         }
-        ctx.write_json("input.json", ctx.input_payload)
-    if ctx.health_result or ctx.capabilities:
-        ctx.write_json(
-            "health.json",
-            {
-                "health": ctx.health_result,
-                "capabilities": ctx.capabilities,
-            },
-        )
+        ctx.log_json("input", ctx.input_payload)
 
 
 def _run_summary_payload(ctx: Step1Context) -> dict:
@@ -64,35 +57,12 @@ def _run_summary_payload(ctx: Step1Context) -> dict:
     }
 
 
-def _write_run_summary(ctx: Step1Context) -> None:
-    if ctx.run_dir is None:
-        return
-    ctx.write_json("run_summary.json", _run_summary_payload(ctx))
-
-
-def _write_output_json(ctx: Step1Context) -> None:
-    if ctx.run_dir is None:
-        return
-
-    ctx.output_payload = {
+def _output_summary_payload(ctx: Step1Context) -> dict:
+    return {
         "status": ctx.status,
         "run_id": ctx.run_identity.run_id if ctx.run_identity else None,
         "user_id": ctx.user_id,
         "artifacts": {
-            "input_json": str(ctx.artifact_path("input.json")),
-            "mongo_snapshot": str(ctx.artifact_path("mongo_snapshot.json")) if (ctx.artifact_path("mongo_snapshot.json")).exists() else None,
-            "target_measurements": str(ctx.artifact_path("target_measurements.json")) if (ctx.artifact_path("target_measurements.json")).exists() else None,
-            "clo_payload_json": str(ctx.clo_payload_json_path) if ctx.clo_payload_json_path else None,
-            "clo_payload_bridge": str(ctx.clo_payload_bridge_path) if ctx.clo_payload_bridge_path else None,
-            "clo_payload_properties": str(ctx.clo_payload_property_path) if ctx.clo_payload_property_path else None,
-            "clo_payload_avt_patch": str(ctx.clo_payload_avt_patch_path) if ctx.clo_payload_avt_patch_path else None,
-            "import_result": str(ctx.artifact_path("import_result.json")) if (ctx.artifact_path("import_result.json")).exists() else None,
-            "apply_result": str(ctx.artifact_path("apply_result.json")) if (ctx.artifact_path("apply_result.json")).exists() else None,
-            "readback_measurements": str(ctx.artifact_path("readback_measurements.json")) if (ctx.artifact_path("readback_measurements.json")).exists() else None,
-            "error_report": str(ctx.artifact_path("error_report.json")) if (ctx.artifact_path("error_report.json")).exists() else None,
-            "measurement_verification": str(ctx.artifact_path("measurement_verification.json")) if (ctx.artifact_path("measurement_verification.json")).exists() else None,
-            "save_outputs": str(ctx.artifact_path("save_outputs.json")) if (ctx.artifact_path("save_outputs.json")).exists() else None,
-            "run_summary": str(ctx.artifact_path("run_summary.json")),
             "saved_project": str(ctx.exported_project_path) if ctx.exported_project_path else None,
             "saved_avatar_direct": str(ctx.direct_avatar_export_path) if ctx.direct_avatar_export_path else None,
             "saved_avatar": str(ctx.extracted_avatar_path) if ctx.extracted_avatar_path else None,
@@ -100,7 +70,6 @@ def _write_output_json(ctx: Step1Context) -> None:
         },
         "warnings": list(ctx.warnings),
     }
-    ctx.write_json("output.json", ctx.output_payload)
 
 
 def _record_step_result(ctx: Step1Context, step_name: str, success: bool, error: str | None = None) -> None:
@@ -108,7 +77,10 @@ def _record_step_result(ctx: Step1Context, step_name: str, success: bool, error:
     if error:
         entry["error"] = error
     ctx.step_results.append(entry)
-    _write_run_summary(ctx)
+    if success:
+        ctx.logger.info("Step %s: passed", step_name)
+    else:
+        ctx.logger.error("Step %s: failed%s", step_name, f" - {error}" if error else "")
 
 
 def _derive_step_error(ctx: Step1Context, step_name: str) -> str | None:
@@ -131,18 +103,25 @@ def _derive_step_error(ctx: Step1Context, step_name: str) -> str | None:
             or "Measurement application failed."
         )
     if step_name == "step_11_save_outputs":
-        save_outputs_path = ctx.artifact_path("save_outputs.json") if ctx.run_dir else None
-        if save_outputs_path and save_outputs_path.exists():
-            try:
-                payload = json.loads(save_outputs_path.read_text(encoding="utf-8"))
-                return payload.get("reason") or payload.get("save_result", {}).get("error")
-            except Exception:
-                return "Saving outputs failed."
-        return "Saving outputs failed."
+        return (
+            ctx.save_outputs.get("reason")
+            or ctx.save_outputs.get("save_result", {}).get("error")
+            or "Saving outputs failed."
+        )
     return None
 
 
 def run_pipeline(ctx: Step1Context) -> Step1Context:
+    ctx.logger = configure_console_logger()
+    ctx.logger.info(
+        "Starting CLO avatar-generation pipeline: user_id=%s requested_run_number=%s "
+        "apply_mode_requested=%s active_field_filters=%s",
+        ctx.user_id,
+        ctx.requested_run_number,
+        ctx.measurement_apply_mode_input,
+        ctx.active_field_filters,
+    )
+
     steps: list[tuple[str, StepFn, bool, bool]] = [
         ("step_01_health", step_01_health, True, False),
         ("step_02_run_setup", step_02_run_setup, True, False),
@@ -157,11 +136,15 @@ def run_pipeline(ctx: Step1Context) -> Step1Context:
         ("step_11_save_outputs", step_11_save_outputs, True, True),
     ]
 
+    watchdog: HealthWatchdog | None = None
+
     pipeline_failed = False
     for step_name, step_fn, required, always_run in steps:
         if pipeline_failed and not always_run:
             continue
 
+        ctx.current_step = step_name
+        ctx.logger.info("Step %s: starting", step_name)
         try:
             success = bool(step_fn(ctx))
             error = None
@@ -180,8 +163,33 @@ def run_pipeline(ctx: Step1Context) -> Step1Context:
             pipeline_failed = True
             ctx.status = "failed"
 
+        if watchdog is None and step_name == "step_02_run_setup" and success:
+            watchdog = HealthWatchdog(ctx)
+            watchdog.start()
+            ctx.logger.info("Health watchdog started (polling /health every %.0fs)", POLL_INTERVAL_SECONDS)
+
+    if watchdog is not None:
+        watchdog.stop()
+        ctx.logger.info("Health watchdog stopped")
+
     if not pipeline_failed and ctx.status != "failed":
         ctx.status = "completed"
-    _write_run_summary(ctx)
-    _write_output_json(ctx)
+
+    if ctx.run_dir is not None:
+        ctx.log_json("run_summary", _run_summary_payload(ctx))
+        ctx.output_payload = _output_summary_payload(ctx)
+        ctx.log_json("output", ctx.output_payload)
+        ctx.logger.info("Run folder: %s", ctx.run_dir)
+        ctx.logger.info("run.log: %s", ctx.run_dir / "run.log")
+
+    if ctx.status == "completed":
+        ctx.logger.info("CLO avatar-generation pipeline completed.")
+    else:
+        failed_steps = [step for step in ctx.step_results if not step.get("success")]
+        if failed_steps:
+            last_failed = failed_steps[-1]
+            if last_failed.get("error"):
+                ctx.logger.error("Failure detail: %s -> %s", last_failed["step"], last_failed["error"])
+        ctx.logger.error("CLO avatar-generation pipeline failed.")
+
     return ctx
