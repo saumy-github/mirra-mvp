@@ -49,6 +49,25 @@ class CubicBezierSegment:
         return pts
 
     def arc_length(self, n: int = 64) -> float:
+        """Arc length with adaptive sampling for high-curvature segments (P06).
+
+        If either interior control point deviates from the chord by more than
+        20 % of the chord length, the sample count is doubled to avoid
+        under-estimating tight curves (armhole hollow, sleeve cap).
+        """
+        chord = hypot(self.p3[0] - self.p0[0], self.p3[1] - self.p0[1])
+        if chord > 1e-6:
+            def _perp_dist(p: Point2D) -> float:
+                t = (
+                    (p[0] - self.p0[0]) * (self.p3[0] - self.p0[0])
+                    + (p[1] - self.p0[1]) * (self.p3[1] - self.p0[1])
+                ) / (chord * chord)
+                cx = self.p0[0] + t * (self.p3[0] - self.p0[0])
+                cy = self.p0[1] + t * (self.p3[1] - self.p0[1])
+                return hypot(p[0] - cx, p[1] - cy)
+            max_dev = max(_perp_dist(self.p1), _perp_dist(self.p2))
+            if max_dev / chord > 0.20:
+                n = n * 2
         pts = self.sample(n)
         return sum(hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(pts, pts[1:]))
 

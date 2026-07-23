@@ -9,7 +9,16 @@ def run(ctx):
         print("  ! Skipping simulation - no avatar loaded (would crash CLO).")
         return True
 
-    print_result(ctx.client.simulate(steps=150), "simulate")
-    print("     Waiting for simulation to complete ...")
-    ctx.client.wait_for_queue(timeout=300)
+    ok = print_result(ctx.client.simulate(steps=150), "simulate")
+    if not ok:
+        print("  [FAIL] CLO rejected the simulate command.")
+        return False
+
+    print("     Waiting for simulation to complete (up to 5 min) ...")
+    try:
+        ctx.client.wait_for_queue(timeout=300)
+        print("     Simulation complete.")
+    except Exception as exc:
+        print(f"  [WARN] Simulation drain timed out: {exc}")
+        print("         Simulation may still be running inside CLO — check the CLO window.")
     return True

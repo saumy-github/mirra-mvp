@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -26,14 +27,17 @@ class Step1Context:
     base_avatar_path_input: str | None = None
     measurement_file_input: str | None = None
     measurement_apply_mode_input: str = "auto"
+    enable_legacy_route: bool = False
     active_field_filters: list[str] = field(default_factory=list)
     interactive: bool = True
     client: CLORestClient = field(default_factory=CLORestClient)
     contract: dict[str, Any] = field(default_factory=load_field_contract)
+    logger: logging.Logger | None = None
 
     run_identity: RunIdentity | None = None
     run_dir: Path | None = None
     status: str = "initialized"
+    current_step: str | None = None
 
     health_result: dict[str, Any] = field(default_factory=dict)
     capabilities: dict[str, Any] = field(default_factory=dict)
@@ -49,17 +53,15 @@ class Step1Context:
     resolved_measurement_apply_mode: str | None = None
 
     clo_payload_json: dict[str, Any] = field(default_factory=dict)
-    clo_payload_json_path: Path | None = None
     clo_payload_bridge_path: Path | None = None
     clo_payload_property_json: dict[str, Any] = field(default_factory=dict)
-    clo_payload_property_path: Path | None = None
     clo_payload_avt_patch_json: dict[str, Any] = field(default_factory=dict)
-    clo_payload_avt_patch_path: Path | None = None
 
     import_result: dict[str, Any] = field(default_factory=dict)
     apply_result: dict[str, Any] = field(default_factory=dict)
     readback_measurements: dict[str, Any] = field(default_factory=dict)
     error_report: dict[str, Any] = field(default_factory=dict)
+    save_outputs: dict[str, Any] = field(default_factory=dict)
     output_payload: dict[str, Any] = field(default_factory=dict)
 
     exported_project_path: Path | None = None
@@ -82,3 +84,6 @@ class Step1Context:
         out_path = self.artifact_path(name)
         out_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return out_path
+
+    def log_json(self, label: str, payload: dict[str, Any]) -> None:
+        self.logger.info("%s:\n%s", label, json.dumps(payload, indent=2))

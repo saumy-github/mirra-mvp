@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .apply_mode import resolve_apply_mode
 from .context import Step1Context
 from .field_contract import get_round_decimals, get_v1_fields_for_gender
 
@@ -90,5 +91,8 @@ def run(ctx: Step1Context) -> bool:
         "flat_requested_property_fields": flat_requested_property_fields,
         "ignored_fields": ignored_fields,
     }
-    ctx.write_json("target_measurements.json", ctx.normalized_targets)
+    ctx.log_json("target_measurements", ctx.normalized_targets)
+    ctx.logger.info("Normalized %d measurement field(s) for gender=%s", len(flat_requested_fields), gender)
+    ctx.resolved_measurement_apply_mode = resolve_apply_mode(ctx)
+    ctx.logger.info("Resolved measurement apply mode: %s", ctx.resolved_measurement_apply_mode)
     return True

@@ -12,12 +12,13 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from clo_avatar_generation.avatar_runtime.context import Step1Context
-from clo_avatar_generation.avatar_runtime.field_contract import (
-    get_default_base_avatar,
-    get_preferred_measurement_apply_mode,
-)
+from clo_avatar_generation.avatar_runtime.field_contract import get_default_base_avatar
 from clo_avatar_generation.avatar_runtime.pipeline import run_pipeline
 from clo_avatar_generation.avatar_runtime.run_manifest import get_latest_user_id, get_next_run_number
+
+DEFAULT_APPLY_MODE = "avt_patch"
+LEGACY_APPLY_MODES = {"csv", "avatar_properties"}
+LEGACY_ROUTES_DOC = "clo_avatar_generation/schema/legacy_routes.md"
 
 
 def _prompt_with_default(prompt: str, default: str | None) -> str:
@@ -41,15 +42,6 @@ def _resolve_default_base_avatar() -> str:
     return str(default_path.resolve())
 
 
-def _resolve_default_measurement_file(user_id: str | None) -> str | None:
-    if not user_id:
-        return None
-    candidate = REPO_ROOT / "clo_avatar_generation" / "input" / f"{user_id}.measurements.json"
-    if candidate.exists():
-        return str(candidate.resolve())
-    return None
-
-
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the Step-1 CLO avatar-generation workflow.")
     parser.add_argument("--user-id", default=None, help="Measurement user_id (for example u_001).")
@@ -60,7 +52,16 @@ def _parse_args() -> argparse.Namespace:
         "--apply-mode",
         choices=("auto", "csv", "avatar_properties", "avt_patch"),
         default=None,
-        help="Measurement apply mode. auto prefers the verified AVT patch route when supported fields are present.",
+        help=(
+            "Measurement apply mode. avt_patch (the default) is the only supported route. "
+            "csv and avatar_properties are legacy/experimental routes that require --enable-legacy-route; "
+            "see clo_avatar_generation/schema/legacy_routes.md."
+        ),
+    )
+    parser.add_argument(
+        "--enable-legacy-route",
+        action="store_true",
+        help="Required alongside --apply-mode csv or --apply-mode avatar_properties to actually run them.",
     )
     parser.add_argument(
         "--active-field",
@@ -81,7 +82,7 @@ def main() -> int:
     try:
         latest_user_id = get_latest_user_id()
         default_user_id = args.user_id or latest_user_id
-        default_apply_mode = args.apply_mode or get_preferred_measurement_apply_mode()
+        default_apply_mode = args.apply_mode or DEFAULT_APPLY_MODE
 
         if args.non_interactive:
             user_id = default_user_id
@@ -90,7 +91,7 @@ def main() -> int:
                 return 1
             run_number = args.run_number or get_next_run_number(user_id)
             base_avatar = args.base_avatar or _resolve_default_base_avatar()
-            measurement_file = args.measurement_file or _resolve_default_measurement_file(user_id)
+            measurement_file = args.measurement_file
             apply_mode = default_apply_mode
             active_fields = list(args.active_field or [])
         else:
@@ -122,13 +123,16 @@ def main() -> int:
                 args.base_avatar or _resolve_default_base_avatar(),
             ).strip()
 
-            measurement_file = _prompt_with_default(
-                "Measurement JSON path",
-                args.measurement_file or _resolve_default_measurement_file(user_id),
-            ).strip()
-            measurement_file = measurement_file or None
+            measurement_file = args.measurement_file
             apply_mode = default_apply_mode
             active_fields = list(args.active_field or [])
+
+        if apply_mode in LEGACY_APPLY_MODES and not args.enable_legacy_route:
+            print(
+                f"Error: --apply-mode {apply_mode} is a legacy route and requires --enable-legacy-route. "
+                f"See {LEGACY_ROUTES_DOC}."
+            )
+            return 1
 
         ctx = Step1Context(
             user_id=user_id,
@@ -136,26 +140,14 @@ def main() -> int:
             base_avatar_path_input=base_avatar,
             measurement_file_input=measurement_file,
             measurement_apply_mode_input=apply_mode,
+            enable_legacy_route=args.enable_legacy_route,
             active_field_filters=active_fields,
             interactive=not args.non_interactive,
         )
         ctx = run_pipeline(ctx)
 
-        if ctx.run_dir is not None:
-            print(f"\nRun folder: {ctx.run_dir}")
-            print(f"run_summary.json: {ctx.run_dir / 'run_summary.json'}")
-            print(f"output.json: {ctx.run_dir / 'output.json'}")
-
         if ctx.status == "completed":
-            print("CLO avatar-generation pipeline completed.")
             return 0
-
-        failed_steps = [step for step in ctx.step_results if not step.get("success")]
-        if failed_steps:
-            last_failed = failed_steps[-1]
-            if last_failed.get("error"):
-                print(f"Failure detail: {last_failed['step']} -> {last_failed['error']}")
-        print("CLO avatar-generation pipeline failed.")
         return 1
 
     except KeyboardInterrupt:

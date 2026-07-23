@@ -133,15 +133,12 @@ def _read_single_row_csv(path: Path) -> tuple[list[str], list[str]]:
     return headers, values
 
 
-def run(ctx: Step1Context) -> bool:
+def _build_csv_bridge(ctx: Step1Context) -> dict[str, object]:
     requested_headers, requested_values = _build_bridge_headers_and_values(ctx)
     requested_map = dict(zip(requested_headers, requested_values, strict=False))
-    property_payload, property_keys, skipped_property_fields = _build_property_payload(ctx)
-    avt_patch_payload, avt_patch_fields, skipped_avt_patch_fields = _build_avt_patch_payload(ctx)
 
     template_path = _resolve_template_path()
     bridge_strategy = "requested_fields_only_csv"
-    template_headers: list[str] | None = None
     overridden_headers: list[str] = []
     seeded_template_headers: list[str] = []
     unmatched_requested_fields: list[str] = []
@@ -168,51 +165,6 @@ def run(ctx: Step1Context) -> bool:
         headers = requested_headers
         values = requested_values
 
-    ctx.clo_payload_property_json = property_payload
-    ctx.clo_payload_property_path = ctx.write_json("clo_payload.properties.json", property_payload)
-    ctx.clo_payload_avt_patch_json = avt_patch_payload
-    ctx.clo_payload_avt_patch_path = ctx.write_json("clo_payload.avt_patch.json", avt_patch_payload)
-
-    ctx.clo_payload_json = {
-        "preferred_clo_payload": ctx.contract.get("preferred_clo_payload", "avs"),
-        "measurement_apply_mode_requested": ctx.measurement_apply_mode_input,
-        "candidate_runtime_bridges": ["avt_patch", "avatar_properties_json", "csv"],
-        "measurement_source": ctx.measurement_source,
-        "measurement_source_path": str(ctx.measurement_source_path) if ctx.measurement_source_path else None,
-        "active_field_filter": list(ctx.normalized_targets.get("active_field_filter", [])),
-        "bridge_strategy": bridge_strategy,
-        "bridge_template_csv": str(template_path) if template_path and template_path.exists() else None,
-        "base_avatar": ctx.base_avatar_metadata,
-        "normalized_targets": ctx.normalized_targets,
-        "property_payload": {
-            "path": "clo_payload.properties.json",
-            "avatar_index": property_payload["avatar_index"],
-            "unit": property_payload["unit"],
-            "property_count": len(property_payload["properties"]),
-            "property_keys": property_keys,
-            "skipped_requested_fields": skipped_property_fields,
-        },
-        "avt_patch_payload": {
-            "path": "clo_payload.avt_patch.json",
-            "unit": avt_patch_payload["unit"],
-            "field_count": len(avt_patch_payload["field_values"]),
-            "field_names": avt_patch_fields,
-            "skipped_requested_fields": skipped_avt_patch_fields,
-        },
-        "files_sent_to_clo": {
-            "base_avatar_avt": str(ctx.base_avatar_path) if ctx.base_avatar_path else None,
-            "measurement_bridge_csv": "clo_payload.bridge.csv",
-            "avatar_properties_json": "clo_payload.properties.json",
-            "avatar_patch_json": "clo_payload.avt_patch.json",
-        },
-        "notes": [
-            "The measurement source for Phase-2 is JSON-first so the CLO schema can be iterated safely.",
-            "The runtime now records the AVT patch payload alongside the legacy CSV bridge and avatar-property payload.",
-            "All outgoing linear body-measurement values are rounded to two decimals and written in cm.",
-        ],
-    }
-    ctx.clo_payload_json_path = ctx.write_json("clo_payload.json", ctx.clo_payload_json)
-
     bridge_path = ctx.artifact_path("clo_payload.bridge.csv")
     with bridge_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
@@ -220,11 +172,7 @@ def run(ctx: Step1Context) -> bool:
         writer.writerow(values)
     ctx.clo_payload_bridge_path = bridge_path
 
-    manifest_payload = {
-        "measurement_source": ctx.measurement_source,
-        "measurement_source_path": str(ctx.measurement_source_path) if ctx.measurement_source_path else None,
-        "active_field_filter": list(ctx.normalized_targets.get("active_field_filter", [])),
-        "measurement_apply_mode_requested": ctx.measurement_apply_mode_input,
+    return {
         "bridge_strategy": bridge_strategy,
         "template_path": str(template_path) if template_path and template_path.exists() else None,
         "requested_headers": requested_headers,
@@ -235,28 +183,97 @@ def run(ctx: Step1Context) -> bool:
         "seeded_template_headers": seeded_template_headers,
         "unmatched_requested_fields": unmatched_requested_fields,
         "bridge_path": str(bridge_path),
-        "property_payload_path": str(ctx.clo_payload_property_path),
-        "property_unit": property_payload["unit"],
-        "property_keys": property_keys,
-        "property_values": property_payload["properties"],
-        "skipped_property_fields": skipped_property_fields,
-        "avt_patch_payload_path": str(ctx.clo_payload_avt_patch_path),
-        "avt_patch_unit": avt_patch_payload["unit"],
-        "avt_patch_field_names": avt_patch_fields,
-        "avt_patch_field_indexes": avt_patch_payload["field_indexes"],
-        "avt_patch_field_values": avt_patch_payload["field_values"],
-        "skipped_avt_patch_fields": skipped_avt_patch_fields,
         "csv_schema_status": (
             "runtime_bridge_built_from_unconfirmed_template_seed_values"
             if bridge_strategy == "template_seeded_csv"
             else "runtime_bridge_unverified_against_direct_clo_export"
         ),
-        "property_schema_status": (
-            "property_payload_uses_contract_property_keys_and_cm_values_for_supported_fields_only"
-        ),
-        "avt_patch_status": (
-            "avt_patch_payload_uses_verified_feature_indexes_for_supported_fields_only"
-        ),
     }
-    ctx.write_json("clo_payload_manifest.json", manifest_payload)
+
+
+def run(ctx: Step1Context) -> bool:
+    apply_mode = ctx.resolved_measurement_apply_mode or "avt_patch"
+    ctx.logger.info("Building payload for apply mode: %s", apply_mode)
+
+    ctx.clo_payload_json = {
+        "preferred_clo_payload": ctx.contract.get("preferred_clo_payload", "avs"),
+        "measurement_apply_mode_requested": ctx.measurement_apply_mode_input,
+        "measurement_apply_mode_resolved": apply_mode,
+        "measurement_source": ctx.measurement_source,
+        "measurement_source_path": str(ctx.measurement_source_path) if ctx.measurement_source_path else None,
+        "active_field_filter": list(ctx.normalized_targets.get("active_field_filter", [])),
+        "base_avatar": ctx.base_avatar_metadata,
+        "normalized_targets": ctx.normalized_targets,
+        "notes": [
+            "The measurement source for Phase-2 is JSON-first so the CLO schema can be iterated safely.",
+            "All outgoing linear body-measurement values are rounded to two decimals and written in cm.",
+            "Only the payload for the resolved apply mode is built. csv and avatar_properties are legacy "
+            "routes requiring --apply-mode <route> --enable-legacy-route; see "
+            "clo_avatar_generation/schema/legacy_routes.md.",
+        ],
+    }
+
+    manifest_payload: dict[str, object] = {
+        "measurement_source": ctx.measurement_source,
+        "measurement_source_path": str(ctx.measurement_source_path) if ctx.measurement_source_path else None,
+        "active_field_filter": list(ctx.normalized_targets.get("active_field_filter", [])),
+        "measurement_apply_mode_requested": ctx.measurement_apply_mode_input,
+        "measurement_apply_mode_resolved": apply_mode,
+    }
+
+    if apply_mode == "avt_patch":
+        avt_patch_payload, avt_patch_fields, skipped_avt_patch_fields = _build_avt_patch_payload(ctx)
+        ctx.clo_payload_avt_patch_json = avt_patch_payload
+
+        ctx.clo_payload_json["avt_patch_payload"] = {
+            "unit": avt_patch_payload["unit"],
+            "field_count": len(avt_patch_payload["field_values"]),
+            "field_names": avt_patch_fields,
+            "skipped_requested_fields": skipped_avt_patch_fields,
+        }
+        manifest_payload.update({
+            "avt_patch_unit": avt_patch_payload["unit"],
+            "avt_patch_field_names": avt_patch_fields,
+            "avt_patch_field_indexes": avt_patch_payload["field_indexes"],
+            "avt_patch_field_values": avt_patch_payload["field_values"],
+            "skipped_avt_patch_fields": skipped_avt_patch_fields,
+            "avt_patch_status": "avt_patch_payload_uses_verified_feature_indexes_for_supported_fields_only",
+        })
+        ctx.logger.info("Built AVT patch payload with %d field(s)", len(avt_patch_fields))
+    elif apply_mode == "avatar_properties":
+        property_payload, property_keys, skipped_property_fields = _build_property_payload(ctx)
+        ctx.clo_payload_property_json = property_payload
+
+        ctx.clo_payload_json["property_payload"] = {
+            "avatar_index": property_payload["avatar_index"],
+            "unit": property_payload["unit"],
+            "property_count": len(property_payload["properties"]),
+            "property_keys": property_keys,
+            "skipped_requested_fields": skipped_property_fields,
+        }
+        manifest_payload.update({
+            "property_unit": property_payload["unit"],
+            "property_keys": property_keys,
+            "property_values": property_payload["properties"],
+            "skipped_property_fields": skipped_property_fields,
+            "property_schema_status": (
+                "property_payload_uses_contract_property_keys_and_cm_values_for_supported_fields_only"
+            ),
+        })
+        ctx.logger.info("Built avatar-properties payload with %d propert(y/ies)", len(property_keys))
+    else:
+        # clo_payload.bridge.csv stays a real file: CLO's /import-avatar-measurements
+        # endpoint reads it from disk by path, unlike the avt_patch/properties payloads
+        # above, which are passed to CLO by value (inline JSON body / patched into the
+        # .avt binary), never by a file path CLO itself opens.
+        csv_manifest = _build_csv_bridge(ctx)
+        ctx.clo_payload_json["bridge_payload"] = {
+            "path": "clo_payload.bridge.csv",
+            "bridge_strategy": csv_manifest["bridge_strategy"],
+        }
+        manifest_payload.update(csv_manifest)
+        ctx.logger.info("Wrote clo_payload.bridge.csv (strategy=%s)", csv_manifest["bridge_strategy"])
+
+    ctx.log_json("clo_payload", ctx.clo_payload_json)
+    ctx.log_json("clo_payload_manifest", manifest_payload)
     return True

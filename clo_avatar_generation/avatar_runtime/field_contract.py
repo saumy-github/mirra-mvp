@@ -51,11 +51,6 @@ def get_round_decimals() -> int:
     return int(contract.get("round_decimals", 2))
 
 
-def get_preferred_measurement_apply_mode() -> str:
-    contract = load_field_contract()
-    return str(contract.get("preferred_measurement_apply_mode", "auto")).strip().lower() or "auto"
-
-
 def get_default_base_avatar() -> Path:
     contract = load_field_contract()
     relative = contract.get("default_base_avatar", "clo_avatar_generation/input/base-1.avt")

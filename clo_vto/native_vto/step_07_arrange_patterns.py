@@ -25,9 +25,9 @@ def run(ctx):
         ]
     else:
         arrangement = [
-            ("front_panel", ctx.slot_map.get("front", -1), 0, 0, 100, 0),
-            ("back_panel", ctx.slot_map.get("back", -1), 0, 0, 100, 0),
-            ("sleeve_left", ctx.slot_map.get("sleeve_L", -1), 0, 0, 100, 0),
+            ("front_panel",  ctx.slot_map.get("front",    -1), 0, 0, 100, 0),
+            ("back_panel",   ctx.slot_map.get("back",     -1), 0, 0, 100, 0),
+            ("sleeve_left",  ctx.slot_map.get("sleeve_L", -1), 0, 0, 100, 0),
             ("sleeve_right", ctx.slot_map.get("sleeve_R", -1), 0, 0, 100, 0),
         ]
 
@@ -44,7 +44,10 @@ def run(ctx):
             f"{piece} (pattern {idx}) -> slot {slot}",
         )
 
-    ctx.client.wait_for_queue(timeout=15)
+    try:
+        ctx.client.wait_for_queue(timeout=15)
+    except Exception as exc:
+        print(f"  [WARN] Arrange drain timed out: {exc} — proceeding to verification.")
 
     arranged = ctx.client.get_pattern_arrangements().get("patterns", [])
     try:

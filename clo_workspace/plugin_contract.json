@@ -37,14 +37,32 @@
     "POST /import-pattern",
     "POST /arrange-pattern",
     "POST /set-fabric",
+    "POST /set-fabric-color",
+    "POST /set-fabric-texture",
+    "POST /set-fabric-graphic",
     "POST /create-seam",
     "POST /simulate",
     "POST /export",
     "POST /save-project",
     "POST /export-avatar-avt"
   ],
+  "endpoint_schemas": {
+    "POST /set-fabric-color": {
+      "request":  {"pattern_index": "int", "r": "int[0-255]", "g": "int[0-255]", "b": "int[0-255]"},
+      "response": {"success": "bool"}
+    },
+    "POST /set-fabric-texture": {
+      "request":  {"pattern_index": "int", "texture_path": "string (absolute posix path)"},
+      "response": {"success": "bool"}
+    },
+    "POST /set-fabric-graphic": {
+      "request":  {"pattern_index": "int", "graphic_path": "string", "u": "float[0-1]", "v": "float[0-1]", "scale": "float"},
+      "response": {"success": "bool"}
+    }
+  },
   "notes": [
     "Any endpoint or schema change should be reflected here and in the current version file before teammates rebuild.",
-    "The full route list is intentionally preserved for both active workflows and future plugin consumers."
+    "The full route list is intentionally preserved for both active workflows and future plugin consumers.",
+    "set-fabric-color / set-fabric-texture / set-fabric-graphic added in plugin v2 for texture pipeline."
   ]
 }

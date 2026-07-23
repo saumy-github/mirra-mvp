@@ -39,5 +39,8 @@ def run(ctx: Step1Context) -> bool:
         "per_field": per_field,
         "warnings": list(ctx.warnings),
     }
-    ctx.write_json("error_report.json", ctx.error_report)
+    ctx.log_json("error_report", ctx.error_report)
+    ctx.logger.info(
+        "Error report written (%d field(s) tracked, direct measurement error unavailable)", len(per_field)
+    )
     return True

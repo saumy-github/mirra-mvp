@@ -190,6 +190,7 @@ def generate_build_info_header(version_data: dict, contract_data: dict, config: 
 #define MIRRA_PLUGIN_CONTRACT_NAME "{contract_data['contract_name']}"
 #define MIRRA_PLUGIN_CONTRACT_VERSION "{contract_data['api_version']}"
 #define MIRRA_PLUGIN_BUILD_TIME "{build_time}"
+#define MIRRA_PLUGIN_LOG_DIR "{LOGS_DIR.as_posix()}"
 """
     BUILD_INFO_HEADER.parent.mkdir(parents=True, exist_ok=True)
     BUILD_INFO_HEADER.write_text(header, encoding="utf-8")

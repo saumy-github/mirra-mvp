@@ -2,20 +2,9 @@
 
 from __future__ import annotations
 
-import json
-
+from .apply_mode import resolve_apply_mode
 from .avt_patch import build_patched_avatar
 from .context import Step1Context
-
-
-def _load_json_artifact(ctx: Step1Context, name: str) -> dict:
-    path = ctx.artifact_path(name)
-    if not path.exists():
-        return {}
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
 
 
 def _last_result_for(status: dict, command_type: str) -> dict:
@@ -25,38 +14,7 @@ def _last_result_for(status: dict, command_type: str) -> dict:
     return {}
 
 
-def _resolve_apply_mode(ctx: Step1Context) -> str:
-    requested = (ctx.measurement_apply_mode_input or "auto").strip().lower() or "auto"
-    if requested not in {"auto", "csv", "avatar_properties", "avt_patch"}:
-        raise ValueError(f"Unsupported measurement apply mode: {requested}")
-
-    has_property_route = bool(ctx.capabilities.get("has_avatar_property_set"))
-    avt_patch_field_count = len((ctx.clo_payload_avt_patch_json or {}).get("field_values", {}))
-    has_avt_patch_route = avt_patch_field_count > 0 and bool(ctx.capabilities.get("has_native_avatar_import", True))
-    if requested == "avt_patch":
-        if not has_avt_patch_route:
-            raise RuntimeError(
-                "Apply mode avt_patch was requested, but no AVT-patch-supported fields were present in the "
-                "current payload."
-            )
-        return "avt_patch"
-    if requested == "avatar_properties":
-        if not has_property_route:
-            raise RuntimeError(
-                "Apply mode avatar_properties was requested, but the running plugin does not advertise "
-                "has_avatar_property_set. Install the rebuilt Windows plugin or use --apply-mode csv."
-            )
-        return "avatar_properties"
-    if requested == "csv":
-        return "csv"
-    if has_avt_patch_route:
-        return "avt_patch"
-    if has_property_route:
-        return "avatar_properties"
-    return "csv"
-
-
-def _apply_via_csv(ctx: Step1Context, bridge_manifest: dict) -> dict:
+def _apply_via_csv(ctx: Step1Context) -> dict:
     if ctx.clo_payload_bridge_path is None:
         raise RuntimeError("CLO CSV bridge payload was not built before apply")
     if ctx.base_avatar_path is None:
@@ -91,20 +49,18 @@ def _apply_via_csv(ctx: Step1Context, bridge_manifest: dict) -> dict:
         "queue_result": queue_result,
         "native_debug": native_debug,
         "status": status,
-        "bridge_manifest": bridge_manifest,
         "bridge_path": str(ctx.clo_payload_bridge_path),
         "bridge_size_bytes": ctx.clo_payload_bridge_path.stat().st_size,
         "bridge_preview_lines": bridge_preview,
-        "property_payload_path": str(ctx.clo_payload_property_path) if ctx.clo_payload_property_path else None,
         "success": bool(request_result.get("success")) and bool(queue_result.get("success")) and measurement_ok,
     }
 
 
-def _apply_via_avatar_properties(ctx: Step1Context, bridge_manifest: dict) -> dict:
-    if ctx.clo_payload_property_path is None:
+def _apply_via_avatar_properties(ctx: Step1Context) -> dict:
+    if not ctx.clo_payload_property_json:
         raise RuntimeError("Avatar-property payload was not built before apply")
 
-    property_payload = ctx.clo_payload_property_json or _load_json_artifact(ctx, "clo_payload.properties.json")
+    property_payload = ctx.clo_payload_property_json
     requested_properties = property_payload.get("properties", {})
     if not requested_properties:
         raise RuntimeError(
@@ -156,9 +112,7 @@ def _apply_via_avatar_properties(ctx: Step1Context, bridge_manifest: dict) -> di
         "property_debug": property_debug,
         "native_debug": native_debug,
         "status": status,
-        "bridge_manifest": bridge_manifest,
         "bridge_path": str(ctx.clo_payload_bridge_path) if ctx.clo_payload_bridge_path else None,
-        "property_payload_path": str(ctx.clo_payload_property_path),
         "property_payload": property_payload,
         "requested_property_count": len(requested_properties),
         "confirmed_changed_property_count": len(changed_keys),
@@ -171,11 +125,11 @@ def _apply_via_avatar_properties(ctx: Step1Context, bridge_manifest: dict) -> di
     }
 
 
-def _apply_via_avt_patch(ctx: Step1Context, bridge_manifest: dict) -> dict:
+def _apply_via_avt_patch(ctx: Step1Context) -> dict:
     if ctx.base_avatar_path is None:
         raise RuntimeError("Base avatar path is missing during AVT patch apply")
 
-    patch_payload = ctx.clo_payload_avt_patch_json or _load_json_artifact(ctx, "clo_payload.avt_patch.json")
+    patch_payload = ctx.clo_payload_avt_patch_json
     patch_targets = {
         field_name: float(value)
         for field_name, value in (patch_payload.get("field_values", {}) or {}).items()
@@ -230,10 +184,6 @@ def _apply_via_avt_patch(ctx: Step1Context, bridge_manifest: dict) -> dict:
         "queue_result": queue_result,
         "native_debug": native_debug,
         "status": status,
-        "bridge_manifest": bridge_manifest,
-        "bridge_path": str(ctx.clo_payload_bridge_path) if ctx.clo_payload_bridge_path else None,
-        "property_payload_path": str(ctx.clo_payload_property_path) if ctx.clo_payload_property_path else None,
-        "avt_patch_payload_path": str(ctx.clo_payload_avt_patch_path) if ctx.clo_payload_avt_patch_path else None,
         "patched_avatar_path": str(patched_avatar_path),
         "patch_report": patch_report,
         "notes": notes,
@@ -246,16 +196,18 @@ def _apply_via_avt_patch(ctx: Step1Context, bridge_manifest: dict) -> dict:
 
 
 def run(ctx: Step1Context) -> bool:
-    bridge_manifest = _load_json_artifact(ctx, "clo_payload_manifest.json")
-    apply_mode = _resolve_apply_mode(ctx)
+    apply_mode = ctx.resolved_measurement_apply_mode or resolve_apply_mode(ctx)
     ctx.resolved_measurement_apply_mode = apply_mode
+    ctx.logger.info("Applying measurements via %s route", apply_mode)
 
     if apply_mode == "avt_patch":
-        ctx.apply_result = _apply_via_avt_patch(ctx, bridge_manifest)
+        ctx.apply_result = _apply_via_avt_patch(ctx)
     elif apply_mode == "avatar_properties":
-        ctx.apply_result = _apply_via_avatar_properties(ctx, bridge_manifest)
+        ctx.apply_result = _apply_via_avatar_properties(ctx)
     else:
-        ctx.apply_result = _apply_via_csv(ctx, bridge_manifest)
+        ctx.apply_result = _apply_via_csv(ctx)
 
-    ctx.write_json("apply_result.json", ctx.apply_result)
-    return bool(ctx.apply_result["success"])
+    ctx.log_json("apply_result", ctx.apply_result)
+    success = bool(ctx.apply_result["success"])
+    ctx.logger.info("Measurement apply %s", "succeeded" if success else "failed")
+    return success
