@@ -21,6 +21,9 @@ Canonical output layout:
 
 from __future__ import annotations
 
+import os
+os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
+
 import argparse
 import json
 import sys
@@ -44,6 +47,7 @@ from colour_extraction import extract_colours  # noqa: E402
 from design_extraction import extract_design, make_empty_graphic_like  # noqa: E402
 from panel_generation import generate_panels  # noqa: E402
 from run_manifest import get_next_product_run_dir  # noqa: E402
+from texture_projection import project_textures  # noqa: E402
 
 
 def list_cloth_dirs(input_root: Path) -> list[Path]:
@@ -120,6 +124,9 @@ def write_colors_json(output_path: Path, colour_result) -> Path:
     """Write colors.json into image_info/."""
     payload = {
         "base_colour_hex": colour_result.base_colour_hex,
+        "clo3d_base_hex": colour_result.clo3d_base_hex,
+        "k_used": colour_result.k_used,
+        "skin_pixels_removed": colour_result.skin_pixels_removed,
         "palette": [entry.to_dict() for entry in colour_result.palette],
     }
     output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -170,6 +177,7 @@ def write_extraction_metadata(
     if design_result is not None:
         payload["design"] = {
             "has_design": design_result.has_design,
+            "design_type": design_result.design_type,
             "coverage_percent": round(design_result.design_coverage_percent, 2),
             "message": design_result.message,
         }
@@ -186,8 +194,16 @@ def build_run_summary(
     image_outputs: dict,
     panel_result,
     image_status: str,
+    texture_result=None,
 ) -> dict:
     """Build the canonical run_summary.json payload."""
+    textures_entry = {}
+    if texture_result is not None and texture_result.success:
+        textures_entry = {
+            "textures_dir": str(texture_result.textures_dir),
+            "textures": {k: str(v) for k, v in texture_result.textures.items()},
+        }
+
     return {
         "timestamp": datetime.now().isoformat(),
         "run_id": run_dir.name,
@@ -209,6 +225,7 @@ def build_run_summary(
             "svg_dir": str(panel_result.svg_dir),
             "panel_metadata": str(panel_result.metadata_path),
             "panel_names": panel_result.panel_names,
+            **textures_entry,
         },
     }
 
@@ -262,6 +279,23 @@ def run_product_ingestion(args) -> int:
         image_outputs["base_garment"] = str(base_garment_path)
         print(f"  Wrote base garment : {base_garment_path.name}")
 
+        # Save feathered RGBA (used by texture projection)
+        if segmentation_result.rgba_feathered is not None:
+            feathered_path = image_info_dir / "base_garment_feathered.png"
+            Image.fromarray(segmentation_result.rgba_feathered).save(feathered_path)
+            image_outputs["base_garment_feathered"] = str(feathered_path)
+            print(f"  Wrote feathered    : {feathered_path.name}")
+
+        # Save segmentation quality metrics
+        if segmentation_result.quality_metrics is not None:
+            quality_path = image_info_dir / "segmentation_quality.json"
+            quality_path.write_text(
+                json.dumps(segmentation_result.quality_metrics, indent=2),
+                encoding="utf-8",
+            )
+            image_outputs["segmentation_quality"] = str(quality_path)
+            print(f"  Quality score      : {segmentation_result.quality_score:.3f}")
+
         print("\n[3/5] Colour extraction")
         colour_result, colour_hex_ok = extract_colours(segmentation_result.rgba_image)
         if colour_result.success:
@@ -305,6 +339,39 @@ def run_product_ingestion(args) -> int:
     measurements = GarmentMeasurements.from_sizes_db(size_id)
     panel_result = generate_panels(measurements, panels_dir)
 
+    print("\n[6/6] Texture projection")
+    texture_result = None
+    if (
+        segmentation_result.is_valid
+        and panel_result.layouts
+    ):
+        # Prefer feathered RGBA for smoother texture blending
+        import numpy as np
+        garment_for_texture = (
+            segmentation_result.rgba_feathered
+            if segmentation_result.rgba_feathered is not None
+            else segmentation_result.rgba_image
+        )
+        graphic_rgba = None
+        if design_result is not None and design_result.has_design and design_result.graphic_image is not None:
+            graphic_rgba = design_result.graphic_image
+
+        textures_dir = panels_dir / "textures"
+        design_type = design_result.design_type if design_result is not None else ""
+        texture_result = project_textures(
+            garment_rgba=garment_for_texture,
+            layouts=panel_result.layouts,
+            textures_dir=textures_dir,
+            graphic_rgba=graphic_rgba,
+            design_type=design_type,
+        )
+        if texture_result.success:
+            print(f"  Projected {len(texture_result.textures)} panel texture(s) → {textures_dir.name}/")
+        else:
+            print(f"  Texture projection skipped: {texture_result.message}")
+    else:
+        print("  Skipped (no valid segmentation or layouts).")
+
     run_summary = build_run_summary(
         run_dir=run_dir,
         cloth_dir=cloth_dir,
@@ -313,6 +380,7 @@ def run_product_ingestion(args) -> int:
         image_outputs=image_outputs,
         panel_result=panel_result,
         image_status=image_status,
+        texture_result=texture_result,
     )
     run_summary_path = run_dir / "run_summary.json"
     run_summary_path.write_text(json.dumps(run_summary, indent=2, default=str), encoding="utf-8")

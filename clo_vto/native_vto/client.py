@@ -107,6 +107,55 @@ class CLORestClient:
             },
         )
 
+    def set_fabric_color(self, pattern_index, r: int, g: int, b: int):
+        """Set the diffuse color of the fabric assigned to a pattern piece.
+
+        r, g, b are integers in [0, 255].  Requires the CLO plugin to expose
+        POST /set-fabric-color (added in plugin v2).
+        """
+        return self._post(
+            "/set-fabric-color",
+            {"pattern_index": pattern_index, "r": int(r), "g": int(g), "b": int(b)},
+        )
+
+    def set_fabric_texture(self, pattern_index, texture_path: str):
+        """Load a PNG/JPEG as the diffuse texture for a pattern piece's fabric.
+
+        texture_path must be an absolute path accessible from the CLO process.
+        Requires POST /set-fabric-texture (plugin v2).
+        """
+        texture_path = str(Path(texture_path).as_posix())
+        return self._post(
+            "/set-fabric-texture",
+            {"pattern_index": pattern_index, "texture_path": texture_path},
+        )
+
+    def set_fabric_graphic(
+        self,
+        pattern_index,
+        graphic_path: str,
+        u: float = 0.5,
+        v: float = 0.3,
+        scale: float = 1.0,
+    ):
+        """Place a graphic overlay (logo, print) on a pattern piece's fabric.
+
+        u, v are normalised UV coordinates [0, 1] for the graphic centre.
+        scale is a multiplier relative to the fabric tile size.
+        Requires POST /set-fabric-graphic (plugin v2).
+        """
+        graphic_path = str(Path(graphic_path).as_posix())
+        return self._post(
+            "/set-fabric-graphic",
+            {
+                "pattern_index": pattern_index,
+                "graphic_path": graphic_path,
+                "u": float(u),
+                "v": float(v),
+                "scale": float(scale),
+            },
+        )
+
     def get_status(self):
         return self._get("/status")
 
@@ -116,6 +165,9 @@ class CLORestClient:
         while time.time() < deadline:
             status = self.get_status()
             if status.get("queue_size", 1) == 0 and not status.get("queue_processing", True):
+                # Small pause so CLO finishes writing results to last_results
+                # before the caller reads get_status() again.
+                time.sleep(0.4)
                 return status
 
             if (
@@ -131,6 +183,38 @@ class CLORestClient:
         raise TimeoutError(
             f"CLO queue did not drain within {timeout}s. Last status: {self.get_status()}"
         )
+
+    def reset_fabric_status(self) -> dict:
+        """Clear plugin-side fabric dispatch counters before a new batch.
+
+        Call this before issuing a sequence of set_fabric_color / set_fabric_texture
+        commands so the subsequent wait_for_fabric() sees only the current batch.
+        """
+        return self._post("/fabric-status/reset", {})
+
+    def wait_for_fabric(self, timeout: int = 15, poll_interval: float = 0.15) -> bool:
+        """Poll /fabric-status until all dispatched fabric CAPI calls have completed.
+
+        The plugin dispatches color/texture calls via PostMessage (Windows) or
+        Qt::QueuedConnection (macOS) — they execute asynchronously after the queue
+        drain. This method waits until completed+failed >= pending.
+
+        Returns True if all calls completed successfully, False on timeout or failure.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            try:
+                r = self._get("/fabric-status")
+                if r.get("all_done"):
+                    ok = r.get("last_success", False)
+                    if not ok:
+                        print(f"  [fabric-status] FAILED: {r.get('last_message', '')}")
+                    return ok
+            except Exception as exc:
+                print(f"  [fabric-status] poll error: {exc}")
+            time.sleep(poll_interval)
+        print(f"  [fabric-status] TIMEOUT after {timeout}s — CLO may be busy")
+        return False
 
     def create_seam(
         self,

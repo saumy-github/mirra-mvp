@@ -27,6 +27,7 @@ class PanelGenerationResult:
     metadata_path: Path
     manifest_path: Path
     panel_names: list[str]
+    layouts: dict = None   # piece_name → PieceLayout; used by texture_projection
 
 
 def write_edge_manifest(generator: DynamicPatternGenerator, output_path: Path) -> Path:
@@ -195,4 +196,5 @@ def generate_panels(measurements: GarmentMeasurements, panels_dir: Path) -> Pane
         metadata_path=metadata_path,
         manifest_path=manifest_path,
         panel_names=list(generator.layouts.keys()),
+        layouts=generator.layouts,
     )

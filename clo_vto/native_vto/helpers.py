@@ -1,6 +1,7 @@
 """Shared helpers for Step 3 modules."""
 
 import sys
+import time
 from pathlib import Path
 
 workspace_root = Path(__file__).resolve().parents[2]
@@ -8,6 +9,39 @@ if str(workspace_root) not in sys.path:
     sys.path.insert(0, str(workspace_root))
 
 from product_ingestion.run_manifest import get_latest_panels_dxf_dir
+
+_LINE = "═" * 56
+
+
+def step_header(
+    step_num: int,
+    step_name: str,
+    extras: dict | None = None,
+) -> float:
+    """Print a step banner with optional key path info and return start timestamp.
+
+    extras is an ordered dict of {label: value} lines printed between the two
+    separator bars.  Use it to surface the key file paths and EXISTS checks for
+    the step so the reader can diagnose problems without opening source code.
+    """
+    print(f"\n{_LINE}")
+    print(f"[STEP {step_num:02d}] {step_name}")
+    if extras:
+        width = max(len(k) for k in extras)
+        for key, val in extras.items():
+            print(f"  {key:<{width}} : {val}")
+    print(_LINE)
+    return time.monotonic()
+
+
+def step_footer(step_num: int, start_time: float, ok: bool, reason: str = "") -> None:
+    """Print a step completion/failure line with elapsed time."""
+    elapsed = time.monotonic() - start_time
+    if ok:
+        print(f"[STEP {step_num:02d}] ✓  completed in {elapsed:.1f}s")
+    else:
+        tail = f" — {reason}" if reason else ""
+        print(f"[STEP {step_num:02d}] ✗  FAILED{tail}  ({elapsed:.1f}s)")
 
 
 def resolve_patterns_dir():

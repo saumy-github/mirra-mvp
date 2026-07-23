@@ -51,6 +51,10 @@ except ImportError:
 Point2D = Tuple[float, float]
 
 
+class CapFitError(ValueError):
+    """Raised when the sleeve cap binary search fails to converge (P05)."""
+
+
 class DynamicPatternGenerator:
     """Generate measurement-driven T-shirt panels as PieceLayout objects.
 
@@ -242,10 +246,10 @@ class DynamicPatternGenerator:
         right_ua = (sleeve_width, cap_start_y)
         left_ua = (0.0, cap_start_y)
 
-        # Outward bulge: how far the cap curves protrude beyond the sleeve body.
-        # Tuned so arc length ≈ target at a moderate cap_height; binary search
-        # finds the exact value.
-        bulge = cap_height * 0.35
+        # P03: Outward bulge driven by cfg.cap_bulge_frac (clamped [0.25, 0.45]).
+        # Controls how rounded the cap crown appears; binary search finds the
+        # exact cap_height that satisfies the arc-length target.
+        bulge = cap_height * self.cfg.cap_bulge_frac
 
         # cap_front: right underarm → apex, control points RIGHT of sleeve_width
         f_cp1 = (sleeve_width + bulge,           cap_start_y + cap_height * 0.40)
@@ -282,9 +286,15 @@ class DynamicPatternGenerator:
         center_x = half_w / 2
         r_shoulder = center_x + m.shoulder_width / 2
         l_shoulder = center_x - m.shoulder_width / 2
-        r_neck = center_x + m.neck_width / 2
-        l_neck = center_x - m.neck_width / 2
         armhole_start_y = m.garment_length - m.armhole_depth
+
+        # P02: Neckline parameter guards — clamp depth and width to realistic
+        # bounds before building edges so no measurement combo creates a shallow
+        # slit or a neck wider than the shoulder yoke.
+        neck_depth = max(1.5, min(float(neck_depth), m.armhole_depth * 0.80))
+        neck_width = min(float(m.neck_width), m.shoulder_width * 0.60)
+        r_neck = center_x + neck_width / 2
+        l_neck = center_x - neck_width / 2
         top_y = m.garment_length
 
         # --- 8 edges in counterclockwise winding order ---
@@ -426,6 +436,17 @@ class DynamicPatternGenerator:
                 cap_height = (lo + hi) / 2.0
                 cap_front, cap_back, total_arc = self._build_cap_pair(cap_height)
 
+            # P05: Convergence gate — reject cap heights that land outside 3×
+            # tolerance so downstream seam creation never sees bad geometry.
+            achieved_ease = total_arc - target_armhole_length
+            if abs(achieved_ease - cfg.cap_ease_cm) > cfg.cap_ease_tolerance_cm * 3:
+                raise CapFitError(
+                    f"Sleeve cap fit did not converge for '{piece_name}': "
+                    f"target ease={cfg.cap_ease_cm:.2f} cm, "
+                    f"achieved ease={achieved_ease:.2f} cm "
+                    f"(3× tolerance = {cfg.cap_ease_tolerance_cm * 3:.2f} cm)"
+                )
+
         cap_start_y = m.sleeve_length - cap_height
 
         # --- 5 edges ---
@@ -435,18 +456,34 @@ class DynamicPatternGenerator:
             "cuff", (0.0, 0.0), (sleeve_width, 0.0)
         )
 
-        # 1: right_underarm — straight right side up to cap
-        r_under = self._straight_edge(
-            "right_underarm", (sleeve_width, 0.0), (sleeve_width, cap_start_y)
-        )
+        # 1: right_underarm — straight or gentle bow depending on cfg (P04)
+        if cfg.underarm_bow_cm > 0:
+            r_under = self._waist_side_edge(
+                "right_underarm",
+                start=(sleeve_width, 0.0),
+                end=(sleeve_width, cap_start_y),
+                inward_x=-cfg.underarm_bow_cm,
+            )
+        else:
+            r_under = self._straight_edge(
+                "right_underarm", (sleeve_width, 0.0), (sleeve_width, cap_start_y)
+            )
 
         # 2: cap_front — right half of cap (built above)
         # 3: cap_back  — left half of cap (built above)
 
-        # 4: left_underarm — straight left side back down
-        l_under = self._straight_edge(
-            "left_underarm", (0.0, cap_start_y), (0.0, 0.0)
-        )
+        # 4: left_underarm — straight or gentle bow depending on cfg (P04)
+        if cfg.underarm_bow_cm > 0:
+            l_under = self._waist_side_edge(
+                "left_underarm",
+                start=(0.0, cap_start_y),
+                end=(0.0, 0.0),
+                inward_x=cfg.underarm_bow_cm,
+            )
+        else:
+            l_under = self._straight_edge(
+                "left_underarm", (0.0, cap_start_y), (0.0, 0.0)
+            )
 
         layout = PieceLayout(
             name=piece_name,

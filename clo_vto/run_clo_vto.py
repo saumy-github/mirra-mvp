@@ -55,13 +55,24 @@ def main() -> int:
     parser.add_argument("--patterns-dir", default=None)
     parser.add_argument("--use-default-csv", action="store_true")
     parser.add_argument("--report-path", default=None)
+    parser.add_argument(
+        "--use-default-panels",
+        action="store_true",
+        help="Use pre-built DXF panels from clo_vto/default_panels/dxf/ "
+             "instead of generated panels. Decouples VTO from panel generation.",
+    )
+    parser.add_argument(
+        "--ingestion-output-dir",
+        default=None,
+        help="Root of a product_ingestion run output directory (contains "
+             "image_info/ and panels/). Required with --use-default-panels "
+             "to locate colors.json and texture atlases.",
+    )
     args = parser.parse_args()
 
-    from clo_vto.native_vto.helpers import resolve_patterns_dir
     from clo_vto.native_vto.pipeline import run_pipeline
 
     avt_path = Path(args.avt_path) if args.avt_path else _discover_default_avt()
-    patterns_dir = Path(args.patterns_dir) if args.patterns_dir else Path(resolve_patterns_dir())
 
     csv_path = None
     if args.csv_path:
@@ -73,9 +84,11 @@ def main() -> int:
 
     ok = run_pipeline(
         avatar_path=str(avt_path),
-        patterns_dir=str(patterns_dir),
+        patterns_dir=str(Path(args.patterns_dir)) if args.patterns_dir else None,
         csv_path=csv_path,
         report_path=report_path,
+        use_default_panels=args.use_default_panels,
+        ingestion_output_dir=args.ingestion_output_dir,
     )
     return 0 if ok else 1
 

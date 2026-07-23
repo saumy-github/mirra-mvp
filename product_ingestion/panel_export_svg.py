@@ -37,7 +37,6 @@ def export_panels_svg(
         scale = 10.0
 
         origin_x = (-min_x + margin) * scale
-        origin_y = (-min_y + margin) * scale
 
         svg_width = width * scale
         svg_height = height * scale
@@ -56,13 +55,13 @@ def export_panels_svg(
             line_x = grid_x * scale + origin_x
             svg_content += f'        <line x1="{line_x}" y1="0" x2="{line_x}" y2="{svg_height}"/>\n'
         for grid_y in range(int(min_y - margin), int(max_y + margin + 1)):
-            line_y = grid_y * scale + origin_y
+            line_y = (max_y - grid_y + margin) * scale
             svg_content += f'        <line x1="0" y1="{line_y}" x2="{svg_width}" y2="{line_y}"/>\n'
 
         svg_content += "    </g>\n\n"
 
         path_data = "M " + " L ".join(
-            f"{p[0] * scale + origin_x},{p[1] * scale + origin_y}" for p in points
+            f"{p[0] * scale + origin_x},{(max_y - p[1] + margin) * scale}" for p in points
         ) + " Z"
         svg_content += f"""    <!-- Pattern Outline -->
     <path d="{path_data}"
@@ -76,8 +75,8 @@ def export_panels_svg(
         grain_y_start = min_y + 5
         grain_y_end = max_y - 5
         grain_center_x = center_x * scale + origin_x
-        grain_start_y = grain_y_start * scale + origin_y
-        grain_end_y = grain_y_end * scale + origin_y
+        grain_start_y = (max_y - grain_y_start + margin) * scale
+        grain_end_y = (max_y - grain_y_end + margin) * scale
 
         svg_content += f"""    <line x1="{grain_center_x}" y1="{grain_start_y}"
           x2="{grain_center_x}" y2="{grain_end_y}"
@@ -87,7 +86,7 @@ def export_panels_svg(
 
     """
         svg_content += f"""    <!-- Label -->
-        <text x="{center_x * scale + origin_x}" y="{center_y * scale + origin_y}"
+        <text x="{center_x * scale + origin_x}" y="{(max_y - center_y + margin) * scale}"
           font-family="Arial" font-size="40"
           text-anchor="middle" dominant-baseline="middle"
           fill="#000080" font-weight="bold">
@@ -95,7 +94,7 @@ def export_panels_svg(
         </text>
 
         <!-- Dimensions -->
-        <text x="{center_x * scale + origin_x}" y="{(max_y + margin - 1) * scale + origin_y}"
+        <text x="{center_x * scale + origin_x}" y="{(max_y - min_y + margin * 2 - 1) * scale}"
           font-family="Arial" font-size="20"
           text-anchor="middle" fill="#666">
         Width: {(max_x - min_x):.1f}cm x Height: {(max_y - min_y):.1f}cm

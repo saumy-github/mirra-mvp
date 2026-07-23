@@ -5,23 +5,26 @@ on the CutLine layer.  CLO3D's ImportDXF function requires a single closed
 boundary polygon per file (DXF-AAMA convention); multiple separate entities
 are treated as internal baselines and result in 0 patterns imported.
 
-Curve edges are sampled into LWPOLYLINE vertices at the resolution set by
-n_fit.  Shared corner vertices between consecutive edges are de-duplicated
-by layout.polygon(), which produces the final closed point list.
-
 Coordinate units: centimetres internally → millimetres in DXF
 (doc.units = MM so CLO imports at the correct physical size).
+
+Curved edges are encoded via LWPOLYLINE bulge values (DXF §W-F-1012) rather
+than dense vertex sampling.  One vertex per edge keeps CLO line index i equal
+to logical edge i, so seam manifest indices remain aligned.  Bulge encodes
+the arc as tan(included_angle/4), preserving the correct curve shape in CLO's
+viewport without changing the edge count.
 """
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     try:
-        from .curve_segment import PieceLayout
+        from .curve_segment import PieceEdge, PieceLayout
     except ImportError:
-        from curve_segment import PieceLayout  # type: ignore
+        from curve_segment import PieceEdge, PieceLayout  # type: ignore
 
 try:
     import ezdxf
@@ -38,29 +41,86 @@ def _pt3(x: float, y: float, scale: float = _CM_TO_MM) -> tuple:
     return (x * scale, y * scale, 0.0)
 
 
+def _edge_bulge(edge: "PieceEdge") -> float:
+    """Return the DXF LWPOLYLINE bulge value for one edge.
+
+    bulge = tan(included_angle / 4).
+    Positive bulge = arc bows left of the direction of travel (CCW).
+    Straight edges return 0.0.
+
+    The approximation fits a single circular arc to each Bezier edge by
+    measuring the sagitta (perpendicular deviation at the curve midpoint).
+    For s_curve edges the midpoint is the segment junction, which gives a
+    reasonable single-arc approximation.
+    """
+    if edge.edge_type == "straight" or not edge.segments:
+        return 0.0
+
+    s = edge.start
+    e = edge.end
+
+    # Midpoint on the Bezier path
+    if edge.edge_type == "cubic_bezier":
+        mid_pts = edge.segments[0].sample(3)  # t=0, 0.5, 1.0
+        mid_bezier = mid_pts[1]
+    elif edge.edge_type == "s_curve":
+        # Junction of the two Bezier segments is the natural path midpoint
+        mid_bezier = edge.segments[0].p3
+    else:
+        return 0.0
+
+    # Chord midpoint
+    mid_chord_x = (s[0] + e[0]) / 2.0
+    mid_chord_y = (s[1] + e[1]) / 2.0
+
+    # Sagitta vector from chord midpoint → Bezier midpoint
+    sag_x = mid_bezier[0] - mid_chord_x
+    sag_y = mid_bezier[1] - mid_chord_y
+    sagitta = math.hypot(sag_x, sag_y)
+    chord   = math.hypot(e[0] - s[0], e[1] - s[1])
+
+    if sagitta < 1e-6 or chord < 1e-6:
+        return 0.0
+
+    half_chord = chord / 2.0
+    # Radius of the approximating circular arc
+    radius = (half_chord ** 2 + sagitta ** 2) / (2.0 * sagitta)
+
+    sin_half = min(half_chord / radius, 1.0)
+    half_angle = math.asin(sin_half)
+    bulge_mag = math.tan(half_angle / 2.0)
+
+    # Sign: positive (CCW) if the sagitta bows left of the chord direction
+    chord_dx = e[0] - s[0]
+    chord_dy = e[1] - s[1]
+    cross = chord_dx * sag_y - chord_dy * sag_x
+    return bulge_mag if cross > 0 else -bulge_mag
+
+
 def _add_cutline_boundary(msp, layout: "PieceLayout", n_fit: int) -> None:
-    """Write one closed LWPOLYLINE on the CutLine layer using corner-only vertices.
+    """Write one closed LWPOLYLINE on the CutLine layer.
 
-    CLO3D's ImportDXF requires a single closed boundary polygon per file to
-    recognise the file as a pattern piece.  Multiple separate entities (even
-    on the same layer) are treated as internal baselines and produce 0
-    patterns.
+    One vertex per logical edge (corner-only) with LWPOLYLINE bulge values for
+    curved edges.  This keeps CLO line index i == logical edge i so seam
+    manifest indices remain correct, while curved edges (sleeve cap, armhole,
+    neckline) are rendered as smooth arcs rather than straight lines.
 
-    Corner-only mode: one vertex per logical edge start point gives exactly
-    len(edges) CLO line segments, so CLO line index i == logical edge i and
-    seam manifest indices (0-7 for body, 0-4 for sleeve) map directly to the
-    correct CLO lines.  A dense polygon would give 200+ CLO lines where index
-    3 (for example) falls in the middle of the hem rather than on the shoulder.
+    If CLO ignores bulge on import the geometry degrades gracefully to the
+    previous corner-only straight-line behaviour — seam indices still align.
     """
     if not layout.edges:
         return
-    pts_mm = [
-        (edge.start[0] * _CM_TO_MM, edge.start[1] * _CM_TO_MM)
-        for edge in layout.edges
-    ]
+
+    pts = []
+    for edge in layout.edges:
+        x_mm = edge.start[0] * _CM_TO_MM
+        y_mm = edge.start[1] * _CM_TO_MM
+        bulge = _edge_bulge(edge)
+        pts.append((x_mm, y_mm, 0.0, 0.0, bulge))  # x, y, start_width, end_width, bulge
+
     msp.add_lwpolyline(
-        pts_mm,
-        format="xy",
+        pts,
+        format="xyseb",
         close=True,
         dxfattribs={"layer": "CutLine", "color": 7},
     )

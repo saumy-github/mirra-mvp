@@ -31,10 +31,23 @@ ezdxf>=1.0.0
 # CLO3D REST plugin client
 requests>=2.28.0
 
+# Phase 2: GLB post-processing (texture injection into exported simulation GLB)
+pygltflib>=1.15
+
+
 scikit-learn==1.5.1
 scipy>=1.7.0
 tensorflow>=2.3.0
 torch==2.4.1
 torchvision==0.19.1
-transformers==4.39.3
+# 4.56.0 is the first release with SAM2 (Sam2Model/Sam2Processor) support,
+# used by product_ingestion/segmentation.py's primary segmentation method.
+# Requires torch>=2.2 (satisfied by torch==2.4.1 above).
+transformers==4.56.0
+# U2-Net fallback for product_ingestion/segmentation.py when SAM2 is
+# unavailable or produces an out-of-range mask (segment_u2net()).
+# Pinned to 2.0.67, not the latest (2.0.77): 2.0.70+ requires numpy>=2.3.0,
+# which conflicts with numpy==1.26.4 above (needed by opencv/scikit-learn/
+# torch). 2.0.67 is the most recent release with no numpy constraint at all.
+rembg==2.0.67
 trimesh>=3.9.0
