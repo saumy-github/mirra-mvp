@@ -3,8 +3,14 @@
 Calls the CLO REST plugin's /export endpoint, waits for the file to appear,
 and sets ctx.glb_path so step_12 can locate it for texture injection.
 
-Returns True in all cases — export failure is logged but never aborts the
-pipeline, because step_12 guards against a missing GLB gracefully.
+Export *infrastructure* failure (command rejected, file never appears, file
+suspiciously small) is logged but never aborts the pipeline, since step_12
+guards against a missing GLB gracefully. Export *content* failure (avatar
+mesh missing, geometry never simulated) IS blocking — see the geometry
+sanity check below and .agent/clo-avatar-vto/vto-pipeline-debug-plan-26_7_24.md,
+Bugs 3 and 4. Silently accepting a file that "looks done" but contains 4
+flat unsewn panels with no avatar is exactly the bug this check exists to
+catch.
 """
 
 from __future__ import annotations
@@ -12,7 +18,14 @@ from __future__ import annotations
 import time
 from pathlib import Path
 
+from .glb_inspect import mesh_is_draped
 from .helpers import print_result
+
+try:
+    from pygltflib import GLTF2
+    _PYGLTFLIB_OK = True
+except ImportError:
+    _PYGLTFLIB_OK = False
 
 
 # Minimum valid GLB size: the 12-byte GLB header alone makes anything < 1 KB
@@ -59,6 +72,41 @@ def run(ctx) -> bool:
 
     size_mb = size_bytes / (1024 * 1024)
     print(f"  [OK] GLB written — {size_mb:.1f} MB")
+
+    # --- Geometry content check (Bugs 3 & 4) ---
+    # File existence + size only proves CLO wrote *something* — not that the
+    # something is a simulated, sewn, avatar-visible result rather than 4
+    # flat unsown panels with no avatar. The mesh-COUNT check below blocks:
+    # it's calibrated against a real confirmed-bad export (see glb_inspect.py
+    # and the debug-plan doc) where 4 meshes == the 4 panels and 0 avatar
+    # meshes. mesh_is_draped()'s flatness check is logged for diagnostics
+    # only, NOT gated on — tested against that same real file and found
+    # unreliable for this pipeline (arrange-pattern already gives panels
+    # real 3D curvature before any simulation runs, so "is it planar" doesn't
+    # distinguish arranged-only from arranged-and-simulated here).
+    if not _PYGLTFLIB_OK:
+        print("  [WARN] pygltflib not installed — skipping geometry verification.")
+        print("         Run:  pip install pygltflib")
+    else:
+        try:
+            gltf = GLTF2().load(str(glb_path))
+        except Exception as exc:
+            print(f"  [WARN] Could not parse GLB for geometry check: {exc} — skipping (infrastructure issue).")
+            gltf = None
+
+        if gltf is not None:
+            mesh_count = len(gltf.meshes)
+            expected_min = ctx.expected_min_export_meshes or (len(ctx.pattern_files) + 1)
+            draped_ok, drape_reason = mesh_is_draped(gltf)
+            print(f"  meshes in export : {mesh_count} (expected >= {expected_min})")
+            print(f"  drape check (diagnostic only, not gated): {drape_reason}")
+
+            if mesh_count < expected_min:
+                print(f"  [FAIL] Export has only {mesh_count} mesh(es) — avatar mesh is likely missing.")
+                return False
+            if not draped_ok:
+                print("  [WARN] Export geometry looks unsimulated by the flatness heuristic — "
+                      "not blocking (heuristic unreliable for this pipeline, see glb_inspect.py).")
 
     # Publish path so step_12 can pick it up.
     ctx.glb_path = glb_path

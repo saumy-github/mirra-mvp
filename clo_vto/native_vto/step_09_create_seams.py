@@ -1,6 +1,6 @@
 """Step 9: Create seams using seam map."""
 
-from .helpers import print_result
+from .helpers import ensure_avatar_visible_checked, print_result
 from .seams import DEFAULT_SEAM_META
 
 
@@ -107,5 +107,12 @@ def run(ctx):
     if fail_count > 0:
         print(f"  Seam creation failed for {fail_count} seam(s) out of {ok_count + fail_count}.")
         return False
+
+    # Bug 2 fix: the avatar has been observed disappearing from CLO's viewport
+    # during/after sewing, with nothing in the pipeline ever re-asserting
+    # visibility. Cheap insurance, matching the user's manual workaround
+    # (toggle Show Avatar off/on) — see the debug-plan doc, Bug 2.
+    print("  Re-asserting avatar visibility after sewing ...")
+    ensure_avatar_visible_checked(ctx, "after_seams")
 
     return True

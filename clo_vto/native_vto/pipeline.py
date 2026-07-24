@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .context import create_context
-from .helpers import step_header, step_footer
+from .helpers import step_header, step_footer, set_logger
+from .logging_setup import attach_run_file_handler, configure_console_logger
 from .step_01_health import run as step_01_health
 from .step_02_new_project import run as step_02_new_project
 from .step_03_import_avatar import run as step_03_import_avatar
@@ -64,6 +65,7 @@ def _build_report(ctx, overall_ok, step_results):
             "edge_sources": ctx.edge_sources,
             "sdk_capabilities": ctx.sdk_capabilities,
             "avatar_debug": ctx.avatar_debug,
+            "avatar_visibility_debug": ctx.avatar_visibility_debug,
             "import_scale_debug": ctx.import_scale_debug,
             "slot_diagnostics": ctx.slot_diagnostics,
             "scale_metrics": ctx.scale_metrics,
@@ -216,6 +218,9 @@ def run_pipeline(
     """
     pipeline_start = time.monotonic()
 
+    logger = configure_console_logger()
+    set_logger(logger)
+
     ctx = create_context(
         seam_map=seam_map,
         avatar_path=avatar_path,
@@ -224,6 +229,14 @@ def run_pipeline(
         ingestion_output_dir=ingestion_output_dir,
     )
     setattr(ctx, "native_measurement_csv", Path(csv_path) if csv_path else None)
+
+    # ctx.output_dir already exists at this point (create_context() creates it
+    # unconditionally) — unlike avatar-gen's per-run dirs, VTO doesn't yet have
+    # a run identity to key a subdirectory on (see the debug-plan doc's
+    # "per-run output directories" cross-cutting item, deferred to a separate
+    # pass), so run.log lives directly under the shared output dir for now.
+    attach_run_file_handler(logger, ctx.output_dir)
+    logger.info("VTO pipeline starting: avatar=%s patterns_dir=%s", ctx.avatar_path, ctx.patterns_dir)
 
     # Resolve texture artifact paths.
     if use_default_panels and ingestion_output_dir:
@@ -305,11 +318,14 @@ def run_pipeline(
 
     if overall_ok:
         print(f"  Pipeline complete ✓  ({total_elapsed:.1f}s total)")
+        logger.info("VTO pipeline completed (%.1fs total)", total_elapsed)
     else:
         failed_step = next((r for r in step_results if not r["success"]), {})
         print(f"  Pipeline FAILED ✗  at [{failed_step.get('name', '?')}]  ({total_elapsed:.1f}s total)")
+        logger.error("VTO pipeline FAILED at [%s] (%.1fs total)", failed_step.get("name", "?"), total_elapsed)
     print(f"  CLO queue results: {succeeded}/{total} succeeded")
     print("═" * 64)
+    logger.info("run.log: %s", ctx.output_dir / "run.log")
 
     report = _build_report(ctx, overall_ok, step_results)
     if report_path:

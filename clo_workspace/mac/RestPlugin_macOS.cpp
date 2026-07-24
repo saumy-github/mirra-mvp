@@ -34,6 +34,7 @@ struct ImportExportOption {
     bool bExportGarment = false;
     bool bExportAvatar = false;
     bool bEmbedded = false;
+    bool bIncludeHiddenObject = false;
     int ImportObjectType = 0;
     bool bAutoTranslate = false;
 };
@@ -67,6 +68,10 @@ struct UtilityAPI {
     bool Simulate(unsigned int) { return false; }
     std::map<std::string, std::string> GetAvatarProperties(unsigned int) { return {}; }
     void SetAvatarProperties(unsigned int, const std::map<std::string, std::string>&) {}
+    void SetShowHideAvatar(bool) {}
+    void SetShowHideAvatar(bool, int) {}
+    bool IsShowAvatar(int) { return false; }
+    void Refresh3DWindow() {}
 };
 extern UtilityAPI* UTILITY_API;
 
@@ -237,6 +242,9 @@ static void InstallCrashSignalHandlers()
 static std::atomic<bool> g_capabilityAvatarAvtExport{false};
 static std::atomic<bool> g_capabilityAvatarStateReadback{false};
 static std::atomic<bool> g_capabilityProbesRun{false};
+// Set from a real "ensure-avatar-visible" command (Bug 2 fix — see
+// .agent/clo-avatar-vto/vto-pipeline-debug-plan-26_7_24.md), not hardcoded.
+static std::atomic<bool> g_capabilityAvatarVisibilitySet{false};
 
 static void RunCapabilityProbesOnce()
 {
@@ -695,6 +703,24 @@ static void ProcessCommandQueue()
                 asyncResult.success = true;
                 asyncResult.message = "New project created";
             }
+            // ── Ensure avatar visible (Bug 2 fix) ─────────────────────────────
+            // Always does the off->on transition rather than trusting
+            // IsShowAvatar's own report — see the Windows-side comment and
+            // .agent/clo-avatar-vto/vto-pipeline-debug-plan-26_7_24.md, Bug 2.
+            else if (cmd.type == "ensure-avatar-visible") {
+                int avatarIndex = cmd.param3;
+                if (avatarIndex < 0) {
+                    UTILITY_API->SetShowHideAvatar(false);
+                    UTILITY_API->SetShowHideAvatar(true);
+                } else {
+                    UTILITY_API->SetShowHideAvatar(false, avatarIndex);
+                    UTILITY_API->SetShowHideAvatar(true, avatarIndex);
+                }
+                UTILITY_API->Refresh3DWindow();
+                g_capabilityAvatarVisibilitySet = true;
+                asyncResult.success = true;  // SetShowHideAvatar/Refresh3DWindow are void — nothing to check
+                asyncResult.message = "Avatar visibility re-asserted (off->on), avatar_index=" + std::to_string(avatarIndex);
+            }
             // ── Arrange pattern ───────────────────────────────────────────────
             // param3 = pattern_index
             // param4 = arrangement_index (-1 = skip SetArrangement slot assignment)
@@ -819,10 +845,13 @@ static void ProcessCommandQueue()
             else if (cmd.type == "export") {
                 bool asGLB = (cmd.param2 == "glb");
                 Marvelous::ImportExportOption opts;
-                opts.scale          = 1.0f;
-                opts.bExportGarment = true;
-                opts.bExportAvatar  = true;
-                opts.bEmbedded      = asGLB;
+                opts.scale               = 1.0f;
+                opts.bExportGarment      = true;
+                opts.bExportAvatar       = true;
+                opts.bEmbedded           = asGLB;
+                // Defensive addition (Bug 4) — see the matching comment in
+                // RestPlugin_windows.cpp's export handler.
+                opts.bIncludeHiddenObject = true;
                 auto out = EXPORT_API->ExportGLTF(cmd.param1, opts, asGLB);
                 asyncResult.success = !out.empty();
                 asyncResult.message = asyncResult.success
@@ -1152,6 +1181,14 @@ static void ProcessCommandQueue()
                     {"avatars", avatars}
                 };
             }
+            // Read-only counterpart to ensure-avatar-visible (Bug 2 fix).
+            else if (cmd.type == "read-avatar-visible") {
+                int avatarIndex = cmd.param3;
+                bool visible = false;
+                bool ok = false;
+                try { visible = UTILITY_API->IsShowAvatar(avatarIndex); ok = true; } catch (...) {}
+                syncResult = {{"success", ok}, {"avatar_index", avatarIndex}, {"visible", visible}};
+            }
             else {
                 asyncResult.message = "Unknown command: " + cmd.type;
                 syncResult = {{"success", false}, {"error", "unknown command: " + cmd.type}};
@@ -1271,10 +1308,11 @@ static void StartRESTServer()
             {"has_avatar_property_debug", true},
             {"has_avatar_state_readback", g_capabilityAvatarStateReadback.load()},
             {"has_avatar_avt_export", g_capabilityAvatarAvtExport.load()},
+            {"has_avatar_visibility_set", g_capabilityAvatarVisibilitySet.load()},
             {"has_set_fabric_color", true},
             {"has_set_fabric_texture", true},
             {"has_set_fabric_graphic", true},
-            {"notes", "has_avatar_state_readback and has_avatar_avt_export are set from a startup probe (Phase 3), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
+            {"notes", "has_avatar_state_readback, has_avatar_avt_export, and has_avatar_visibility_set are set from real usage (Phase 3 / Bug-2 fix), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
         };
         res.set_content(r.dump(), "application/json");
     });
@@ -1470,6 +1508,44 @@ static void StartRESTServer()
             qsize = static_cast<int>(g_commandQueue.size());
         }
         json r = {{"success", true}, {"message", "New project queued"}, {"queue_size", qsize}};
+        res.set_content(r.dump(), "application/json");
+    });
+
+    // ── POST /avatar/ensure-visible (Bug 2 fix) ───────────────────────────────
+    // avatar_index: omit or -1 for all avatars (1-arg SetShowHideAvatar overload).
+    // See .agent/clo-avatar-vto/vto-pipeline-debug-plan-26_7_24.md, Bug 2.
+    svr.Post("/avatar/ensure-visible", [](const httplib::Request& req, httplib::Response& res) {
+        int avatarIndex = -1;
+        if (!req.body.empty()) {
+            try {
+                auto j = json::parse(req.body);
+                avatarIndex = j.value("avatar_index", -1);
+            } catch (...) {}
+        }
+        APICommand cmd;
+        cmd.type   = "ensure-avatar-visible";
+        cmd.param3 = avatarIndex;
+        int qsize = 0;
+        {
+            std::lock_guard<std::mutex> lk(g_queueMutex);
+            g_commandQueue.push(cmd);
+            qsize = static_cast<int>(g_commandQueue.size());
+        }
+        json r = {{"success", true}, {"message", "Avatar visibility (re)assert queued"},
+                  {"avatar_index", avatarIndex}, {"queue_size", qsize}};
+        res.set_content(r.dump(), "application/json");
+    });
+
+    // ── GET /avatar/visible ────────────────────────────────────────────────────
+    // ?avatar_index=N (default 0). Routed through dispatchSyncRead, same
+    // pattern as /patterns/count and /avatars/state.
+    svr.Get("/avatar/visible", [](const httplib::Request& req, httplib::Response& res) {
+        int avatarIndex = 0;
+        if (req.has_param("avatar_index")) {
+            try { avatarIndex = std::stoi(req.get_param_value("avatar_index")); } catch (...) {}
+        }
+        json r = dispatchSyncRead("read-avatar-visible", avatarIndex);
+        res.status = r.value("success", false) ? 200 : 503;
         res.set_content(r.dump(), "application/json");
     });
 

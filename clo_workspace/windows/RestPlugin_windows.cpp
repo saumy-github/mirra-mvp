@@ -238,6 +238,11 @@ static AvatarPropertyDebugState g_avatarPropertyDebugState;
 static std::atomic<bool> g_capabilityAvatarAvtExport{false};
 static std::atomic<bool> g_capabilityAvatarStateReadback{false};
 static std::atomic<bool> g_capabilityProbesRun{false};
+// Set from a real "ensure-avatar-visible" command (Bug 2 fix — see
+// .agent/clo-avatar-vto/vto-pipeline-debug-plan-26_7_24.md), not hardcoded.
+// Defaults false until proven crash-free end-to-end, per POST_MORTEM_v1.1.1.md
+// Rule 4.
+static std::atomic<bool> g_capabilityAvatarVisibilitySet{false};
 
 // Global flag to keep server running
 static std::atomic<bool> g_serverRunning{false};
@@ -703,10 +708,11 @@ void StartRESTServer()
                 {"has_avatar_property_debug", true},
                 {"has_avatar_state_readback", g_capabilityAvatarStateReadback.load()},
                 {"has_avatar_avt_export", g_capabilityAvatarAvtExport.load()},
+                {"has_avatar_visibility_set", g_capabilityAvatarVisibilitySet.load()},
                 {"has_set_fabric_color", true},
                 {"has_set_fabric_texture", true},
                 {"has_set_fabric_graphic", true},
-                {"notes", "has_avatar_state_readback and has_avatar_avt_export are set from a startup probe (Phase 3), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
+                {"notes", "has_avatar_state_readback, has_avatar_avt_export, and has_avatar_visibility_set are set from real usage (Phase 3 / Bug-2 fix), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
             };
             res.set_content(response.dump(), "application/json");
         });
@@ -1216,6 +1222,55 @@ void StartRESTServer()
             json response = {{"success", false}, {"error", e.what()}};
             res.set_content(response.dump(), "application/json");
         }
+    });
+
+    // ── Ensure Avatar Visible (Bug 2 fix) ─────────────────────────────────────
+    // The avatar has been observed disappearing from CLO's viewport during/after
+    // sewing, with no plugin code path ever having called anything that could
+    // restore it — SetShowHideAvatar/IsShowAvatar exist in the real CLO SDK
+    // (UtilityAPIInterface.h) but were never wired into this plugin before now.
+    // See .agent/clo-avatar-vto/vto-pipeline-debug-plan-26_7_24.md, Bug 2.
+    // avatar_index: omit or -1 for all avatars (1-arg SetShowHideAvatar overload).
+    svr.Post("/avatar/ensure-visible", [](const Request& req, Response& res) {
+        try {
+            int avatarIndex = -1;
+            if (!req.body.empty()) {
+                auto j = json::parse(req.body);
+                avatarIndex = j.value("avatar_index", -1);
+            }
+            APICommand cmd;
+            cmd.type   = "ensure-avatar-visible";
+            cmd.param3 = avatarIndex;
+            int queueSize;
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+                queueSize = (int)g_commandQueue.size();
+            }
+            json response = {
+                {"success",      true},
+                {"message",      "Avatar visibility (re)assert queued"},
+                {"avatar_index", avatarIndex},
+                {"queue_size",   queueSize}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // Read-only visibility check — routed through dispatchSyncRead (main-thread
+    // queue), same safe pattern already used for /patterns/count and /avatars/state.
+    // ?avatar_index=N (default 0).
+    svr.Get("/avatar/visible", [](const Request& req, Response& res) {
+        int avatarIndex = 0;
+        if (req.has_param("avatar_index")) {
+            try { avatarIndex = std::stoi(req.get_param_value("avatar_index")); } catch (...) {}
+        }
+        json r = dispatchSyncRead("read-avatar-visible", avatarIndex);
+        res.set_content(r.dump(), "application/json");
     });
 
     // ── Arrange Pattern in 3D space around the avatar ────────────────────────
@@ -1772,10 +1827,19 @@ void ProcessCommandQueue()
             else if (cmd.type == "export") {
                 bool asGLB = (cmd.param2 == "glb");
                 Marvelous::ImportExportOption options;
-                options.scale          = 1.0f;
-                options.bExportGarment = true;
-                options.bExportAvatar  = true;
-                options.bEmbedded      = asGLB;
+                options.scale               = 1.0f;
+                options.bExportGarment      = true;
+                options.bExportAvatar       = true;
+                options.bEmbedded           = asGLB;
+                // Cheap defensive addition (Bug 4) — CloApiData.h confirms
+                // ImportExportOption defaults bIncludeHiddenObject to false,
+                // and CLO's export pipeline generally excludes hidden objects
+                // unless told otherwise. Its doc comment names hidden PATTERN
+                // meshes specifically (not confirmed to cover a hidden
+                // avatar), so this doesn't replace the Bug 2 visibility fix —
+                // it's insurance in case CLO's hidden-object exclusion is
+                // broader than that doc comment states.
+                options.bIncludeHiddenObject = true;
                 std::vector<std::string> out =
                     EXPORT_API->ExportGLTF(cmd.param1, options, asGLB);
                 asyncResult.success = !out.empty();
@@ -1804,6 +1868,28 @@ void ProcessCommandQueue()
                 }
                 asyncResult.success = true;
                 asyncResult.message = "New project created";
+            }
+            // ── Ensure avatar visible (Bug 2 fix) ─────────────────────────
+            // Always does the off->on transition rather than trusting
+            // IsShowAvatar's own report — the manual GUI workaround this
+            // mirrors requires a real off/on toggle, not just "show", which
+            // suggests IsShowAvatar's flag may not reflect what's actually
+            // rendered (see the debug-plan doc's "remaining nuance" note).
+            else if (cmd.type == "ensure-avatar-visible") {
+                int avatarIndex = cmd.param3;
+                TraceLog("BEGIN ensure-avatar-visible avatar_index=" + std::to_string(avatarIndex));
+                if (avatarIndex < 0) {
+                    UTILITY_API->SetShowHideAvatar(false);
+                    UTILITY_API->SetShowHideAvatar(true);
+                } else {
+                    UTILITY_API->SetShowHideAvatar(false, avatarIndex);
+                    UTILITY_API->SetShowHideAvatar(true, avatarIndex);
+                }
+                UTILITY_API->Refresh3DWindow();
+                g_capabilityAvatarVisibilitySet = true;
+                TraceLog("END   ensure-avatar-visible");
+                asyncResult.success = true;  // SetShowHideAvatar/Refresh3DWindow are void — nothing to check
+                asyncResult.message = "Avatar visibility re-asserted (off->on), avatar_index=" + std::to_string(avatarIndex);
             }
             // ── Arrange pattern in 3D space ───────────────────────────────
             // param3 = patternIndex, param4 = arrangementIndex (-1 = skip SetArrangement)
@@ -2197,6 +2283,14 @@ void ProcessCommandQueue()
                     {"avatar_count", avatarCount},
                     {"avatars",      avatars}
                 };
+            }
+            // Read-only counterpart to ensure-avatar-visible (Bug 2 fix).
+            else if (cmd.type == "read-avatar-visible") {
+                int avatarIndex = cmd.param3;
+                bool visible = false;
+                bool ok = false;
+                try { visible = UTILITY_API->IsShowAvatar(avatarIndex); ok = true; } catch (...) {}
+                syncResult = {{"success", ok}, {"avatar_index", avatarIndex}, {"visible", visible}};
             }
             else {
                 asyncResult.message = "Unknown command type: " + cmd.type;

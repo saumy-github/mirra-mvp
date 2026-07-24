@@ -54,6 +54,11 @@ class PipelineContext:
     edge_sources: dict[str, str] = field(default_factory=dict)
     sdk_capabilities: dict = field(default_factory=dict)
     avatar_debug: dict = field(default_factory=dict)
+    # Bug 2 fix diagnostics: before/after IsShowAvatar readbacks recorded at
+    # each ensure_avatar_visible() call site, keyed by call-site label (e.g.
+    # "after_seams", "before_simulate"). See
+    # .agent/clo-avatar-vto/vto-pipeline-debug-plan-26_7_24.md, Bug 2.
+    avatar_visibility_debug: dict = field(default_factory=dict)
     import_scale_debug: dict = field(default_factory=dict)
     slot_diagnostics: list[dict] = field(default_factory=list)
     seam_results: list[dict] = field(default_factory=list)
@@ -84,6 +89,15 @@ class PipelineContext:
     glb_path: Optional[Path] = None
     textured_glb_path: Optional[Path] = None
     skip_glb_postprocess: bool = False
+    # Bug 3/4 fix: minimum mesh count step_11 requires in the exported GLB
+    # before trusting it contains a real avatar + garment result, not just
+    # the 4 garment panels with no avatar. Calibrated against real evidence:
+    # clo_vto/output/simulation.glb, a confirmed Bug-4 failure (4 floating
+    # unsewn panels, 0 avatar meshes), has exactly 4 meshes — one per
+    # pattern_files entry. step_11 defaults this to len(pattern_files) + 1
+    # (at least one avatar mesh beyond the panels) if left at 0 here; set
+    # explicitly to override.
+    expected_min_export_meshes: int = 0
 
 
 def _load_manifest(patterns_dir: Path) -> dict:
