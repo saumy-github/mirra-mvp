@@ -1,0 +1,28 @@
+{
+  "plugin_name": "CLO REST Automation",
+  "plugin_version": "1.3.1",
+  "api_version": "v1",
+  "release_date": "2026-08-02",
+  "status": "unstable",
+  "platforms": {
+    "windows": "in_sync",
+    "mac": "pending"
+  },
+  "changes": {
+    "added": [],
+    "changed": [
+      "Windows: POST /export with format=glb now calls EXPORT_API->ExportGLB() instead of EXPORT_API->ExportGLTF(path, options, true). Verified by hand (curl + pygltflib) that the old code produced JSON glTF with base64-embedded buffers regardless of the bGLBinary flag - not actually binary .glb - despite reporting success. ExportGLB is the SDK's dedicated binary-GLB function (CLO_SDK/Samples/ExportPlugin/ExportPlugin.cpp's ExportGLB_Sample()), matching what CLO's own File > Export > glTF 2.0 (GLB) menu produces. format=gltf (non-GLB) path still uses ExportGLTF, now explicitly passing bGLBinary=false to match the SDK sample's own usage.",
+      "Windows: export options.scale changed from 1.0f to 0.001f, matching the SDK's own documented default ('use 0.001 for gltf in default' - CLO's internal unit is millimeters, gltf/glb expect meters). The old value would have produced exports 1000x the intended size.",
+      "Windows: removed the options.bEmbedded = asGLB assignment on the export options struct - not set in either official SDK sample (ExportGLTF_Sample, ExportGLB_Sample); left at its SDK default instead of being driven off the GLB/GLTF format choice."
+    ],
+    "fixed": [
+      "Windows: /export format=glb was silently producing invalid (non-binary) output while reporting success=true. Root cause: wrong SDK function called (ExportGLTF's bGLBinary bool does not select true binary output; ExportGLB is a separate, dedicated function). See Mirra plan doc .agent/website-launch/01-docker-and-clo-render-pipeline.md, Phase 2 findings, for the full investigation."
+    ],
+    "known_issues": [
+      "POST /export hangs indefinitely when called against a completely empty CLO scene (no avatar, no patterns loaded) - queue never drains, CLO's main thread visibly consumes CPU but never returns. Not yet root-caused; not a blocker since the real pipeline use case always has an avatar loaded first. Recovery requires restarting CLO3D.",
+      "This fix (ExportGLB vs ExportGLTF) has only been verified on Windows against an avatar-only scene (no garment/patterns loaded). Not yet verified with a garment loaded (the Step 3 VTO use case) - step_12_texture_glb.py may need its pygltflib load call adjusted too if any further format quirks surface there.",
+      "Mac not ported yet - still calling the old ExportGLTF path. Deliberately deferred (Windows-only focus per current plan)."
+    ]
+  },
+  "notes": "Fix found via live testing: manually exporting through CLO's own UI (File > Export > glTF 2.0 (GLB)) produced a valid binary .glb (verified with pygltflib - correct 'glTF' binary magic header, loaded cleanly), while the plugin's REST /export endpoint on the same scene produced JSON-embedded content mislabeled as .glb. Cross-referenced against the CLO SDK's own headers/samples (CLOAPIInterface/include/ExportAPIInterface.h, Samples/ExportPlugin/ExportPlugin.cpp) to find the correct function. Needs rebuild + manual install (Administrator) + CLO restart + re-verification before use."
+}

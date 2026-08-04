@@ -1,4 +1,5 @@
-"""Measurement schemas — ported from mirra_measurements/avatar_model.py.
+"""Measurements' Mongo document shape — ported from mirra_measurements/avatar_model.py.
+See schemas.py for the HTTP request contracts, which reuse MeasurementFields below.
 
 The stored doc shape is byte-compatible with what the CLO pipeline
 (clo_avatar_generation Step 1) already reads from the measurements
@@ -14,6 +15,7 @@ superset of schema/step1_field_contract.json's v1 (male-only) fields —
 female fields are stored now, consumed by the pipeline later.
 """
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -37,6 +39,8 @@ STRING_FIELDS = ("body_shape_type", "skin_tone_hex")
 
 
 class MeasurementFields(BaseModel):
+    """Shared by MeasurementDocument (below) and the request schemas — same fields either side."""
+
     height_cm: float | None = Field(default=None, gt=0)
     weight_kg: float | None = Field(default=None, gt=0)
     shoulder_width_cm: float | None = Field(default=None, gt=0)
@@ -50,11 +54,16 @@ class MeasurementFields(BaseModel):
     skin_tone_hex: str | None = Field(default=None, pattern=HEX_COLOR_PATTERN)
 
 
-class SubmitMeasurementsRequest(MeasurementFields):
+class MeasurementDocument(MeasurementFields):
+    """The `measurements` collection doc shape. No _id here — Mongo assigns
+    one and the CLO pipeline queries by user_id, so it's never referenced."""
+
+    user_id: str
     gender: Literal["male", "female"]
-    accuracy: Literal["accurate", "approx"] = "accurate"
+    accuracy: Literal["accurate", "approx"]
+    created_at: datetime
+    updated_at: datetime
 
-
-class PatchMeasurementsRequest(MeasurementFields):
-    gender: Literal["male", "female"] | None = None
-    accuracy: Literal["accurate", "approx"] | None = None
+    def to_mongo(self) -> dict:
+        """Unset optional fields are dropped, not stored as null — required for CLO pipeline compatibility."""
+        return self.model_dump(exclude_none=True)

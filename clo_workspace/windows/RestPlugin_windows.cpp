@@ -1770,14 +1770,26 @@ void ProcessCommandQueue()
             }
             // ── Export GLB/GLTF ───────────────────────────────────────────
             else if (cmd.type == "export") {
-                bool asGLB = (cmd.param2 == "glb");
+                // NOTE: "format":"glb" requests still land here but are served via
+                // ExportGLTF, NOT EXPORT_API->ExportGLB(). ExportGLB always returned an
+                // empty result in manual testing (avatar-only and otherwise) regardless of
+                // options - the installed CLO app is 2026.0.374 while this plugin builds
+                // against CLO_SDK_v2025.2.368, and ExportGLB's declared body in that SDK's
+                // header is a bare stub (returns an empty vector) - consistent with this
+                // CLO version simply not implementing it yet, rather than an options bug.
+                // ExportGLTF's own bGLBinary flag also does NOT yield true binary .glb - it
+                // writes JSON glTF with base64-embedded buffers either way - but IS reliable
+                // (verified twice against a real avatar-loaded scene). Until CLO exposes a
+                // working binary-GLB path, callers must treat this output as .gltf content,
+                // not .glb, regardless of the requested "format" value.
                 Marvelous::ImportExportOption options;
-                options.scale          = 1.0f;
-                options.bExportGarment = true;
+                // CLO's internal unit is millimeters; gltf/glb expect meters.
+                // SDK sample comment (ExportAPIInterface.h): "use 0.001 for gltf in default".
+                options.scale          = 0.001f;
+                options.bExportGarment = (g_patternsLoaded.load() > 0);
                 options.bExportAvatar  = true;
-                options.bEmbedded      = asGLB;
                 std::vector<std::string> out =
-                    EXPORT_API->ExportGLTF(cmd.param1, options, asGLB);
+                    EXPORT_API->ExportGLTF(cmd.param1, options, false);
                 asyncResult.success = !out.empty();
                 asyncResult.message = asyncResult.success
                     ? "Exported to: " + cmd.param1
@@ -2250,64 +2262,80 @@ CLO_PLUGIN_SPECIFIER int GetPositionIndexToAddAction()
     return 0;
 }
 
+// Shared server-startup logic, extracted so it can run both from a manual menu click
+// (DoFunction) and automatically from DoFunctionAfterLoadingCLOFile (fires whenever CLO
+// loads a file, including its own default blank project at launch - added so the REST
+// server can come up without requiring a manual Plugins-menu click every CLO session).
+// showMessageBox is false for the automatic path: a modal DisplayMessageBox would block
+// CLO's main thread waiting for a click nobody is there to make, which would look
+// identical to the queue hangs seen elsewhere in this plugin - never show it unattended.
+static void EnsureServerStarted(bool showMessageBox)
+{
+    if (g_serverRunning) return;
+
+    if (showMessageBox && UTILITY_API) {
+        UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 200 ms — no further menu clicks needed.");
+    }
+
+    // Phase 3: probe SEH-crash-prone CLO APIs once, on the main
+    // thread, before the server starts taking requests, so
+    // /capabilities reflects what actually works this session.
+    RunCapabilityProbesOnce();
+
+    g_serverRunning = true;
+    g_serverThread = std::thread(StartRESTServer);
+    g_serverThread.detach();
+
+    // Register a 200ms Windows timer so the queue is drained on the
+    // main thread automatically (CLO v2025 has no DoFunctionContinuously).
+    if (g_timerId == 0) {
+        g_timerId = SetTimer(NULL, 0, 200, QueueDrainTimer);
+    }
+
+    // Discover CLO's top-level HWND and subclass it so WM_MIRRA_* messages
+    // are delivered safely outside the timer callback frame.
+    // Done once at startup; EnsureWndProcSubclass() re-installs on scene reload.
+    if (g_cloMainWnd == nullptr) {
+        EnumWindows([](HWND hwnd, LPARAM) -> BOOL {
+            DWORD pid = 0;
+            GetWindowThreadProcessId(hwnd, &pid);
+            if (pid == GetCurrentProcessId() && IsWindowVisible(hwnd)) {
+                g_cloMainWnd = hwnd;
+                return FALSE;
+            }
+            return TRUE;
+        }, 0);
+        if (g_cloMainWnd) {
+            // Sanity-log which window we actually picked — EnumWindows
+            // takes the FIRST visible top-level window of this process,
+            // which is not guaranteed to be CLO's real main frame (could
+            // be a splash/tool window depending on startup timing). If
+            // WM_MIRRA_* messages ever silently vanish, check this line
+            // first — subclassing the wrong HWND would explain it.
+            char title[256] = {0};
+            char cls[256] = {0};
+            GetWindowTextA(g_cloMainWnd, title, sizeof(title));
+            GetClassNameA(g_cloMainWnd, cls, sizeof(cls));
+            TraceLog(std::string("EnsureServerStarted: g_cloMainWnd discovered hwnd=")
+                + std::to_string(reinterpret_cast<uintptr_t>(g_cloMainWnd))
+                + " title='" + title + "' class='" + cls + "'");
+        }
+        if (g_cloMainWnd && g_origWndProc == nullptr) {
+            g_origWndProc = reinterpret_cast<WNDPROC>(
+                SetWindowLongPtr(g_cloMainWnd, GWLP_WNDPROC,
+                                 reinterpret_cast<LONG_PTR>(MirraWndProc)));
+        }
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+}
+
 CLO_PLUGIN_SPECIFIER void DoFunction()
 {
     try {
         // First, start server if not running
         if (!g_serverRunning) {
-            UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 200 ms — no further menu clicks needed.");
-
-            // Phase 3: probe SEH-crash-prone CLO APIs once, on the main
-            // thread, before the server starts taking requests, so
-            // /capabilities reflects what actually works this session.
-            RunCapabilityProbesOnce();
-
-            g_serverRunning = true;
-            g_serverThread = std::thread(StartRESTServer);
-            g_serverThread.detach();
-
-            // Register a 200ms Windows timer so the queue is drained on the
-            // main thread automatically (CLO v2025 has no DoFunctionContinuously).
-            if (g_timerId == 0) {
-                g_timerId = SetTimer(NULL, 0, 200, QueueDrainTimer);
-            }
-
-            // Discover CLO's top-level HWND and subclass it so WM_MIRRA_* messages
-            // are delivered safely outside the timer callback frame.
-            // Done once at startup; EnsureWndProcSubclass() re-installs on scene reload.
-            if (g_cloMainWnd == nullptr) {
-                EnumWindows([](HWND hwnd, LPARAM) -> BOOL {
-                    DWORD pid = 0;
-                    GetWindowThreadProcessId(hwnd, &pid);
-                    if (pid == GetCurrentProcessId() && IsWindowVisible(hwnd)) {
-                        g_cloMainWnd = hwnd;
-                        return FALSE;
-                    }
-                    return TRUE;
-                }, 0);
-                if (g_cloMainWnd) {
-                    // Sanity-log which window we actually picked — EnumWindows
-                    // takes the FIRST visible top-level window of this process,
-                    // which is not guaranteed to be CLO's real main frame (could
-                    // be a splash/tool window depending on startup timing). If
-                    // WM_MIRRA_* messages ever silently vanish, check this line
-                    // first — subclassing the wrong HWND would explain it.
-                    char title[256] = {0};
-                    char cls[256] = {0};
-                    GetWindowTextA(g_cloMainWnd, title, sizeof(title));
-                    GetClassNameA(g_cloMainWnd, cls, sizeof(cls));
-                    TraceLog(std::string("DoFunction: g_cloMainWnd discovered hwnd=")
-                        + std::to_string(reinterpret_cast<uintptr_t>(g_cloMainWnd))
-                        + " title='" + title + "' class='" + cls + "'");
-                }
-                if (g_cloMainWnd && g_origWndProc == nullptr) {
-                    g_origWndProc = reinterpret_cast<WNDPROC>(
-                        SetWindowLongPtr(g_cloMainWnd, GWLP_WNDPROC,
-                                         reinterpret_cast<LONG_PTR>(MirraWndProc)));
-                }
-            }
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            EnsureServerStarted(/*showMessageBox=*/true);
             return;
         }
 
@@ -2341,7 +2369,15 @@ CLO_PLUGIN_SPECIFIER void DoFunction()
 
 CLO_PLUGIN_SPECIFIER void DoFunctionAfterLoadingCLOFile(const char* fileExtension)
 {
-    // Not used
+    // Fires automatically whenever CLO finishes loading a file - including its own
+    // default blank project at launch. Used to auto-start the REST server without
+    // requiring a manual Plugins-menu click each session. Never let this crash the
+    // file-load path; the menu click (DoFunction) remains the fallback either way.
+    try {
+        EnsureServerStarted(/*showMessageBox=*/false);
+    }
+    catch (...) {
+    }
 }
 
 // DoFunctionContinuously is NOT called by CLO v2025 (not in SDK).

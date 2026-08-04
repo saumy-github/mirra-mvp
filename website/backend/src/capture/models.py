@@ -1,13 +1,4 @@
-"""Capture-session document shape and state machine.
-
-capture_sessions doc:
-    _id (cs_…), user_id, token (one-time, unique — authenticates the phone),
-    manual_code (short typable fallback, unique),
-    state: created → paired → consented → uploaded → completed
-           (terminal: completed | cancelled; expiry is checked on access),
-    photo: {filename, content_type, size_bytes, uploaded_at} | None,
-    avatar_job_id (set on complete), expires_at,
-    created_at, updated_at, paired_at, completed_at
+"""Capture-session Mongo document shape and state machine — see schemas.py for HTTP contracts.
 
 Photos are stored under UPLOADS_DIR/<session_id>/ and RETAINED after avatar
 generation (deliberate divergence from the reference contract — Phase 0
@@ -19,7 +10,9 @@ enforces minimum pixel dimensions (480×640); that needs image decoding
 (Pillow) and is deferred until a real CV engine cares.
 """
 
-from pydantic import BaseModel, Field
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field
 
 STATES = ("created", "paired", "consented", "uploaded", "completed", "cancelled")
 
@@ -32,5 +25,30 @@ MANUAL_CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
 MANUAL_CODE_LENGTH = 6
 
 
-class ResolveCodeRequest(BaseModel):
-    code: str = Field(min_length=4, max_length=12)
+class CapturePhoto(BaseModel):
+    filename: str
+    content_type: str
+    size_bytes: int
+    uploaded_at: datetime
+
+
+class CaptureSessionDocument(BaseModel):
+    """The `capture_sessions` collection doc shape."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str = Field(alias="_id")
+    user_id: str
+    token: str  # one-time, unique — authenticates the phone
+    manual_code: str  # short typable fallback, unique
+    state: str  # created -> paired -> consented -> uploaded -> completed (terminal: completed | cancelled)
+    photo: CapturePhoto | None = None
+    avatar_job_id: str | None = None  # set on complete
+    expires_at: datetime
+    created_at: datetime
+    updated_at: datetime
+    paired_at: datetime | None = None
+    completed_at: datetime | None = None
+
+    def to_mongo(self) -> dict:
+        return self.model_dump(by_alias=True)

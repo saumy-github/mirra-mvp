@@ -1,0 +1,34 @@
+# Backend build context is the repo root - keep it to just what the backend
+# image actually needs (requirements.txt + website/backend), everything else
+# here is either the frontend's own context, pipeline code/data unrelated to
+# the web backend, or plain build noise.
+.git
+.venv/
+.venv-win312/
+**/__pycache__
+**/*.pyc
+
+website/frontend/node_modules
+website/frontend/dist
+
+output/
+**/output/
+models/
+libs/
+*.zip
+*.npz
+
+.agent
+.claude
+after-1-jun
+docs
+
+clo_workspace/logs
+clo_workspace/exports
+clo_workspace/temp
+
+**/*.dxf
+**/*.obj
+**/*.mtl
+**/*.glb
+**/*.gltf

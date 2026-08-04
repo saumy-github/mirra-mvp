@@ -3,7 +3,6 @@
 import logging
 import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Any
 
 from ..core.errors import Conflict, Unauthorized, ValidationFailed
 from ..core.security import (
@@ -16,6 +15,7 @@ from ..core.security import (
     verify_password,
 )
 from ..db import refresh_tokens_col, users_col
+from .models import UserDocument
 
 logger = logging.getLogger("mirra.backend.auth")
 
@@ -80,69 +80,68 @@ async def delete_all_for_user(user_id: str) -> None:
 # --- Accounts -------------------------------------------------------------
 
 
-async def sign_up(email: str, password: str, name: str | None) -> tuple[dict, str, str, datetime]:
+async def sign_up(email: str, password: str, name: str | None) -> tuple[UserDocument, str, str, datetime]:
     email = email.strip().lower()
     if await users_col().find_one({"email": email}, {"_id": 1}):
         raise Conflict("An account with this email already exists", code="account_exists")
     now = _now()
     verification_code = f"{secrets.randbelow(1_000_000):06d}"
-    user: dict[str, Any] = {
-        "_id": new_id("u"),
-        "email": email,
-        "name": name,
-        "password_hash": hash_password(password),
-        "is_guest": False,
-        "email_verified": False,
-        "verification_code": verification_code,
-        "password_reset_hash": None,
-        "password_reset_expires_at": None,
-        "consents": {},
-        "created_at": now,
-        "updated_at": now,
-    }
-    await users_col().insert_one(user)
+    user = UserDocument(
+        id=new_id("u"),
+        email=email,
+        name=name,
+        password_hash=hash_password(password),
+        is_guest=False,
+        email_verified=False,
+        verification_code=verification_code,
+        consents={},
+        created_at=now,
+        updated_at=now,
+    )
+    await users_col().insert_one(user.to_mongo())
     # No email provider in the pilot — the code is logged server-side.
     logger.info("verification code for %s: %s", email, verification_code)
-    access, raw_refresh, refresh_exp = await _issue_tokens(user["_id"], "user")
+    access, raw_refresh, refresh_exp = await _issue_tokens(user.id, "user")
     return user, access, raw_refresh, refresh_exp
 
 
-async def login(email: str, password: str) -> tuple[dict, str, str, datetime]:
+async def login(email: str, password: str) -> tuple[UserDocument, str, str, datetime]:
     email = email.strip().lower()
-    user = await users_col().find_one({"email": email})
-    if not user or user.get("is_guest") or not verify_password(password, user.get("password_hash") or ""):
+    raw = await users_col().find_one({"email": email})
+    if not raw or raw.get("is_guest") or not verify_password(password, raw.get("password_hash") or ""):
         raise Unauthorized("Invalid email or password", code="invalid_credentials")
-    access, raw_refresh, refresh_exp = await _issue_tokens(user["_id"], "user")
+    user = UserDocument.model_validate(raw)
+    access, raw_refresh, refresh_exp = await _issue_tokens(user.id, "user")
     return user, access, raw_refresh, refresh_exp
 
 
-async def create_guest() -> tuple[dict, str, str, datetime]:
+async def create_guest() -> tuple[UserDocument, str, str, datetime]:
     now = _now()
-    user: dict[str, Any] = {
-        "_id": new_id("g"),
-        "name": None,
-        "is_guest": True,
-        "email_verified": False,
-        "consents": {},
-        "created_at": now,
-        "updated_at": now,
-    }
-    await users_col().insert_one(user)
-    access, raw_refresh, refresh_exp = await _issue_tokens(user["_id"], "guest")
+    user = UserDocument(
+        id=new_id("g"),
+        name=None,
+        is_guest=True,
+        email_verified=False,
+        consents={},
+        created_at=now,
+        updated_at=now,
+    )
+    await users_col().insert_one(user.to_mongo())
+    access, raw_refresh, refresh_exp = await _issue_tokens(user.id, "guest")
     return user, access, raw_refresh, refresh_exp
 
 
-async def get_account(user_id: str) -> dict:
-    user = await users_col().find_one({"_id": user_id})
-    if not user:
+async def get_account(user_id: str) -> UserDocument:
+    raw = await users_col().find_one({"_id": user_id})
+    if not raw:
         raise Unauthorized("Account no longer exists")
-    return user
+    return UserDocument.model_validate(raw)
 
 
 # --- Refresh / logout -----------------------------------------------------
 
 
-async def refresh(raw_token: str | None) -> tuple[dict, str, str, datetime]:
+async def refresh(raw_token: str | None) -> tuple[UserDocument, str, str, datetime]:
     """Rotate the refresh token: new token in the same family, same flat
     expiry. Reuse of an already-rotated token revokes the whole family."""
     if not raw_token:
@@ -157,10 +156,11 @@ async def refresh(raw_token: str | None) -> tuple[dict, str, str, datetime]:
     if doc["expires_at"] <= _now():
         raise Unauthorized("Refresh token expired", code="refresh_expired")
 
-    user = await users_col().find_one({"_id": doc["user_id"]})
-    if not user:
+    raw_user = await users_col().find_one({"_id": doc["user_id"]})
+    if not raw_user:
         await _revoke_family(doc["family_id"])
         raise Unauthorized("Account no longer exists")
+    user = UserDocument.model_validate(raw_user)
 
     access, new_raw, refresh_exp = await _issue_tokens(
         doc["user_id"], doc["kind"], family_id=doc["family_id"], expires_at=doc["expires_at"]
@@ -184,13 +184,13 @@ async def logout(raw_token: str | None) -> None:
 # --- Email verification / password reset ---------------------------------
 
 
-async def verify_email(user_id: str, code: str) -> dict:
+async def verify_email(user_id: str, code: str) -> UserDocument:
     user = await get_account(user_id)
-    if user.get("is_guest"):
+    if user.is_guest:
         raise ValidationFailed("Guest sessions have no email to verify")
-    if user.get("email_verified"):
+    if user.email_verified:
         return user
-    if not code or code != user.get("verification_code"):
+    if not code or code != user.verification_code:
         raise ValidationFailed("Incorrect verification code")
     await users_col().update_one(
         {"_id": user_id},

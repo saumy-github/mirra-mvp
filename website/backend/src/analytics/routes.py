@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 
 from ..core.auth_dependency import Identity, get_optional_identity
 from . import controller
-from .models import IngestEventRequest
+from .schemas import IngestEventRequest
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 

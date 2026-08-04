@@ -1,32 +1,36 @@
-"""Signature-look schemas.
+"""Signature-look Mongo document shape — see schemas.py for HTTP contracts,
+which reuse LookItem below."""
 
-signature_looks doc:
-    _id (sl_…), user_id, name, is_default,
-    items: [{size_id, render_id|None}]  (a saved outfit's layers),
-    created_at, updated_at
-"""
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class LookItem(BaseModel):
+    """A saved outfit's layer. Shared by SignatureLookDocument (below) and the request schemas."""
+
     model_config = ConfigDict(populate_by_name=True)
 
     size_id: str = Field(alias="sizeId", min_length=1)
     render_id: str | None = Field(alias="renderId", default=None)
 
 
-class CreateLookRequest(BaseModel):
+class SignatureLookDocument(BaseModel):
+    """The `signature_looks` collection doc shape."""
+
     model_config = ConfigDict(populate_by_name=True)
 
-    name: str = Field(min_length=1, max_length=80)
-    items: list[LookItem] = Field(min_length=1, max_length=10)
-    is_default: bool = Field(alias="isDefault", default=False)
+    id: str = Field(alias="_id")
+    user_id: str
+    name: str
+    is_default: bool
+    items: list[LookItem]
+    created_at: datetime
+    updated_at: datetime
 
-
-class UpdateLookRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    name: str | None = Field(default=None, min_length=1, max_length=80)
-    items: list[LookItem] | None = Field(default=None, min_length=1, max_length=10)
-    is_default: bool | None = Field(alias="isDefault", default=None)
+    def to_mongo(self) -> dict:
+        # Not model_dump(by_alias=True): that would also alias nested
+        # LookItem fields to camelCase, corrupting the stored item shape.
+        data = self.model_dump(exclude={"id"})
+        data["_id"] = self.id
+        return data

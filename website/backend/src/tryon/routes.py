@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
-from .models import RequestRenderRequest
+from .schemas import RequestRenderRequest
 
 router = APIRouter(prefix="/tryon", tags=["tryon"])
 

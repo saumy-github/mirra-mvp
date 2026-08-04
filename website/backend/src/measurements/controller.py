@@ -1,13 +1,14 @@
 """HTTP ↔ domain translation for measurements."""
 
 from . import service
-from .models import PatchMeasurementsRequest, SubmitMeasurementsRequest
+from .models import MeasurementDocument
+from .schemas import PatchMeasurementsRequest, SubmitMeasurementsRequest
 
 
-def shape_measurements(doc: dict) -> dict:
-    shaped = {k: v for k, v in doc.items() if k not in ("_id", "created_at", "updated_at")}
-    shaped["createdAt"] = doc["created_at"].isoformat()
-    shaped["updatedAt"] = doc["updated_at"].isoformat()
+def shape_measurements(doc: MeasurementDocument) -> dict:
+    shaped = doc.model_dump(exclude={"created_at", "updated_at"}, exclude_none=True)
+    shaped["createdAt"] = doc.created_at.isoformat()
+    shaped["updatedAt"] = doc.updated_at.isoformat()
     return shaped
 
 

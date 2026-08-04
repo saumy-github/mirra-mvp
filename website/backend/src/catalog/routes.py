@@ -4,7 +4,7 @@ matching the reference contract's public product endpoints)."""
 from fastapi import APIRouter, Query
 
 from . import controller
-from .models import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from .schemas import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 

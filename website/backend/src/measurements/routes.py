@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
-from .models import PatchMeasurementsRequest, SubmitMeasurementsRequest
+from .schemas import PatchMeasurementsRequest, SubmitMeasurementsRequest
 
 router = APIRouter(prefix="/measurements", tags=["measurements"])
 

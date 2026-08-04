@@ -7,7 +7,7 @@ from fastapi import APIRouter, Cookie, Depends, Response
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
 from .controller import REFRESH_COOKIE
-from .models import (
+from .schemas import (
     LoginRequest,
     PasswordResetConfirmRequest,
     PasswordResetRequest,

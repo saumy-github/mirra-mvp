@@ -13,14 +13,14 @@ from datetime import datetime, timezone
 
 from ..config import get_settings
 from ..core.errors import ServiceUnavailable
-from .models import DEMO_PROCESSING_SECONDS, DEMO_QUEUE_SECONDS
+from .models import DEMO_PROCESSING_SECONDS, DEMO_QUEUE_SECONDS, AvatarJobDocument
 
 
 def engine_mode() -> str:
     return get_settings().avatar_engine_mode
 
 
-def start_job(job: dict) -> None:
+def start_job(job: AvatarJobDocument) -> None:
     """Called at job creation. Demo mode needs nothing; live mode is the
     future enqueue-to-CLO3D-worker call."""
     if engine_mode() == "live":
@@ -30,9 +30,9 @@ def start_job(job: dict) -> None:
         )
 
 
-def derive_demo_state(job: dict) -> str:
+def derive_demo_state(job: AvatarJobDocument) -> str:
     """Time-staged progression for demo jobs."""
-    elapsed = (datetime.now(timezone.utc) - job["created_at"]).total_seconds()
+    elapsed = (datetime.now(timezone.utc) - job.created_at).total_seconds()
     if elapsed < DEMO_QUEUE_SECONDS:
         return "queued"
     if elapsed < DEMO_QUEUE_SECONDS + DEMO_PROCESSING_SECONDS:

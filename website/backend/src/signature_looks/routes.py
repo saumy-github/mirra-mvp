@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
-from .models import CreateLookRequest, UpdateLookRequest
+from .schemas import CreateLookRequest, UpdateLookRequest
 
 router = APIRouter(prefix="/signature-looks", tags=["signature_looks"])
 

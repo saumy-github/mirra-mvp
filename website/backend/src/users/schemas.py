@@ -1,5 +1,4 @@
-"""Users request schemas. The users Mongo doc shape is owned by the auth
-service (src/auth/models.py) — this service reads and mutates it."""
+"""Users request schemas — the `users` document itself is owned by auth/models.py."""
 
 from pydantic import BaseModel, Field
 

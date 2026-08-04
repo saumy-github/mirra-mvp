@@ -1,40 +1,30 @@
-"""Auth request/response schemas + the Mongo document shapes this service owns.
+"""Auth's Mongo document shapes (DB schema) — see schemas.py for HTTP contracts."""
 
-users doc (string _id doubles as the public user_id, e.g. "u_9f2c…" or
-"g_9f2c…" for guests — measurements and every later collection key on it):
-    _id, email (absent for guests), name, password_hash (absent for guests),
-    is_guest, email_verified, verification_code,
-    password_reset_hash, password_reset_expires_at,
-    consents: dict, created_at, updated_at
+from datetime import datetime
 
-refresh_tokens doc (one per issued token; rotation chains share family_id):
-    _id, token_hash (sha256, unique), user_id, kind ("user"|"guest"),
-    family_id, expires_at (flat — family's original 30-day expiry),
-    created_at, revoked_at, replaced_by
-"""
+from pydantic import BaseModel, ConfigDict, Field
 
-from pydantic import BaseModel, EmailStr, Field
+# refresh_tokens doc is still a plain dict built in service.py, not modeled here yet.
 
 
-class SignUpRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
-    name: str | None = Field(default=None, max_length=120)
+class UserDocument(BaseModel):
+    """The `users` collection doc shape — single source of truth, used instead of raw dicts."""
 
+    model_config = ConfigDict(populate_by_name=True)
 
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+    id: str = Field(alias="_id")  # doubles as public user_id, e.g. "u_..." / "g_..." for guests
+    email: str | None = None
+    name: str | None = None
+    password_hash: str | None = None
+    is_guest: bool = False
+    email_verified: bool = False
+    verification_code: str | None = None
+    password_reset_hash: str | None = None
+    password_reset_expires_at: datetime | None = None
+    consents: dict[str, bool] = Field(default_factory=dict)
+    created_at: datetime
+    updated_at: datetime
 
-
-class VerifyEmailRequest(BaseModel):
-    code: str = Field(min_length=4, max_length=12)
-
-
-class PasswordResetRequest(BaseModel):
-    email: EmailStr
-
-
-class PasswordResetConfirmRequest(BaseModel):
-    token: str
-    new_password: str = Field(min_length=8, max_length=128)
+    def to_mongo(self) -> dict:
+        """Insert-ready dict; unset fields (e.g. email for a guest) are dropped, not stored as null."""
+        return self.model_dump(by_alias=True, exclude_none=True)

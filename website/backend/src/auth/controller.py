@@ -6,24 +6,25 @@ from fastapi import Response
 
 from ..config import get_settings
 from . import service
+from .models import UserDocument
 
 REFRESH_COOKIE = "mirra_refresh"
 REFRESH_COOKIE_PATH = "/api/v1/auth"  # only ever sent to auth endpoints
 
 
-def shape_account(user: dict) -> dict:
+def shape_account(user: UserDocument) -> dict:
     return {
-        "userId": user["_id"],
-        "email": user.get("email"),
-        "name": user.get("name"),
-        "isGuest": bool(user.get("is_guest")),
-        "emailVerified": bool(user.get("email_verified")),
-        "consents": user.get("consents") or {},
-        "createdAt": user["created_at"].isoformat(),
+        "userId": user.id,
+        "email": user.email,
+        "name": user.name,
+        "isGuest": user.is_guest,
+        "emailVerified": user.email_verified,
+        "consents": user.consents,
+        "createdAt": user.created_at.isoformat(),
     }
 
 
-def _session_payload(user: dict, access_token: str) -> dict:
+def _session_payload(user: UserDocument, access_token: str) -> dict:
     settings = get_settings()
     return {
         "account": shape_account(user),

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, UploadFile
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
-from .models import ResolveCodeRequest
+from .schemas import ResolveCodeRequest
 
 router = APIRouter(prefix="/capture-sessions", tags=["capture"])
 

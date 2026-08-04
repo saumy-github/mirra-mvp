@@ -1,20 +1,20 @@
 """HTTP ↔ domain translation for catalog."""
 
 from . import service
-from .models import SIZE_MEASUREMENT_FIELDS
+from .models import SIZE_MEASUREMENT_FIELDS, SizeDocument
 
 
-def shape_garment(doc: dict) -> dict:
+def shape_garment(doc: SizeDocument) -> dict:
     return {
-        "sizeId": doc["size_id"],
-        "fitType": doc["fit_type"],
-        "clothId": doc.get("cloth_id"),
-        "clothLabel": doc.get("cloth_label"),
-        "category": doc.get("category"),
+        "sizeId": doc.size_id,
+        "fitType": doc.fit_type,
+        "clothId": doc.cloth_id,
+        "clothLabel": doc.cloth_label,
+        "category": doc.category,
         # Flat cm fields kept under their pipeline names — Step 2/Step 3
         # docs (half-girth convention) refer to them by these exact keys.
-        "measurements": {f: doc.get(f) for f in SIZE_MEASUREMENT_FIELDS},
-        "updatedAt": doc["updated_at"].isoformat() if doc.get("updated_at") else None,
+        "measurements": {f: getattr(doc, f) for f in SIZE_MEASUREMENT_FIELDS},
+        "updatedAt": doc.updated_at.isoformat() if doc.updated_at else None,
     }
 
 

@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 
+from ..auth.models import UserDocument
 from ..auth.service import delete_all_for_user as delete_refresh_tokens
 from ..capture.service import delete_all_for_user as delete_capture_data
 from ..core.errors import NotFound
@@ -20,14 +21,14 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-async def get_profile(user_id: str) -> dict:
-    user = await users_col().find_one({"_id": user_id})
-    if not user:
+async def get_profile(user_id: str) -> UserDocument:
+    raw = await users_col().find_one({"_id": user_id})
+    if not raw:
         raise NotFound("User not found")
-    return user
+    return UserDocument.model_validate(raw)
 
 
-async def update_profile(user_id: str, *, name: str | None) -> dict:
+async def update_profile(user_id: str, *, name: str | None) -> UserDocument:
     updates: dict = {"updated_at": _now()}
     if name is not None:
         updates["name"] = name
@@ -37,7 +38,7 @@ async def update_profile(user_id: str, *, name: str | None) -> dict:
     return await get_profile(user_id)
 
 
-async def update_consents(user_id: str, consents: dict[str, bool]) -> dict:
+async def update_consents(user_id: str, consents: dict[str, bool]) -> UserDocument:
     sets = {f"consents.{key}": bool(value) for key, value in consents.items()}
     sets["updated_at"] = _now()
     result = await users_col().update_one({"_id": user_id}, {"$set": sets})

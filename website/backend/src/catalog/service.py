@@ -4,7 +4,8 @@ import re
 
 from ..core.errors import NotFound, ValidationFailed
 from ..db import sizes_col
-from .models import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, VALID_FIT_TYPES
+from .models import SizeDocument, VALID_FIT_TYPES
+from .schemas import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
 
 
 async def list_garments(
@@ -14,7 +15,7 @@ async def list_garments(
     q: str | None = None,
     limit: int = DEFAULT_PAGE_SIZE,
     offset: int = 0,
-) -> tuple[list[dict], int]:
+) -> tuple[list[SizeDocument], int]:
     if fit_type is not None and fit_type not in VALID_FIT_TYPES:
         raise ValidationFailed(f"fit_type must be one of {sorted(VALID_FIT_TYPES)}")
     limit = max(1, min(limit, MAX_PAGE_SIZE))
@@ -32,11 +33,11 @@ async def list_garments(
     total = await sizes_col().count_documents(query)
     cursor = sizes_col().find(query).sort("size_id", 1).skip(offset).limit(limit)
     items = await cursor.to_list(length=limit)
-    return items, total
+    return [SizeDocument.model_validate(d) for d in items], total
 
 
-async def get_garment(size_id: str) -> dict:
-    doc = await sizes_col().find_one({"size_id": size_id})
-    if not doc:
+async def get_garment(size_id: str) -> SizeDocument:
+    raw = await sizes_col().find_one({"size_id": size_id})
+    if not raw:
         raise NotFound("Garment not found")
-    return doc
+    return SizeDocument.model_validate(raw)

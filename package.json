@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "scripts": {
+    "dev:up": "docker compose --env-file .env.dev -f docker-compose.yml up -d --build backend frontend",
+    "dev:up:all": "docker compose --env-file .env.dev -f docker-compose.yml up -d --build",
+    "dev:down": "docker compose --env-file .env.dev -f docker-compose.yml down",
+    "dev:restart": "docker compose --env-file .env.dev -f docker-compose.yml restart",
+    "dev:ps": "docker compose --env-file .env.dev -f docker-compose.yml ps",
+    "dev:logs": "docker compose --env-file .env.dev -f docker-compose.yml logs -f",
+    "dev:logs:backend": "docker compose --env-file .env.dev -f docker-compose.yml logs -f backend",
+    "dev:logs:frontend": "docker compose --env-file .env.dev -f docker-compose.yml logs -f frontend"
+  }
+}

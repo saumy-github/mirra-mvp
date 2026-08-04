@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
-from .models import UpdateConsentsRequest, UpdateProfileRequest
+from .schemas import UpdateConsentsRequest, UpdateProfileRequest
 
 router = APIRouter(prefix="/users", tags=["users"])
 

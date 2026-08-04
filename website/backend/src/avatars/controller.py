@@ -1,34 +1,34 @@
 """HTTP ↔ domain translation for avatars."""
 
 from . import service
-from .models import STAGE_LABELS
+from .models import STAGE_LABELS, AvatarJobDocument, AvatarProfileDocument
 
 
-def shape_job(job: dict) -> dict:
+def shape_job(job: AvatarJobDocument) -> dict:
     return {
-        "jobId": job["_id"],
-        "state": job["state"],
-        "stageLabel": STAGE_LABELS.get(job["state"], job["state"]),
-        "engineMode": job["engine_mode"],
-        "failureReason": job.get("failure_reason"),
-        "avatarProfileId": job.get("avatar_profile_id"),
-        "createdAt": job["created_at"].isoformat(),
-        "completedAt": job["completed_at"].isoformat() if job.get("completed_at") else None,
+        "jobId": job.id,
+        "state": job.state,
+        "stageLabel": STAGE_LABELS.get(job.state, job.state),
+        "engineMode": job.engine_mode,
+        "failureReason": job.failure_reason,
+        "avatarProfileId": job.avatar_profile_id,
+        "createdAt": job.created_at.isoformat(),
+        "completedAt": job.completed_at.isoformat() if job.completed_at else None,
     }
 
 
-def shape_profile(profile: dict | None) -> dict | None:
+def shape_profile(profile: AvatarProfileDocument | None) -> dict | None:
     if profile is None:
         return None
     return {
-        "avatarProfileId": profile["_id"],
-        "gender": profile.get("gender"),
-        "measurements": profile.get("measurements") or {},
-        "bodyShapeType": profile.get("body_shape_type"),
-        "skinToneHex": profile.get("skin_tone_hex"),
-        "sourceJobId": profile.get("source_job_id"),
-        "createdAt": profile["created_at"].isoformat(),
-        "updatedAt": profile["updated_at"].isoformat(),
+        "avatarProfileId": profile.id,
+        "gender": profile.gender,
+        "measurements": profile.measurements or {},
+        "bodyShapeType": profile.body_shape_type,
+        "skinToneHex": profile.skin_tone_hex,
+        "sourceJobId": profile.source_job_id,
+        "createdAt": profile.created_at.isoformat(),
+        "updatedAt": profile.updated_at.isoformat(),
     }
 
 
