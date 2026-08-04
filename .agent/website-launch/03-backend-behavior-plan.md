@@ -100,27 +100,22 @@ website/frontend/src/features/auth/components/oauth-buttons.tsx
 
 The component currently includes a `GoogleButton`. The file is already Apple-ready in layout comments, but no Apple button/provider is wired.
 
-### Product decision needed before pilot
+### Product decision: locked for pilot launch (2026-08-04)
 
-Decide which login methods are allowed for the first public pilot:
-
-1. Email/password only
-2. Guest only
-3. Email/password plus guest
-4. Add Google OAuth before launch
-
-Recommended pilot path:
+Login methods for the first public pilot:
 
 ```text
-Email/password plus guest plus Google OAuth
+Google OAuth plus guest only
 ```
+
+Email/password is explicitly excluded from the pilot UI (decided by Saumy, 2026-08-04). The backend implementation stays intact (Section 3) — only the frontend entry points go away, and by comment-out rather than deletion.
 
 Reason:
 
-- email/password gives returning users a stable account
 - guest mode keeps the funnel low-friction
-- Google OAuth reduces signup friction for users who do not want to create another password
-- Google OAuth is usually free when implemented directly through Google's OAuth/OpenID Connect flow
+- Google OAuth reduces signup friction and gives returning users a stable, pre-verified account without us owning password storage/reset/email delivery
+- removes the email-provider dependency (Resend/Postmark/etc., see "Email decision needed before pilot" below) as a pilot launch blocker entirely — nothing in the pilot path sends email
+- removes the Google/password account-linking question from the OAuth plan below, since OAuth becomes the only way to create a non-guest account for pilot (see the updated "Account-linking" note under Google OAuth plan)
 
 ### Google OAuth plan
 
@@ -195,27 +190,25 @@ Frontend work required:
 - add an `/auth/callback` route if needed to finish post-login routing
 - preserve `next` redirect behavior after successful login
 - show a clear error if OAuth fails or is cancelled
+- comment out the email/password login form, sign-up page, forgot-password link/page, and email-verification OTP page (file list under Section 2)
 
 Backend work required:
 
 - add Google OAuth config fields
 - add Google start/callback routes
 - add provider identity fields to the user model
-- implement account linking rules for existing email/password users
 - issue the same access-token/refresh-cookie session after OAuth login
-- add tests for new-user Google signup, returning Google login, and duplicate-email handling
+- add tests for new-user Google signup and returning Google login
 
-Account-linking rule to decide:
+Account-linking: simplified for pilot (decided 2026-08-04)
 
-- If Google returns a verified email that already belongs to an email/password user, either:
-  - automatically link Google to that existing user, or
-  - require the user to log in with password first and then link Google from account settings
+Because email/password is commented out on the frontend, Google OAuth becomes the **only** way to create a non-guest account for pilot. There's no live population of email/password accounts a new pilot signup could collide with, so the original "does this Google email match an existing password account" question doesn't need matching/linking logic for launch:
 
-Recommended pilot behavior:
+- no automatic-linking-by-email logic needed
+- no "log in with password first, then link Google" flow needed
+- any stray email/password account from earlier dev/testing simply becomes unreachable via the UI — acceptable for pilot, since the backend route still exists (Section 3)
 
-```text
-Automatically link only when Google reports email_verified=true.
-```
+This removes matching against *other password accounts*, but not all matching concerns. A separate, still-open question is matching a **guest session** to a **new Google identity** when a guest later signs in — see Section 8, "Guest → Google upgrade path."
 
 Apple Auth:
 
@@ -282,20 +275,33 @@ Important check: because frontend and backend will be on different domains, we m
 
 ## Open sections to define next
 
-## Section 2 - Pilot auth direction: OAuth-only UI
+## Section 2 - Pilot auth direction: OAuth + guest only (confirmed decision, 2026-08-04)
 
-For the pilot launch, the user-facing auth flow should become OAuth-first/OAuth-only.
+For the pilot launch, the user-facing auth flow is **Google OAuth plus guest**. Email/password is excluded from the UI entirely, but not deleted from the codebase.
 
 Decision:
 
-- keep existing backend email/password code for now
+- keep existing backend email/password code for now (routes, service functions, Mongo fields all stay — Section 3 still applies)
 - do **not** delete backend auth code during this phase
-- hide or remove the frontend email/password login form
-- hide or remove the frontend email/password signup form
-- hide or remove the forgot-password link/page from the normal user path
-- hide or remove the email verification OTP page from the normal user path
-- implement Google OAuth as the first real OAuth provider
+- **comment out** (not delete) the frontend email/password login form
+- **comment out** the frontend email/password signup page
+- **comment out** the forgot-password link/page from the normal user path
+- **comment out** the email verification OTP page from the normal user path
+- keep Google OAuth and guest as the only visible entry points
 - defer Apple OAuth unless there is a specific launch requirement
+
+Naming: this is **OAuth + guest**, not "OAuth-only" — guest mode stays visible and is a first-class pilot entry point, not a fallback.
+
+### Frontend changes for pilot — exact file list
+
+Read directly from the current code (`website/frontend/src/pages/auth/`):
+
+- `Login.tsx` — comment out the `<form onSubmit={onSubmit}>` email/password block, the "or continue with email" `OrDivider`, the "Forgot password?" link, and the "Create account" link. Keep `GoogleButton` and the "Continue as a guest" button untouched.
+- `SignUp.tsx` — comment out the page content. Becomes unreachable via UI once `Login.tsx`'s "Create account" link is gone; whether its route registration in `router.tsx` should also be commented out (vs. leaving the page reachable by direct URL) is an open call — see questions below.
+- `ForgotPassword.tsx` — comment out the page content, same reachability question as `SignUp.tsx`.
+- `VerifyEmail.tsx` — comment out. This page has nothing to do once password signup is gone: Google accounts arrive pre-verified (`email_verified: true` from Google) and guests have no email to verify.
+
+Backend routes (`/auth/sign-up`, `/auth/login`, `/auth/verify-email`, `/auth/password-reset`, `/auth/password-reset/confirm`) are untouched — Section 3's "do not delete backend auth code yet" still governs.
 
 Reason:
 
@@ -303,20 +309,6 @@ Reason:
 - OAuth avoids password-reset and email-verification work for the first pilot
 - keeping the backend code avoids risky deletion while the OAuth flow is still being wired
 - after pilot stability, unused in-house auth code can be removed deliberately
-
-Important nuance:
-
-If guest mode remains visible, the pilot is not strictly OAuth-only. That may still be a good product choice because guest mode lowers friction, but it should be named clearly:
-
-```text
-OAuth + guest
-```
-
-not:
-
-```text
-OAuth-only
-```
 
 ## Section 3 - Do not delete in-house auth code yet
 
@@ -516,6 +508,34 @@ Store final web-facing avatar/try-on assets separately from internal CLO pipelin
 Serve optimized web-preview assets to the browser, not raw debug artifacts.
 ```
 
+## Section 8 - Guest identity and analytics tracking (added 2026-08-04)
+
+Question raised: with pilot login reduced to Google OAuth + guest, how do we track guests and use their data for analysis?
+
+### Current state (already built — confirmed by reading the code, not assumed)
+
+Guests are not anonymous/sessionless — they already get a full persistent identity, same as a real user:
+
+- `POST /api/v1/auth/guest` (`website/backend/src/auth/service.py::create_guest`) creates a real `users` collection document: `_id` prefixed `g_...`, `is_guest: true`, no email/password.
+- That guest gets the exact same session mechanism as a real user: a short-lived access JWT plus an httpOnly `mirra_refresh` cookie, `kind: "guest"`, rotated/revoked the same way as a real user's session (`auth/service.py::_issue_tokens`).
+- `Depends(get_identity)` (`website/backend/src/core/auth_dependency.py`) resolves guests exactly like real users on every protected route — measurements, avatars, try-on, signature looks, and capture sessions all already work identically for a guest `g_...` id as for a real `u_...` id.
+- Analytics already carries identity: `POST /api/v1/analytics/events` uses `get_optional_identity`, and `AnalyticsEventDocument` (`website/backend/src/analytics/service.py`) stores `user_id`, `authenticated`, `session_id`, `properties`, `occurred_at`. The frontend already fires a `guest_started` event (`Login.tsx`) the moment someone continues as a guest.
+- Net result: guest analysis is already possible today as a straight query — join `analytics_events` against `users` where `is_guest: true`. The full funnel (`guest_started` → `avatar_generation_started/completed` → `try_on_started/completed` → `add_to_cart_clicked`, etc.) is already attributable per guest id. No new instrumentation is required to start analyzing pilot guest behavior.
+
+### Gaps found (not yet built, confirmed by searching the code)
+
+1. **No guest → Google upgrade path exists.** There is no route or service function anywhere in `auth/routes.py` / `auth/controller.py` / `auth/service.py` that converts a `g_...` guest doc into a `u_...` Google-linked account while carrying forward its data (measurements, avatar, try-on history, analytics trail). Today, if a guest later signs in with Google, they get a brand-new, unrelated `u_...` identity — their guest activity becomes orphaned and unattributable to their real account.
+2. **No retention/cleanup policy for guest docs.** Unlike capture sessions (`SESSION_TTL_MINUTES = 10` in `capture/models.py`), there is no TTL or cleanup job for `users` docs where `is_guest: true`, or for their linked `analytics_events`. Every "Continue as a guest" click creates a permanent Mongo document that never expires.
+3. **No cross-device/cross-session continuity.** A guest's identity lives entirely in the `mirra_refresh` cookie. Clearing cookies, a different browser, or a different device creates a brand-new `g_...` guest with no link to the previous one — guest counts in any analysis will overcount unique people and undercount returning visits.
+4. **No reporting/dashboard surface yet.** Analysis today means querying MongoDB directly (Atlas UI, `mongosh`, or a notebook/script) — there's no admin view or scheduled report. Not necessarily a pilot blocker at small scale, but worth naming rather than assuming it exists.
+
+### Open questions — need a decision, not covered by this plan yet
+
+- Should a guest be able to upgrade to a Google account and keep their existing avatar/measurements/analytics history? If yes, this needs new backend work — e.g. the Google callback checks for an existing guest session and re-parents its data into the new/matched `u_...` account instead of creating an unrelated one. This is real, unscoped work, not something the current Google OAuth plan (above) covers as written.
+- Do we want a guest data retention window (delete/anonymize guest docs and their analytics after N days of inactivity), or keep everything indefinitely for the pilot given the small user base?
+- Is direct Mongo/Atlas querying acceptable for pilot-scale guest analysis, or do you want a lightweight internal reporting view/script before launch?
+- For the frontend file list in Section 2: should `SignUp.tsx` / `ForgotPassword.tsx` also have their **routes** commented out in `router.tsx` (fully unreachable, even by direct URL), or just have their content commented out while the route stays registered?
+
 ## Open sections to define next
 
 - User profile behavior
@@ -544,3 +564,20 @@ Serve optimized web-preview assets to the browser, not raw debug artifacts.
 - Added protected-route current state and target `RequireAuth` direction.
 - Added security launch-risk checklist.
 - Added SPA plus heavy 3D avatar risk and mitigation plan.
+
+### 2026-08-04 - Locked OAuth + guest as the only pilot login methods; added guest tracking research
+
+- Confirmed decision: pilot frontend ships with Google OAuth and guest mode only; email/password UI is commented out (not deleted), matching Section 3's existing "do not delete backend code" rule.
+- Identified the exact frontend files to comment out: `Login.tsx` (email/password form, forgot-password link, create-account link), `SignUp.tsx`, `ForgotPassword.tsx`, `VerifyEmail.tsx`.
+- Simplified the Google OAuth account-linking question: since OAuth is now the only way to create a non-guest account for pilot, matching a Google login against existing password accounts is no longer needed at launch.
+- Added Section 8 documenting guest identity/analytics: confirmed guests already get a full persistent identity and analytics attribution today (no new instrumentation needed to start analyzing guest behavior), but flagged three real gaps as unscoped open work — no guest→Google upgrade/data-merge path, no guest retention/cleanup policy, no cross-device guest continuity.
+
+### 2026-08-04 - Google OAuth implemented (code complete, credentials still outstanding)
+
+- Implemented the full "Google OAuth plan" from this doc: backend `auth/google/start` + `auth/google/callback` routes, `google_login()` find-or-create/link service logic, `AuthProvider`/`auth_providers` on the user model, and the frontend redirect + `/auth/callback` page.
+- Reused the existing session/cookie machinery unchanged (`_issue_tokens`, `_set_refresh_cookie`) — no access token is ever passed through a URL; the callback sets the same `mirra_refresh` cookie every other login path uses and the frontend hydrates the session from it, same as the existing page-load bootstrap.
+- Identity is established via Google's userinfo endpoint (using the access token from code exchange), not by verifying the id_token ourselves — avoids a JWKS/RS256 dependency for a pilot-scale login path.
+- Verified: full backend app + OpenAPI schema still import cleanly with no regressions to existing routes; unconfigured-credentials path returns a clean 503 instead of crashing; state-mismatch and denied-consent callback paths correctly redirect to the frontend failure URL; frontend typecheck/build/lint all pass clean on every touched file.
+- **Not verified**: the real Google consent screen round trip — no `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` exist yet (needs to be created in Google Cloud Console by someone with access, then set in `website/backend/.env` and Render's env settings).
+- Explicitly **not** done in this pass: Section 2's email/password UI comment-out (OAuth and password auth currently coexist on the frontend), and the guest→Google merge gap from Section 8 (a guest's activity still doesn't carry over on Google login). Both remain open, separate work.
+- Full implementation-level detail lives in [`08-step1-oauth-login.md`](08-step1-oauth-login.md)'s "What was implemented" section.

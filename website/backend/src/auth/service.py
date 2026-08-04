@@ -15,7 +15,7 @@ from ..core.security import (
     verify_password,
 )
 from ..db import refresh_tokens_col, users_col
-from .models import UserDocument
+from .models import AuthProvider, UserDocument
 
 logger = logging.getLogger("mirra.backend.auth")
 
@@ -128,6 +128,52 @@ async def create_guest() -> tuple[UserDocument, str, str, datetime]:
     )
     await users_col().insert_one(user.to_mongo())
     access, raw_refresh, refresh_exp = await _issue_tokens(user.id, "guest")
+    return user, access, raw_refresh, refresh_exp
+
+
+async def google_login(
+    google_sub: str, email: str, email_verified: bool, name: str | None
+) -> tuple[UserDocument, str, str, datetime]:
+    """Find-or-create by Google's stable subject id, falling back to
+    linking a matching verified-email account. Only ever creates/links
+    non-guest, non-password accounts — Google is the only account-creating
+    OAuth provider wired up so far (03-backend-behavior-plan.md)."""
+    email = email.strip().lower()
+    now = _now()
+    provider = AuthProvider(provider="google", provider_user_id=google_sub)
+
+    raw = await users_col().find_one(
+        {"auth_providers": {"$elemMatch": {"provider": "google", "provider_user_id": google_sub}}}
+    )
+    if raw is None and email_verified:
+        existing = await users_col().find_one({"email": email, "is_guest": False})
+        if existing is not None:
+            await users_col().update_one(
+                {"_id": existing["_id"]},
+                {
+                    "$push": {"auth_providers": provider.model_dump()},
+                    "$set": {"updated_at": now, "email_verified": True},
+                },
+            )
+            raw = await users_col().find_one({"_id": existing["_id"]})
+
+    if raw is None:
+        user = UserDocument(
+            id=new_id("u"),
+            email=email if email_verified else None,
+            name=name,
+            is_guest=False,
+            email_verified=email_verified,
+            auth_providers=[provider],
+            consents={},
+            created_at=now,
+            updated_at=now,
+        )
+        await users_col().insert_one(user.to_mongo())
+    else:
+        user = UserDocument.model_validate(raw)
+
+    access, raw_refresh, refresh_exp = await _issue_tokens(user.id, "user")
     return user, access, raw_refresh, refresh_exp
 
 

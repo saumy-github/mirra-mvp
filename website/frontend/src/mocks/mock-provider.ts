@@ -387,12 +387,31 @@ export class InProcessMockProvider implements MirraRuntimeProvider {
 
   async updateMeasurements(
     changes: Partial<Record<MeasurementKey, number>>,
-    opts: { resetEstimates?: boolean } = {},
+    opts: {
+      resetEstimates?: boolean;
+      gender?: "male" | "female";
+      accuracy?: "accurate" | "approx";
+    } = {},
   ): Promise<AvatarProfile> {
     const db = getDb();
     const account = requireAccount();
-    const profile = db.avatarProfiles.get(account.shopperId);
-    if (!profile) throw new MirraApiError("avatar_job_failed", "No avatar profile yet.", 404);
+    let profile = db.avatarProfiles.get(account.shopperId);
+    if (!profile) {
+      // First submission — mirrors the live backend's profileFromMeasurements
+      // fallback: no CLO avatar yet, but the measurements themselves save.
+      profile = {
+        avatarProfileId: "ap_pending",
+        avatarLabel: "NEW",
+        version: 0,
+        engineVersion: "demo",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        previewAssetUrl: "",
+        measurements: freshMeasurements(),
+        unitsPreference: "metric",
+      };
+      db.avatarProfiles.set(account.shopperId, profile);
+    }
     profile.measurements = profile.measurements.map((field) => {
       const value = changes[field.key];
       if (value === undefined) return field;

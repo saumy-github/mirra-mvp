@@ -70,7 +70,14 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     return this.storeSession(await this.http.post("/auth/login", live.sessionEnvelope, input));
   }
   async loginWithGoogle(): Promise<ShopperAccount> {
-    throw new MirraApiError("api_degraded", "Google sign-in isn't available in the pilot yet", 503);
+    // Full-page redirect flow (backend: auth/google/start + /callback) —
+    // the browser navigates away, so this intentionally never resolves.
+    // Login.tsx/SignUp.tsx already carry their own "next" query param;
+    // read it straight from the URL rather than widening this interface.
+    const next = new URLSearchParams(window.location.search).get("next");
+    const qs = next ? `?next=${encodeURIComponent(next)}` : "";
+    window.location.assign(`${this.http.baseUrl}/auth/google/start${qs}`);
+    return new Promise<ShopperAccount>(() => {});
   }
   async continueAsGuest() {
     return this.storeSession(await this.http.post("/auth/guest", live.sessionEnvelope, {}));
@@ -189,7 +196,12 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
   }
   async updateMeasurements(
     changes: Partial<Record<MeasurementKey, number>>,
-    _opts: { resetEstimates?: boolean; unitsPreference?: "metric" | "imperial" } = {},
+    opts: {
+      resetEstimates?: boolean;
+      unitsPreference?: "metric" | "imperial";
+      gender?: "male" | "female";
+      accuracy?: "accurate" | "approx";
+    } = {},
   ) {
     const fields: Record<string, number> = {};
     for (const [key, value] of Object.entries(changes)) {
@@ -201,12 +213,12 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
         .measurements;
     } catch (err) {
       if (err instanceof MirraApiError && err.status === 404) {
-        // First submission — v1 field contract is male-only, so the pilot
-        // defaults gender until the UI collects it.
+        // First submission — defaults preserve prior (pre-form) behaviour
+        // for callers that don't pass gender/accuracy explicitly.
         measurements = (
           await this.http.put("/measurements/me", live.measurementsEnvelope, {
-            gender: "male",
-            accuracy: "approx",
+            gender: opts.gender ?? "male",
+            accuracy: opts.accuracy ?? "approx",
             ...fields,
           })
         ).measurements;

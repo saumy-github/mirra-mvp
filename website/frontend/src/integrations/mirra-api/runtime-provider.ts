@@ -74,7 +74,13 @@ export interface MirraRuntimeProvider {
   getAvatarProfile(): Promise<AvatarProfile | null>;
   updateMeasurements(
     changes: Partial<Record<MeasurementKey, number>>,
-    opts?: { resetEstimates?: boolean; unitsPreference?: "metric" | "imperial" },
+    opts?: {
+      resetEstimates?: boolean;
+      unitsPreference?: "metric" | "imperial";
+      /** Only meaningful the first time a shopper has no profile yet. */
+      gender?: "male" | "female";
+      accuracy?: "accurate" | "approx";
+    },
   ): Promise<AvatarProfile>;
   deleteAvatarProfile(): Promise<void>;
 

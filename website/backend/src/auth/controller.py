@@ -1,15 +1,29 @@
 """HTTP ↔ domain translation for auth: cookies, response shaping."""
 
+import logging
+import re
+import secrets
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 from fastapi import Response
+from fastapi.responses import RedirectResponse
 
 from ..config import get_settings
-from . import service
+from ..core.errors import DomainError
+from . import google_oauth, service
 from .models import UserDocument
+
+logger = logging.getLogger("mirra.backend.auth")
 
 REFRESH_COOKIE = "mirra_refresh"
 REFRESH_COOKIE_PATH = "/api/v1/auth"  # only ever sent to auth endpoints
+
+GOOGLE_STATE_COOKIE = "mirra_oauth_state"
+GOOGLE_NEXT_COOKIE = "mirra_oauth_next"
+GOOGLE_OAUTH_COOKIE_PATH = "/api/v1/auth/google"
+GOOGLE_OAUTH_COOKIE_MAX_AGE = 300  # 5 minutes — covers the Google consent round trip
+_SAFE_NEXT_RE = re.compile(r"^/(?!/)")
 
 
 def shape_account(user: UserDocument) -> dict:
@@ -68,6 +82,93 @@ async def create_guest(response: Response) -> dict:
     user, access, raw_refresh, refresh_exp = await service.create_guest()
     _set_refresh_cookie(response, raw_refresh, refresh_exp)
     return _session_payload(user, access)
+
+
+def _safe_next(next_param: str | None) -> str | None:
+    """Same allow-only-relative-path rule as the frontend's postAuthDestination — no open redirects."""
+    if next_param and _SAFE_NEXT_RE.match(next_param):
+        return next_param
+    return None
+
+
+async def google_start(next_param: str | None) -> RedirectResponse:
+    state = secrets.token_urlsafe(24)
+    redirect = RedirectResponse(google_oauth.build_authorize_url(state), status_code=302)
+    settings = get_settings()
+    redirect.set_cookie(
+        GOOGLE_STATE_COOKIE,
+        state,
+        max_age=GOOGLE_OAUTH_COOKIE_MAX_AGE,
+        path=GOOGLE_OAUTH_COOKIE_PATH,
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite="lax",
+    )
+    safe_next = _safe_next(next_param)
+    if safe_next:
+        redirect.set_cookie(
+            GOOGLE_NEXT_COOKIE,
+            safe_next,
+            max_age=GOOGLE_OAUTH_COOKIE_MAX_AGE,
+            path=GOOGLE_OAUTH_COOKIE_PATH,
+            httponly=True,
+            secure=settings.cookie_secure,
+            samesite="lax",
+        )
+    return redirect
+
+
+async def google_callback(
+    code: str | None,
+    state: str | None,
+    error: str | None,
+    state_cookie: str | None,
+    next_cookie: str | None,
+) -> RedirectResponse:
+    settings = get_settings()
+
+    def failure(reason: str) -> RedirectResponse:
+        redirect = RedirectResponse(f"{settings.frontend_auth_failure_url}?error={reason}", status_code=302)
+        redirect.delete_cookie(GOOGLE_STATE_COOKIE, path=GOOGLE_OAUTH_COOKIE_PATH)
+        redirect.delete_cookie(GOOGLE_NEXT_COOKIE, path=GOOGLE_OAUTH_COOKIE_PATH)
+        return redirect
+
+    if error:
+        return failure("google_denied")
+    if not code or not state or not state_cookie or state != state_cookie:
+        return failure("google_state_mismatch")
+
+    try:
+        tokens = await google_oauth.exchange_code(code)
+        userinfo = await google_oauth.fetch_userinfo(tokens.get("access_token", ""))
+    except DomainError as exc:
+        logger.warning("Google OAuth exchange/userinfo failed: %s", exc.message)
+        return failure("google_oauth_failed")
+    except Exception:  # Google-side network hiccup — never let this crash the request
+        logger.exception("Unexpected error during Google OAuth callback")
+        return failure("google_oauth_failed")
+
+    google_sub = userinfo.get("sub")
+    email = userinfo.get("email")
+    if not google_sub or not email:
+        return failure("google_oauth_failed")
+
+    _user, _access, raw_refresh, refresh_exp = await service.google_login(
+        google_sub=google_sub,
+        email=email,
+        email_verified=bool(userinfo.get("email_verified")),
+        name=userinfo.get("name"),
+    )
+
+    safe_next = _safe_next(next_cookie)
+    target = settings.frontend_auth_success_url
+    if safe_next:
+        target = f"{target}?next={quote(safe_next, safe='')}"
+    redirect = RedirectResponse(target, status_code=302)
+    _set_refresh_cookie(redirect, raw_refresh, refresh_exp)
+    redirect.delete_cookie(GOOGLE_STATE_COOKIE, path=GOOGLE_OAUTH_COOKIE_PATH)
+    redirect.delete_cookie(GOOGLE_NEXT_COOKIE, path=GOOGLE_OAUTH_COOKIE_PATH)
+    return redirect
 
 
 async def refresh(raw_cookie: str | None, response: Response) -> dict:

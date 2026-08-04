@@ -7,6 +7,13 @@ from pydantic import BaseModel, ConfigDict, Field
 # refresh_tokens doc is still a plain dict built in service.py, not modeled here yet.
 
 
+class AuthProvider(BaseModel):
+    """One linked external identity, e.g. Google — see auth/service.py::google_login."""
+
+    provider: str
+    provider_user_id: str
+
+
 class UserDocument(BaseModel):
     """The `users` collection doc shape — single source of truth, used instead of raw dicts."""
 
@@ -21,6 +28,7 @@ class UserDocument(BaseModel):
     verification_code: str | None = None
     password_reset_hash: str | None = None
     password_reset_expires_at: datetime | None = None
+    auth_providers: list[AuthProvider] = Field(default_factory=list)
     consents: dict[str, bool] = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime

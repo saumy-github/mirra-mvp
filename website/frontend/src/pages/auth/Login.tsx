@@ -15,7 +15,9 @@ export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { login, google, continueAsGuest } = useAuthMutations();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    params.get("error") ? "Google sign-in didn't complete. Please retry." : null,
+  );
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
