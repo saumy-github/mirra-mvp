@@ -2,11 +2,11 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends, Response
+from fastapi import APIRouter, Cookie, Depends, Query, Response
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
-from .controller import REFRESH_COOKIE
+from .controller import GOOGLE_NEXT_COOKIE, GOOGLE_STATE_COOKIE, REFRESH_COOKIE
 from .schemas import (
     LoginRequest,
     PasswordResetConfirmRequest,
@@ -33,6 +33,22 @@ async def login(body: LoginRequest, response: Response):
 @router.post("/guest", status_code=201)
 async def create_guest(response: Response):
     return await controller.create_guest(response)
+
+
+@router.get("/google/start")
+async def google_start(next: str | None = Query(default=None)):
+    return await controller.google_start(next)
+
+
+@router.get("/google/callback")
+async def google_callback(
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+    mirra_oauth_state: Annotated[str | None, Cookie(alias=GOOGLE_STATE_COOKIE)] = None,
+    mirra_oauth_next: Annotated[str | None, Cookie(alias=GOOGLE_NEXT_COOKIE)] = None,
+):
+    return await controller.google_callback(code, state, error, mirra_oauth_state, mirra_oauth_next)
 
 
 @router.post("/refresh")

@@ -106,6 +106,11 @@ async def ensure_indexes() -> None:
 
     # Backend-owned collections (string _id doubles as the public id):
     await users_col().create_index([("email", ASCENDING)], unique=True, sparse=True)
+    await users_col().create_index(
+        [("auth_providers.provider", ASCENDING), ("auth_providers.provider_user_id", ASCENDING)],
+        name="auth_providers_lookup",
+        sparse=True,
+    )
     await refresh_tokens_col().create_index([("token_hash", ASCENDING)], unique=True)
     await refresh_tokens_col().create_index([("user_id", ASCENDING)])
     await refresh_tokens_col().create_index([("family_id", ASCENDING)])

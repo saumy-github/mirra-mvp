@@ -32,6 +32,14 @@ class Settings(BaseSettings):
 
     uploads_dir: str = "uploads"
 
+    # Google OAuth (03-backend-behavior-plan.md, "Google OAuth plan"). Empty
+    # client id/secret means Google sign-in is treated as unconfigured.
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = "http://localhost:8000/api/v1/auth/google/callback"
+    frontend_auth_success_url: str = "http://localhost:3000/auth/callback"
+    frontend_auth_failure_url: str = "http://localhost:3000/auth/login"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

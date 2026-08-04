@@ -160,7 +160,7 @@ export const KEY_TO_FIELD: Record<MeasurementKey, string> = {
   inseam: "leg_length_cm",
 };
 
-const FIELD_META: Record<
+export const FIELD_META: Record<
   MeasurementKey,
   { label: string; unit: "cm" | "kg"; min: number; max: number; fallback: number }
 > = {

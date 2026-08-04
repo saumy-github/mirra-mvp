@@ -1,8 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { getRuntimeProvider } from "@/integrations/mirra-api";
 import type { ShopperAccount } from "@/integrations/mirra-api/types";
 
 const SHOPPER_KEY = ["account", "me"];
+
+/**
+ * Called from the /auth/callback page after the Google OAuth redirect round
+ * trip lands back on us — the backend has already set the refresh cookie,
+ * this just hydrates the same react-query cache entry useAccount() reads,
+ * reusing the existing "no in-memory token → try refresh cookie" bootstrap.
+ */
+export async function completeOAuthCallback(qc: QueryClient): Promise<ShopperAccount | null> {
+  const account = await getRuntimeProvider().getCurrentShopper();
+  qc.setQueryData(SHOPPER_KEY, account);
+  return account;
+}
 
 export function useAccount() {
   return useQuery({
