@@ -50,6 +50,29 @@ def _resolve_default_measurement_file(user_id: str | None) -> str | None:
     return None
 
 
+def _resolve_default_face_photo(user_id: str | None) -> Path | None:
+    if not user_id:
+        return None
+    face_dir = REPO_ROOT / "clo_avatar_generation" / "input" / "face" / user_id
+    for name in ("front.jpg", "front.jpeg", "front.png"):
+        candidate = face_dir / name
+        if candidate.exists():
+            return candidate.resolve()
+    return None
+
+
+def _resolve_side_photo(user_id: str | None, side: str) -> Path | None:
+    """side = 'left' or 'right'"""
+    if not user_id:
+        return None
+    face_dir = REPO_ROOT / "clo_avatar_generation" / "input" / "face" / user_id
+    for ext in (".jpg", ".jpeg", ".png"):
+        candidate = face_dir / f"{side}{ext}"
+        if candidate.exists():
+            return candidate.resolve()
+    return None
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the Step-1 CLO avatar-generation workflow.")
     parser.add_argument("--user-id", default=None, help="Measurement user_id (for example u_001).")
@@ -69,6 +92,9 @@ def _parse_args() -> argparse.Namespace:
         help="Optional CLO target or source field name to isolate for this run. Repeat to pass multiple values.",
     )
     parser.add_argument("--non-interactive", action="store_true", help="Use provided/default values without prompts.")
+    parser.add_argument("--face-photo", default=None, help="Front-facing photo for face personalization (step 12).")
+    parser.add_argument("--left-photo", default=None, help="User turned 45° left — improves right cheek/jaw accuracy.")
+    parser.add_argument("--right-photo", default=None, help="User turned 45° right — improves left cheek/jaw accuracy.")
     return parser.parse_args()
 
 
@@ -130,6 +156,22 @@ def main() -> int:
             apply_mode = default_apply_mode
             active_fields = list(args.active_field or [])
 
+        face_photo = (
+            Path(args.face_photo).resolve()
+            if args.face_photo
+            else _resolve_default_face_photo(user_id)
+        )
+        left_photo = (
+            Path(args.left_photo).resolve()
+            if args.left_photo
+            else _resolve_side_photo(user_id, "left")
+        )
+        right_photo = (
+            Path(args.right_photo).resolve()
+            if args.right_photo
+            else _resolve_side_photo(user_id, "right")
+        )
+
         ctx = Step1Context(
             user_id=user_id,
             requested_run_number=run_number,
@@ -138,6 +180,9 @@ def main() -> int:
             measurement_apply_mode_input=apply_mode,
             active_field_filters=active_fields,
             interactive=not args.non_interactive,
+            face_photo_path=face_photo,
+            face_left_photo_path=left_photo,
+            face_right_photo_path=right_photo,
         )
         ctx = run_pipeline(ctx)
 

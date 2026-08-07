@@ -67,6 +67,11 @@ class Step1Context:
     extracted_avatar_path: Path | None = None
     extracted_artifacts: dict[str, str] = field(default_factory=dict)
 
+    face_photo_path: Path | None = None        # front-facing photo
+    face_left_photo_path: Path | None = None   # user turned 45° left
+    face_right_photo_path: Path | None = None  # user turned 45° right
+    face_avt_path: Path | None = None
+
     step_results: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 

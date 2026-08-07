@@ -1,0 +1,91 @@
+CLO REST Plugin — Build & Setup Instructions (Mac - Apple Silicon)
+===================================================================
+
+Hey! Follow these steps to build and install the CLO REST plugin on your Mac.
+It lets Python talk to CLO3D so we can run the virtual try-on pipeline.
+
+Prerequisites — Install these first
+-------------------------------------
+Make sure you have all of the following before starting:
+
+- Mac with Apple Silicon (M1/M2/M3/M4)
+- CLO3D installed
+- CLO SDK for Mac (download from the CLO developer portal)
+- Homebrew installed (https://brew.sh)
+- CMake:    open Terminal and run ->  brew install cmake
+- Qt5:      open Terminal and run ->  brew install qt@5
+- Python:   open Terminal and run ->  brew install python@3.12
+
+You will also need the plugin source folder (I'll send you a zip).
+Unzip it somewhere easy, like your Desktop. You should see a folder called "mirra-mvp".
+
+---------------------------------------------------------------------
+
+Step 1: Open Terminal and go into the project folder
+-----------------------------------------------------
+    cd ~/Desktop/mirra-mvp
+
+(Change the path if you unzipped it somewhere else)
+
+Step 2: Set up your build config
+----------------------------------
+Run this to create your config file:
+
+    cp clo_workspace/.env.example clo_workspace/.env
+
+Now open clo_workspace/.env in any text editor and update these values:
+
+    PLUGIN_PLATFORM=mac
+    BUILD_CONFIG=Release
+    CLO_SDK_PATH=/path/to/your/CLO_SDK_Mac        <- change this to where you downloaded the CLO SDK
+    CLO_PLUGINS_DIR=/Users/YOUR_USERNAME/Documents/CLO/Plugins   <- change YOUR_USERNAME to your Mac username
+    CMAKE_PREFIX_PATH=/opt/homebrew/opt/qt@5
+    Qt5_DIR=/opt/homebrew/opt/qt@5/lib/cmake/Qt5
+    CMAKE_OSX_ARCHITECTURES=arm64
+
+Step 3: Create the CLO Plugins folder
+---------------------------------------
+    mkdir -p ~/Documents/CLO/Plugins
+
+Step 4: Build the plugin
+-------------------------
+Make sure you are still in the mirra-mvp folder, then run:
+
+    python3 clo_workspace/build_plugin.py
+
+This will compile the plugin. At the end it will print the path to the built file.
+
+Step 5: Install the plugin
+---------------------------
+Copy the built file into your CLO Plugins folder:
+
+    cp /path/printed/by/build/script/libRestPlugin.dylib ~/Documents/CLO/Plugins/libRestPlugin.dylib
+
+(Use the exact path printed at the end of Step 4)
+
+Step 6: Activate the plugin in CLO
+------------------------------------
+1. Open CLO3D
+2. In the top menu bar click:  Plugins -> REST Server & Execute
+3. That starts the plugin server — you need to do this every time you open CLO
+
+Step 7: Verify it is working
+------------------------------
+Open Terminal and run:
+
+    curl http://127.0.0.1:50505/health
+
+You should see something like:
+    {"status":"ok","plugin":"CLO REST Automation","version":"1.1.1","platform":"mac",...}
+
+If you see that, you are all set!
+
+---------------------------------------------------------------------
+
+Troubleshooting
+---------------
+- "cmake not found"         ->  run: brew install cmake
+- "Qt5 not found"           ->  run: brew install qt@5
+- "CLO_SDK_PATH missing"    ->  open clo_workspace/.env and fix the CLO_SDK_PATH value
+- curl says "connection refused"  ->  you need to click Plugins -> REST Server & Execute in CLO first
+- CLO crashes when loading the plugin  ->  make sure CMAKE_OSX_ARCHITECTURES=arm64 is in your .env

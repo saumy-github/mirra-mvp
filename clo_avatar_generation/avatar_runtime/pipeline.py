@@ -19,6 +19,7 @@ from .step_08_apply_measurements import run as step_08_apply_measurements
 from .step_09_readback import run as step_09_readback
 from .step_10_compute_error import run as step_10_compute_error
 from .step_11_save_outputs import run as step_11_save_outputs
+from .step_12_apply_face import run as step_12_apply_face
 
 
 StepFn = Callable[[Step1Context], bool]
@@ -155,6 +156,7 @@ def run_pipeline(ctx: Step1Context) -> Step1Context:
         ("step_09_readback", step_09_readback, False, False),
         ("step_10_compute_error", step_10_compute_error, False, False),
         ("step_11_save_outputs", step_11_save_outputs, True, True),
+        ("step_12_apply_face", step_12_apply_face, False, False),
     ]
 
     pipeline_failed = False
