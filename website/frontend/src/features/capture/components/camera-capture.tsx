@@ -132,7 +132,7 @@ export function CameraCapture({
 
   return (
     <div className="flex w-full flex-col">
-      <div className="relative mx-auto aspect-3/4 w-full max-w-sm overflow-hidden rounded-[28px] bg-ink shadow-[0_28px_64px_-34px_rgba(0,0,0,0.65)]">
+      <div className="relative mx-auto aspect-3/4 w-full max-w-sm overflow-hidden rounded-panel-sm bg-graphite">
         <AnimatePresence mode="wait" initial={false}>
           {preview ? (
             <motion.img
@@ -157,7 +157,7 @@ export function CameraCapture({
               animate={{ opacity: 1 }}
             >
               <span
-                className="flex size-14 items-center justify-center rounded-full bg-white/10 text-2xl"
+                className="flex size-12 items-center justify-center rounded-full border border-white/25 text-2xl"
                 aria-hidden
               >
                 ◌
@@ -185,7 +185,7 @@ export function CameraCapture({
                 </p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-white/76">{step.guidance}</p>
               </div>
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-center gap-2 rounded-full bg-black/24 px-3 py-2 text-center backdrop-blur-md">
+              <div className="absolute inset-x-4 bottom-4 flex items-center justify-center gap-2.5 border-t border-white/20 pt-3 text-center">
                 <span className="size-1.5 rounded-full bg-white/80" />
                 <p className="text-[11px] font-medium text-white/80">
                   Full body · 2–3 m away · even light
@@ -196,7 +196,7 @@ export function CameraCapture({
         </AnimatePresence>
 
         {preview && (
-          <div className="glass absolute top-4 left-4 rounded-full px-3 py-1.5 text-[11px] font-semibold text-ink-soft">
+          <div className="absolute top-4 left-4 text-[10px] font-medium tracking-[0.14em] text-white/85 uppercase">
             Ready to use
           </div>
         )}
@@ -219,7 +219,7 @@ export function CameraCapture({
                 type="button"
                 onClick={takePhoto}
                 aria-label="Take photo"
-                className="mx-auto flex size-17 items-center justify-center rounded-full border-[5px] border-paper bg-white/35 shadow-[0_5px_18px_rgba(0,0,0,0.22)]"
+                className="mx-auto flex size-17 items-center justify-center rounded-full border border-graphite"
                 whileTap={{ scale: 0.92 }}
                 transition={{
                   type: "spring",
@@ -228,10 +228,10 @@ export function CameraCapture({
                   mass: 0.55,
                 }}
               >
-                <span className="size-11.5 rounded-full bg-paper shadow-[0_1px_0_rgba(255,255,255,0.8)_inset]" />
+                <span className="size-13 rounded-full bg-graphite" />
               </motion.button>
             )}
-            <label className="pressable flex h-11 cursor-pointer items-center justify-center rounded-[14px] border border-line-strong bg-paper text-sm font-medium text-ink hover:border-ink/50">
+            <label className="lift-1 flex h-12 cursor-pointer items-center justify-center rounded-panel-sm border border-hairline-strong text-[11px] font-medium tracking-[0.14em] text-graphite uppercase hover:border-graphite">
               Upload from library instead
               <input
                 type="file"

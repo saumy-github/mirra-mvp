@@ -26,7 +26,7 @@ export default function ForgotPassword() {
       />
 
       {sent ? (
-        <div role="status" className="rounded-field border border-line bg-surface p-5 text-center">
+        <div role="status" className="border-t border-b border-hairline py-6">
           <p className="text-sm text-ink-soft">
             If an account exists for that address, a reset link is on its way. It expires in 30
             minutes.
@@ -48,9 +48,12 @@ export default function ForgotPassword() {
         </form>
       )}
 
-      <p className="mt-6 text-center text-sm text-muted">
+      <p className="mt-8 border-t border-hairline pt-6 text-[13px] text-slate">
         Remembered it?{" "}
-        <Link to="/auth/login" className="font-semibold text-blue hover:text-blue-dark">
+        <Link
+          to="/auth/login"
+          className="font-medium text-graphite underline decoration-hairline-strong underline-offset-4 hover:decoration-graphite"
+        >
           Log in
         </Link>
       </p>

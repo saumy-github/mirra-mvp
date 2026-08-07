@@ -116,24 +116,15 @@ export default function OnboardingAvatar() {
   if (accountLoading || phase === "checking") {
     return (
       <main className="relative grid min-h-dvh place-items-center overflow-hidden bg-canvas px-6">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-80"
-          style={{
-            background:
-              "radial-gradient(70% 55% at 20% 18%, rgba(255,255,255,.96), transparent 62%)," +
-              "radial-gradient(55% 50% at 82% 78%, rgba(231,221,203,.72), transparent 64%)",
-          }}
-          aria-hidden
-        />
         <motion.div
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.94, y: 14 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={reduceMotion ? { duration: 0.16 } : MATERIAL_SPRING}
-          className="relative flex w-full max-w-sm flex-col items-center rounded-4xl border border-white/80 bg-white/55 p-8 text-center shadow-frost backdrop-blur-2xl"
+          className="relative flex w-full max-w-sm flex-col items-center text-center"
         >
-          <div className="relative flex size-14 items-center justify-center rounded-2xl border border-white bg-white/70 shadow-sm">
+          <div className="relative flex size-10 items-center justify-center border border-hairline">
             <motion.span
-              className="size-2 rounded-full bg-ink"
+              className="size-1.5 rounded-full bg-graphite"
               animate={
                 reduceMotion ? undefined : { scale: [0.75, 1, 0.75], opacity: [0.4, 1, 0.4] }
               }
@@ -143,16 +134,16 @@ export default function OnboardingAvatar() {
               aria-hidden
             />
           </div>
-          <p className="mono-tag mt-5 text-[9px]! tracking-[0.24em]! text-ink-soft">
-            MIRRA FIT PROFILE
-          </p>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight">Preparing your fitting room</h1>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
+          <p className="eyebrow mt-7">Mirra fit profile</p>
+          <h1 className="mt-4 text-xl font-medium tracking-[-0.03em] text-graphite">
+            Preparing your fitting room
+          </h1>
+          <p className="mt-3 text-[13px] leading-relaxed text-slate">
             Checking your secure avatar profile…
           </p>
-          <div className="mt-6 grid w-full grid-cols-[1fr_3fr] gap-3" aria-hidden>
-            <Skeleton className="h-12 rounded-xl bg-white/70" />
-            <Skeleton className="h-12 rounded-xl bg-white/70" />
+          <div className="mt-8 grid w-full grid-cols-[1fr_3fr] gap-3" aria-hidden>
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
           </div>
         </motion.div>
       </main>
@@ -162,8 +153,8 @@ export default function OnboardingAvatar() {
   // ── Decision: a valid avatar already exists ──
   if (phase === "decision" && avatar) {
     return (
-      <main className="grid min-h-dvh grid-cols-1 bg-canvas lg:grid-cols-[1.05fr_1fr]">
-        <div className="relative hidden h-dvh lg:sticky lg:top-0 lg:block">
+      <main className="grid min-h-dvh grid-cols-1 bg-vellum lg:grid-cols-[1.05fr_1fr]">
+        <div className="relative hidden h-dvh border-r border-hairline lg:sticky lg:top-0 lg:block">
           <FabricPanel
             footer={`MIRRA_PROFILE // AVATAR: ${avatar.avatarLabel.toUpperCase()} // READY`}
           >
@@ -178,41 +169,27 @@ export default function OnboardingAvatar() {
               className="flex h-full w-full flex-col"
             >
               <div className="flex items-center justify-between">
-                <p className="mono-tag text-[9px]! text-[#777063]">MIRRA / FIT PROFILE</p>
-                <span className="rounded-full border border-white/80 bg-white/52 px-3 py-1.5 text-[10px] font-medium text-ink-soft backdrop-blur-xl">
-                  Ready to wear
-                </span>
+                <p className="eyebrow">Mirra / Fit profile</p>
+                <span className="eyebrow">Ready to wear</span>
               </div>
               <div className="flex flex-1 items-center justify-center py-8">
-                <div className="relative">
-                  <div
-                    className="absolute inset-x-8 -bottom-4 h-10 rounded-full bg-ink/15 blur-xl"
-                    aria-hidden
+                <div className="h-[min(60vh,31rem)] w-[min(40vw,22rem)] overflow-hidden border border-hairline bg-vellum">
+                  <img
+                    src={avatar.previewAssetUrl}
+                    alt="Your saved avatar"
+                    className="size-full object-contain"
                   />
-                  <div className="relative h-[min(60vh,31rem)] w-[min(40vw,22rem)] overflow-hidden rounded-[2.5rem] border border-white/80 bg-white/45 p-3 shadow-[0_32px_90px_-45px_rgba(51,45,35,.72)] backdrop-blur-2xl">
-                    <div className="size-full overflow-hidden rounded-[1.9rem] border border-white/80 bg-white/62">
-                      <img
-                        src={avatar.previewAssetUrl}
-                        alt="Your saved avatar"
-                        className="size-full object-contain"
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
-              <p className="text-center font-mono text-[10px] tracking-[0.16em] text-[#777063]">
-                PROFILE {avatar.avatarLabel} · SYNCHRONIZED
-              </p>
+              <p className="eyebrow text-center">Profile {avatar.avatarLabel} · Synchronized</p>
             </motion.div>
           </FabricPanel>
         </div>
 
-        <section className="relative flex min-h-dvh items-center bg-paper/78 px-6 py-16 backdrop-blur-xl sm:px-10 lg:px-14 xl:px-20">
+        <section className="relative flex min-h-dvh items-center bg-vellum px-6 py-20 sm:px-10 lg:px-14 xl:px-20">
           <div className="absolute inset-x-0 top-0 flex items-center justify-between px-6 py-6 sm:px-10 lg:px-14 xl:px-20">
-            <p className="text-[13px] font-semibold tracking-[-0.01em] text-ink">Mirra</p>
-            <span className="rounded-full border border-line/80 bg-white/70 px-3 py-1.5 text-[10px] font-medium text-ink-soft shadow-sm">
-              Avatar setup
-            </span>
+            <p className="text-[11px] tracking-[0.34em] text-graphite uppercase">Mirra</p>
+            <span className="eyebrow">Avatar setup</span>
           </div>
 
           <motion.div
@@ -222,13 +199,13 @@ export default function OnboardingAvatar() {
             className="mx-auto w-full max-w-md"
           >
             <div className="mb-7 flex justify-center lg:hidden">
-              <div className="relative h-48 w-36 overflow-hidden rounded-[1.7rem] border border-white bg-white/70 p-2 shadow-lift">
+              <div className="relative h-48 w-36 overflow-hidden border border-hairline bg-bone">
                 <img
                   src={avatar.previewAssetUrl}
                   alt="Your saved avatar"
-                  className="size-full rounded-[1.25rem] object-contain"
+                  className="size-full object-contain"
                 />
-                <span className="absolute top-3 right-3 flex size-6 items-center justify-center rounded-full bg-ok text-white shadow-sm">
+                <span className="absolute top-2.5 right-2.5 flex size-5 items-center justify-center rounded-full bg-verdigris text-vellum">
                   <svg viewBox="0 0 16 16" className="size-3.5" fill="none" aria-hidden>
                     <path
                       d="m4 8.2 2.4 2.3L12 5"
@@ -242,25 +219,25 @@ export default function OnboardingAvatar() {
               </div>
             </div>
 
-            <p className="mono-tag text-[9px]! tracking-[0.24em]! text-ok">[ AVATAR ON FILE ]</p>
-            <h1 className="mt-3 text-[2.45rem] leading-[1.02] font-semibold tracking-[-0.045em] text-ink sm:text-[3rem]">
+            <p className="eyebrow">Avatar on file</p>
+            <h1 className="mt-5 text-[clamp(2.1rem,4vw,2.9rem)] leading-[1.03] font-medium tracking-[-0.035em] text-graphite">
               Welcome back
             </h1>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
+            <p className="mt-5 max-w-md text-[14px] leading-relaxed text-slate">
               Your saved avatar is ready for this fitting. You can enter the studio now or review
               its measurements first.
             </p>
 
-            <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line/75 bg-white/58 p-3.5 shadow-sm backdrop-blur-xl">
-              <span className="flex size-9 items-center justify-center rounded-full bg-mist text-ink-soft">
+            <div className="mt-8 flex items-center gap-4 border-t border-b border-hairline py-4">
+              <span className="flex size-8 items-center justify-center text-ash">
                 <svg viewBox="0 0 18 18" className="size-4" fill="none" aria-hidden>
                   <circle cx="9" cy="9" r="6.5" stroke="currentColor" />
                   <path d="M9 5.8v3.7l2.3 1.5" stroke="currentColor" strokeLinecap="round" />
                 </svg>
               </span>
               <div>
-                <p className="text-xs font-semibold text-ink">Avatar {avatar.avatarLabel}</p>
-                <p className="mt-0.5 text-[11px] text-muted">
+                <p className="eyebrow">Avatar {avatar.avatarLabel}</p>
+                <p className="mt-1.5 text-[12px] text-slate">
                   Updated{" "}
                   {new Date(avatar.updatedAt).toLocaleDateString(undefined, {
                     day: "numeric",
@@ -271,9 +248,9 @@ export default function OnboardingAvatar() {
               </div>
             </div>
 
-            <div className="mt-8 space-y-2.5">
+            <div className="mt-10 space-y-3">
               <Button
-                className="w-full shadow-sm active:scale-[0.985]"
+                className="w-full"
                 size="lg"
                 onClick={() => {
                   track("saved_avatar_selected", {
@@ -292,24 +269,15 @@ export default function OnboardingAvatar() {
                   />
                 </svg>
               </Button>
-              <Button
-                variant="outline"
-                className="w-full bg-white/75 active:scale-[0.985]"
-                size="lg"
-                onClick={goToMeasurements}
-              >
+              <Button variant="outline" className="w-full" size="lg" onClick={goToMeasurements}>
                 Review measurements
               </Button>
-              <Button
-                variant="ghost"
-                className="w-full active:scale-[0.985]"
-                onClick={startPairing}
-              >
+              <Button variant="ghost" className="w-full" onClick={startPairing}>
                 Create a new avatar
               </Button>
             </div>
 
-            <p className="mt-6 flex items-start gap-2 text-[11px] leading-relaxed text-faint">
+            <p className="mt-8 flex items-start gap-2.5 border-t border-hairline pt-6 text-[11px] leading-relaxed text-ash">
               <svg viewBox="0 0 16 16" className="mt-0.5 size-3.5 shrink-0" fill="none" aria-hidden>
                 <path
                   d="M8 1.75 13 3.6v3.55c0 3.1-1.85 5.7-5 7.1-3.15-1.4-5-4-5-7.1V3.6L8 1.75Z"
@@ -351,8 +319,8 @@ export default function OnboardingAvatar() {
         : "capture";
 
   return (
-    <main className="grid min-h-dvh grid-cols-1 bg-canvas lg:grid-cols-[minmax(28rem,1.05fr)_minmax(31rem,1fr)]">
-      <div className="relative hidden h-dvh lg:sticky lg:top-0 lg:block">
+    <main className="grid min-h-dvh grid-cols-1 bg-vellum lg:grid-cols-[minmax(28rem,1.05fr)_minmax(31rem,1fr)]">
+      <div className="relative hidden h-dvh border-r border-hairline lg:sticky lg:top-0 lg:block">
         <FabricPanel
           footer={`MIRRA_RUNTIME // SESSION: ${
             session?.captureSessionId.slice(-6).toUpperCase() ?? "——"
@@ -360,9 +328,9 @@ export default function OnboardingAvatar() {
         >
           <div className="flex h-full w-full flex-col">
             <div className="flex items-center justify-between gap-4">
-              <p className="mono-tag text-[9px]! text-[#777063]">MIRRA / PRIVATE CAPTURE</p>
-              <span className="flex items-center gap-1.5 rounded-full border border-white/80 bg-white/48 px-3 py-1.5 text-[10px] font-medium text-ink-soft backdrop-blur-xl">
-                <span className="size-1.5 rounded-full bg-ok" aria-hidden />
+              <p className="eyebrow">Mirra / Private capture</p>
+              <span className="eyebrow flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-verdigris" aria-hidden />
                 Secure session
               </span>
             </div>
@@ -384,7 +352,7 @@ export default function OnboardingAvatar() {
                   </motion.div>
                 ) : !session ? (
                   <motion.div key="qr-loading" className="w-full max-w-88">
-                    <Skeleton className="h-136 w-full rounded-4xl bg-white/45" />
+                    <Skeleton className="h-136 w-full" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -396,9 +364,9 @@ export default function OnboardingAvatar() {
                     }
                     animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                     transition={reduceMotion ? { duration: 0.16 } : MATERIAL_SPRING}
-                    className="flex w-full max-w-xs flex-col items-center rounded-4xl border border-white/80 bg-white/48 p-8 text-center shadow-frost backdrop-blur-2xl"
+                    className="flex w-full max-w-xs flex-col items-center border-t border-b border-hairline py-10 text-center"
                   >
-                    <span className="flex size-16 items-center justify-center rounded-full border border-ok/25 bg-ok/8 text-ok">
+                    <span className="flex size-12 items-center justify-center rounded-full border border-verdigris/40 text-verdigris">
                       <svg viewBox="0 0 24 24" className="size-7" fill="none" aria-hidden>
                         <path
                           d="m6.5 12.5 3.5 3.4 7.5-8"
@@ -409,28 +377,28 @@ export default function OnboardingAvatar() {
                         />
                       </svg>
                     </span>
-                    <p className="mono-tag mt-5 text-[9px]! text-ok">CAPTURE SECURED</p>
-                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    <p className="eyebrow mt-6">Capture secured</p>
+                    <p className="mt-3 text-[13px] leading-relaxed text-slate">
                       Your phone and this fitting room are synchronized.
                     </p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
-            <p className="pb-2 text-center text-[10px] leading-relaxed text-[#777063]">
+            <p className="pb-2 text-center text-[11px] leading-relaxed text-ash">
               One-time pairing · encrypted transfer · automatic expiry
             </p>
           </div>
         </FabricPanel>
       </div>
 
-      <section className="relative flex min-h-dvh flex-col bg-paper/78 backdrop-blur-xl">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/70 bg-paper/68 px-5 py-4 backdrop-blur-2xl sm:px-8 lg:px-10">
+      <section className="relative flex min-h-dvh flex-col bg-vellum">
+        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-hairline bg-vellum px-5 py-5 sm:px-8 lg:px-10">
           <div>
-            <p className="text-[13px] font-semibold tracking-[-0.01em] text-ink">Mirra</p>
-            <p className="mt-0.5 text-[10px] text-muted">Personal avatar setup</p>
+            <p className="text-[11px] tracking-[0.34em] text-graphite uppercase">Mirra</p>
+            <p className="mt-1.5 text-[11px] text-ash">Personal avatar setup</p>
           </div>
-          <span className="flex items-center gap-1.5 rounded-full border border-line/80 bg-white/72 px-3 py-1.5 text-[10px] font-medium text-ink-soft shadow-sm">
+          <span className="eyebrow flex items-center gap-2">
             <svg viewBox="0 0 16 16" className="size-3" fill="none" aria-hidden>
               <rect x="3.25" y="7" width="9.5" height="7" rx="2" stroke="currentColor" />
               <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" strokeLinecap="round" />
@@ -479,7 +447,7 @@ export default function OnboardingAvatar() {
             >
               {generationFailed ? (
                 <div className="flex w-full max-w-md flex-col items-center text-center">
-                  <span className="flex size-20 items-center justify-center rounded-[1.7rem] border border-error/20 bg-error/8 text-error shadow-sm">
+                  <span className="flex size-14 items-center justify-center border border-error/30 text-error">
                     <svg viewBox="0 0 24 24" className="size-7" fill="none" aria-hidden>
                       <path
                         d="M12 7.2v5.3m0 4v.1"
@@ -495,20 +463,18 @@ export default function OnboardingAvatar() {
                       />
                     </svg>
                   </span>
-                  <p className="mono-tag mt-7 text-[10px]! tracking-[0.28em]! text-error">
-                    GENERATION FAILED
-                  </p>
-                  <h1 className="mt-3 text-[2rem] leading-[1.05] font-semibold tracking-[-0.04em] text-ink">
+                  <p className="eyebrow mt-7 text-error!">Generation failed</p>
+                  <h1 className="mt-5 text-[clamp(1.75rem,3.4vw,2.25rem)] leading-[1.05] font-medium tracking-[-0.035em] text-graphite">
                     Let&apos;s try that again
                   </h1>
-                  <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
+                  <p className="mt-5 max-w-sm text-[13px] leading-relaxed text-slate">
                     {job?.failureReason ?? "The photographs couldn't be processed."} Retaking them
                     in brighter, even light usually solves it.
                   </p>
-                  <Button className="mt-8 min-w-52 active:scale-[0.985]" onClick={restart}>
+                  <Button className="mt-10 min-w-52" onClick={restart}>
                     Retake photographs
                   </Button>
-                  <p className="mt-5 text-[11px] text-faint">
+                  <p className="mt-6 text-[11px] text-ash">
                     The unsuccessful capture is not shown to anyone else.
                   </p>
                 </div>
@@ -523,11 +489,11 @@ export default function OnboardingAvatar() {
                   onCancel={() => sessionId && cancel.mutate(sessionId)}
                 />
               ) : (
-                <div className="w-full max-w-sm rounded-[1.6rem] border border-white bg-white/45 p-6 backdrop-blur-xl">
-                  <Skeleton className="h-7 w-40 rounded-lg" />
-                  <Skeleton className="mt-4 h-4 w-full rounded-lg" />
-                  <Skeleton className="mt-2 h-4 w-4/5 rounded-lg" />
-                  <Skeleton className="mt-7 h-28 w-full rounded-2xl" />
+                <div className="w-full max-w-sm">
+                  <Skeleton className="h-7 w-40" />
+                  <Skeleton className="mt-4 h-4 w-full" />
+                  <Skeleton className="mt-2 h-4 w-4/5" />
+                  <Skeleton className="mt-7 h-28 w-full" />
                 </div>
               )}
             </motion.div>

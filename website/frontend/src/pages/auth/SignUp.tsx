@@ -109,7 +109,7 @@ export default function SignUp() {
           minLength={8}
         />
 
-        <label className="flex cursor-pointer items-start gap-3 rounded-[14px] px-1 py-1 text-xs leading-relaxed text-muted">
+        <label className="flex cursor-pointer items-start gap-3 py-1 text-[12px] leading-relaxed text-slate">
           <input
             type="checkbox"
             checked={accepted}
@@ -135,11 +135,11 @@ export default function SignUp() {
         </Button>
       </form>
 
-      <p className="mt-5 text-center text-sm text-muted">
+      <p className="mt-8 border-t border-hairline pt-6 text-[13px] text-slate">
         Already have an account?{" "}
         <Link
           to={`/auth/login${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}
-          className="font-semibold text-blue hover:text-blue-dark"
+          className="font-medium text-graphite underline decoration-hairline-strong underline-offset-4 hover:decoration-graphite"
         >
           Log in
         </Link>

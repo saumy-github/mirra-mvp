@@ -53,7 +53,7 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
   const navBg = useTransform(
     scrollY,
     [0, 50],
-    ["rgba(248, 243, 242, 0)", "rgba(248, 243, 242, 0.88)"],
+    ["rgba(255, 255, 255, 0)", "rgba(255, 255, 255, 0.88)"],
   );
   const navBorder = useTransform(
     scrollY,
@@ -91,7 +91,7 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
   const navItems = [
     { label: "Home", to: "/", onClick: handleHomeClick },
     { label: "Product", to: "/#mirra-method", onClick: handleProductClick },
-    { label: "Meet the Team", to: "/meet-the-team", onClick: () => setIsMenuOpen(false) },
+    { label: "FAQ", to: "/faq", onClick: () => setIsMenuOpen(false) },
     { label: "Pricing", to: "/pricing", onClick: () => setIsMenuOpen(false) },
   ];
 
@@ -128,7 +128,7 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
               key={item.label}
               to={item.to}
               onClick={item.onClick}
-              className="text-sm font-medium transition-colors hover:text-wine"
+              className="text-sm font-medium transition-colors hover:text-orange"
             >
               {item.label}
             </Link>
@@ -150,7 +150,7 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
                   transition={
                     isPlaying ? { repeat: Infinity, duration: 0.5 + i * 0.1, delay: i * 0.1 } : {}
                   }
-                  className="w-0.5 rounded-full bg-wine"
+                  className="w-0.5 rounded-full bg-orange"
                 />
               ))}
             </div>
@@ -158,7 +158,7 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
 
           <button
             onClick={onJoinWaitlist}
-            className="group relative overflow-hidden rounded-full bg-black px-5 py-2 text-[11px] font-bold tracking-wider text-white uppercase transition-transform duration-300 hover:scale-105 hover:bg-black/80"
+            className="group relative overflow-hidden rounded-full bg-black px-5 py-2 text-[11px] font-bold tracking-wider text-white uppercase transition-transform duration-300 hover:scale-105 hover:bg-black hover:text-white"
           >
             <span className="relative z-10">Book a Demo</span>
           </button>
@@ -241,7 +241,7 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
                             ? { repeat: Infinity, duration: 0.5 + i * 0.1, delay: i * 0.1 }
                             : {}
                         }
-                        className="w-0.5 rounded-full bg-wine"
+                        className="w-0.5 rounded-full bg-orange"
                       />
                     ))}
                   </div>
@@ -277,7 +277,7 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
                     <Link
                       to={item.to}
                       onClick={item.onClick}
-                      className="px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:text-wine"
+                      className="px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:text-orange"
                     >
                       {item.label}
                     </Link>

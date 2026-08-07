@@ -12,26 +12,30 @@ export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "ref" | "ch
   children?: ReactNode;
 }
 
+/**
+ * One button, five weights, no elevation. Every variant is a rectangle with
+ * a 10px radius: either filled with ink or drawn with a hairline. Emphasis
+ * comes from contrast and size, never from a shadow or a gradient.
+ */
 const base =
-  "inline-flex touch-manipulation items-center justify-center gap-2 font-semibold select-none " +
-  "will-change-transform disabled:cursor-not-allowed disabled:opacity-45";
+  "inline-flex touch-manipulation items-center justify-center gap-2 font-medium select-none " +
+  "transition-colors duration-200 will-change-transform disabled:cursor-not-allowed disabled:opacity-40";
 
 const variants: Record<Variant, string> = {
-  primary:
-    "rounded-(--radius-control) bg-ink text-white shadow-[0_8px_24px_-12px_rgba(0,0,0,0.55)] hover:bg-black",
+  primary: "rounded-(--radius-control) bg-graphite text-vellum hover:bg-black",
   outline:
-    "rounded-(--radius-control) border border-line-strong bg-paper/80 text-ink shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] hover:border-ink/50 hover:bg-paper",
-  ghost: "rounded-(--radius-control) text-ink-soft hover:bg-mist/80 hover:text-ink",
+    "rounded-(--radius-control) border border-hairline-strong text-graphite hover:border-graphite",
+  ghost: "rounded-(--radius-control) text-slate hover:text-graphite",
   studio:
-    "rounded-(--radius-compact) border border-ink/80 bg-paper/90 text-ink uppercase tracking-widest text-xs hover:bg-mist",
+    "rounded-(--radius-compact) border border-hairline-strong text-graphite uppercase tracking-[0.14em] text-[11px] hover:border-graphite",
   "studio-dark":
-    "rounded-(--radius-compact) bg-ink text-white uppercase tracking-widest text-xs shadow-[0_8px_22px_-14px_rgba(0,0,0,0.8)] hover:bg-black",
+    "rounded-(--radius-compact) bg-graphite text-vellum uppercase tracking-[0.14em] text-[11px] hover:bg-black",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-10 px-4 text-[13px]",
-  md: "h-11 px-5 text-sm",
-  lg: "h-12.5 px-6 text-[15px]",
+  sm: "h-10 px-4 text-[12px]",
+  md: "h-12 px-5 text-[13px]",
+  lg: "h-14 px-7 text-[13px]",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -45,8 +49,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       whileHover={disabled || loading ? undefined : { y: -1 }}
-      whileTap={disabled || loading ? undefined : { scale: 0.97 }}
-      transition={{ type: "spring", stiffness: 520, damping: 34, mass: 0.65 }}
+      transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
       {...rest}
     >
       {loading && <Spinner className="size-4" />}

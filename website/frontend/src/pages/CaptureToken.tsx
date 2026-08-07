@@ -96,8 +96,8 @@ export default function CaptureToken() {
           <MirraMark size={25} className="text-ink" />
           <MirraWordmark className="text-[10px]! tracking-[0.26em]! text-ink-soft" />
         </div>
-        <span className="flex items-center gap-1.5 rounded-full border border-line bg-paper/75 px-3 py-1.5 text-[10px] font-semibold text-muted">
-          <span className="size-1.5 rounded-full bg-ok" />
+        <span className="eyebrow flex items-center gap-2">
+          <span className="size-1.5 rounded-full bg-verdigris" />
           Private session
         </span>
       </header>
@@ -124,7 +124,7 @@ export default function CaptureToken() {
   if (fatal) {
     return shell(
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <p className="mono-tag tracking-[0.28em]! text-error">LINK UNAVAILABLE</p>
+        <p className="eyebrow text-error!">Link unavailable</p>
         <p className="mt-4 text-sm leading-relaxed text-muted">{fatal}</p>
         <p className="mt-4 text-xs leading-relaxed text-faint">
           Return to your computer and generate a fresh QR code, then scan it again.
@@ -145,7 +145,7 @@ export default function CaptureToken() {
   if (session.state === "consent_pending") {
     return shell(
       <div className="flex flex-1 flex-col justify-center py-4">
-        <div className="mb-6 flex size-14 items-center justify-center rounded-card bg-ink text-white shadow-[0_12px_28px_-16px_rgba(0,0,0,0.55)]">
+        <div className="mb-8 flex size-12 items-center justify-center border border-hairline text-graphite">
           <svg
             width="27"
             height="27"
@@ -221,7 +221,7 @@ export default function CaptureToken() {
             {steps.map((captureStep, index) => (
               <span
                 key={captureStep.id}
-                className={`h-1.5 rounded-full transition-[width,background-color] ${
+                className={`h-px transition-[width,background-color] ${
                   index === stepIdx
                     ? "w-6 bg-ink"
                     : index < stepIdx
@@ -254,7 +254,7 @@ export default function CaptureToken() {
     const step = steps[stepIdx];
     return shell(
       <div className="flex flex-1 flex-col">
-        <p className="mono-tag mb-4 text-center">[ OPTIONAL VIEW ]</p>
+        <p className="eyebrow mb-5 text-center">Optional view</p>
         <CameraCapture
           step={step}
           busy={upload.isPending}
@@ -270,7 +270,7 @@ export default function CaptureToken() {
     return shell(
       <div className="flex flex-1 flex-col items-center justify-center text-center">
         <motion.div
-          className="relative flex size-24 items-center justify-center rounded-full bg-paper shadow-[0_18px_50px_-26px_rgba(0,0,0,0.35)]"
+          className="relative flex size-20 items-center justify-center rounded-full border border-hairline bg-vellum"
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.76 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={
@@ -298,7 +298,7 @@ export default function CaptureToken() {
           Your computer has been notified and is building your avatar now. You can close this tab —
           everything continues on the bigger screen.
         </p>
-        <p className="mt-6 rounded-[14px] border border-line bg-paper/75 px-4 py-3 text-xs leading-relaxed text-faint">
+        <p className="mt-8 border-t border-hairline pt-4 text-[11px] leading-relaxed text-ash">
           If the desktop screen doesn&apos;t move on within a minute, refresh it — your photos are
           safe and won&apos;t need retaking.
         </p>
@@ -309,7 +309,7 @@ export default function CaptureToken() {
   if (session.state === "cancelled" || session.state === "failed") {
     return shell(
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        <p className="mono-tag tracking-[0.28em]! text-error">SESSION CLOSED</p>
+        <p className="eyebrow text-error!">Session closed</p>
         <p className="mt-4 text-sm text-muted">
           This capture session ended. Generate a fresh QR code on your computer to start again.
         </p>
@@ -326,8 +326,8 @@ export default function CaptureToken() {
 
 function PrivacyPoint({ icon, title, body }: { icon: string; title: string; body: string }) {
   return (
-    <div className="flex gap-3 rounded-2xl border border-line bg-paper/78 p-3.5 shadow-[0_10px_28px_-24px_rgba(0,0,0,0.28)]">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-field bg-mist text-[10px] font-bold text-muted tabular-nums">
+    <div className="flex gap-4 py-4">
+      <span className="flex size-7 shrink-0 items-center justify-center border border-hairline text-[10px] font-medium text-ash tabular-nums">
         {icon}
       </span>
       <div>

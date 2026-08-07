@@ -33,13 +33,16 @@ export default function Privacy() {
   if (!account) return null;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       <section>
-        <h1 className="text-xl font-semibold tracking-tight">Consents</h1>
-        <p className="mt-1 text-sm text-muted">
+        <p className="eyebrow">Privacy</p>
+        <h1 className="mt-4 text-[clamp(1.5rem,2.6vw,1.9rem)] leading-tight font-medium tracking-[-0.03em] text-graphite">
+          Consents
+        </h1>
+        <p className="mt-3 max-w-lg text-[13px] leading-relaxed text-slate">
           Change these at any time — nothing here is required to keep shopping.
         </p>
-        <div className="mt-5 space-y-4">
+        <div className="rule-stack mt-8 border-t border-b border-hairline">
           <ConsentRow
             title="Remember my styling preferences"
             body="Keeps optional answers (like preferred fit) to shape your own studio. Never used for advertising."
@@ -49,9 +52,9 @@ export default function Privacy() {
         </div>
       </section>
 
-      <section className="border-t border-line pt-8">
-        <h2 className="text-base font-semibold">Your data</h2>
-        <ul className="mt-3 space-y-2 text-sm leading-relaxed text-ink-soft">
+      <section className="border-t border-hairline pt-8">
+        <h2 className="eyebrow">Your data</h2>
+        <ul className="mt-5 space-y-2.5 text-[13px] leading-relaxed text-slate">
           <li>
             · Source photographs are deleted after avatar generation and are never shown to anyone
             else.
@@ -59,33 +62,33 @@ export default function Privacy() {
           <li>· Photographs are never used to train models.</li>
           <li>· Your avatar and measurements can be deleted from the Avatar tab at any time.</li>
         </ul>
-        <p className="mt-3 text-xs text-faint">
+        <p className="mt-5 text-[11px] text-ash">
           [Privacy copy placeholder — subject to legal review.]
         </p>
       </section>
 
-      <section className="border-t border-line pt-8">
-        <h2 className="text-base font-semibold">Sessions</h2>
-        <p className="mt-2 text-sm text-muted">
+      <section className="border-t border-hairline pt-8">
+        <h2 className="eyebrow">Sessions</h2>
+        <p className="mt-5 max-w-lg text-[13px] leading-relaxed text-slate">
           Signing out ends this device&apos;s session. Phone pairing links expire on their own
           within five minutes and can be used only once.
         </p>
       </section>
 
-      <section className="border-t border-line pt-8">
-        <h2 className="text-base font-semibold text-error">Delete account</h2>
-        <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted">
+      <section className="border-t border-hairline pt-8">
+        <h2 className="eyebrow text-error!">Delete account</h2>
+        <p className="mt-5 max-w-lg text-[13px] leading-relaxed text-slate">
           Permanently removes your account, avatar, measurements and Signature Looks. This
           can&apos;t be undone.
         </p>
         {confirmingDelete ? (
-          <div className="mt-4 flex gap-2">
+          <div className="mt-6 flex gap-3">
             <Button variant="outline" size="sm" onClick={() => setConfirmingDelete(false)}>
               Keep my account
             </Button>
             <Button
               size="sm"
-              className="bg-error!"
+              className="bg-error! text-vellum!"
               onClick={() => deleteAccount.mutate()}
               loading={deleteAccount.isPending}
             >
@@ -96,7 +99,7 @@ export default function Privacy() {
           <Button
             variant="outline"
             size="sm"
-            className="mt-4"
+            className="mt-6"
             onClick={() => setConfirmingDelete(true)}
           >
             Delete account…
@@ -119,16 +122,16 @@ function ConsentRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-4 rounded-[14px] border border-line bg-surface p-4">
+    <label className="flex cursor-pointer items-start gap-4 py-5">
       <input
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-1 size-4 accent-ink"
+        className="mt-0.5 size-4 shrink-0 accent-graphite"
       />
       <span>
-        <span className="block text-sm font-medium text-ink">{title}</span>
-        <span className="mt-1 block text-xs leading-relaxed text-muted">{body}</span>
+        <span className="block text-[14px] font-medium text-graphite">{title}</span>
+        <span className="mt-1.5 block text-[12px] leading-relaxed text-slate">{body}</span>
       </span>
     </label>
   );

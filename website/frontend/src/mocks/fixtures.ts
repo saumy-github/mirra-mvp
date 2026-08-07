@@ -1,5 +1,5 @@
 import type { MeasurementField, PublicProduct } from "@/integrations/mirra-api/types";
-import { swatchDataUri } from "./placeholder";
+import { garmentThumbDataUri } from "./placeholder";
 
 /**
  * Sample catalogue for local dev / the pilot demo. Not a line-for-line port
@@ -118,7 +118,7 @@ function buildProduct(spec: GarmentSpec): PublicProduct {
     taxNote: null,
     price: spec.price,
     currency: "INR",
-    thumbnailUrl: swatchDataUri(spec.colors[0].hex),
+    thumbnailUrl: garmentThumbDataUri(spec.colors[0].hex, spec.garmentCategory),
     publicationStatus: "published",
     tryOnEligible,
     sizeChart: null,
@@ -132,7 +132,9 @@ function buildProduct(spec: GarmentSpec): PublicProduct {
         currency: "INR",
         inStock: !(spec.id === "denim-straight-indigo" && size === "XS"),
         tryOnEligible,
-        garmentAssetUrl: tryOnEligible ? swatchDataUri(color.hex, spec.name) : null,
+        garmentAssetUrl: tryOnEligible
+          ? garmentThumbDataUri(color.hex, spec.garmentCategory)
+          : null,
         assetStatus: tryOnEligible ? "ready" : "processing",
       })),
     ),

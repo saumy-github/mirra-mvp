@@ -87,23 +87,22 @@ export function GenerationProgress({ job }: { job: AvatarJob }) {
         aria-label={job.stageLabel}
       >
         <motion.span
-          className="absolute inset-0 rounded-[2.6rem] border border-white bg-white/48 shadow-[0_25px_70px_-45px_rgba(33,31,28,.65)] backdrop-blur-2xl"
+          className="absolute inset-0 border border-hairline bg-bone"
           animate={reduceMotion ? undefined : { rotate: [0, 1.5, 0] }}
           transition={
             reduceMotion ? undefined : { duration: 5.4, repeat: Infinity, ease: "easeInOut" }
           }
         />
-        <span className="absolute inset-3 rounded-[2.15rem] border border-line/80 bg-linear-to-br from-white/80 to-mist/45" />
 
         {!reduceMotion && (
           <>
             <motion.span
-              className="absolute inset-[1.35rem] rounded-full border border-line-strong/80 border-t-ink"
+              className="absolute inset-[1.35rem] rounded-full border border-hairline border-t-graphite"
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 4.8, ease: "linear" }}
             />
             <motion.span
-              className="absolute inset-[2.15rem] rounded-full border border-line border-b-ink-soft"
+              className="absolute inset-[2.15rem] rounded-full border border-hairline border-b-slate"
               animate={{ rotate: -360 }}
               transition={{ repeat: Infinity, duration: 6.4, ease: "linear" }}
             />
@@ -139,9 +138,7 @@ export function GenerationProgress({ job }: { job: AvatarJob }) {
         </motion.svg>
       </div>
 
-      <p className="mono-tag mt-7 text-[9px]! tracking-[0.25em]! text-ink-soft">
-        [ BUILDING YOUR AVATAR ]
-      </p>
+      <p className="eyebrow mt-7">[ BUILDING YOUR AVATAR ]</p>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.h1
           key={job.state}
@@ -221,13 +218,11 @@ export function GenerationProgress({ job }: { job: AvatarJob }) {
                   : { opacity: 0, x: -18, scale: 0.98, filter: "blur(7px)" }
               }
               transition={reduceMotion ? { duration: 0.16 } : MATERIAL_SPRING}
-              className="w-full rounded-[1.6rem] border border-white/80 bg-white/58 p-5 text-left shadow-[0_22px_60px_-46px_rgba(33,31,28,.55)] backdrop-blur-xl sm:p-6"
+              className="w-full border-t border-b border-hairline py-6 text-left"
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="mono-tag text-[9px]! tracking-[0.2em]! text-ink-soft">
-                  OPTIONAL PREFERENCE
-                </p>
-                <p className="font-mono text-[10px] text-faint">
+                <p className="eyebrow">OPTIONAL PREFERENCE</p>
+                <p className="text-[10px] tracking-[0.1em] text-ash">
                   {questionIdx + 1} / {QUESTIONS.length}
                 </p>
               </div>
@@ -244,7 +239,7 @@ export function GenerationProgress({ job }: { job: AvatarJob }) {
                     onClick={() => answer(question.id, opt)}
                     whileTap={reduceMotion ? undefined : { scale: 0.97 }}
                     transition={MATERIAL_SPRING}
-                    className="min-h-11 rounded-xl border border-line-strong bg-white/65 px-4 py-2 text-sm font-medium text-ink-soft shadow-sm hover:border-ink hover:text-ink"
+                    className="lift-1 min-h-11 rounded-panel-sm border border-hairline-strong px-4 py-2 text-[11px] font-medium tracking-[0.14em] text-slate uppercase hover:border-graphite hover:text-graphite"
                   >
                     {opt}
                   </motion.button>
@@ -264,7 +259,7 @@ export function GenerationProgress({ job }: { job: AvatarJob }) {
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={reduceMotion ? { duration: 0.16 } : MATERIAL_SPRING}
-              className="flex items-center justify-center gap-2 rounded-2xl border border-line/70 bg-white/45 px-4 py-3 text-xs text-muted backdrop-blur-lg"
+              className="flex items-center justify-center gap-2.5 border-t border-hairline pt-4 text-[11px] text-ash"
             >
               <svg viewBox="0 0 18 18" className="size-4 text-ok" fill="none" aria-hidden>
                 <circle cx="9" cy="9" r="7" stroke="currentColor" />

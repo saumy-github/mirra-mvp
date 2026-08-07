@@ -194,3 +194,51 @@ Separately: the `editor.defaultFormatter": "esbenp.prettier-vscode"` warning in 
 ### One more stale-panel repeat, for the same `max-w-320`/`max-w-7xl` fix
 
 A later screenshot showed `Hero.tsx` and `LiveLedger.tsx` still flagging `max-w-320` → `max-w-7xl`, at the exact lines already fixed above. Re-grepped both files on disk (`max-w-320` returns zero matches anywhere in `src/`; both lines already read `max-w-7xl`) and re-pulled live `mcp__ide__getDiagnostics` for `Hero.tsx`, which still reported the old message — confirming this is the editor's diagnostic cache, not the file content. Root cause: these particular edits were made by an external script (not through the editor), and Tailwind IntelliSense doesn't always invalidate its own diagnostics when a file changes outside VS Code's edit pipeline. No code change was possible or needed — nothing to fix. Clears with **Ctrl+Shift+P → "Reload Window"** (or, more surgically, **"Developer: Restart Extension Host"**).
+
+---
+
+## Re-sync with `Mirra-landing-page` — 2026-08-03
+
+The original port was taken from `Mirra-landing-page` commit `2edb837` (18 Jul). By 3 Aug that repo had moved on — two commits (31 Jul) plus a large body of **uncommitted working-tree changes** — and was declared the source of truth. This section records the catch-up.
+
+### The one genuine port bug
+
+`Mirra-landing-page/src/index.css` defines 18 custom classes. The original port merged the *theme tokens* into `styles/globals.css` but dropped **every class**; they existed in no CSS file in the port, while the components still referenced them. `tsc` and `eslint` both pass on this, which is why it survived — it's purely a runtime/visual failure.
+
+Restored into `globals.css` under a marked section: `font-instrument`, `mirra-text-reveal*` (7), `mirra-char-reveal*` (3), `mirra-kinetic-text*` (3), `waitlist-pill`, `waitlist-input`, `waitlist-action-icon`, `liquid-metal-btn`.
+
+Visible symptoms before the fix — `KineticText` rendered every label twice (the hover-clone row wasn't grid-stacked or clipped); the wipe reveal was invisible (the overlay supplies both `position:absolute` and its background colour); multi-line headings didn't stack; `lift`/`chars` had no mask; centred headings didn't centre; the waitlist modal was entirely unstyled.
+
+### Palette: wine → orange, applied site-wide
+
+Landing rebranded (`--color-wine: #6b1f2a` → `--color-orange: #ff6600`, plus warm reshades of bg/surface/ink/muted/line/silver). Deliberate call: applied **globally**, not scoped to the marketing routes, so the app surface (studio/onboarding/auth/profile) shares one palette. Landing's values now win on every colliding token name — the reverse of the original merge rule documented above. App-only tokens landing has no opinion on (`canvas`, `paper`, `ink-soft`, `faint`, `line-strong`, `mist`, `blue`, `error`, `ok`) keep their user-side values. The `prefers-contrast: more` overrides were re-derived against the warm base instead of the old cool greys.
+
+### Structural catch-up
+
+| Change | Action |
+|---|---|
+| `FAQ.tsx` added upstream | ported to `pages/FAQ.tsx`, routed at `/faq` |
+| `MeetTheTeam.tsx` deleted upstream | deleted `pages/Team.tsx` + the `/meet-the-team` route |
+| `Closure.tsx` deleted upstream | deleted, and removed from `Home.tsx` |
+| `MirrorCTA` cut to the parallax wordmark | replaced; it no longer takes `onBookDemo`, so the layout stops passing it |
+| `LiveLedger` dropped from Home | removed from `Home.tsx`; file kept, matching upstream |
+| Header nav `Meet the Team` → `FAQ` | came across with the component copy |
+
+`LiveLedger.tsx` and `LaurelPortrait.tsx` are now present but unrendered — same as upstream.
+
+### Port-side changes deliberately kept
+
+Copies were taken wholesale from landing, then three rendering-identical improvements were re-applied because reverting them would reintroduce lint errors this repo enforces:
+
+- `ProblemTeardown.tsx` — real prop types on `FlashText`/`PlaceholderTile` and `gsap.utils.toArray<Element>` instead of `any` (4 × `no-explicit-any`).
+- `RoiCalculator.tsx` — `.range-track-sm`/`.range-thumb-sm` instead of the 400-character arbitrary-variant chain (see the `cssConflict` section above).
+- `LiquidMetal.tsx` — the typed `ShaderMountUniforms` version, not re-copied at all; landing's still uses `any` casts and a `destroy`/`dispose` fallback chain.
+- `LiveLedger.tsx` — unused `HelpCircle` import dropped again.
+
+Also kept: `WaitlistModal`'s "Get early access to Mirra" heading block, which the port added and landing has never had. Additive, not a conflict — flagged rather than deleted.
+
+### Known cosmetic leftover
+
+`LiveLedger.tsx` still carries `shadow-[0_22px_60px_rgba(107,31,42,0.24)]` — a wine-tinted shadow that landing's own rebrand missed. Faithful to the source of truth, and the component is unrendered.
+
+Verified after: `tsc --noEmit`, `eslint .`, `prettier --write`, `vite build` all clean.

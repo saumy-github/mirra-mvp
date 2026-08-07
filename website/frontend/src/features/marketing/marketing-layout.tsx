@@ -39,7 +39,7 @@ function useSmoothScroll() {
 }
 
 /**
- * Wraps the marketing pages (Home, Pricing, Team) ported from
+ * Wraps the marketing pages (Home, Pricing, FAQ) ported from
  * Mirra-landing-page — header, footer CTA, custom cursor, waitlist modal,
  * and smooth scroll, all scoped to this route subtree via <Outlet context>.
  * Not used by any /app route.
@@ -73,7 +73,7 @@ export default function MarketingLayout() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-bg text-ink selection:bg-wine/20">
+    <div className="min-h-screen overflow-x-clip bg-bg text-ink selection:bg-orange/20">
       <audio
         ref={audioRef}
         src="/leberch-ethereal-cinematic-512569.mp3"
@@ -90,7 +90,7 @@ export default function MarketingLayout() {
 
       <Outlet context={{ onBookDemo: handleBookDemo } satisfies MarketingContext} />
 
-      <MirrorCTA onBookDemo={handleBookDemo} />
+      <MirrorCTA />
     </div>
   );
 }

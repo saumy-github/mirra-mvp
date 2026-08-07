@@ -20,18 +20,14 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
 
   return (
     <div className="w-full">
-      <label
-        htmlFor={fieldId}
-        className={hideLabel ? "sr-only" : "mb-2 block text-[13px] font-semibold text-ink-soft"}
-      >
+      <label htmlFor={fieldId} className={hideLabel ? "sr-only" : "eyebrow mb-2.5 block"}>
         {label}
       </label>
+      {/* A ruled line, not a box: the field is the baseline it sits on. */}
       <div
         className={
-          "group relative rounded-[14px] border bg-paper/90 shadow-[0_1px_0_rgba(255,255,255,0.9)_inset] " +
-          "transition-[border-color,box-shadow,background-color] duration-200 focus-within:border-blue/65 " +
-          "focus-within:bg-paper focus-within:shadow-[0_0_0_4px_rgba(0,113,227,0.1)] " +
-          (error ? "border-error" : "border-line-strong")
+          "group relative border-b transition-colors duration-200 focus-within:border-graphite " +
+          (error ? "border-error" : "border-hairline-strong")
         }
       >
         <input
@@ -41,9 +37,9 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           className={
-            "h-12.5 w-full rounded-[14px] border-0 bg-transparent px-4 text-base text-ink " +
-            "placeholder:text-faint focus:outline-none " +
-            (isPassword ? "pr-11 " : "") +
+            "h-12 w-full border-0 bg-transparent px-0 text-[15px] text-graphite " +
+            "placeholder:text-ash focus:outline-none " +
+            (isPassword ? "pr-10 " : "") +
             className
           }
           {...rest}
@@ -53,7 +49,7 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
             type="button"
             onClick={() => setRevealed((v) => !v)}
             aria-label={revealed ? "Hide password" : "Show password"}
-            className="pressable absolute top-1/2 right-2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted hover:bg-mist hover:text-ink"
+            className="absolute top-1/2 right-0 flex size-9 -translate-y-1/2 items-center justify-center text-ash transition-colors hover:text-graphite"
             tabIndex={-1}
           >
             <EyeIcon off={!revealed} />
@@ -61,12 +57,12 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
         )}
       </div>
       {hint && !error && (
-        <p id={`${fieldId}-hint`} className="mt-1.5 text-xs text-muted">
+        <p id={`${fieldId}-hint`} className="mt-2 text-[11px] text-ash">
           {hint}
         </p>
       )}
       {error && (
-        <p id={`${fieldId}-error`} role="alert" className="mt-1.5 text-xs text-error">
+        <p id={`${fieldId}-error`} role="alert" className="mt-2 text-[11px] text-error">
           {error}
         </p>
       )}

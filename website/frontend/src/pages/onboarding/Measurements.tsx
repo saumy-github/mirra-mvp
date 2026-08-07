@@ -73,7 +73,7 @@ export default function OnboardingMeasurements() {
 
   if (isLoading || accountLoading) {
     return (
-      <main className="grid min-h-dvh place-items-center">
+      <main className="grid min-h-dvh place-items-center bg-canvas">
         <Skeleton className="h-64 w-80" />
       </main>
     );
@@ -81,9 +81,9 @@ export default function OnboardingMeasurements() {
 
   if (!avatar) {
     return (
-      <main className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
-        <p className="mono-tag">[ NO AVATAR YET ]</p>
-        <p className="mt-4 max-w-sm text-sm text-muted">
+      <main className="flex min-h-dvh flex-col items-center justify-center bg-canvas px-6 text-center">
+        <p className="eyebrow">No avatar yet</p>
+        <p className="mt-5 max-w-sm text-[13px] leading-relaxed text-slate">
           There&apos;s no avatar on this account yet — a quick photo session creates one.
         </p>
         <Button className="mt-8" onClick={() => navigate("/onboarding/avatar")}>
@@ -94,11 +94,11 @@ export default function OnboardingMeasurements() {
   }
 
   return (
-    <main className="min-h-dvh bg-canvas lg:grid lg:h-dvh lg:grid-cols-[minmax(0,1.12fr)_minmax(460px,0.88fr)] lg:overflow-hidden">
+    <main className="min-h-dvh bg-vellum lg:grid lg:h-dvh lg:grid-cols-[minmax(0,1.05fr)_minmax(29rem,0.95fr)] lg:overflow-hidden">
       {/* Avatar preview */}
-      <div className="p-2 lg:p-3 lg:pr-0">
+      <div className="border-b border-hairline lg:border-r lg:border-b-0">
         <motion.section
-          className="relative flex h-full min-h-[48svh] items-center justify-center overflow-hidden rounded-[28px] border border-white/80 bg-surface shadow-[0_24px_70px_-44px_rgba(0,0,0,0.28)]"
+          className="relative flex h-full min-h-[48svh] items-center justify-center overflow-hidden bg-bone"
           initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -18, scale: 0.99 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={
@@ -107,38 +107,22 @@ export default function OnboardingMeasurements() {
               : { type: "spring", stiffness: 260, damping: 31, mass: 0.95 }
           }
         >
+          {/* The room the figure stands in: a ruled bone field, nothing more. */}
           <div
             aria-hidden
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 55%, rgba(226,210,207,0.68), transparent 36%), radial-gradient(circle at 20% 12%, rgba(255,255,255,0.95), transparent 32%), linear-gradient(145deg, #fbfbfc 0%, #f2f2f5 100%)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-60"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, rgba(29,29,31,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(29,29,31,0.035) 1px, transparent 1px)",
-              backgroundSize: "64px 64px",
-              maskImage: "radial-gradient(circle at center, black, transparent 74%)",
-            }}
-          />
-
-          <div className="glass absolute top-4 left-4 z-10 flex items-center gap-2 rounded-full px-3.5 py-2 sm:top-6 sm:left-6">
-            <span
-              className="flex size-5 items-center justify-center rounded-full bg-ok/12 text-ok"
-              aria-hidden
-            >
-              ✓
-            </span>
-            <span className="text-xs font-semibold text-ink-soft">Profile synchronized</span>
+            className="pointer-events-none absolute inset-0 grid grid-cols-4 grid-rows-6"
+          >
+            {Array.from({ length: 24 }).map((_, index) => (
+              <div key={index} className="border-t border-l border-hairline/70" />
+            ))}
           </div>
 
-          <div className="absolute top-4 right-4 z-10 rounded-full bg-ink/6 px-3 py-2 text-[11px] font-medium text-muted sm:top-6 sm:right-6">
-            Step 3 of 3
+          <div className="absolute top-5 left-5 z-10 flex items-center gap-2.5 sm:top-7 sm:left-7">
+            <span aria-hidden className="size-1.5 rounded-full bg-verdigris" />
+            <span className="eyebrow">Profile synchronized</span>
           </div>
+
+          <p className="eyebrow absolute top-5 right-5 z-10 sm:top-7 sm:right-7">Step 3 / 3</p>
 
           <motion.div
             className="relative z-1"
@@ -159,18 +143,18 @@ export default function OnboardingMeasurements() {
             <AvatarFigure
               previewAssetUrl={avatar.previewAssetUrl}
               layers={[]}
-              className="my-12 h-[42svh] min-h-75 lg:h-[68vh] lg:min-h-110"
+              className="my-12 h-[42svh] min-h-75 lg:h-[64vh] lg:min-h-110"
               alt="Your generated avatar, wearing base layers only"
             />
           </motion.div>
 
-          <div className="glass absolute inset-x-4 bottom-4 z-10 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-[11px] text-muted sm:inset-x-6 sm:bottom-6">
-            <span className="font-medium text-ink-soft">Avatar {avatar.avatarLabel}</span>
-            <span className="hidden sm:inline">
-              Adjustments change fit only—not your appearance.
+          <div className="absolute inset-x-5 bottom-5 z-10 flex items-center justify-between gap-4 border-t border-hairline pt-4 sm:inset-x-7 sm:bottom-7">
+            <span className="eyebrow">Avatar {avatar.avatarLabel}</span>
+            <span className="hidden text-[11px] text-ash sm:inline">
+              Adjustments change fit only — not your appearance.
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-ok" />
+            <span className="eyebrow flex items-center gap-2">
+              <span aria-hidden className="size-1.5 rounded-full bg-verdigris" />
               Ready
             </span>
           </div>
@@ -179,7 +163,7 @@ export default function OnboardingMeasurements() {
 
       {/* Metrics panel */}
       <motion.section
-        className="rail-scroll flex flex-col px-5 py-8 sm:px-8 lg:overflow-hidden lg:px-10 lg:py-10 xl:px-14"
+        className="quiet-scroll flex flex-col px-5 py-10 sm:px-8 lg:overflow-y-auto lg:px-12 lg:py-12"
         initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 18 }}
         animate={{ opacity: 1, x: 0 }}
         transition={
@@ -197,41 +181,32 @@ export default function OnboardingMeasurements() {
         <div className="mx-auto flex w-full max-w-155 flex-1 flex-col">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div className="max-w-md">
-              <p className="mono-tag tracking-widest!">Configure Studio Metrics</p>
-              <h1 className="mt-2 text-[clamp(2rem,4vw,2.75rem)] leading-[1.04] font-semibold tracking-[-0.045em]">
+              <p className="eyebrow">Configure studio metrics</p>
+              <h1 className="mt-5 text-[clamp(1.9rem,3.4vw,2.5rem)] leading-[1.05] font-medium tracking-[-0.035em] text-graphite">
                 Make the fit yours.
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-muted">
+              <p className="mt-4 text-[13px] leading-relaxed text-slate">
                 These are estimates from your photos. Fine-tune anything that looks off—you can
                 always reset it later.
               </p>
             </div>
 
-            <div
-              className="relative flex rounded-full border border-line bg-paper p-1 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset]"
-              role="group"
-              aria-label="Units"
-            >
+            <div className="relative flex shrink-0 gap-5" role="group" aria-label="Units">
               {(["metric", "imperial"] as const).map((u) => (
                 <button
                   key={u}
                   type="button"
                   onClick={() => setUnits(u)}
                   aria-pressed={units === u}
-                  className={`relative z-0 min-h-9 rounded-full px-3.5 text-xs font-semibold capitalize ${
-                    units === u ? "text-white" : "text-muted hover:text-ink"
+                  className={`relative z-0 min-h-9 text-[10px] tracking-[0.14em] uppercase transition-colors ${
+                    units === u ? "text-graphite" : "text-ash hover:text-graphite"
                   }`}
                 >
                   {units === u && (
                     <motion.span
                       layoutId="measurement-unit"
-                      className="absolute inset-0 -z-10 rounded-full bg-ink"
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 38,
-                        mass: 0.7,
-                      }}
+                      className="absolute inset-x-0 -bottom-0.5 h-px bg-graphite"
+                      transition={{ duration: 0.28, ease: [0.22, 0.8, 0.24, 1] }}
                     />
                   )}
                   {u}
@@ -240,8 +215,8 @@ export default function OnboardingMeasurements() {
             </div>
           </div>
 
-          <div className="rail-scroll mt-7 flex-1 rounded-3xl border border-line bg-paper/80 px-5 shadow-[0_16px_44px_-34px_rgba(0,0,0,0.3)] sm:px-6 lg:max-h-[50vh] lg:flex-none lg:overflow-y-auto">
-            <div className="divide-y divide-line">
+          <div className="mt-10 flex-1 border-t border-b border-hairline lg:flex-none">
+            <div className="rule-stack">
               {fields.map((field) => (
                 <MeasurementRow
                   key={field.key}
@@ -254,48 +229,43 @@ export default function OnboardingMeasurements() {
           </div>
 
           {save.error && (
-            <p role="alert" className="mt-3 rounded-xl bg-error/8 px-4 py-3 text-sm text-error">
+            <p role="alert" className="mt-4 border-b border-error/30 pb-3 text-[12px] text-error">
               {save.error instanceof Error
                 ? save.error.message
                 : "Saving didn't complete — please retry."}
             </p>
           )}
 
-          <div className="mt-6 space-y-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          <div className="mt-10 space-y-6 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
             <Button
               type="button"
               size="lg"
-              className="w-full justify-between px-5!"
+              className="w-full justify-between px-6!"
               onClick={() => save.mutate({ continueAfter: true })}
               loading={save.isPending}
             >
-              <span>Initialize studio engine</span>
-              <span
-                className="flex size-7 items-center justify-center rounded-full bg-white/12"
-                aria-hidden
-              >
-                →
-              </span>
+              <span className="tracking-[0.02em]">Initialize studio engine</span>
+              <span aria-hidden>→</span>
             </Button>
 
-            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium">
+            <div className="flex flex-wrap items-center gap-x-7 gap-y-2 text-[10px] tracking-[0.14em] uppercase">
               <button
                 type="button"
-                className="min-h-9 text-muted hover:text-ink"
+                className="min-h-9 text-ash transition-colors hover:text-graphite"
                 onClick={() => navigate("/onboarding/avatar")}
               >
                 Retake photographs
               </button>
               <button
                 type="button"
-                className="min-h-9 text-muted hover:text-ink"
+                className="min-h-9 text-ash transition-colors hover:text-graphite"
                 onClick={() => save.mutate({ continueAfter: false, reset: true })}
               >
                 Reset estimated values
               </button>
               <button
                 type="button"
-                className="min-h-9 text-blue hover:text-blue-dark disabled:opacity-40"
+                className="min-h-9 text-graphite underline underline-offset-4 disabled:opacity-40"
                 disabled={Object.keys(draft).length === 0 || save.isPending}
                 onClick={() => save.mutate({ continueAfter: false })}
               >

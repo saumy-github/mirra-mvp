@@ -60,9 +60,10 @@ export class MirraHttpClient {
     body?: unknown,
   ): Promise<T> {
     return this.send(method, path, schema, () => ({
-      headers: (body !== undefined
-        ? { "Content-Type": "application/json" }
-        : {}) as Record<string, string>,
+      headers: (body !== undefined ? { "Content-Type": "application/json" } : {}) as Record<
+        string,
+        string
+      >,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     }));
   }

@@ -2,13 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { StudioHeader } from "@/features/studio/components/studio-header";
-import { ProductRail } from "@/features/studio/components/product-rail";
-import { AvatarStage } from "@/features/studio/components/avatar-stage";
-import { ProductPanel } from "@/features/studio/components/product-panel";
-import { HangerBar } from "@/features/studio/components/hanger-bar";
+import { MirraHeader } from "@/features/studio/components/mirra-header";
+import { CollectionRail } from "@/features/studio/components/collection-rail";
+import { TryOnStage } from "@/features/studio/components/try-on-stage";
+import { ProductDecisionPanel } from "@/features/studio/components/product-decision-panel";
+import { HangerTray } from "@/features/studio/components/hanger-tray";
 import { CartDrawer } from "@/features/studio/components/cart-drawer";
 import { SignatureLookDialog } from "@/features/studio/components/signature-look-dialog";
+import { lookTotal, type Product } from "@/features/studio/types";
 import { Skeleton, Spinner } from "@/components/ui/misc";
 import { useAvatarProfile, useAccount } from "@/hooks/use-shopper";
 import { useSignatureLookMutations, useSignatureLooks } from "@/hooks/use-signature-looks";
@@ -25,11 +26,14 @@ import { track } from "@/lib/analytics";
 import { useStudioStore } from "@/stores/studio-store";
 
 /**
- * The Mirra studio. Avatar left, garment panel right, Hanger + Signature
- * Looks below. All data flows through the runtime provider. Adapted from
- * user-side's tenant/Shopify-embedded version — cart handoff to a merchant
- * is replaced with a local cart (no real checkout backend exists yet for
- * this pilot; "Checkout" surfaces an honest toast instead of a dead link).
+ * The Mirra fitting room: collection rail, try-on stage, decision panel, and
+ * The Hanger along the bottom. All data flows through the runtime provider —
+ * the try-on engine itself sits behind `useTryOn`, and the stage only ever
+ * renders what that engine hands back.
+ *
+ * Cart handoff to a merchant is replaced with a local cart (no real checkout
+ * backend exists yet for this pilot; "Checkout" surfaces an honest toast
+ * instead of a dead link).
  */
 export default function Studio() {
   const navigate = useNavigate();
@@ -48,7 +52,6 @@ export default function Studio() {
   const [lookDialogOpen, setLookDialogOpen] = useState(false);
   const [lookNotice, setLookNotice] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cartNotice, setCartNotice] = useState<string | null>(null);
   const [cartError, setCartError] = useState<string | null>(null);
 
   // ── Guards ──
@@ -177,7 +180,6 @@ export default function Studio() {
 
   // ── Handlers ──
   const onSelectProduct = useCallback((product: PublicProduct) => {
-    setCartNotice(null);
     const s = useStudioStore.getState();
     s.selectProduct(product.publicProductId);
     // Preserve size where compatible, otherwise fall to first in-stock.
@@ -254,6 +256,10 @@ export default function Studio() {
     },
     [tryOn, activeProduct, activeVariant, qc],
   );
+
+  const onRemoveEntry = useCallback((entry: HangerEntry) => {
+    useStudioStore.getState().removeHanger(entry.id);
+  }, []);
 
   const onApplyLook = useCallback(
     async (look: SignatureLook) => {
@@ -365,6 +371,26 @@ export default function Studio() {
   }, [looks, avatar, store.tryOnSessionId, onApplyLook]);
 
   // ── Cart (local only — no checkout backend exists yet for this pilot) ──
+  const addProductToCart = useCallback((product: PublicProduct, size?: string | null) => {
+    const variant =
+      product.variants.find((v) => v.size === size && v.inStock) ??
+      product.variants.find((v) => v.inStock) ??
+      product.variants[0];
+    if (!variant) return null;
+    useStudioStore.getState().addCartItem({
+      productPublicId: product.publicProductId,
+      variantPublicId: variant.publicVariantId,
+      productName: product.name,
+      thumbnailUrl: product.thumbnailUrl,
+      colorName: variant.colorName,
+      size: variant.size,
+      unitPrice: variant.price,
+      currency: variant.currency,
+      quantity: 1,
+    });
+    return variant;
+  }, []);
+
   const onAddToCart = useCallback(() => {
     if (!activeProduct || !activeVariant) return;
     setCartError(null);
@@ -379,7 +405,6 @@ export default function Studio() {
       currency: activeVariant.currency,
       quantity: 1,
     });
-    setCartNotice(`${activeProduct.name} was added to your cart.`);
     toast.success(`${activeProduct.name} added to your cart.`);
     track("add_to_cart_clicked", {
       productPublicId: activeProduct.publicProductId,
@@ -387,6 +412,59 @@ export default function Studio() {
       authenticated: true,
     });
   }, [activeProduct, activeVariant]);
+
+  /** Add a suggested piece straight to the bag without leaving the stage. */
+  const onAddSuggestion = useCallback(
+    (product: PublicProduct) => {
+      setCartError(null);
+      const variant = addProductToCart(product);
+      if (!variant) return;
+      toast.success(`${product.name} added to your cart.`);
+      track("add_to_cart_clicked", {
+        productPublicId: product.publicProductId,
+        variantPublicId: variant.publicVariantId,
+        authenticated: true,
+      });
+    },
+    [addProductToCart],
+  );
+
+  /**
+   * Buy every garment currently on the figure, not just the selected one.
+   * Each layer is resolved back to its catalogue product so the bag line
+   * carries a real colour, size and price rather than the layer's summary.
+   */
+  const onBuyTheLook = useCallback(async () => {
+    const worn = Object.values(useStudioStore.getState().layers).filter(
+      (l): l is OutfitLayer => !!l,
+    );
+    if (worn.length === 0) return;
+    setCartError(null);
+
+    let added = 0;
+    for (const layer of worn) {
+      try {
+        const product = await qc.fetchQuery({
+          queryKey: ["product", layer.productPublicId],
+          queryFn: () => getRuntimeProvider().getProduct(layer.productPublicId),
+          staleTime: 60_000,
+        });
+        if (addProductToCart(product, layer.size)) added += 1;
+      } catch {
+        // Piece has left the catalogue — the rest of the look still goes in.
+      }
+    }
+
+    if (added === 0) {
+      toast.error("None of these pieces are available to buy right now.");
+      return;
+    }
+    toast.success(`The look — ${added} ${added === 1 ? "piece" : "pieces"} — added to your cart.`);
+    track("add_to_cart_clicked", {
+      productPublicId: activeProduct?.publicProductId,
+      authenticated: true,
+    });
+  }, [qc, addProductToCart, activeProduct]);
 
   const onCheckoutCart = useCallback(() => {
     const cart = useStudioStore.getState().cart;
@@ -397,48 +475,43 @@ export default function Studio() {
     toast.info("Checkout isn't live in this preview yet — your picks were saved to this session.");
   }, []);
 
-  const onDirectCheckout = useCallback(() => {
-    if (!activeProduct) return;
-    onAddToCart();
-  }, [activeProduct, onAddToCart]);
-
   // ── Derived ──
-  const wornLayers = Object.values(store.layers).filter((l): l is OutfitLayer => !!l);
+  const wornPieces = Object.values(store.layers).filter((l): l is OutfitLayer => !!l);
   const cartCount = store.cart.reduce((sum, line) => sum + line.quantity, 0);
   const selectedPiecePrice = activeVariant?.price ?? activeProduct?.price ?? 0;
   const selectedPieceCurrency = activeVariant?.currency ?? activeProduct?.currency ?? "INR";
-  const otherLayers = wornLayers.filter((l) => l.category !== activeProduct?.garmentCategory);
+  const otherPieces = wornPieces.filter((l) => l.category !== activeProduct?.garmentCategory);
 
   if (accountLoading || avatarLoading || !avatar) {
     return (
-      <main className="grid min-h-dvh place-items-center bg-canvas">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner className="size-6 text-muted" />
-          <p className="mono-tag">[ PREPARING STUDIO ]</p>
+      <main className="studio-shell grid min-h-dvh place-items-center bg-bone">
+        <div className="flex flex-col items-center gap-5">
+          <Spinner className="size-4 text-ash" />
+          <p className="eyebrow">Preparing your fitting room</p>
         </div>
       </main>
     );
   }
 
   return (
-    <div className="flex h-dvh flex-col bg-canvas">
-      <StudioHeader
+    <div className="studio-shell flex min-h-dvh flex-col bg-atelier lg:h-dvh lg:overflow-hidden">
+      <MirraHeader
         accountInitial={(account?.displayName?.[0] ?? "M").toUpperCase()}
         profileImageUrl={avatar.previewAssetUrl}
         cartCount={cartCount}
+        merchant={(activeProduct as Product | undefined)?.merchant ?? null}
         onCartOpen={() => setCartOpen(true)}
       />
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.6fr_1fr]">
-        {/* Stage + rail */}
-        <section className="flex min-h-0 gap-3 border-b border-line bg-surface px-4 py-3 lg:border-r lg:border-b-0">
-          <ProductRail
-            activeProductId={activeProduct?.publicProductId ?? null}
-            onSelect={onSelectProduct}
-          />
-          <AvatarStage
+      {/*
+        DOM order is the mobile reading order — stage, then the decision, then
+        discovery. The desktop grid places the rail back on the left.
+      */}
+      <div className="studio-regions flex-1">
+        <div className="studio-region-stage flex min-h-0 flex-col">
+          <TryOnStage
             avatar={avatar}
-            layers={store.layers}
+            pieces={wornPieces}
             tryOnState={store.tryOn.state}
             failureReason={store.tryOn.failureReason}
             onRetry={() => {
@@ -448,64 +521,82 @@ export default function Studio() {
               }
             }}
             onMakeSignatureLook={() => setLookDialogOpen(true)}
-            canMakeLook={wornLayers.length > 0}
+            canMakeLook={wornPieces.length > 0}
           />
-        </section>
+        </div>
 
-        {/* Product panel */}
-        {activeProduct ? (
-          <ProductPanel
-            product={activeProduct}
-            activeColor={store.activeColor}
-            activeSize={activeVariant?.size ?? null}
-            tryOnState={store.tryOn.state}
-            otherLayers={otherLayers}
-            onColorChange={onColorChange}
-            onSizeChange={onSizeChange}
-            onAddToCart={onAddToCart}
-            onUnlockLayer={(cat) => useStudioStore.getState().unlockLayer(cat)}
-            addToCartBusy={false}
-            cartNotice={cartNotice}
+        <div className="studio-region-panel flex min-h-0 flex-col">
+          {activeProduct ? (
+            <ProductDecisionPanel
+              product={activeProduct}
+              activeVariant={activeVariant}
+              activeColor={store.activeColor}
+              tryOnState={store.tryOn.state}
+              otherPieces={otherPieces}
+              addToCartBusy={false}
+              onColorChange={onColorChange}
+              onSizeChange={onSizeChange}
+              onAddToCart={onAddToCart}
+              onSelectProduct={onSelectProduct}
+              onAddProduct={onAddSuggestion}
+              onUnlockPiece={(category) => useStudioStore.getState().unlockLayer(category)}
+            />
+          ) : (
+            <div className="space-y-5 border-hairline bg-vellum px-8 py-9 lg:border-l">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-9 w-3/4" />
+              <Skeleton className="h-5 w-1/3" />
+              <Skeleton className="h-28 w-full" />
+            </div>
+          )}
+        </div>
+
+        <div className="studio-region-rail flex min-h-0 flex-col">
+          <CollectionRail
+            activeProductId={activeProduct?.publicProductId ?? null}
+            onSelect={onSelectProduct}
           />
-        ) : (
-          <div className="space-y-4 bg-paper p-9">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-5 w-1/3" />
-            <Skeleton className="h-24 w-full" />
-          </div>
-        )}
+        </div>
       </div>
 
       {lookNotice && (
         <div
           role="status"
-          className="flex items-center justify-between gap-4 border-t border-line bg-mist px-5 py-2 text-xs text-ink-soft"
+          className="flex items-center justify-between gap-4 border-t border-hairline bg-bone px-5 py-2.5 text-[12px] text-slate lg:px-8"
         >
           {lookNotice}
           <button
             type="button"
             onClick={() => setLookNotice(null)}
             aria-label="Dismiss"
-            className="text-muted hover:text-ink"
+            className="text-ash transition-colors hover:text-graphite"
           >
             ×
           </button>
         </div>
       )}
 
-      <HangerBar
+      <HangerTray
         entries={store.hanger}
         currentRenderId={store.tryOn.renderId}
         looks={looks}
         appliedLookId={store.appliedLookId}
+        canCreateLook={wornPieces.length > 0}
         currency={selectedPieceCurrency}
-        checkoutPrice={selectedPiecePrice}
+        selectedPiecePrice={selectedPiecePrice}
+        outfitPrice={lookTotal(wornPieces)}
+        outfitPieceCount={wornPieces.length}
+        cartCount={cartCount}
+        checkoutBusy={false}
+        checkoutDisabled={!activeProduct || !activeVariant?.inStock}
         onRestore={onRestoreEntry}
+        onRemoveEntry={onRemoveEntry}
         onApplyLook={onApplyLook}
         onRemoveLook={onRemoveLook}
-        onDirectCheckout={onDirectCheckout}
-        checkoutBusy={false}
-        checkoutDisabled={!activeProduct}
+        onCreateLook={() => setLookDialogOpen(true)}
+        onAddSelected={onAddToCart}
+        onBuyTheLook={() => void onBuyTheLook()}
+        onViewCart={() => setCartOpen(true)}
       />
 
       <CartDrawer
@@ -526,7 +617,7 @@ export default function Studio() {
         onClose={() => setLookDialogOpen(false)}
         onCreate={onCreateLook}
         busy={createLook.isPending}
-        layerNames={wornLayers.map((l) => l.name)}
+        layerNames={wornPieces.map((l) => l.name)}
       />
     </div>
   );

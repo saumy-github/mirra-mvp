@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { formatPrice } from "@/lib/format";
 import type { StudioCartItem } from "@/stores/studio-store";
-import { Button } from "@/components/ui/button";
 import { CONTROL_SPRING } from "@/lib/motion-presets";
 
 const DRAWER_SPRING = {
@@ -133,7 +132,7 @@ export function CartDrawer({
         >
           <motion.div
             aria-hidden
-            className="absolute inset-0 bg-ink/24 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-graphite/20"
             onPointerDown={onClose}
           />
 
@@ -144,7 +143,7 @@ export function CartDrawer({
             aria-labelledby="cart-drawer-title"
             aria-describedby="cart-drawer-summary"
             tabIndex={-1}
-            className="glass-heavy absolute inset-y-0 right-0 flex h-dvh w-full max-w-107.5 flex-col overflow-hidden border-y-0 border-r-0 text-ink sm:inset-y-3 sm:right-3 sm:h-[calc(100dvh-1.5rem)] sm:rounded-xl sm:border"
+            className="absolute inset-y-0 right-0 flex h-dvh w-full max-w-107.5 flex-col overflow-hidden border-l border-hairline bg-vellum text-graphite"
             style={{ transformOrigin: "top right" }}
             initial={enter}
             animate={{ opacity: 1, x: 0, scale: 1, filter: "blur(0px)" }}
@@ -153,12 +152,10 @@ export function CartDrawer({
           >
             <header className="relative flex min-h-19 shrink-0 items-center justify-between gap-4 px-5">
               <div className="min-w-0">
-                <p className="truncate font-mono text-[9px] font-medium tracking-[0.16em] text-muted uppercase">
-                  Mirra
-                </p>
+                <p className="eyebrow truncate">Mirra</p>
                 <h2
                   id="cart-drawer-title"
-                  className="mt-1 text-[22px] leading-none font-semibold tracking-tight"
+                  className="mt-2.5 text-[22px] leading-none font-medium tracking-[-0.02em]"
                 >
                   Your cart
                 </h2>
@@ -169,7 +166,7 @@ export function CartDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="Close shopping cart"
-                className="flex size-11 shrink-0 items-center justify-center rounded-field border border-line/80 bg-paper/70 text-ink-soft shadow-[0_1px_1px_rgba(33,31,28,0.04)] transition-colors hover:bg-paper hover:text-ink"
+                className="flex size-10 shrink-0 items-center justify-center rounded-panel-sm border border-hairline text-slate transition-colors hover:border-graphite hover:text-graphite"
                 whileHover={reduceMotion ? undefined : { y: -1 }}
                 whileTap={reduceMotion ? undefined : { scale: 0.92 }}
                 transition={CONTROL_SPRING}
@@ -190,7 +187,7 @@ export function CartDrawer({
 
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-x-5 bottom-0 h-px bg-linear-to-r from-transparent via-line-strong/80 to-transparent"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-hairline"
               />
             </header>
 
@@ -204,7 +201,7 @@ export function CartDrawer({
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-8 pb-20 text-center">
                 <span
                   aria-hidden
-                  className="flex size-14 items-center justify-center rounded-xl border border-line bg-paper/65 text-muted shadow-[0_12px_30px_-24px_rgba(33,31,28,0.5)]"
+                  className="flex size-14 items-center justify-center rounded-panel-sm border border-hairline text-ash"
                 >
                   <svg
                     width="23"
@@ -220,16 +217,14 @@ export function CartDrawer({
                     <path d="M9 8.5V6.8a3 3 0 0 1 6 0v1.7" />
                   </svg>
                 </span>
-                <h3 className="mt-5 text-lg font-semibold tracking-[-0.02em]">
-                  Your cart is ready
-                </h3>
-                <p className="mt-2 max-w-67.5 text-sm leading-relaxed text-muted">
+                <h3 className="mt-5 text-lg font-medium tracking-[-0.02em]">Your cart is ready</h3>
+                <p className="mt-2 max-w-67.5 text-[13px] leading-relaxed text-slate">
                   Add pieces as you style. They will stay here until you are ready to check out.
                 </p>
               </div>
             ) : (
               <div className="rail-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-2 sm:px-5">
-                <motion.ul layout className="divide-y divide-line/80">
+                <motion.ul layout className="divide-y divide-hairline">
                   <AnimatePresence initial={false} mode="popLayout">
                     {items.map((item) => (
                       <motion.li
@@ -241,28 +236,28 @@ export function CartDrawer({
                         exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 14, scale: 0.98 }}
                         transition={transition}
                       >
-                        <div className="h-27 overflow-hidden rounded-field border border-line/80 bg-surface">
+                        <div className="h-27 overflow-hidden rounded-thumb border border-hairline bg-bone">
                           <img src={item.thumbnailUrl} alt="" className="size-full object-cover" />
                         </div>
 
                         <div className="flex min-w-0 flex-col">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                              <h3 className="line-clamp-2 text-sm leading-snug font-semibold tracking-[-0.012em]">
+                              <h3 className="line-clamp-2 text-[13px] leading-snug font-medium tracking-[-0.012em]">
                                 {item.productName}
                               </h3>
-                              <p className="mt-1 truncate text-xs text-muted">
+                              <p className="mt-1.5 truncate text-[11px] text-slate">
                                 {item.colorName} · Size {item.size}
                               </p>
                             </div>
-                            <p className="shrink-0 text-[13px] font-semibold tracking-[-0.01em]">
+                            <p className="shrink-0 text-[13px] font-medium tracking-[-0.01em] tabular-nums">
                               {formatPrice(item.unitPrice * item.quantity, item.currency)}
                             </p>
                           </div>
 
                           <div className="mt-auto flex items-end justify-between gap-3 pt-3">
                             <div
-                              className="flex h-9 items-center rounded-field border border-line bg-paper/75 p-0.5"
+                              className="flex h-9 items-center rounded-panel-sm border border-hairline p-0.5"
                               aria-label={`Quantity for ${item.productName}`}
                             >
                               <motion.button
@@ -272,7 +267,7 @@ export function CartDrawer({
                                 }
                                 disabled={item.quantity <= 1}
                                 aria-label={`Decrease ${item.productName} quantity`}
-                                className="flex size-8 items-center justify-center rounded-full text-base leading-none text-ink-soft transition-colors hover:bg-mist disabled:opacity-30"
+                                className="flex size-8 items-center justify-center text-base leading-none text-slate transition-colors hover:text-graphite disabled:opacity-30"
                                 whileTap={
                                   reduceMotion || item.quantity <= 1 ? undefined : { scale: 0.86 }
                                 }
@@ -282,7 +277,7 @@ export function CartDrawer({
                               </motion.button>
                               <output
                                 aria-live="polite"
-                                className="min-w-7 text-center font-mono text-[11px] font-semibold tabular-nums"
+                                className="min-w-7 text-center text-[11px] font-medium tabular-nums"
                               >
                                 {item.quantity}
                               </output>
@@ -293,7 +288,7 @@ export function CartDrawer({
                                 }
                                 disabled={item.quantity >= 10}
                                 aria-label={`Increase ${item.productName} quantity`}
-                                className="flex size-8 items-center justify-center rounded-full text-base leading-none text-ink-soft transition-colors hover:bg-mist disabled:opacity-30"
+                                className="flex size-8 items-center justify-center text-base leading-none text-slate transition-colors hover:text-graphite disabled:opacity-30"
                                 whileTap={
                                   reduceMotion || item.quantity >= 10 ? undefined : { scale: 0.86 }
                                 }
@@ -306,7 +301,7 @@ export function CartDrawer({
                             <motion.button
                               type="button"
                               onClick={() => onRemove(item.variantPublicId)}
-                              className="min-h-9 rounded-lg px-2 text-[11px] font-medium text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-error"
+                              className="min-h-9 px-2 text-[10px] tracking-[0.12em] text-ash uppercase transition-colors hover:text-graphite"
                               whileTap={reduceMotion ? undefined : { scale: 0.94 }}
                               transition={CONTROL_SPRING}
                               aria-label={`Remove ${item.productName} from cart`}
@@ -322,20 +317,20 @@ export function CartDrawer({
               </div>
             )}
 
-            <footer className="relative shrink-0 bg-paper/58 px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-2xl">
+            <footer className="relative shrink-0 border-t border-hairline px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-8 -translate-y-full bg-linear-to-t from-paper/45 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 h-8 -translate-y-full bg-linear-to-t from-vellum to-transparent"
               />
 
               <div className="flex items-baseline justify-between gap-4">
                 <div>
-                  <p className="text-[13px] font-semibold">Subtotal</p>
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
+                  <p className="eyebrow">Subtotal</p>
+                  <p className="mt-2 text-[11px] leading-relaxed text-ash">
                     Shipping and taxes calculated at checkout
                   </p>
                 </div>
-                <p className="text-xl font-semibold tracking-tight tabular-nums">
+                <p className="text-xl font-medium tracking-[-0.02em] tabular-nums">
                   {formatPrice(subtotal, items[0]?.currency ?? "INR")}
                 </p>
               </div>
@@ -343,24 +338,22 @@ export function CartDrawer({
               {checkoutError && (
                 <p
                   role="alert"
-                  className="mt-3 rounded-lg border border-error/20 bg-error/7 px-3 py-2.5 text-xs leading-relaxed text-error"
+                  className="mt-3 border border-error/25 px-3 py-2.5 text-xs leading-relaxed text-error"
                 >
                   {checkoutError}
                 </p>
               )}
 
-              <Button
+              <button
                 type="button"
-                variant="studio-dark"
-                size="lg"
                 onClick={onCheckout}
-                loading={checkoutBusy}
-                disabled={items.length === 0}
-                className="mt-4 w-full rounded-field"
+                disabled={items.length === 0 || checkoutBusy}
+                aria-busy={checkoutBusy || undefined}
+                className="lift-1 mt-5 flex h-14 w-full items-center justify-center rounded-panel-sm bg-graphite text-[13px] font-medium tracking-[0.14em] text-vellum uppercase hover:bg-black disabled:pointer-events-none disabled:opacity-40"
               >
                 {checkoutBusy ? "Preparing checkout…" : "Checkout"}
-              </Button>
-              <p className="mt-2.5 text-center text-[10px] leading-relaxed text-muted">
+              </button>
+              <p className="mt-3 text-center text-[10px] leading-relaxed text-ash">
                 Your cart is saved for this session.
               </p>
             </footer>

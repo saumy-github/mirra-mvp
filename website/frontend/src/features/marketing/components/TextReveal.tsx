@@ -12,7 +12,7 @@ interface TextRevealProps {
   delay?: number;
   once?: boolean;
   threshold?: number;
-  wipeColor?: "wine" | "ink" | "surface";
+  wipeColor?: "orange" | "ink" | "surface";
 }
 
 const ease = [0.76, 0, 0.24, 1] as const;
@@ -25,7 +25,7 @@ export default function TextReveal({
   delay = 0,
   once = true,
   threshold = 0.22,
-  wipeColor = "wine",
+  wipeColor = "orange",
 }: TextRevealProps) {
   const reduceMotion = useReducedMotion();
   const Tag = as;

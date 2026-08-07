@@ -52,6 +52,7 @@ export interface StudioState {
   unlockLayer: (category: GarmentCategory) => void;
   pushHanger: (entry: HangerEntry) => void;
   touchHanger: (id: string) => void;
+  removeHanger: (id: string) => void;
   markHangerStatus: (id: string, status: HangerEntry["status"]) => void;
   applyLook: (lookId: string, lookName: string) => void;
   clearLook: () => void;
@@ -108,6 +109,7 @@ export const useStudioStore = create<StudioState>((set) => ({
   pushHanger: (entry) =>
     set((s) => ({ hanger: pushHangerEntry(s.hanger, entry, DEFAULT_HANGER_CAPACITY) })),
   touchHanger: (id) => set((s) => ({ hanger: touchHangerEntry(s.hanger, id) })),
+  removeHanger: (id) => set((s) => ({ hanger: s.hanger.filter((e) => e.id !== id) })),
   markHangerStatus: (id, status) =>
     set((s) => ({
       hanger: s.hanger.map((e) => (e.id === id ? { ...e, status } : e)),

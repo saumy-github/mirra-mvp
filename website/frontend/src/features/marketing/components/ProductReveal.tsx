@@ -252,7 +252,7 @@ export default function ProductReveal() {
         .to(
           chars,
           {
-            color: "#a9364a",
+            color: "#ff6600",
             duration: 0.4,
             stagger: 0.05,
             ease: "power2.inOut",

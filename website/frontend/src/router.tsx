@@ -6,7 +6,7 @@ import { PageFallback } from "@/components/layout/PageFallback";
 const MarketingLayout = lazy(() => import("@/features/marketing/marketing-layout"));
 const Home = lazy(() => import("@/pages/Home"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
-const Team = lazy(() => import("@/pages/Team"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
 
 // Auth
 const SignUp = lazy(() => import("@/pages/auth/SignUp"));
@@ -46,7 +46,7 @@ export function AppRoutes() {
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/meet-the-team" element={<Team />} />
+          <Route path="/faq" element={<FAQ />} />
         </Route>
 
         <Route path="/auth/sign-up" element={<SignUp />} />

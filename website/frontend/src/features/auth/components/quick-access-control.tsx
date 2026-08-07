@@ -51,23 +51,14 @@ export function QuickAccessControl() {
         aria-busy={login.isPending || undefined}
         aria-label="Quick access with demo account"
         title="Open the studio with a ready-made demo profile"
-        className="flex h-9 items-center justify-center gap-2 rounded-full border border-white/90 bg-white/78 px-3.5 text-xs font-semibold text-ink shadow-[0_1px_0_rgba(255,255,255,0.95)_inset,0_8px_24px_-16px_rgba(0,0,0,0.45)] backdrop-blur-xl disabled:cursor-wait disabled:opacity-60"
+        className="flex h-9 items-center justify-center gap-2.5 text-[10px] font-medium tracking-[0.14em] text-slate uppercase transition-colors hover:text-graphite disabled:cursor-wait disabled:opacity-50"
         whileHover={login.isPending ? undefined : { y: -1 }}
-        whileTap={login.isPending ? undefined : { scale: 0.97 }}
-        transition={{
-          type: "spring",
-          stiffness: 520,
-          damping: 36,
-          mass: 0.65,
-        }}
+        transition={{ duration: 0.22, ease: [0.2, 0.8, 0.2, 1] }}
       >
         {login.isPending ? (
           <Spinner className="size-3.5" />
         ) : (
-          <span
-            aria-hidden
-            className="size-1.5 rounded-full bg-blue shadow-[0_0_0_3px_rgba(0,113,227,0.1)]"
-          />
+          <span aria-hidden className="size-1.5 rounded-full bg-verdigris" />
         )}
         <span className="hidden sm:inline">
           {login.isPending ? "Opening demo…" : "Quick access"}
@@ -93,7 +84,7 @@ export function QuickAccessControl() {
       {error && (
         <p
           role="alert"
-          className="absolute top-11 right-0 w-56 rounded-xl border border-line bg-paper px-3 py-2 text-[11px] leading-relaxed text-error shadow-lift"
+          className="absolute top-11 right-0 w-56 border border-hairline bg-vellum px-3 py-2 text-[11px] leading-relaxed text-error"
         >
           {error}
         </p>

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
-import type { MarketingContext } from "../features/marketing/marketing-layout";
-import TextReveal, { KineticText } from "../features/marketing/components/TextReveal";
+import type { MarketingContext } from "@/features/marketing/marketing-layout";
+import TextReveal, { KineticText } from "@/features/marketing/components/TextReveal";
 
 export default function Pricing() {
   const { onBookDemo } = useOutletContext<MarketingContext>();
@@ -16,7 +16,7 @@ export default function Pricing() {
       exit={{ opacity: 0 }}
       className="w-full pt-32 pb-24"
     >
-      <div className="mx-auto flex max-w-300 flex-col items-center px-5 sm:px-8">
+      <div className="mx-auto flex max-w-[1200px] flex-col items-center px-5 sm:px-8">
         <div className="mb-12 text-center">
           <TextReveal
             as="h1"
@@ -63,7 +63,7 @@ export default function Pricing() {
             <div className="mb-2">
               <span className="font-mono text-5xl font-bold tracking-tighter">Custom</span>
             </div>
-            <div className="mb-8 min-h-10 text-sm text-muted">
+            <div className="mb-8 min-h-[40px] text-sm text-muted">
               Pilot program for select Shopify Plus merchants.
             </div>
 
@@ -84,7 +84,7 @@ export default function Pricing() {
 
             <button
               onClick={onBookDemo}
-              className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
+              className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-orange"
             >
               <KineticText>Apply for Early Access</KineticText>
             </button>
@@ -102,7 +102,7 @@ export default function Pricing() {
               <span className="font-mono text-5xl font-bold tracking-tighter">TBA</span>
               <span className="mb-1 text-bg/60">/mo</span>
             </div>
-            <div className="mb-8 min-h-10 text-sm text-bg/60">
+            <div className="mb-8 min-h-[40px] text-sm text-bg/60">
               {isAnnual ? "Billed annually" : "Billed monthly"} — finalized with early partners
             </div>
 
@@ -138,7 +138,7 @@ export default function Pricing() {
             <div className="mb-2">
               <span className="font-mono text-5xl font-bold tracking-tighter">Custom</span>
             </div>
-            <div className="mb-8 min-h-10 text-sm text-muted">
+            <div className="mb-8 min-h-[40px] text-sm text-muted">
               For large catalogs and custom integrations.
             </div>
 
@@ -160,7 +160,7 @@ export default function Pricing() {
 
             <button
               onClick={onBookDemo}
-              className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
+              className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-orange"
             >
               <KineticText>Contact Team</KineticText>
             </button>

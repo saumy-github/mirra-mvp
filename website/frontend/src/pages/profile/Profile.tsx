@@ -10,22 +10,24 @@ export default function Profile() {
   if (!account) return null;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Hi, {account.displayName}</h1>
-        <p className="mt-1 text-sm text-muted">{account.email}</p>
-        {!account.emailVerified && !account.isGuest && (
-          <p className="mt-2 text-xs text-error">
-            Email not yet verified —{" "}
-            <Link to="/auth/verify-email" className="underline">
-              verify now
-            </Link>
-          </p>
-        )}
-      </div>
+    <div>
+      <p className="eyebrow">Account</p>
+      <h1 className="mt-4 text-[clamp(1.6rem,3vw,2.1rem)] leading-[1.1] font-medium tracking-[-0.03em] text-graphite">
+        Hi, {account.displayName}
+      </h1>
+      <p className="mt-3 text-[13px] text-slate">{account.email}</p>
+      {!account.emailVerified && !account.isGuest && (
+        <p className="mt-3 text-[12px] text-error">
+          Email not yet verified —{" "}
+          <Link to="/auth/verify-email" className="underline underline-offset-4">
+            verify now
+          </Link>
+        </p>
+      )}
 
-      <dl className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <SummaryCard
+      {/* Three ruled rows, not three cards. */}
+      <dl className="rule-stack mt-12 border-t border-b border-hairline">
+        <SummaryRow
           label="Avatar"
           value={avatar ? avatar.avatarLabel : "None yet"}
           detail={
@@ -35,13 +37,13 @@ export default function Profile() {
           }
           href="/profile/avatar"
         />
-        <SummaryCard
+        <SummaryRow
           label="Signature Looks"
           value={String(looks.length)}
           detail={looks.find((l) => l.isDefault)?.name ?? "no default set"}
           href="/profile/signature-looks"
         />
-        <SummaryCard
+        <SummaryRow
           label="Privacy"
           value={account.consents.preferenceStorage ? "Preferences saved" : "Preferences off"}
           detail="consents & deletion"
@@ -49,7 +51,7 @@ export default function Profile() {
         />
       </dl>
 
-      <p className="text-xs leading-relaxed text-faint">
+      <p className="mt-8 max-w-lg text-[12px] leading-relaxed text-ash">
         Your avatar is generated once and reused for every future try-on — your photographs are
         never shown to anyone else.
       </p>
@@ -57,7 +59,7 @@ export default function Profile() {
   );
 }
 
-function SummaryCard({
+function SummaryRow({
   label,
   value,
   detail,
@@ -69,13 +71,15 @@ function SummaryCard({
   href: string;
 }) {
   return (
-    <Link
-      to={href}
-      className="rounded-[14px] border border-line bg-surface p-5 transition-colors hover:border-line-strong"
-    >
-      <dt className="font-mono text-[10px] tracking-[0.18em] text-muted uppercase">{label}</dt>
-      <dd className="mt-2 text-lg font-medium">{value}</dd>
-      <dd className="mt-0.5 text-xs text-muted">{detail}</dd>
+    <Link to={href} className="group grid grid-cols-12 items-baseline gap-4 py-6">
+      <dt className="eyebrow col-span-12 sm:col-span-4">{label}</dt>
+      <dd className="col-span-8 text-[15px] font-medium text-graphite sm:col-span-5">{value}</dd>
+      <dd className="col-span-4 flex items-baseline justify-end gap-3 text-[12px] text-ash sm:col-span-3">
+        <span className="hidden truncate sm:inline">{detail}</span>
+        <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">
+          →
+        </span>
+      </dd>
     </Link>
   );
 }

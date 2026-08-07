@@ -76,7 +76,7 @@ export function WaitlistModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
           <button
             onClick={handleClose}
             aria-label="Close"
-            className="absolute top-8 right-8 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-surface text-muted transition-all hover:bg-wine/10 hover:text-ink"
+            className="absolute top-8 right-8 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-surface text-muted transition-all hover:bg-orange/10 hover:text-ink"
           >
             <X size={20} />
           </button>
@@ -104,7 +104,7 @@ export function WaitlistModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                   <p className="mb-4 text-sm text-muted">{message}</p>
                   <button
                     onClick={handleClose}
-                    className="rounded-full border border-silver px-6 py-2 text-sm font-medium text-muted transition-all hover:border-wine/50 hover:text-ink"
+                    className="rounded-full border border-silver px-6 py-2 text-sm font-medium text-muted transition-all hover:border-orange/50 hover:text-ink"
                   >
                     Close
                   </button>
@@ -143,7 +143,7 @@ export function WaitlistModal({ isOpen, onClose }: { isOpen: boolean; onClose: (
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                          className="h-5 w-5 rounded-full border-2 border-silver border-t-wine"
+                          className="h-5 w-5 rounded-full border-2 border-silver border-t-orange"
                         />
                       </div>
                     ) : (

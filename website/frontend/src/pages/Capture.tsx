@@ -42,7 +42,7 @@ export default function Capture() {
             autoComplete="off"
             autoCapitalize="characters"
             maxLength={6}
-            className="text-center font-mono tracking-[0.4em] uppercase"
+            className="text-center text-[11px] tracking-[0.34em] uppercase"
             required
           />
           {error && (

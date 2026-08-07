@@ -6,7 +6,7 @@ export default function DemoPlaceholder() {
   return (
     <section
       id="demo"
-      className="mx-auto flex w-full max-w-260 flex-col items-center px-5 py-24 sm:px-8"
+      className="mx-auto flex w-full max-w-[1040px] flex-col items-center px-5 py-24 sm:px-8"
     >
       <div className="mb-10 text-center">
         <TextReveal
@@ -24,7 +24,7 @@ export default function DemoPlaceholder() {
 
       <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-[28px] border border-silver bg-bg/75 shadow-sm">
         <div className="group flex cursor-pointer flex-col items-center text-center opacity-40 transition-opacity hover:opacity-100">
-          <div className="mb-4 flex h-20 w-20 transform items-center justify-center rounded-full bg-surface transition-all group-hover:scale-110 group-hover:bg-wine group-hover:text-bg">
+          <div className="mb-4 flex h-20 w-20 transform items-center justify-center rounded-full bg-surface transition-all group-hover:scale-110 group-hover:bg-orange group-hover:text-bg">
             <Play fill="currentColor" size={32} className="ml-2" />
           </div>
           <p className="text-sm font-semibold tracking-widest uppercase">Demo film — coming soon</p>

@@ -60,7 +60,7 @@ export default function VerifyEmail() {
       <button
         type="button"
         onClick={() => navigate(postAuthDestination(params.get("next")))}
-        className="mt-6 w-full text-center text-sm text-muted hover:text-ink"
+        className="mt-8 w-full border-t border-hairline pt-6 text-left text-[13px] text-slate transition-colors hover:text-graphite"
       >
         Verify later
       </button>

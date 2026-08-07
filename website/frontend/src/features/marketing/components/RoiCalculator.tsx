@@ -62,7 +62,7 @@ export default function RoiCalculator({ onBookDemo }: RoiCalculatorProps) {
             </TextReveal>
             <button
               onClick={onBookDemo}
-              className="rounded-full bg-black px-8 py-4 text-sm font-semibold text-white transition-colors hover:bg-black/80"
+              className="rounded-full bg-black px-8 py-4 text-sm font-semibold text-white transition-colors hover:bg-black hover:text-white"
             >
               <KineticText>Book a Demo</KineticText>
             </button>

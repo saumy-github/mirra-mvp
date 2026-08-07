@@ -2,41 +2,47 @@
 @import "tailwindcss";
 
 /*
- * Merged design system: app tokens (from user-side, canonical — covers most
- * routes: auth/capture/onboarding/studio/profile) + landing's unique tokens
- * (marketing pages only). Where both defined the same name (ink, silver,
- * font-sans) the app's value wins — the two are visually close, and the app
- * surface is the majority of the site. Revisit visually if this ever looks
- * off on the marketing pages; nothing here is load-bearing for app pages.
+ * Merged design system: Mirra-landing-page's palette (canonical — it is the
+ * source of truth for brand colour) + the app-only tokens from user-side that
+ * landing has no opinion on (canvas, paper, ink-soft, faint, line-strong,
+ * mist, blue, error, ok). Where both defined the same name (ink, surface,
+ * muted, line, silver) landing's value now wins, site-wide — the marketing
+ * pages and the app surface share one warm palette rather than two.
  */
 @theme inline {
-  --color-canvas: #f5f5f7;
-  --color-surface: #fbfbfd;
-  --color-paper: #ffffff;
-  --color-ink: #1d1d1f;
-  --color-ink-soft: #424245;
-  --color-muted: #6e6e73;
-  --color-faint: #98989d;
-  --color-line: #e5e5e7;
-  --color-line-strong: #d2d2d7;
-  --color-mist: #eeeef0;
-  --color-silver: #c7c7cc;
-  --color-blue: #0071e3;
-  --color-blue-dark: #0066cc;
-  --color-error: #b3261e;
-  --color-ok: #2d7d46;
-
-  /* Landing-only tokens, additive — no collision with the above */
-  --color-bg: #f8f3f2;
-  --color-wine: #6b1f2a;
-  --color-rose: #a9364a;
-  --color-soft-green: #12855c;
-  --color-accent-black: #1f1825;
+  /* Landing palette — keep in sync with Mirra-landing-page/src/index.css */
+  --color-bg: #ffffff;
+  --color-surface: #f5ebe6;
+  --color-ink: #251a14;
+  --color-muted: #665851;
+  --color-line: #cdc5c0;
+  --color-orange: #ff6600;
+  --color-silver: #c9c2bd;
   --color-silver-light: #eef0f2;
-  --color-silver-strong: #7c7f87;
+  --color-silver-strong: #877e78;
+  --color-accent-black: #251a14;
+  --color-soft-green: #12855c;
+  --color-rose: #ff6600;
+
+  /* App-only tokens — no equivalent in landing.
+     Retoned onto the same warm neutral axis as the fitting room below, so
+     every app surface (auth, onboarding, capture, profile) reads as one
+     material rather than a cool-grey dashboard bolted onto a warm brand.
+     "blue" is deliberately no longer blue: the app has no accent colour, it
+     has ink and hairlines. */
+  --color-canvas: #f6f4ef;
+  --color-paper: #fcfbf8;
+  --color-ink-soft: #55504a;
+  --color-faint: #8b8379;
+  --color-line-strong: #d2ccc1;
+  --color-mist: #efece6;
+  --color-blue: #17130f;
+  --color-blue-dark: #000000;
+  --color-error: #8f2f26;
+  --color-ok: #3f7d5f;
   --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --font-sans: var(--font-system);
+  --font-sans: "Inter", var(--font-system);
   --font-mono: var(--font-system-mono);
 
   --radius-card: 18px;
@@ -44,14 +50,31 @@
 
   --shadow-lift: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -16px rgb(0 0 0 / 0.22);
   --shadow-frost: 0 1px 0 rgb(255 255 255 / 0.8) inset, 0 24px 64px -28px rgb(50 44 38 / 0.34);
+
+  /* ── Fitting-room tokens ───────────────────────────────────────────────
+     A separate, quieter palette for the studio (the virtual fitting room):
+     bone / vellum surfaces, blackened-brown ink, hairline borders instead of
+     shadows. Deliberately additive — the marketing and onboarding surfaces
+     keep the tokens above untouched. */
+  --color-atelier: #efece6; /* page ground behind the regions */
+  --color-bone: #f6f3ed; /* the try-on stage surface */
+  --color-vellum: #fcfbf8; /* panels, rails, tray */
+  --color-chalk: #ffffff;
+  --color-graphite: #17130f; /* primary CTA / strongest ink */
+  --color-hairline: #e4dfd6;
+  --color-hairline-strong: #d2ccc1;
+  --color-ash: #8b8379; /* tertiary labels */
+  --color-slate: #55504a; /* secondary copy */
+  --color-verdigris: #3f7d5f; /* availability dot */
+
+  --radius-panel-sm: 10px;
+  --radius-thumb: 6px;
 }
 
 :root {
   --font-system:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
   --font-system-mono: "SFMono-Regular", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
-  --glass-light: rgb(255 255 255 / 0.68);
-  --glass-heavy: rgb(248 248 250 / 0.88);
   --spring-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --radius-control: 10px;
   --radius-compact: 8px;
@@ -60,16 +83,17 @@
   font: 100%/1.5 var(--font-system);
 
   /* Plain (non `--color-`) vars used directly by landing's raw CSS files
-     (ProductReveal.css, ProblemTeardown.css) via var(--x) — kept as their
-     own namespace, no collision with the --color-* tokens above. */
-  --bg: #f8f3f2;
-  --surface: #eee6e6;
-  --ink: #1f1825;
-  --muted: #685b64;
-  --line: #c7c6cb;
-  --wine: #6b1f2a;
-  --silver: #c4c6cc;
-  --silver-strong: #7c7f87;
+     (ProductReveal.css, ProblemTeardown.css) and the marketing component
+     classes below via var(--x) — kept as their own namespace, no collision
+     with the --color-* tokens above. Mirror of landing's :root block. */
+  --bg: #ffffff;
+  --surface: #f5ebe6;
+  --ink: #251a14;
+  --muted: #665851;
+  --line: #cdc5c0;
+  --orange: #ff6600;
+  --silver: #c9c2bd;
+  --silver-strong: #877e78;
 }
 
 html,
@@ -94,22 +118,25 @@ body {
 }
 
 ::selection {
-  background: rgb(0 113 227 / 0.2);
+  background: rgb(23 19 15 / 0.12);
 }
 
+/* Legacy name, editorial treatment. Kept as a class because several app
+   surfaces label things with it — but it is no longer monospace: technical
+   labels site-wide are Inter, uppercase, widely tracked. */
 .mono-tag {
-  font-family: var(--font-mono), monospace;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.18em;
+  line-height: 1.2;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-ash);
 }
 
 :focus-visible {
-  outline: 3px solid rgb(0 113 227 / 0.5);
+  outline: 1.5px solid var(--color-graphite);
   outline-offset: 3px;
-  border-radius: 8px;
+  border-radius: 2px;
 }
 
 button,
@@ -127,41 +154,6 @@ a[href] {
 
 button:disabled {
   cursor: not-allowed;
-}
-
-.glass {
-  background: var(--glass-light);
-  border: 1px solid rgb(255 255 255 / 0.72);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.8) inset,
-    0 14px 40px -24px rgb(0 0 0 / 0.3);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
-}
-
-.glass-heavy {
-  background: var(--glass-heavy);
-  border: 1px solid rgb(255 255 255 / 0.88);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.92) inset,
-    0 22px 64px -30px rgb(0 0 0 / 0.32);
-  -webkit-backdrop-filter: blur(34px) saturate(180%);
-  backdrop-filter: blur(34px) saturate(180%);
-}
-
-.pressable {
-  transform: translateZ(0);
-  transition:
-    transform 180ms var(--spring-ease),
-    background-color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    color 180ms ease;
-}
-
-.pressable:active:not(:disabled) {
-  transform: scale(0.97);
-  transition-duration: 90ms;
 }
 
 .edge-fade-x {
@@ -206,20 +198,19 @@ button:disabled {
    reads a lot cleaner besides -- the track itself stays Tailwind utilities. */
 .range-thumb::-webkit-slider-thumb {
   appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 0.875rem;
+  height: 0.875rem;
   border-radius: 9999px;
-  border: 2px solid var(--color-paper);
-  background: var(--color-ink);
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.24);
+  border: none;
+  background: var(--color-graphite);
 }
 
 .range-thumb::-moz-range-thumb {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 0.875rem;
+  height: 0.875rem;
   border-radius: 9999px;
-  border: 2px solid var(--color-paper);
-  background: var(--color-ink);
+  border: none;
+  background: var(--color-graphite);
 }
 
 .range-thumb-sm::-webkit-slider-thumb {
@@ -268,6 +259,335 @@ button:disabled {
   }
 }
 
+/* ── The fitting room ──────────────────────────────────────────────────────
+   Everything below is scoped to the studio shell so the marketing pages keep
+   their own type and rhythm. Inter throughout, uppercase eyebrows instead of
+   monospace tags, hairlines instead of shadows. */
+
+.studio-shell {
+  font-family: "Inter", var(--font-system), sans-serif;
+  font-feature-settings:
+    "cv05" 1,
+    "ss03" 1;
+  color: var(--color-graphite);
+}
+
+.studio-shell :focus-visible {
+  outline: 1.5px solid var(--color-graphite);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Small uppercase technical label — collection, selected piece, avatar id. */
+.eyebrow {
+  font-size: 0.625rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+}
+
+@media (min-width: 1280px) {
+  .eyebrow {
+    font-size: 0.6875rem;
+  }
+}
+
+.eyebrow-strong {
+  color: var(--color-graphite);
+  font-weight: 600;
+}
+
+/* Desktop region grid: rail · stage · decision panel. Below lg the regions
+   simply stack in DOM order (stage → panel → discovery → hanger). */
+.studio-regions {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (min-width: 1024px) {
+  .studio-regions {
+    display: grid;
+    grid-template-columns: 13.5rem minmax(0, 1fr) 23rem;
+    grid-template-areas: "rail stage panel";
+    min-height: 0;
+  }
+
+  .studio-region-rail {
+    grid-area: rail;
+  }
+  .studio-region-stage {
+    grid-area: stage;
+  }
+  .studio-region-panel {
+    grid-area: panel;
+  }
+}
+
+@media (min-width: 1440px) {
+  .studio-regions {
+    grid-template-columns: 15rem minmax(0, 1fr) 26.5rem;
+  }
+}
+
+/* Quiet scrollbars — present when needed, never decorative. */
+.quiet-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-hairline-strong) transparent;
+}
+.quiet-scroll::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+.quiet-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-hairline-strong);
+}
+.quiet-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Editorial layout primitives ───────────────────────────────────────────
+   Used across auth, onboarding, capture, profile and marketing. Structure
+   comes from a twelve-column grid and hairline rules — the app has no cards,
+   so nothing is expressed as a floating rounded box with a shadow. */
+
+.page-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .page-grid {
+    column-gap: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page-grid {
+    column-gap: 2.75rem;
+  }
+}
+
+/* A stack of rows separated by hairlines — the card's replacement. */
+.rule-stack > * + * {
+  border-top: 1px solid var(--color-hairline);
+}
+
+/* A cell in a lined grid: hairlines on two sides, collapsed at the edges. */
+.rule-cell {
+  border-top: 1px solid var(--color-hairline);
+  border-left: 1px solid var(--color-hairline);
+}
+
+/* The restrained hover of the whole room: 1px of movement, nothing more. */
+.lift-1 {
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 220ms ease,
+    background-color 220ms ease,
+    color 220ms ease,
+    opacity 220ms ease;
+}
+.lift-1:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lift-1:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* ── Marketing component classes ──────────────────────────────────────────
+   Ported verbatim from Mirra-landing-page/src/index.css. These are the
+   structural half of TextReveal / KineticText / WaitlistModal — the motion
+   values live in the components as inline styles, but the masking, stacking
+   and positioning are all here. Keep in sync with landing. */
+
+/* Single-typeface system: Inter everywhere. Kept as an alias so any
+   lingering font-instrument class still resolves to the brand font. */
+.font-instrument {
+  font-family: "Inter", sans-serif;
+}
+
+/* Editorial text reveals, adapted to Mirra's restrained palette. */
+.mirra-text-reveal {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: inherit;
+  max-width: 100%;
+}
+
+.mirra-text-reveal__line {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.text-center .mirra-text-reveal,
+.text-center .mirra-text-reveal__line {
+  margin-inline: auto;
+}
+
+.mirra-text-reveal--lift {
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.mirra-text-reveal__wipe {
+  position: absolute;
+  inset: -0.025em -0.035em;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mirra-text-reveal__wipe--orange {
+  background: var(--orange);
+}
+.mirra-text-reveal__wipe--ink {
+  background: var(--ink);
+}
+.mirra-text-reveal__wipe--surface {
+  background: var(--surface);
+}
+
+.mirra-char-reveal {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: inherit;
+}
+
+.mirra-char-reveal__mask {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+
+.mirra-char-reveal__char {
+  display: inline-block;
+}
+
+.mirra-kinetic-text {
+  position: relative;
+  display: inline-grid;
+  height: 1.3em;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.mirra-kinetic-text__row {
+  grid-area: 1 / 1;
+  display: inline-flex;
+}
+
+.mirra-kinetic-text__row span {
+  display: inline-block;
+  transition: transform 520ms cubic-bezier(0.76, 0, 0.24, 1);
+  transition-delay: calc(var(--char-index) * 13ms);
+}
+
+.mirra-kinetic-text__row--clone span {
+  transform: translateY(112%);
+}
+
+button:hover .mirra-kinetic-text__row:not(.mirra-kinetic-text__row--clone) span,
+a:hover .mirra-kinetic-text__row:not(.mirra-kinetic-text__row--clone) span {
+  transform: translateY(-112%);
+}
+
+button:hover .mirra-kinetic-text__row--clone span,
+a:hover .mirra-kinetic-text__row--clone span {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mirra-kinetic-text__row span {
+    transition: none;
+  }
+
+  .mirra-kinetic-text__row--clone {
+    display: none;
+  }
+}
+
+/* Waitlist modal pill */
+.waitlist-pill {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1rem 1rem 2rem;
+  width: 100%;
+  max-width: 600px;
+  background-color: var(--bg);
+  border-radius: 100px;
+  box-shadow: 0 20px 40px rgba(31, 24, 37, 0.12);
+  border: 1px solid var(--silver);
+  gap: 1.5rem;
+}
+
+.waitlist-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ink);
+  font-size: 1.25rem;
+  font-weight: 500;
+  height: 100%;
+}
+
+.waitlist-input::placeholder {
+  color: color-mix(in srgb, var(--ink) 34%, transparent);
+}
+
+.waitlist-action-icon {
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--ink) 34%, transparent);
+  transition: color 0.3s;
+  cursor: pointer;
+}
+
+.waitlist-action-icon:hover {
+  color: var(--ink);
+}
+
+.liquid-metal-btn {
+  position: relative;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: var(--orange);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s;
+}
+
+.liquid-metal-btn:hover {
+  transform: scale(1.05);
+}
+
+.liquid-metal-btn svg {
+  color: var(--bg);
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -281,37 +601,14 @@ button:disabled {
     transition-duration: 140ms !important;
     transition-property: opacity, color, background-color, border-color, box-shadow !important;
   }
-
-  .pressable:active:not(:disabled) {
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  :root {
-    --glass-light: rgb(255 255 255 / 0.96);
-    --glass-heavy: rgb(248 248 250 / 0.98);
-  }
-
-  .glass,
-  .glass-heavy {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
 }
 
 @media (prefers-contrast: more) {
   :root {
-    --color-muted: #4b4b4f;
-    --color-faint: #5d5d62;
-    --color-line: #b7b7bc;
-    --color-line-strong: #8e8e93;
-    --glass-light: rgb(255 255 255 / 0.98);
-    --glass-heavy: #ffffff;
-  }
-
-  .glass,
-  .glass-heavy {
-    border-color: var(--color-ink);
+    /* Darkened against the warm base palette above, not the old cool greys */
+    --color-muted: #4a3f39;
+    --color-faint: #5d5049;
+    --color-line: #b5aca6;
+    --color-line-strong: #8e8279;
   }
 }

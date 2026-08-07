@@ -133,19 +133,14 @@ export function SyncStatus({
           className="flex w-full flex-col items-center"
         >
           <div
-            className={`relative flex size-20 items-center justify-center rounded-[1.7rem] border bg-white/72 shadow-[0_18px_48px_-32px_rgba(33,31,28,.55)] backdrop-blur-xl ${
-              error ? "border-error/20 text-error" : "border-white text-ink"
+            className={`relative flex size-16 items-center justify-center border ${
+              error ? "border-error/30 text-error" : "border-hairline text-graphite"
             }`}
           >
-            <div className="absolute inset-2 rounded-[1.25rem] border border-line/75" />
             <PulseDot active={active} />
           </div>
 
-          <p
-            className={`mono-tag mt-7 text-[10px]! tracking-[0.28em]! ${error ? "text-error" : "text-ink"}`}
-          >
-            {copy.label}
-          </p>
+          <p className={`eyebrow mt-7 ${error ? "text-error!" : "text-graphite!"}`}>{copy.label}</p>
           <h1 className="mt-3 text-[1.75rem] leading-[1.08] font-semibold tracking-[-0.03em] text-balance text-ink">
             {session.state === "qr_ready"
               ? "Create your personal fit"
@@ -162,7 +157,7 @@ export function SyncStatus({
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">{copy.detail}</p>
 
           {(session.state === "capturing" || session.state === "uploading") && (
-            <div className="mt-6 w-full max-w-xs rounded-2xl border border-line bg-surface/80 px-4 py-3.5">
+            <div className="mt-8 w-full max-w-xs border-t border-b border-hairline py-4">
               <div className="flex items-center justify-between text-[11px] font-medium text-ink-soft">
                 <span>Guided photographs</span>
                 <span className="font-mono">
@@ -193,9 +188,9 @@ export function SyncStatus({
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-9 w-full rounded-[1.4rem] border border-line/80 bg-white/55 p-4 text-left shadow-[0_14px_45px_-38px_rgba(33,31,28,.45)] backdrop-blur-xl">
+      <div className="mt-10 w-full border-t border-hairline pt-6 text-left">
         <div className="flex gap-3">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-mist text-ink-soft">
+          <span className="flex size-8 shrink-0 items-center justify-center text-ash">
             <svg viewBox="0 0 18 18" className="size-4" fill="none" aria-hidden>
               <path
                 d="M9 1.8 14.5 3.8v3.9c0 3.4-2 6.2-5.5 7.8-3.5-1.6-5.5-4.4-5.5-7.8V3.8L9 1.8Z"
@@ -223,7 +218,7 @@ export function SyncStatus({
           onClick={onRestart}
           whileTap={reduceMotion ? undefined : { scale: 0.98 }}
           transition={MATERIAL_SPRING}
-          className="mt-7 min-h-11 rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-canvas shadow-sm hover:bg-black"
+          className="lift-1 mt-8 flex h-12 items-center justify-center rounded-panel-sm bg-graphite px-6 text-[11px] font-medium tracking-[0.14em] text-vellum uppercase hover:bg-black"
         >
           Generate a fresh code
         </motion.button>

@@ -57,20 +57,21 @@ export function MeasurementRow({
       }
     >
       <div className="flex items-start justify-between gap-4">
-        <label htmlFor={id} className="pt-1 text-sm font-semibold tracking-[-0.01em] text-ink">
+        <label
+          htmlFor={id}
+          className="pt-1 text-[13px] font-medium tracking-[-0.01em] text-graphite"
+        >
           {field.label}
           {field.estimated && (
-            <span className="ml-2 inline-flex rounded-full bg-mist px-2 py-0.5 text-[10px] font-medium tracking-normal text-muted normal-case">
-              estimated
-            </span>
+            <span className="ml-3 text-[10px] tracking-[0.14em] text-ash uppercase">Estimated</span>
           )}
         </label>
-        <div className="flex items-center gap-1 rounded-xl border border-line bg-paper p-1 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset]">
+        <div className="flex items-center gap-1 rounded-panel-sm border border-hairline p-1">
           <button
             type="button"
             aria-label={`Decrease ${field.label}`}
             onClick={() => onChange(toMetric(Math.max(displayMin, displayValue - displayStep)))}
-            className="pressable flex size-8 items-center justify-center rounded-[9px] text-lg leading-none text-muted hover:bg-mist hover:text-ink"
+            className="flex size-8 items-center justify-center text-lg leading-none text-ash transition-colors hover:text-graphite"
           >
             −
           </button>
@@ -85,14 +86,14 @@ export function MeasurementRow({
               const v = Number(e.target.value);
               if (!Number.isNaN(v)) onChange(toMetric(v));
             }}
-            className="w-12 appearance-none bg-transparent text-right text-[15px] font-semibold text-ink tabular-nums focus:outline-none"
+            className="w-12 appearance-none bg-transparent text-right text-[15px] font-medium text-graphite tabular-nums focus:outline-none"
           />
-          <span className="w-6 text-xs font-medium text-muted">{displayUnit}</span>
+          <span className="w-6 text-[11px] text-ash">{displayUnit}</span>
           <button
             type="button"
             aria-label={`Increase ${field.label}`}
             onClick={() => onChange(toMetric(Math.min(displayMax, displayValue + displayStep)))}
-            className="pressable flex size-8 items-center justify-center rounded-[9px] text-lg leading-none text-muted hover:bg-mist hover:text-ink"
+            className="flex size-8 items-center justify-center text-lg leading-none text-ash transition-colors hover:text-graphite"
           >
             +
           </button>
@@ -100,11 +101,11 @@ export function MeasurementRow({
       </div>
       <div className="relative mt-5 flex h-7 items-center">
         <span
-          className="pointer-events-none absolute inset-x-0 h-0.75 rounded-full bg-line"
+          className="pointer-events-none absolute inset-x-0 h-px bg-hairline-strong"
           aria-hidden
         />
         <span
-          className="pointer-events-none absolute left-0 h-0.75 rounded-full bg-ink"
+          className="pointer-events-none absolute left-0 h-px bg-graphite"
           style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
           aria-hidden
         />
@@ -120,7 +121,7 @@ export function MeasurementRow({
           className="range-thumb absolute inset-x-0 h-7 w-full cursor-pointer appearance-none bg-transparent"
         />
       </div>
-      <div className="flex justify-between text-[10px] font-medium text-faint tabular-nums">
+      <div className="flex justify-between text-[10px] text-ash tabular-nums">
         <span>
           {displayMin} {displayUnit}
         </span>

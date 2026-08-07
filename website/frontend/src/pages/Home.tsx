@@ -1,14 +1,11 @@
-import React from "react";
 import { motion } from "motion/react";
 import { useOutletContext } from "react-router-dom";
-import type { MarketingContext } from "../features/marketing/marketing-layout";
-import Hero from "../features/marketing/components/Hero";
-import ProblemTeardown from "../features/marketing/components/ProblemTeardown";
-import ProductReveal from "../features/marketing/components/ProductReveal";
-import LiveLedger from "../features/marketing/components/LiveLedger";
-import DemoPlaceholder from "../features/marketing/components/DemoPlaceholder";
-import RoiCalculator from "../features/marketing/components/RoiCalculator";
-import Closure from "../features/marketing/components/Closure";
+import type { MarketingContext } from "@/features/marketing/marketing-layout";
+import Hero from "@/features/marketing/components/Hero";
+import ProblemTeardown from "@/features/marketing/components/ProblemTeardown";
+import ProductReveal from "@/features/marketing/components/ProductReveal";
+import DemoPlaceholder from "@/features/marketing/components/DemoPlaceholder";
+import RoiCalculator from "@/features/marketing/components/RoiCalculator";
 
 export default function Home() {
   const { onBookDemo } = useOutletContext<MarketingContext>();
@@ -29,17 +26,11 @@ export default function Home() {
         {/* Zone 2B — Mirra Product Reveal */}
         <ProductReveal />
 
-        {/* Zone 2C — Live Ledger Teardown */}
-        <LiveLedger />
-
         {/* Zone 2D — Product Demo Video */}
         <DemoPlaceholder />
 
         {/* Zone 3B — ROI Calculator */}
         <RoiCalculator onBookDemo={onBookDemo} />
-
-        {/* Home Page Finale (Team Teaser & FAQ) */}
-        <Closure />
       </main>
     </motion.div>
   );

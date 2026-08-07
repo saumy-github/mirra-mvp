@@ -22,7 +22,9 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
   constructor(private http: MirraHttpClient) {}
 
   // ── Session helper ──
-  private async storeSession(envelope: z.infer<typeof live.sessionEnvelope>): Promise<ShopperAccount> {
+  private async storeSession(
+    envelope: z.infer<typeof live.sessionEnvelope>,
+  ): Promise<ShopperAccount> {
     setAccessToken(envelope.accessToken);
     return live.mapAccount(envelope.account);
   }
@@ -223,12 +225,10 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
 
   // ── Try-on ──
   createTryOnSession() {
-    return this.http
-      .post("/tryon/sessions", live.tryonSessionEnvelope, {})
-      .then((envelope) => ({
-        tryOnSessionId: envelope.session.sessionId,
-        createdAt: envelope.session.createdAt,
-      }));
+    return this.http.post("/tryon/sessions", live.tryonSessionEnvelope, {}).then((envelope) => ({
+      tryOnSessionId: envelope.session.sessionId,
+      createdAt: envelope.session.createdAt,
+    }));
   }
   requestTryOn(input: {
     tryOnSessionId: string;

@@ -69,7 +69,7 @@ export default function LiveLedger() {
                   exit={{ opacity: 0, scale: 1.1 }}
                   className="flex flex-col items-center"
                 >
-                  <div className="relative mb-8 flex h-40 w-40 items-center justify-center rounded-card border border-[#A67E51] bg-[#C69C6D] shadow-[0_28px_70px_rgba(31,24,37,0.2)]">
+                  <div className="relative mb-8 flex h-40 w-40 items-center justify-center rounded-[18px] border border-[#A67E51] bg-[#C69C6D] shadow-[0_28px_70px_rgba(31,24,37,0.2)]">
                     <div className="rotate-[-10deg] rounded border-2 border-ink/20 p-2 font-mono text-sm font-bold text-ink/60 opacity-70">
                       ORDER #9481
                     </div>
@@ -100,7 +100,7 @@ export default function LiveLedger() {
                   <div className="mb-8 flex w-full gap-6">
                     <button
                       type="button"
-                      className="flex aspect-square flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-card border border-silver bg-bg shadow-[0_24px_60px_rgba(31,24,37,0.12)] transition-colors hover:border-wine/50"
+                      className="flex aspect-square flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[18px] border border-silver bg-bg shadow-[0_24px_60px_rgba(31,24,37,0.12)] transition-colors hover:border-orange/50"
                       onClick={nextScene}
                     >
                       <div className="h-16 w-16 rounded-full bg-ink/5" />
@@ -108,7 +108,7 @@ export default function LiveLedger() {
                     </button>
                     <button
                       type="button"
-                      className="flex aspect-square flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-card border border-silver bg-bg shadow-[0_24px_60px_rgba(31,24,37,0.12)] transition-colors hover:border-wine/50"
+                      className="flex aspect-square flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-[18px] border border-silver bg-bg shadow-[0_24px_60px_rgba(31,24,37,0.12)] transition-colors hover:border-orange/50"
                       onClick={nextScene}
                     >
                       <div className="h-16 w-16 rounded-full bg-ink/5" />
@@ -116,7 +116,7 @@ export default function LiveLedger() {
                     </button>
                   </div>
                   <div className="mb-2 flex items-center justify-center gap-2 text-center text-sm text-muted">
-                    <AlertOctagon size={16} className="text-wine" />
+                    <AlertOctagon size={16} className="text-orange" />
                     <span className="font-medium">Inventory held hostage</span>
                   </div>
                   <div
@@ -140,13 +140,13 @@ export default function LiveLedger() {
                     The Inevitable Return
                   </div>
                   <div className="relative mb-8 flex w-full gap-6">
-                    <div className="flex aspect-square flex-1 flex-col items-center justify-center gap-2 rounded-card border border-silver bg-bg opacity-50 shadow-sm">
+                    <div className="flex aspect-square flex-1 flex-col items-center justify-center gap-2 rounded-[18px] border border-silver bg-bg opacity-50 shadow-sm">
                       <div className="h-16 w-16 rounded-full bg-ink/5" />
                       <div className="font-mono text-lg font-bold text-ink">SIZE: M</div>
                     </div>
-                    <div className="relative flex aspect-square flex-1 flex-col items-center justify-center gap-2 rounded-card border-2 border-wine/45 bg-bg shadow-[0_24px_60px_rgba(31,24,37,0.12)]">
+                    <div className="relative flex aspect-square flex-1 flex-col items-center justify-center gap-2 rounded-[18px] border-2 border-orange/45 bg-bg shadow-[0_24px_60px_rgba(31,24,37,0.12)]">
                       <div className="h-16 w-16 rounded-full bg-ink/5 opacity-50" />
-                      <div className="font-mono text-lg font-bold text-wine line-through">
+                      <div className="font-mono text-lg font-bold text-orange line-through">
                         SIZE: L
                       </div>
 
@@ -154,13 +154,13 @@ export default function LiveLedger() {
                         initial={{ scale: 2, opacity: 0, rotate: -20 }}
                         animate={{ scale: 1, opacity: 1, rotate: -10 }}
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                        className="absolute inset-0 m-auto flex h-16 w-32 items-center justify-center rounded-lg border-4 border-wine bg-bg/95 text-xs font-bold tracking-widest text-wine uppercase shadow-[0_22px_60px_rgba(107,31,42,0.24)] backdrop-blur-sm"
+                        className="absolute inset-0 m-auto flex h-16 w-32 items-center justify-center rounded-lg border-4 border-orange bg-bg/95 text-xs font-bold tracking-widest text-orange uppercase shadow-[0_22px_60px_rgba(107,31,42,0.24)] backdrop-blur-sm"
                       >
                         DID NOT FIT
                       </motion.div>
                     </div>
                   </div>
-                  <div className="mb-8 rounded-lg border border-wine/10 bg-wine/5 p-3 text-center text-sm font-medium text-wine">
+                  <div className="mb-8 rounded-lg border border-orange/10 bg-orange/5 p-3 text-center text-sm font-medium text-orange">
                     50% of the order value vanishes instantly.
                   </div>
                   <button
@@ -194,7 +194,7 @@ export default function LiveLedger() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.4 }}
-                      className="flex w-full items-center justify-between rounded-[14px] border border-wine/25 bg-bg p-5 shadow-[0_16px_36px_rgba(31,24,37,0.1)]"
+                      className="flex w-full items-center justify-between rounded-[14px] border border-orange/25 bg-bg p-5 shadow-[0_16px_36px_rgba(31,24,37,0.1)]"
                     >
                       <span className="text-sm font-medium text-ink">{item.label}</span>
                       <span className="font-mono font-bold text-[#FF3B30]">{item.cost}</span>
@@ -221,7 +221,7 @@ export default function LiveLedger() {
                   className="flex w-full max-w-md flex-col items-center text-center"
                 >
                   <div className="relative w-full overflow-hidden rounded-[22px] border border-silver bg-bg p-8 shadow-[0_28px_80px_rgba(31,24,37,0.16)]">
-                    <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-transparent via-wine/70 to-transparent" />
+                    <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-transparent via-orange/70 to-transparent" />
                     <div className="mb-6 border-b border-line pb-6 font-mono text-xs tracking-widest text-muted uppercase">
                       Unit Economics Breakdown
                     </div>
@@ -249,9 +249,9 @@ export default function LiveLedger() {
                     </div>
                   </div>
 
-                  <div className="relative mt-8 overflow-hidden rounded-2xl border border-wine/20 bg-wine/5 p-6 text-left text-sm text-ink/80 shadow-lg">
-                    <div className="absolute top-0 bottom-0 left-0 w-1 bg-wine" />
-                    <strong className="mb-1 block text-wine">
+                  <div className="relative mt-8 overflow-hidden rounded-2xl border border-orange/20 bg-orange/5 p-6 text-left text-sm text-ink/80 shadow-lg">
+                    <div className="absolute top-0 bottom-0 left-0 w-1 bg-orange" />
+                    <strong className="mb-1 block text-orange">
                       The Silent Killer of Apparel Brands
                     </strong>
                     After CAC, fulfillment, and reverse logistics, your "profitable" $260 order just
@@ -291,7 +291,7 @@ export default function LiveLedger() {
                       </span>
                     </div>
                     <div className="flex flex-col items-center gap-10 sm:flex-row">
-                      <div className="relative h-56 w-48 shrink-0 overflow-hidden rounded-card border-4 border-surface shadow-[0_20px_40px_rgba(31,24,37,0.15)]">
+                      <div className="relative h-56 w-48 shrink-0 overflow-hidden rounded-[18px] border-4 border-surface shadow-[0_20px_40px_rgba(31,24,37,0.15)]">
                         <img
                           src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80"
                           alt="White T-Shirt"

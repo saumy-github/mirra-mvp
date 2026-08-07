@@ -47,7 +47,7 @@ export function SignatureLookDialog({
           type="button"
           aria-label="Close dialog"
           onClick={onClose}
-          className="fixed inset-0 z-0 border-0 bg-ink/25 backdrop-blur-[3px]"
+          className="fixed inset-0 z-0 border-0 bg-graphite/20"
         />
       )}
       <AnimatePresence
@@ -64,7 +64,7 @@ export function SignatureLookDialog({
               e.preventDefault();
               if (name.trim()) onCreate(name.trim(), asDefault);
             }}
-            className="relative z-10 max-h-[calc(100dvh-1rem)] overflow-y-auto rounded-t-[28px] border border-b-0 border-white/85 bg-paper/88 px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-[0_-24px_70px_-34px_rgba(33,31,28,0.62)] backdrop-blur-2xl sm:rounded-[26px] sm:border-b sm:p-6"
+            className="quiet-scroll relative z-10 max-h-[calc(100dvh-1rem)] overflow-y-auto border border-b-0 border-hairline bg-vellum px-6 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:border-b sm:p-8"
             style={{ transformOrigin: "bottom center" }}
             initial={
               reduceMotion
@@ -83,15 +83,13 @@ export function SignatureLookDialog({
               <div className="flex min-w-0 items-center gap-3">
                 <span
                   aria-hidden
-                  className="flex size-11 shrink-0 items-center justify-center rounded-[14px] bg-ink text-sm text-canvas shadow-[0_10px_24px_-17px_rgba(33,31,28,0.65)]"
+                  className="flex size-10 shrink-0 items-center justify-center rounded-panel-sm border border-hairline text-sm text-slate"
                 >
                   ✦
                 </span>
                 <div className="min-w-0">
-                  <p className="font-mono text-[9px] font-medium tracking-[0.16em] text-muted uppercase">
-                    Signature Look
-                  </p>
-                  <h2 className="mt-1 text-xl leading-tight font-semibold tracking-tight">
+                  <p className="eyebrow">Signature Look</p>
+                  <h2 className="mt-2.5 text-xl leading-tight font-medium tracking-[-0.02em] text-graphite">
                     Keep this outfit as a base
                   </h2>
                 </div>
@@ -100,7 +98,7 @@ export function SignatureLookDialog({
                 type="button"
                 onClick={onClose}
                 aria-label="Close Signature Look"
-                className="flex size-11 shrink-0 items-center justify-center rounded-full bg-mist/70 text-lg text-muted transition-colors hover:bg-mist hover:text-ink"
+                className="flex size-10 shrink-0 items-center justify-center rounded-panel-sm border border-hairline text-lg text-slate transition-colors hover:border-graphite hover:text-graphite"
                 whileTap={reduceMotion ? undefined : { scale: 0.9 }}
                 transition={SHEET_SPRING}
               >
@@ -108,7 +106,7 @@ export function SignatureLookDialog({
               </motion.button>
             </div>
 
-            <p className="mt-4 text-sm leading-relaxed text-muted">
+            <p className="mt-5 text-[13px] leading-relaxed text-slate">
               {layerNames.length > 0
                 ? `Locks ${layerNames.join(" + ")} so new pieces are tried over garments you actually wear.`
                 : "Locks the current outfit as your styling base."}
@@ -116,13 +114,13 @@ export function SignatureLookDialog({
 
             {layerNames.length > 0 && (
               <div
-                className="rail-scroll mt-3 flex gap-2 overflow-x-auto pb-1"
+                className="quiet-scroll mt-4 flex gap-2 overflow-x-auto pb-1"
                 aria-label="Garments in this look"
               >
                 {layerNames.map((layerName) => (
                   <span
                     key={layerName}
-                    className="shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-[11px] font-medium text-ink-soft"
+                    className="shrink-0 rounded-panel-sm border border-hairline px-3 py-1.5 text-[11px] text-slate"
                   >
                     {layerName}
                   </span>
@@ -130,10 +128,7 @@ export function SignatureLookDialog({
               </div>
             )}
 
-            <label
-              className="mt-5 block text-[13px] font-semibold text-ink-soft"
-              htmlFor="look-name"
-            >
+            <label className="eyebrow mt-7 block" htmlFor="look-name">
               Look name
             </label>
             <input
@@ -142,28 +137,30 @@ export function SignatureLookDialog({
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Everyday Denim"
               maxLength={60}
-              className="mt-2 h-12 w-full rounded-[14px] border border-line-strong bg-paper/85 px-4 text-[15px] shadow-[inset_0_1px_2px_rgba(33,31,28,0.03)] transition-colors placeholder:text-faint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/20 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+              className="mt-3 h-12 w-full rounded-panel-sm border border-hairline-strong bg-chalk px-4 text-[14px] transition-colors placeholder:text-ash focus-visible:border-graphite"
               autoFocus
             />
-            <label className="mt-3 flex min-h-12 cursor-pointer items-center gap-3 rounded-[14px] bg-surface/80 px-3.5 py-2 text-sm text-ink-soft">
+            <label className="mt-3 flex min-h-12 cursor-pointer items-center gap-3 rounded-panel-sm border border-hairline px-3.5 py-2.5 text-sm text-slate">
               <input
                 type="checkbox"
                 checked={asDefault}
                 onChange={(e) => setAsDefault(e.target.checked)}
-                className="size-5 shrink-0 accent-ink"
+                className="size-4 shrink-0 accent-graphite"
               />
               <span>
-                <span className="block font-medium text-ink">Use as my default base</span>
-                <span className="mt-0.5 block text-[11px] leading-snug text-muted">
+                <span className="block text-[13px] font-medium text-graphite">
+                  Use as my default base
+                </span>
+                <span className="mt-1 block text-[11px] leading-snug text-ash">
                   Apply automatically on future visits
                 </span>
               </span>
             </label>
-            <div className="mt-5 grid grid-cols-2 gap-2.5">
+            <div className="mt-7 grid grid-cols-2 gap-3">
               <motion.button
                 type="button"
                 onClick={onClose}
-                className="min-h-12 rounded-[14px] bg-mist/70 px-4 text-sm font-medium text-ink-soft transition-colors hover:bg-mist hover:text-ink"
+                className="h-13 rounded-panel-sm border border-hairline-strong text-[11px] font-medium tracking-[0.14em] text-slate uppercase transition-colors hover:border-graphite hover:text-graphite"
                 whileTap={reduceMotion ? undefined : { scale: 0.97 }}
                 transition={SHEET_SPRING}
               >
@@ -172,7 +169,7 @@ export function SignatureLookDialog({
               <motion.button
                 type="submit"
                 disabled={busy || !name.trim()}
-                className="min-h-12 rounded-[14px] bg-ink px-5 text-sm font-semibold text-canvas shadow-[0_12px_28px_-18px_rgba(33,31,28,0.72)] disabled:cursor-not-allowed disabled:opacity-45"
+                className="h-13 rounded-panel-sm bg-graphite text-[11px] font-medium tracking-[0.14em] text-vellum uppercase transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
                 whileTap={reduceMotion || busy || !name.trim() ? undefined : { scale: 0.97 }}
                 transition={SHEET_SPRING}
               >

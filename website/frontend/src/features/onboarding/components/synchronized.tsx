@@ -31,13 +31,13 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
         {!reduceMotion && (
           <>
             <motion.span
-              className="absolute inset-0 rounded-[2.8rem] border border-white bg-white/32 shadow-[0_26px_70px_-45px_rgba(33,31,28,.65)] backdrop-blur-2xl"
+              className="absolute inset-0 border border-hairline bg-bone"
               initial={{ scale: 0.68, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={MATERIAL_SPRING}
             />
             <motion.span
-              className="absolute inset-3 rounded-[2.3rem] border border-ok/25"
+              className="absolute inset-3 border border-verdigris/25"
               initial={{ scale: 0.72, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ ...MATERIAL_SPRING, delay: 0.06 }}
@@ -45,7 +45,7 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
           </>
         )}
         <motion.span
-          className="absolute inset-7 rounded-full border border-ok/30 bg-ok/8"
+          className="absolute inset-7 rounded-full border border-verdigris/30"
           initial={reduceMotion ? undefined : { scale: 0.65, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={reduceMotion ? { duration: 0.16 } : { ...MATERIAL_SPRING, delay: 0.11 }}
@@ -64,7 +64,7 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
         </svg>
       </div>
 
-      <p className="mono-tag mt-7 text-[10px]! tracking-[0.28em]! text-ok">PROFILE SYNCHRONIZED</p>
+      <p className="eyebrow mt-7">Profile synchronized</p>
       <h1 className="mt-3 text-[2rem] leading-[1.05] font-semibold tracking-[-0.04em] text-ink">
         Your avatar is ready
       </h1>
@@ -72,9 +72,9 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
         Next, you can review every measurement before entering the fitting room.
       </p>
 
-      <div className="mt-7 flex items-center gap-2 rounded-full border border-line/75 bg-white/55 px-4 py-2 text-[11px] text-ink-soft backdrop-blur-xl">
+      <div className="mt-8 flex items-center gap-2.5 border-t border-b border-hairline px-1 py-3 text-[11px] text-slate">
         <motion.span
-          className="size-1.5 rounded-full bg-ok"
+          className="size-1.5 rounded-full bg-verdigris"
           animate={reduceMotion ? undefined : { opacity: [0.45, 1, 0.45] }}
           transition={
             reduceMotion ? undefined : { duration: 1.4, repeat: Infinity, ease: "easeInOut" }
@@ -89,7 +89,7 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
         onClick={onContinue}
         whileTap={reduceMotion ? undefined : { scale: 0.98 }}
         transition={MATERIAL_SPRING}
-        className="mt-7 min-h-11 rounded-full bg-ink px-7 py-2.5 text-sm font-medium text-canvas shadow-sm hover:bg-black"
+        className="lift-1 mt-8 flex h-12 items-center justify-center rounded-panel-sm bg-graphite px-7 text-[11px] font-medium tracking-[0.14em] text-vellum uppercase hover:bg-black"
       >
         Continue now
       </motion.button>

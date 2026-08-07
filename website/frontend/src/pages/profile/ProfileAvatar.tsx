@@ -23,9 +23,10 @@ export default function ProfileAvatar() {
 
   if (!avatar) {
     return (
-      <div className="text-sm text-muted">
-        <p>No avatar on this account.</p>
-        <p className="mt-2">
+      <div className="max-w-md text-[13px] leading-relaxed text-slate">
+        <p className="eyebrow">Avatar</p>
+        <p className="mt-4">No avatar on this account.</p>
+        <p className="mt-3">
           One is created the next time you complete a photo session — it takes a few photographs and
           stays fully under your control.
         </p>
@@ -34,68 +35,66 @@ export default function ProfileAvatar() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 sm:grid-cols-[220px_1fr]">
-      <div className="rounded-[14px] border border-line bg-surface p-4">
-        <AvatarFigure
-          previewAssetUrl={avatar.previewAssetUrl}
-          layers={[]}
-          className="h-72"
-          alt="Your saved avatar"
-        />
-      </div>
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Avatar {avatar.avatarLabel}</h1>
-        <dl className="mt-4 space-y-2 text-sm text-ink-soft">
-          <div className="flex gap-2">
-            <dt className="w-28 text-muted">Version</dt>
-            <dd>v{avatar.version}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="w-28 text-muted">Engine</dt>
-            <dd className="font-mono text-xs">{avatar.engineVersion}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="w-28 text-muted">Created</dt>
-            <dd>{new Date(avatar.createdAt).toLocaleDateString()}</dd>
-          </div>
-          <div className="flex gap-2">
-            <dt className="w-28 text-muted">Last updated</dt>
-            <dd>{new Date(avatar.updatedAt).toLocaleDateString()}</dd>
-          </div>
-        </dl>
+    <div>
+      <p className="eyebrow">Avatar</p>
+      <h1 className="mt-4 text-[clamp(1.5rem,2.6vw,1.9rem)] leading-tight font-medium tracking-[-0.03em] text-graphite">
+        {avatar.avatarLabel}
+      </h1>
 
-        <div className="mt-8 border-t border-line pt-6">
-          <h2 className="text-sm font-medium">Delete this avatar</h2>
-          <p className="mt-1 text-xs leading-relaxed text-muted">
-            Removes the avatar and every measurement estimate. Source photographs were already
-            deleted after generation. This can&apos;t be undone.
-          </p>
-          {confirming ? (
-            <div className="mt-3 flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>
-                Keep avatar
-              </Button>
-              <Button
-                size="sm"
-                className="bg-error!"
-                onClick={() => remove.mutate()}
-                loading={remove.isPending}
-              >
-                Delete permanently
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-3"
-              onClick={() => setConfirming(true)}
-            >
-              Delete avatar…
-            </Button>
-          )}
+      <div className="mt-10 grid grid-cols-1 gap-10 sm:grid-cols-[13rem_minmax(0,1fr)]">
+        <div className="border border-hairline bg-bone p-5">
+          <AvatarFigure
+            previewAssetUrl={avatar.previewAssetUrl}
+            layers={[]}
+            glow={false}
+            className="h-64"
+            alt="Your saved avatar"
+          />
         </div>
+
+        <dl className="rule-stack self-start border-t border-b border-hairline text-[13px]">
+          <SpecRow label="Version" value={`v${avatar.version}`} />
+          <SpecRow label="Engine" value={avatar.engineVersion} />
+          <SpecRow label="Created" value={new Date(avatar.createdAt).toLocaleDateString()} />
+          <SpecRow label="Last updated" value={new Date(avatar.updatedAt).toLocaleDateString()} />
+        </dl>
       </div>
+
+      <section className="mt-12 border-t border-hairline pt-8">
+        <h2 className="eyebrow">Delete this avatar</h2>
+        <p className="mt-4 max-w-lg text-[13px] leading-relaxed text-slate">
+          Removes the avatar and every measurement estimate. Source photographs were already deleted
+          after generation. This can&apos;t be undone.
+        </p>
+        {confirming ? (
+          <div className="mt-6 flex gap-3">
+            <Button variant="outline" size="sm" onClick={() => setConfirming(false)}>
+              Keep avatar
+            </Button>
+            <Button
+              size="sm"
+              className="bg-error! text-vellum!"
+              onClick={() => remove.mutate()}
+              loading={remove.isPending}
+            >
+              Delete permanently
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" className="mt-6" onClick={() => setConfirming(true)}>
+            Delete avatar…
+          </Button>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function SpecRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-6 py-3.5">
+      <dt className="eyebrow">{label}</dt>
+      <dd className="text-graphite tabular-nums">{value}</dd>
     </div>
   );
 }

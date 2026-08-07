@@ -110,13 +110,16 @@ export default function Login() {
         </Button>
       </form>
 
-      <div className="mt-5 flex items-center justify-between text-sm">
-        <Link to="/auth/forgot-password" className="text-muted hover:text-ink">
+      <div className="mt-6 flex items-center justify-between text-[13px]">
+        <Link
+          to="/auth/forgot-password"
+          className="text-slate transition-colors hover:text-graphite"
+        >
           Forgot password?
         </Link>
         <Link
           to={`/auth/sign-up${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}
-          className="font-semibold text-blue hover:text-blue-dark"
+          className="font-medium text-graphite underline decoration-hairline-strong underline-offset-4 hover:decoration-graphite"
         >
           Create account
         </Link>
@@ -126,7 +129,7 @@ export default function Login() {
         type="button"
         onClick={onGuest}
         disabled={continueAsGuest.isPending}
-        className="mt-6 w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
+        className="mt-8 w-full border-t border-hairline pt-6 text-left text-[13px] text-slate transition-colors hover:text-graphite disabled:opacity-50"
       >
         {continueAsGuest.isPending
           ? "Setting up a guest avatar…"

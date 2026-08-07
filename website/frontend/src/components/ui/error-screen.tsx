@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { MirraMark } from "./logo";
 
-/** Intentional full-page state for known failures — never a crash. */
+/**
+ * Intentional full-page state for known failures — never a crash. Laid out
+ * on the page grid: the code sits in the margin, the message in the measure.
+ */
 export function ErrorScreen({
   code,
   title,
@@ -14,19 +17,29 @@ export function ErrorScreen({
   action?: { to: string; label: string } | null;
 }) {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
-      <MirraMark size={36} className="text-faint" />
-      <p className="mono-tag mt-8">[&thinsp;{code}&thinsp;]</p>
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">{body}</p>
-      {action && (
-        <Link
-          to={action.to}
-          className="mt-8 rounded-full border border-line-strong bg-paper px-6 py-2.5 text-sm text-ink transition-colors hover:border-ink"
-        >
-          {action.label}
-        </Link>
-      )}
+    <main className="flex min-h-dvh flex-col bg-canvas px-6 py-8 lg:px-12 lg:py-10">
+      <MirraMark size={24} strokeWidth={1.15} className="text-ink" />
+
+      <div className="page-grid my-auto w-full">
+        <div className="col-span-12 border-t border-hairline pt-6 md:col-span-3 md:pt-8">
+          <p className="eyebrow">{code.replace(/_/g, " ")}</p>
+        </div>
+
+        <div className="col-span-12 border-t border-hairline pt-6 md:col-span-8 md:col-start-4 md:pt-8">
+          <h1 className="max-w-2xl text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.08] font-medium tracking-[-0.03em] text-graphite">
+            {title}
+          </h1>
+          <p className="mt-5 max-w-md text-[14px] leading-relaxed text-slate">{body}</p>
+          {action && (
+            <Link
+              to={action.to}
+              className="lift-1 mt-8 inline-flex h-12 items-center border-b border-graphite text-[11px] font-medium tracking-[0.14em] text-graphite uppercase"
+            >
+              {action.label}
+            </Link>
+          )}
+        </div>
+      </div>
     </main>
   );
 }

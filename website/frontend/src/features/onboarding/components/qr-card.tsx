@@ -52,15 +52,13 @@ export function QrCard({
       }
       animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
       transition={reduceMotion ? { duration: 0.18 } : MATERIAL_SPRING}
-      className="relative w-full max-w-88 overflow-hidden rounded-4xl border border-white/75 bg-white/58 p-5 shadow-[0_1px_0_rgba(255,255,255,.9)_inset,0_30px_80px_-38px_rgba(51,45,35,.6)] backdrop-blur-2xl sm:p-6"
+      className="relative w-full max-w-88 border border-hairline bg-vellum p-6"
       aria-label="Pair your phone"
     >
       <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-linear-to-r from-transparent via-white to-transparent" />
 
       <div className="mb-4 flex items-center justify-between gap-3">
-        <span className="mono-tag rounded-full border border-white/80 bg-white/65 px-3 py-1.5 text-[9px]! tracking-[0.15em]! text-ink-soft shadow-sm">
-          [ {dimmed ? "SECURE LINK STATUS" : "PAIR YOUR PHONE"} ]
-        </span>
+        <span className="eyebrow">[ {dimmed ? "SECURE LINK STATUS" : "PAIR YOUR PHONE"} ]</span>
         <span className="flex items-center gap-1.5 text-[10px] font-medium text-ink-soft">
           <svg viewBox="0 0 16 16" className="size-3.5" fill="none" aria-hidden>
             <rect x="3.25" y="7" width="9.5" height="7" rx="2" stroke="currentColor" />
@@ -70,7 +68,7 @@ export function QrCard({
         </span>
       </div>
 
-      <div className="relative mx-auto aspect-square w-full max-w-60 overflow-hidden rounded-[1.6rem] border border-white bg-white p-4 shadow-[0_18px_45px_-28px_rgba(33,31,28,.55)]">
+      <div className="relative mx-auto aspect-square w-full max-w-60 overflow-hidden border border-hairline bg-chalk p-4">
         <motion.div
           className="flex size-full items-center justify-center"
           animate={
@@ -89,7 +87,7 @@ export function QrCard({
               className="size-full"
             />
           ) : (
-            <Skeleton className="size-full rounded-xl" />
+            <Skeleton className="size-full" />
           )}
         </motion.div>
 
@@ -105,11 +103,11 @@ export function QrCard({
                 reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.86, filter: "blur(6px)" }
               }
               transition={reduceMotion ? { duration: 0.16 } : MATERIAL_SPRING}
-              className="absolute inset-0 flex flex-col items-center justify-center bg-white/82 text-center backdrop-blur-xl"
+              className="absolute inset-0 flex flex-col items-center justify-center bg-vellum/95 text-center"
               aria-live="polite"
             >
               <span
-                className={`flex size-14 items-center justify-center rounded-full border shadow-sm ${
+                className={`flex size-12 items-center justify-center rounded-full border ${
                   isError
                     ? "border-error/25 bg-error/8 text-error"
                     : isWorking
@@ -165,7 +163,7 @@ export function QrCard({
                   </svg>
                 )}
               </span>
-              <span className={`mono-tag mt-4 text-[10px]! ${isError ? "text-error" : "text-ink"}`}>
+              <span className={`eyebrow mt-5 ${isError ? "text-error!" : "text-graphite!"}`}>
                 {statusLabel}
               </span>
               {!isError && (
@@ -184,19 +182,19 @@ export function QrCard({
 
       <a
         href={url}
-        className="mt-4 flex h-11 items-center justify-center rounded-xl bg-ink px-4 text-sm font-medium text-canvas shadow-sm transition-transform duration-100 active:scale-[0.98] lg:hidden"
+        className="lift-1 mt-5 flex h-12 items-center justify-center rounded-panel-sm bg-graphite px-4 text-[11px] font-medium tracking-[0.14em] text-vellum uppercase lg:hidden"
       >
         Continue on this phone
       </a>
 
-      <div className="mt-5 rounded-2xl border border-white/80 bg-white/48 px-4 py-3 text-center">
+      <div className="mt-6 border-t border-hairline pt-4 text-center">
         <p className="text-[11px] leading-relaxed text-ink-soft">
           Can&apos;t scan? On your phone, open{" "}
           <span className="font-mono">
             {new URL(import.meta.env.VITE_RUNTIME_ORIGIN ?? "http://localhost:3000").host}/capture
           </span>{" "}
           and enter code{" "}
-          <span className="mt-1.5 block font-mono text-sm font-semibold tracking-[0.24em] text-ink">
+          <span className="mt-2 block text-sm font-medium tracking-[0.3em] text-graphite">
             {manualCode}
           </span>
         </p>

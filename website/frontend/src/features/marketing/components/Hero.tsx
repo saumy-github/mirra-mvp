@@ -98,7 +98,7 @@ export default function Hero({ onBookDemo }: HeroProps) {
         >
           <button
             onClick={onBookDemo}
-            className="rounded-full bg-black px-8 py-3.5 font-medium text-white transition-transform hover:scale-105 hover:bg-ink"
+            className="rounded-full bg-black px-8 py-3.5 font-medium text-white transition-transform hover:scale-105 hover:bg-black hover:text-white"
           >
             <KineticText>Book a Demo</KineticText>
           </button>
