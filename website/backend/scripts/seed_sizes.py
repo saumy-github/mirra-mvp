@@ -16,35 +16,42 @@ from src.config import get_settings  # noqa: E402
 SIZE_SEED_DATA = [
     {"size_id": "s_001", "fit_type": "regular", "half_chest_width_cm": 52.0, "garment_length_cm": 71.0,
      "shoulder_width_cm": 46.0, "neck_width_cm": 18.0, "neck_depth_front_cm": 9.0, "neck_depth_back_cm": 2.5,
-     "sleeve_length_cm": 21.0, "bicep_width_cm": 18.0, "armhole_depth_cm": 24.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 21.0, "bicep_width_cm": 21.8, "armhole_depth_cm": 24.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_002", "fit_type": "regular", "half_chest_width_cm": 49.0, "garment_length_cm": 68.0,
      "shoulder_width_cm": 43.0, "neck_width_cm": 17.0, "neck_depth_front_cm": 8.5, "neck_depth_back_cm": 2.0,
-     "sleeve_length_cm": 20.0, "bicep_width_cm": 17.0, "armhole_depth_cm": 23.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 20.0, "bicep_width_cm": 20.9, "armhole_depth_cm": 23.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_003", "fit_type": "relaxed", "half_chest_width_cm": 56.0, "garment_length_cm": 74.0,
      "shoulder_width_cm": 49.0, "neck_width_cm": 19.0, "neck_depth_front_cm": 9.5, "neck_depth_back_cm": 2.5,
-     "sleeve_length_cm": 22.0, "bicep_width_cm": 20.0, "armhole_depth_cm": 26.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 22.0, "bicep_width_cm": 23.8, "armhole_depth_cm": 26.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_004", "fit_type": "oversized", "half_chest_width_cm": 61.0, "garment_length_cm": 77.0,
      "shoulder_width_cm": 53.0, "neck_width_cm": 20.0, "neck_depth_front_cm": 10.0, "neck_depth_back_cm": 3.0,
-     "sleeve_length_cm": 24.0, "bicep_width_cm": 22.0, "armhole_depth_cm": 28.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 24.0, "bicep_width_cm": 25.7, "armhole_depth_cm": 28.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_005", "fit_type": "slim", "half_chest_width_cm": 46.0, "garment_length_cm": 66.0,
      "shoulder_width_cm": 40.0, "neck_width_cm": 16.0, "neck_depth_front_cm": 8.0, "neck_depth_back_cm": 2.0,
-     "sleeve_length_cm": 19.0, "bicep_width_cm": 16.0, "armhole_depth_cm": 22.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 19.0, "bicep_width_cm": 20.1, "armhole_depth_cm": 22.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_006", "fit_type": "regular", "half_chest_width_cm": 46.0, "garment_length_cm": 62.0,
      "shoulder_width_cm": 39.0, "neck_width_cm": 17.0, "neck_depth_front_cm": 10.5, "neck_depth_back_cm": 2.0,
-     "sleeve_length_cm": 16.0, "bicep_width_cm": 15.0, "armhole_depth_cm": 21.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 16.0, "bicep_width_cm": 19.6, "armhole_depth_cm": 21.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_007", "fit_type": "slim", "half_chest_width_cm": 43.0, "garment_length_cm": 60.0,
      "shoulder_width_cm": 37.0, "neck_width_cm": 16.0, "neck_depth_front_cm": 10.0, "neck_depth_back_cm": 2.0,
-     "sleeve_length_cm": 15.0, "bicep_width_cm": 14.0, "armhole_depth_cm": 20.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 15.0, "bicep_width_cm": 18.4, "armhole_depth_cm": 20.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_008", "fit_type": "relaxed", "half_chest_width_cm": 50.0, "garment_length_cm": 64.0,
      "shoulder_width_cm": 42.0, "neck_width_cm": 18.0, "neck_depth_front_cm": 11.0, "neck_depth_back_cm": 2.5,
-     "sleeve_length_cm": 17.0, "bicep_width_cm": 16.5, "armhole_depth_cm": 23.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 17.0, "bicep_width_cm": 21.5, "armhole_depth_cm": 23.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_009", "fit_type": "oversized", "half_chest_width_cm": 58.0, "garment_length_cm": 73.0,
      "shoulder_width_cm": 52.0, "neck_width_cm": 19.0, "neck_depth_front_cm": 9.5, "neck_depth_back_cm": 2.5,
-     "sleeve_length_cm": 25.0, "bicep_width_cm": 21.0, "armhole_depth_cm": 27.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 25.0, "bicep_width_cm": 24.3, "armhole_depth_cm": 27.0, "seam_allowance_cm": 1.0},
     {"size_id": "s_010", "fit_type": "regular", "half_chest_width_cm": 66.0, "garment_length_cm": 80.0,
      "shoulder_width_cm": 57.0, "neck_width_cm": 21.0, "neck_depth_front_cm": 10.5, "neck_depth_back_cm": 3.0,
-     "sleeve_length_cm": 25.0, "bicep_width_cm": 24.0, "armhole_depth_cm": 30.0, "seam_allowance_cm": 1.0},
+     "sleeve_length_cm": 25.0, "bicep_width_cm": 27.7, "armhole_depth_cm": 30.0, "seam_allowance_cm": 1.0},
 ]
+
+
+# CLO reference block taper ratios, identical to the constants in
+# mirra_measurements/size_model.py and product_ingestion/panel_generation_clo.py.
+# No size above has a measured hem or cuff, so both are derived.
+HEM_TO_CHEST_RATIO = 269.9999 / 290.0975      # 0.930697
+WRIST_TO_BICEP_RATIO = 384.3506 / 490.2734    # 0.783952
 
 
 def main():
@@ -53,7 +60,19 @@ def main():
     now = datetime.now(timezone.utc)
     inserted = updated = 0
     for raw in SIZE_SEED_DATA:
-        doc = {**raw, "created_at": now, "updated_at": now}
+        doc = {
+            **raw,
+            "hem_width_cm": raw.get(
+                "hem_width_cm",
+                round(raw["half_chest_width_cm"] * HEM_TO_CHEST_RATIO, 2),
+            ),
+            "wrist_width_cm": raw.get(
+                "wrist_width_cm",
+                round(raw["bicep_width_cm"] * 2.0 * WRIST_TO_BICEP_RATIO, 2),
+            ),
+            "created_at": now,
+            "updated_at": now,
+        }
         result = col.update_one({"size_id": doc["size_id"]}, {"$set": doc}, upsert=True)
         if result.upserted_id:
             inserted += 1

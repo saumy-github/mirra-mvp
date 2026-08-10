@@ -19,8 +19,11 @@ from mirra_measurements.avatar_model import (
 from mirra_measurements.size_model import (
     create_size_doc,
     validate_size_doc,
+    derive_hem_width_cm,
+    derive_wrist_width_cm,
     VALID_FIT_TYPES,
     SIZE_MEASUREMENT_FIELDS,
+    SIZE_TAPER_FIELDS,
 )
 
 # Legacy aliases kept while older Step 2 helpers still exist.
