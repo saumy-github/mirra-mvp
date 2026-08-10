@@ -1,9 +1,10 @@
 /**
- * Zod schemas for the REAL backend's response envelopes (website/backend)
- * plus mappers into the UI's domain types (types.ts). schemas.ts stays the
- * mock's contract; this file is the live one. Where the demo-mode backend
- * has no data yet (prices, imagery, rendered assets) the mappers emit
- * explicit placeholders rather than pretending.
+ * Zod schemas for the backend's response envelopes (website/backend) plus
+ * mappers into the UI's domain types (types.ts). Where a downstream step
+ * isn't built yet (prices, imagery, rendered assets — see
+ * .agent/website-launch/06-avatar-vto-implementation-status.md for what's
+ * still pending) the mappers emit explicit placeholders rather than
+ * pretending.
  */
 
 import { z } from "zod";
@@ -11,8 +12,6 @@ import type {
   AvatarJob,
   AvatarJobState,
   AvatarProfile,
-  CaptureSession,
-  CaptureSessionState,
   MeasurementField,
   MeasurementKey,
   ProductListPage,
@@ -70,7 +69,6 @@ const jobSchema = z.object({
   jobId: z.string(),
   state: z.enum(["queued", "processing", "ready", "failed"]),
   stageLabel: z.string(),
-  engineMode: z.string(),
   failureReason: z.string().nullable(),
   avatarProfileId: z.string().nullable(),
   createdAt: z.string(),
@@ -90,19 +88,6 @@ const profileSchema = z.object({
 });
 export const profileEnvelope = z.object({ profile: profileSchema.nullable() });
 
-const captureSchema = z.object({
-  sessionId: z.string(),
-  state: z.enum(["created", "paired", "consented", "uploaded", "completed", "cancelled"]),
-  manualCode: z.string(),
-  photoUploaded: z.boolean(),
-  avatarJobId: z.string().nullable(),
-  expiresAt: z.string(),
-  createdAt: z.string(),
-  token: z.string().optional(),
-});
-export const captureEnvelope = z.object({ session: captureSchema });
-export const tokenEnvelope = z.object({ token: z.string() });
-
 export const tryonSessionEnvelope = z.object({
   session: z.object({ sessionId: z.string(), createdAt: z.string() }),
 });
@@ -112,7 +97,6 @@ const renderSchema = z.object({
   sessionId: z.string(),
   state: z.enum(["requested", "rendering", "ready", "failed"]),
   stageLabel: z.string(),
-  engineMode: z.string(),
   sizeId: z.string(),
   avatarProfileId: z.string(),
   failureReason: z.string().nullable(),
@@ -120,8 +104,6 @@ const renderSchema = z.object({
   completedAt: z.string().nullable(),
   result: z
     .object({
-      kind: z.string(),
-      demoNotice: z.string().nullable(),
       garment: garmentSchema,
     })
     .nullable(),
@@ -144,7 +126,6 @@ type BackendAccount = z.infer<typeof accountSchema>;
 type BackendGarment = z.infer<typeof garmentSchema>;
 type BackendJob = z.infer<typeof jobSchema>;
 type BackendProfile = z.infer<typeof profileSchema>;
-type BackendCapture = z.infer<typeof captureSchema>;
 type BackendRender = z.infer<typeof renderSchema>;
 type BackendLook = z.infer<typeof lookSchema>;
 
@@ -284,12 +265,15 @@ export function mapJob(j: BackendJob): AvatarJob {
   };
 }
 
+// Fixed engine label — only one avatar pipeline exists (no demo/live split).
+const AVATAR_ENGINE_VERSION = "clo-avatar";
+
 export function mapProfile(p: BackendProfile): AvatarProfile {
   return {
     avatarProfileId: p.avatarProfileId,
     avatarLabel: p.avatarProfileId.slice(-4).toUpperCase(),
     version: 1,
-    engineVersion: "demo",
+    engineVersion: AVATAR_ENGINE_VERSION,
     createdAt: p.createdAt,
     updatedAt: p.updatedAt,
     previewAssetUrl: "",
@@ -306,43 +290,12 @@ export function profileFromMeasurements(raw: Record<string, unknown>): AvatarPro
     avatarProfileId: "ap_pending",
     avatarLabel: "NEW",
     version: 0,
-    engineVersion: "demo",
+    engineVersion: AVATAR_ENGINE_VERSION,
     createdAt: now,
     updatedAt: now,
     previewAssetUrl: "",
     measurements: buildMeasurementFields(raw),
     unitsPreference: "metric",
-  };
-}
-
-const CAPTURE_STATE: Record<BackendCapture["state"], CaptureSessionState> = {
-  created: "qr_ready",
-  paired: "consent_pending",
-  consented: "capturing",
-  uploaded: "uploaded",
-  completed: "completed",
-  cancelled: "cancelled",
-};
-
-export function mapCapture(s: BackendCapture, fallbackToken?: string): CaptureSession {
-  return {
-    captureSessionId: s.sessionId,
-    state: CAPTURE_STATE[s.state],
-    oneTimeToken: s.token ?? fallbackToken ?? "",
-    manualCode: s.manualCode,
-    expiresAt: s.expiresAt,
-    steps: [
-      {
-        id: "front",
-        title: "Front photo",
-        guidance: "Stand facing the camera, arms slightly away from your body.",
-        silhouette: "front",
-        required: true,
-      },
-    ],
-    uploadedStepIds: s.photoUploaded ? ["front"] : [],
-    failureReason: null,
-    avatarJobId: s.avatarJobId,
   };
 }
 
@@ -359,8 +312,12 @@ export function mapRender(r: BackendRender): TryOnRender {
       ? { top: { productPublicId: r.sizeId, variantPublicId: r.sizeId, assetUrl: "" } }
       : {},
     avatarProfileVersion: 1,
-    engineVersion: r.engineMode,
-    // Demo engine produces no imagery — the UI's demo notice covers this.
+    // Must match integrations/engines/try-on/provider.ts's ENGINE_VERSION —
+    // both feed lib/hanger.ts::isEntryRestorable's cache-compatibility check.
+    engineVersion: "clo-vto",
+    // No rendered imagery yet — Step 7 (catalog -> real garment pattern
+    // wiring) and Step 6's GLB serving route aren't built. See
+    // .agent/website-launch/06-avatar-vto-implementation-status.md.
     renderedAssetUrl: null,
     generatedAt: r.completedAt ?? r.createdAt,
     failureReason: r.failureReason,

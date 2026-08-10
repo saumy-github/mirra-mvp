@@ -101,6 +101,13 @@ class CLORestClient:
         payload = {"path": str(Path(avt_path).as_posix())}
         return self._post("/export-avatar-avt", payload)
 
+    def export_avatar_glb(self, output_path: str | Path) -> dict:
+        """Export the current scene as GLB via the same `/export` endpoint
+        clo_vto's export_garment() uses — one CLO plugin instance, one
+        command queue, shared by both pipelines."""
+        payload = {"path": str(Path(output_path).as_posix()), "format": "glb"}
+        return self._post("/export", payload)
+
     def wait_for_queue(
         self,
         timeout: int = 30,

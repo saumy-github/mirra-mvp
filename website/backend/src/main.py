@@ -12,7 +12,6 @@ from .core.errors import register_exception_handlers
 from .analytics.routes import router as analytics_router
 from .auth.routes import router as auth_router
 from .avatars.routes import router as avatars_router
-from .capture.routes import router as capture_router
 from .catalog.routes import router as catalog_router
 from .measurements.routes import router as measurements_router
 from .signature_looks.routes import router as signature_looks_router
@@ -64,7 +63,6 @@ def create_app() -> FastAPI:
     api.include_router(tryon_router)
     api.include_router(signature_looks_router)
     api.include_router(analytics_router)
-    api.include_router(capture_router)
     app.include_router(api)
     return app
 

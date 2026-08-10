@@ -13,6 +13,7 @@ the pipeline still runs even without a full product-ingestion output.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -140,12 +141,24 @@ def run(ctx):
     # --- Step c: Apply per-panel texture atlas ---
     # Phase 1 fix: texture dispatch is now async via PostMessage/QueuedConnection.
     # reset_fabric_status clears counters; wait_for_fabric polls until all done.
+    #
+    # CLO_PLAIN_FABRIC=1 skips the texture atlas and the graphic overlay below,
+    # leaving the flat base colour from colors.json. Useful when evaluating fit
+    # and drape, because the atlas currently renders wrong: the panel texture is
+    # a whole-garment cutout on a transparent background, but it is applied via
+    # SetBaseTextureMapImageGivenFilePath, which CLO treats as a repeating fabric
+    # swatch rather than a UV-mapped print. The silhouette tiles across the panel
+    # and its transparent regions show the avatar's skin through the garment.
     textures_dir = Path(textures_dir)
+    plain_fabric = os.environ.get("CLO_PLAIN_FABRIC", "").strip().lower() in ("1", "true", "yes")
     found_textures = [
         (piece, textures_dir / f"{piece}_texture.png")
         for piece in _PIECES
         if (textures_dir / f"{piece}_texture.png").exists()
     ]
+    if plain_fabric:
+        print("  CLO_PLAIN_FABRIC=1 — skipping texture atlas and graphic overlay (flat colour only).")
+        found_textures = []
     if found_textures:
         ctx.client.reset_fabric_status()
         for piece, tex_path in found_textures:
@@ -157,14 +170,16 @@ def run(ctx):
         tex_ok = ctx.client.wait_for_fabric(timeout=20)
         if not tex_ok:
             print("  [WARN] Texture dispatch did not confirm — check /fabric-status for details.")
-    else:
+    elif not plain_fabric:
         print("  No panel textures found — skipping texture atlas application.")
 
     # --- Step d: Apply graphic/logo overlay to front panel only ---
     graphic_path = Path(graphic_path)
     design_type = _load_design_type(Path(colors_json))
     print(f"  [DEBUG] design_type='{design_type}', graphic exists={graphic_path.exists()}")
-    if (
+    if plain_fabric:
+        print("  Graphic overlay skipped (CLO_PLAIN_FABRIC=1).")
+    elif (
         graphic_path.exists()
         and design_type in ("logo", "text")
         and "front_panel" in piece_indices

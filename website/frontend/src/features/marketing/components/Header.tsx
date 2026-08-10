@@ -4,12 +4,11 @@ import { X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 interface HeaderProps {
-  onJoinWaitlist: () => void;
   isPlaying: boolean;
   toggleSound: () => void;
 }
 
-export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: HeaderProps) {
+export default function Header({ isPlaying, toggleSound }: HeaderProps) {
   const { scrollY } = useScroll();
   const [isSticky, setIsSticky] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -156,12 +155,12 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
             </div>
           </button>
 
-          <button
-            onClick={onJoinWaitlist}
+          <Link
+            to="/auth/login"
             className="group relative overflow-hidden rounded-full bg-black px-5 py-2 text-[11px] font-bold tracking-wider text-white uppercase transition-transform duration-300 hover:scale-105 hover:bg-black/80"
           >
-            <span className="relative z-10">Book a Demo</span>
-          </button>
+            <span className="relative z-10">Login</span>
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle (When not sticky) */}
@@ -247,15 +246,13 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
                   </div>
                 </button>
 
-                <button
-                  onClick={() => {
-                    onJoinWaitlist();
-                    setIsMenuOpen(false);
-                  }}
+                <Link
+                  to="/auth/login"
+                  onClick={() => setIsMenuOpen(false)}
                   className="relative mr-1 ml-2 shrink-0 overflow-hidden rounded-full bg-black px-5 py-2.5 text-[10px] font-bold tracking-wider text-white uppercase"
                 >
-                  Book a Demo
-                </button>
+                  Login
+                </Link>
               </motion.div>
             ) : (
               <motion.div
@@ -286,18 +283,20 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
 
                 <div className="mx-1 h-6 w-px shrink-0 bg-silver" />
 
-                <motion.button
+                <motion.div
                   initial={{ opacity: 0, scale: 0.7 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.48, duration: 0.35 }}
-                  onClick={() => {
-                    onJoinWaitlist();
-                    setIsMenuOpen(false);
-                  }}
-                  className="relative mx-2 shrink-0 overflow-hidden rounded-full bg-black px-5 py-2.5 text-[10px] font-bold tracking-wider whitespace-nowrap text-white uppercase"
+                  className="mx-2 shrink-0"
                 >
-                  Book a Demo
-                </motion.button>
+                  <Link
+                    to="/auth/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="relative block overflow-hidden rounded-full bg-black px-5 py-2.5 text-[10px] font-bold tracking-wider whitespace-nowrap text-white uppercase"
+                  >
+                    Login
+                  </Link>
+                </motion.div>
 
                 <motion.button
                   initial={{ opacity: 0, scale: 0.7 }}
@@ -331,15 +330,13 @@ export default function Header({ onJoinWaitlist, isPlaying, toggleSound }: Heade
               ))}
             </div>
             <div className="mt-12">
-              <button
-                onClick={() => {
-                  onJoinWaitlist();
-                  setIsMenuOpen(false);
-                }}
-                className="w-full rounded-full bg-black py-4 font-semibold text-white"
+              <Link
+                to="/auth/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="block w-full rounded-full bg-black py-4 text-center font-semibold text-white"
               >
-                Book a Demo
-              </button>
+                Login
+              </Link>
             </div>
           </motion.div>
         )}

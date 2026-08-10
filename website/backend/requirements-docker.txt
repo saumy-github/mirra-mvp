@@ -1,0 +1,27 @@
+# Backend-only dependency subset for the Docker image (website/backend/Dockerfile).
+#
+# The root requirements.txt is still the single source of truth for the
+# whole repo's .venv (avatar/ingestion pipelines + this backend share one
+# venv/requirements file, per CLAUDE.md's project_python_env convention) —
+# this file is NOT a competing "backend has its own requirements" list, it's
+# a curated subset of that same file, installed inside the container so the
+# image doesn't carry torch/transformers/opencv/etc., which
+# website/backend/src never imports (confirmed by grepping every import in
+# that tree — the CLO/ML stack is only used by clo_avatar_generation,
+# clo_vto, and product_ingestion, none of which are COPYed into this image).
+#
+# Keep every pin here identical to its line in root requirements.txt. If you
+# add a new import to website/backend/src that needs a package not already
+# listed below, add it to BOTH files with the same version pin.
+
+fastapi[standard]>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic-settings>=2.5.0
+PyJWT>=2.9.0
+bcrypt>=4.2.0
+python-multipart>=0.0.9
+email-validator>=2.2.0
+httpx>=0.27.0
+pymongo>=4.13.0
+rq>=1.16.0
+redis>=5.0.0

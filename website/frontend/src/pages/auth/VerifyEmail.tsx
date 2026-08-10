@@ -40,11 +40,6 @@ export default function VerifyEmail() {
           placeholder="000000"
           autoComplete="one-time-code"
           maxLength={6}
-          hint={
-            (import.meta.env.VITE_AUTH_PROVIDER ?? "mock") === "mock"
-              ? "Demo mode — no email is actually sent. Use code 000000."
-              : undefined
-          }
           required
         />
         {error && (

@@ -19,6 +19,7 @@ from .step_08_apply_measurements import run as step_08_apply_measurements
 from .step_09_readback import run as step_09_readback
 from .step_10_compute_error import run as step_10_compute_error
 from .step_11_save_outputs import run as step_11_save_outputs
+from .step_12_export_glb import run as step_12_export_glb
 
 
 StepFn = Callable[[Step1Context], bool]
@@ -67,6 +68,7 @@ def _output_summary_payload(ctx: Step1Context) -> dict:
             "saved_avatar_direct": str(ctx.direct_avatar_export_path) if ctx.direct_avatar_export_path else None,
             "saved_avatar": str(ctx.extracted_avatar_path) if ctx.extracted_avatar_path else None,
             "saved_artifacts": dict(ctx.extracted_artifacts),
+            "saved_avatar_glb": str(ctx.avatar_glb_path) if ctx.avatar_glb_path else None,
         },
         "warnings": list(ctx.warnings),
     }
@@ -134,6 +136,7 @@ def run_pipeline(ctx: Step1Context) -> Step1Context:
         ("step_09_readback", step_09_readback, False, False),
         ("step_10_compute_error", step_10_compute_error, False, False),
         ("step_11_save_outputs", step_11_save_outputs, True, True),
+        ("step_12_export_glb", step_12_export_glb, False, False),
     ]
 
     watchdog: HealthWatchdog | None = None

@@ -1,6 +1,6 @@
 # Step 0 - Shared infra: the job worker/queue
 
-**Status:** planned, not yet executed
+**Status:** implemented and live-verified (see Execution Log). `demo`/`live` engine mode itself was later removed entirely — see [22-remove-demo-live-mode-and-upload-split.md](22-remove-demo-live-mode-and-upload-split.md); every avatar/try-on request now always goes through this worker path, no mode flag.
 **Created:** 2026-08-04
 **Part of:** [05-avatar-vto-live-pipeline-flow.md](05-avatar-vto-live-pipeline-flow.md) / [06-avatar-vto-implementation-status.md](06-avatar-vto-implementation-status.md)
 **Blocks:** every other step in this sequence — nothing runs in `live` mode without this.
@@ -15,7 +15,7 @@ CLO3D's plugin is inherently single-threaded — one command queue, drained by a
 
 ## Current state
 
-- `avatars/engine.py::start_job` and `tryon/engine.py::start_render` both currently do exactly one thing in `live` mode: `raise ServiceUnavailable("... CLO3D worker queue pending")`. No queue, no worker, nothing downstream of this exists yet.
+**Superseded by this doc's own Execution Log below, then by doc 22** — this section is kept for historical context only. `avatars/engine.py::start_job` and `tryon/engine.py::start_render` originally did exactly one thing in `live` mode: `raise ServiceUnavailable("... CLO3D worker queue pending")`. No queue, no worker, nothing downstream of this existed yet at the time this doc was written.
 - The state machine both jobs need to drive already exists and is proven out in demo mode: `avatar_jobs` (`queued → processing → ready → failed`) and `tryon_renders` (`requested → rendering → ready → failed`).
 - The worker's execution target already exists and works: `clo_avatar_generation/run_avatar.py` (proven against golden user `u_001`, doc 01 Phase 2) and `clo_vto/run_clo_vto.py`.
 - Deploy topology is already decided (doc 01/02): backend + frontend run in Docker on the pilot Windows machine; the worker is a **native Windows Python process** using the repo's existing `.venv`, not containerized, because it needs to drive the pipeline scripts directly and reach the CLO plugin at `localhost:50505`.
@@ -61,4 +61,99 @@ Leaning toward the top-level option since it's conceptually closer to the pipeli
 
 ## Execution Log
 
-Not started.
+### 2026-08-08 - Implemented
+
+Built as scoped — queue + worker + Mongo state machine wiring only, no GLB
+export or `live_upload/` storage (Steps 4/5/9/10, still separate/later).
+
+**Open decision resolved:** worker lives at top-level `worker/` (repo root),
+per the doc's own leaning — conceptually closer to `clo_avatar_generation`/
+`clo_vto` than to the website.
+
+**What changed:**
+- `docker-compose.yml` — added a `redis` service (`redis:7-alpine`, port
+  `6379` published to the host so the *native* worker can reach it via
+  `localhost:6379`; the Dockerized backend reaches it via the `redis`
+  service name instead), `backend` now `depends_on: redis`.
+- `requirements.txt` — added `rq>=1.16.0`, `redis>=5.0.0`.
+- `website/backend/src/config.py` — added `redis_url` setting (native
+  default `redis://localhost:6379/0`; the Dockerized backend needs
+  `REDIS_URL=redis://redis:6379/0` added to `website/backend/.env.docker.dev`
+  — not done here, that file's gitignored and gets hand-edited, see the
+  "what I need from you" note this was implemented alongside).
+- `website/backend/src/core/queue.py` (new) — `enqueue()`/`get_queue()`.
+  Enqueues by **string** job path (`"worker.tasks.run_avatar_job"`), never
+  imports `worker.tasks` directly — the backend's Docker image doesn't have
+  `clo_avatar_generation`/`clo_vto` copied in (only `website/backend`),
+  so a direct import would break the image. `job_timeout` is a required
+  kwarg, not defaulted, so every call site makes a deliberate choice
+  instead of silently inheriting RQ's 180s default.
+- `avatars/engine.py::start_job` / `tryon/engine.py::start_render` —
+  replaced the `raise ServiceUnavailable` with real enqueue calls
+  (20 min / 25 min job timeouts respectively).
+- `avatars/models.py::AvatarProfileDocument` — added
+  `clo_avatar_avt_path: str | None`, set by the worker after a live run.
+  This is a **Step 0-only internal bridge field** (how the try-on task
+  locates the user's `.avt` to hand to `clo_vto`, since Step 5's real
+  `live_upload/` storage doesn't exist yet) — not the web-facing
+  `avatar_glb_path` doc 05/06 already plans for Step 5.
+- `worker/` (new top-level package): `tasks.py` (`run_avatar_job`,
+  `run_tryon_render`), `run_worker.py` (entrypoint — `SimpleWorker`, not
+  the default `rq.Worker`, see below), `.env.example`, `README.md`.
+  `worker/tasks.py` imports `website/backend/src` directly (via a
+  `sys.path` insert, same pattern every pipeline entrypoint in this repo
+  already uses for `REPO_ROOT`) so job/profile/render document shapes can
+  never drift from what the FastAPI app itself reads — no duplicate schema.
+
+**Real, non-obvious finding: `rq.Worker`'s default fork-based execution
+model doesn't work on Windows at all** (`os.fork()` doesn't exist there).
+Doc 07 didn't originally flag this — worth recording since it changes the
+literal implementation, not just an implementation detail: used
+`rq.worker.SimpleWorker` instead (runs jobs in-process, no fork — this is
+also independently correct for us regardless of platform, since CLO3D's
+plugin is itself single-threaded and there's no parallelism to gain from a
+forking worker). Its timeout mechanism (`TimerDeathPenalty`) doesn't depend
+on `SIGALRM` (also Windows-incompatible) — it uses `threading.Timer` +
+`PyThreadState_SetAsyncExc` instead, which does work on Windows.
+
+**Verified on this machine before wiring it up for real** (doc 01's own
+"verify before building on top" precedent):
+- `SimpleWorker` starts and processes jobs cleanly on Windows (RQ 2.10.0).
+- Its timeout mechanism actually fires: a job exceeding `job_timeout` is
+  marked `FAILED` with `JobTimeoutException`, and — critically — **the
+  worker keeps processing later jobs cleanly afterward**, it doesn't wedge.
+  One real caveat recorded in `worker/README.md`: the async exception can
+  only land at a Python bytecode boundary, so it's delivered *after*
+  whatever single blocking call is currently in flight returns, not
+  instantly. Every CLO REST call already has its own `timeout=30`, so
+  worst case this adds ~30s of latency, not an indefinite hang.
+- `docker compose up -d redis` works; the backend app (`src.main:app`)
+  still imports cleanly with the new `core/queue.py` wiring.
+- `worker.tasks` imports cleanly end to end — pulls in the full
+  `clo_avatar_generation`/`clo_vto` import chain plus `website/backend/src`
+  with no errors.
+- Full plumbing test: enqueued a real (fake-id) job onto the real `clo`
+  Redis queue from the backend's `enqueue()` helper, then ran `SimpleWorker`
+  against it — it picked up the job, resolved
+  `"worker.tasks.run_avatar_job"`, executed, and reached the real (async)
+  pymongo driver's connection attempt, which failed cleanly after the
+  existing 3s `serverSelectionTimeoutMS` (no local Mongo was configured for
+  this throwaway test — expected) without crashing the worker process.
+
+**Not verified — needs the pilot machine + real credentials, which this
+session doesn't have/read (`.env*` files are never read — see repo
+convention):** a real end-to-end run against the actual Atlas DB and a
+running CLO3D instance. See the chat turn that implemented this for the
+exact "what I need from you" list (`worker/.env`, the `.env.docker.dev`
+`REDIS_URL` line, `pip install -r requirements.txt`, a rebuilt backend
+image, a male test user with measurements already stored).
+
+**Known, deliberate scope limits carried into `worker/README.md`:**
+- Try-on jobs use `clo_vto`'s default-panels t-shirt only, untextured —
+  Step 7 (catalog → real garment pattern wiring) isn't built.
+- Try-on output lands in the single shared `clo_vto/output/` folder (a
+  pre-existing constraint of that pipeline), overwritten by the next
+  render — no per-render storage until Step 10.
+- No GLB export (Step 4), no `live_upload/` (Step 5/10) — a `ready`
+  job/render has no web-facing 3D asset yet. This step only proves the
+  queue + real pipeline invocation + Mongo state machine end to end.

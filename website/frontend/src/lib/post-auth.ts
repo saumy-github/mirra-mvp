@@ -8,9 +8,3 @@ export function postAuthDestination(nextParam?: string | null): string {
   if (nextParam && /^\/(?!\/)/.test(nextParam)) return nextParam;
   return "/profile";
 }
-
-/** Temporary review shortcut — jumps straight to the studio. */
-export function demoAccessDestination(nextParam?: string | null): string {
-  if (nextParam && /^\/(?!\/)/.test(nextParam)) return nextParam;
-  return "/studio";
-}

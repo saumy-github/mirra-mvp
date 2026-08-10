@@ -24,26 +24,37 @@ class GarmentMeasurements:
 
     Measurement conventions (IMPORTANT — read before adding new fields)
     -------------------------------------------------------------------
-    All width/girth fields use the FLAT SEAM-TO-SEAM (half-girth) convention:
+    These fields do NOT all share one convention. Two are full widths and one
+    is a half-girth, and the difference is load-bearing:
 
-      half_chest_width  — half the full chest circumference.
-                          One body panel = this width.  Front + Back together
-                          form the full tube (2 × half_chest_width).
+      half_chest_width  — the FULL flat width of one body panel, despite the
+                          name. It is the whole panel, not half of one:
+                          panels.py line 285 sets `half_w = half_chest_width`
+                          and spans the hem edge (0,0) → (half_chest_width, 0).
+                          Front + Back together form the tube, so the finished
+                          chest girth is 2 × this value.
 
-      shoulder_width    — half the full shoulder span, measured from centre-
-                          back to shoulder point.  Matches half_chest_width
-                          convention so edge algebra is consistent.
+      shoulder_width    — the FULL shoulder span, seam point to seam point.
+                          panels.py line 287 computes
+                          `center_x ± shoulder_width / 2`, which only spans the
+                          intended shoulder if the value is the full width.
 
-      bicep_width       — flat seam-to-seam measurement of the FOLDED sleeve
-                          (= half the bicep tube circumference).
-                          Pattern generators must multiply by 2 to get the
-                          UNFOLDED sleeve piece width (full tube circumference).
-                          Do NOT store the full circumference here — the *2
-                          factor is applied in panels.py generate_sleeve().
+      neck_width        — the FULL neck opening width.
+
+      bicep_width       — the one genuine half-girth here: flat seam-to-seam
+                          across the FOLDED sleeve. Pattern generators multiply
+                          by 2 for the unfolded sleeve piece width — panels.py
+                          generate_sleeve() and panel_generation_clo's
+                          `bicep_full = bicep_width * 2 * MM_PER_CM` both do.
+                          Do NOT store the full circumference here.
+
+    An earlier version of this docstring described `shoulder_width` and
+    `half_chest_width` as halves. No code ever treated them that way and the
+    seeded sizes were authored against the code, so the docstring was the thing
+    that was wrong. Reading them as halves double-counts the panel width.
 
     All other linear measurements (garment_length, sleeve_length, armhole_depth,
-    neck_width, neck_depth_*) are absolute values in centimetres with no
-    halving convention.
+    neck_depth_*) are absolute values in centimetres with no halving convention.
     """
 
     # Body measurements
@@ -52,10 +63,10 @@ class GarmentMeasurements:
     body_shoulder: float
 
     # Calculated garment dimensions (with ease)
-    # See class docstring for the half-girth convention on width fields.
-    half_chest_width: float    # half chest girth (one panel width), cm
+    # See class docstring — width fields do not share a single convention.
+    half_chest_width: float    # FULL flat width of one body panel, cm
     garment_length: float      # full torso length hem-to-shoulder, cm
-    shoulder_width: float      # half shoulder span (centre to shoulder point), cm
+    shoulder_width: float      # FULL shoulder span, seam point to seam point, cm
     neck_width: float          # full neck opening width, cm
     neck_depth_front: float    # front neckline drop from shoulder line, cm
     neck_depth_back: float     # back neckline drop from shoulder line, cm

@@ -15,6 +15,11 @@ pytest-cov>=3.0.0
 python-dotenv>=1.0.0
 
 # Website backend (FastAPI, website/backend/)
+# The Docker image installs only these + rq/redis below, via
+# website/backend/requirements-docker.txt (a curated subset of this file,
+# kept in sync manually) — NOT the full file, since the backend container
+# never imports the CLO/ML stack further down. Keep both files' pins
+# identical when touching any of the lines through redis below.
 # [standard] includes the `fastapi dev` CLI — the standard dev-run command
 fastapi[standard]>=0.115.0
 uvicorn[standard]>=0.30.0
@@ -24,6 +29,12 @@ bcrypt>=4.2.0
 python-multipart>=0.0.9
 email-validator>=2.2.0
 httpx>=0.27.0
+
+# Step 0: job queue between the backend and the native CLO worker
+# (worker/, repo root) — see .agent/website-launch/07-step0-worker-queue.md.
+# SimpleWorker (not the default fork-based Worker) is required on Windows.
+rq>=1.16.0
+redis>=5.0.0
 
 # 2D pattern generation (DXF export for CLO3D)
 ezdxf>=1.0.0

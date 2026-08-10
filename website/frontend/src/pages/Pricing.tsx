@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Check } from "lucide-react";
-import { useOutletContext } from "react-router-dom";
-import type { MarketingContext } from "../features/marketing/marketing-layout";
+import { useNavigate } from "react-router-dom";
 import TextReveal, { KineticText } from "../features/marketing/components/TextReveal";
 
 export default function Pricing() {
-  const { onBookDemo } = useOutletContext<MarketingContext>();
+  const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(true);
 
   return (
@@ -83,7 +82,7 @@ export default function Pricing() {
             </div>
 
             <button
-              onClick={onBookDemo}
+              onClick={() => navigate("/auth/sign-up")}
               className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
             >
               <KineticText>Apply for Early Access</KineticText>
@@ -123,7 +122,7 @@ export default function Pricing() {
             </div>
 
             <button
-              onClick={onBookDemo}
+              onClick={() => navigate("/auth/sign-up")}
               className="w-full rounded-full bg-silver-light py-4 font-bold text-ink transition-colors hover:bg-silver"
             >
               <KineticText>Talk to Sales</KineticText>
@@ -159,7 +158,7 @@ export default function Pricing() {
             </div>
 
             <button
-              onClick={onBookDemo}
+              onClick={() => navigate("/auth/sign-up")}
               className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
             >
               <KineticText>Contact Team</KineticText>

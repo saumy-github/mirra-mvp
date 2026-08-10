@@ -43,13 +43,12 @@ async def request_render(session_id: str, user_id: str, size_id: str) -> TryonRe
         size_id=size_id,
         garment_snapshot=garment,
         avatar_profile_id=profile.id,
-        engine_mode=engine.engine_mode(),
         state="requested",
         failure_reason=None,
         created_at=_now(),
         completed_at=None,
     )
-    engine.start_render(render)  # live mode raises until the worker exists
+    engine.start_render(render)  # hands off to the CLO worker via Redis
     await tryon_renders_col().insert_one(render.to_mongo())
     return render
 
@@ -62,17 +61,7 @@ async def get_render(session_id: str, render_id: str, user_id: str) -> TryonRend
     )
     if not raw:
         raise NotFound("Render not found")
-    render = TryonRenderDocument.model_validate(raw)
-    if render.engine_mode == "demo" and render.state not in ("ready", "failed"):
-        state = engine.derive_demo_state(render)
-        if state != render.state:
-            render.state = state
-            updates: dict = {"state": state}
-            if state == "ready":
-                render.completed_at = _now()
-                updates["completed_at"] = render.completed_at
-            await tryon_renders_col().update_one({"_id": render_id}, {"$set": updates})
-    return render
+    return TryonRenderDocument.model_validate(raw)
 
 
 async def list_history(user_id: str, limit: int = 20) -> list[TryonRenderDocument]:

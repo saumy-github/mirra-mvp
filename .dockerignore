@@ -8,6 +8,11 @@
 **/__pycache__
 **/*.pyc
 
+# Never let an env file - dev or prod - end up in an image layer.
+**/.env
+**/.env.*
+!**/.env.example
+
 website/frontend/node_modules
 website/frontend/dist
 

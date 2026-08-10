@@ -2,7 +2,6 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
 import { GoogleButton } from "@/features/auth/components/oauth-buttons";
-import { QuickAccessControl } from "@/features/auth/components/quick-access-control";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { OrDivider } from "@/components/ui/misc";
@@ -68,7 +67,7 @@ export default function Login() {
   }
 
   return (
-    <AuthShell topRightAction={<QuickAccessControl />}>
+    <AuthShell>
       <AuthHeading
         pill="Welcome back"
         title="Your fitting room awaits"

@@ -130,61 +130,12 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     }
   }
 
-  // ── Capture ──
-  createCaptureSession() {
-    return this.http
-      .post("/capture-sessions", live.captureEnvelope, {})
-      .then((envelope) => live.mapCapture(envelope.session));
-  }
-  getCaptureSession(sessionId: string) {
-    return this.http
-      .get(`/capture-sessions/${sessionId}`, live.captureEnvelope)
-      .then((envelope) => live.mapCapture(envelope.session));
-  }
-  getCaptureSessionByToken(token: string) {
-    return this.http
-      .get(`/capture-sessions/by-token/${token}`, live.captureEnvelope)
-      .then((envelope) => live.mapCapture(envelope.session, token));
-  }
-  resolveManualCode(code: string) {
-    return this.http.post("/capture-sessions/resolve-code", live.tokenEnvelope, { code });
-  }
-  pairCaptureSession(token: string) {
-    return this.http
-      .post(`/capture-sessions/by-token/${token}/pair`, live.captureEnvelope, {})
-      .then((envelope) => live.mapCapture(envelope.session, token));
-  }
-  giveCaptureConsent(token: string) {
-    return this.http
-      .post(`/capture-sessions/by-token/${token}/consent`, live.captureEnvelope, {})
-      .then((envelope) => live.mapCapture(envelope.session, token));
-  }
-  submitCaptureAsset(
-    token: string,
-    _stepId: string,
-    payload: { mimeType: string; byteSize: number; width: number; height: number; blob?: Blob },
-  ) {
-    const form = new FormData();
-    // The camera UI currently forwards metadata only; until it passes real
-    // bytes, a placeholder pixel keeps the (demo-engine) flow working.
-    const blob = payload.blob ?? placeholderPng();
-    form.append("file", blob, "capture.png");
-    return this.http
-      .postMultipart(`/capture-sessions/by-token/${token}/uploads`, live.captureEnvelope, form)
-      .then((envelope) => live.mapCapture(envelope.session, token));
-  }
-  completeCapture(token: string) {
-    return this.http
-      .post(`/capture-sessions/by-token/${token}/complete`, live.captureEnvelope, {})
-      .then((envelope) => live.mapCapture(envelope.session, token));
-  }
-  cancelCaptureSession(sessionId: string) {
-    return this.http
-      .post(`/capture-sessions/${sessionId}/cancel`, live.captureEnvelope, {})
-      .then((envelope) => live.mapCapture(envelope.session));
-  }
-
   // ── Avatar ──
+  generateAvatar() {
+    return this.http
+      .post("/avatars/generate", live.jobEnvelope, {})
+      .then((envelope) => live.mapJob(envelope.job));
+  }
   getAvatarJob(jobId: string) {
     return this.http
       .get(`/avatars/jobs/${jobId}`, live.jobEnvelope)
@@ -313,12 +264,4 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
       // Analytics must never break the user's experience.
     }
   }
-}
-
-/** 1×1 transparent PNG used until the camera UI forwards real bytes. */
-function placeholderPng(): Blob {
-  const b64 =
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
-  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  return new Blob([bytes], { type: "image/png" });
 }

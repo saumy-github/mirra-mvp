@@ -1,6 +1,6 @@
 # 05 - Avatar generation + VTO live pipeline: high-level flow
 
-**Status:** planned, not yet executed
+**Status:** planned, not yet executed. **Note:** the `demo`/`live` engine-mode distinction this doc references throughout was later removed entirely (every request always runs the real pipeline), and `live_upload/` below now specifically means *production only* — local/dev testing uses a sibling `dev_upload/` instead, selected by `APP_ENV`. See [22-remove-demo-live-mode-and-upload-split.md](22-remove-demo-live-mode-and-upload-split.md). The folder structure and serving strategy below are otherwise still the target.
 **Created:** 2026-08-04
 **Continues:** [01-docker-and-clo-render-pipeline.md](01-docker-and-clo-render-pipeline.md) (GLB export findings), [03-backend-behavior-plan.md](03-backend-behavior-plan.md) Section 8 (guest tracking)
 

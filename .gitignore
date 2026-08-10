@@ -1,5 +1,7 @@
 .env
-.env.dev
+.env.*
+!.env.example
+!**/.env.example
 
 # virtualenvs
 .venv/
@@ -38,6 +40,8 @@ pipeline_star/generated/*
 **/*.glb
 **/*.gltf
 **/*.svg
+**/*.avt
+**/*.zprj
 2d_patterned_garment_generation_clo3d/output/**/pattern_metadata.json
 
 # Pattern generation output runs
@@ -59,3 +63,8 @@ after-1-jun/research_files/*
 
 after-1-jun/scripts-res/*
 after-1-jun/scripts/*
+
+# CLO reference pattern block — these four DXFs are committed on purpose:
+# they are the ground truth the parametric block was fitted to, and the
+# fixture that validate_against_reference.py runs against.
+!product_ingestion/clo_block/reference_dxf/*.dxf

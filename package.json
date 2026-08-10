@@ -1,13 +1,14 @@
 {
   "private": true,
   "scripts": {
-    "dev:up": "docker compose --env-file .env.dev -f docker-compose.yml up -d --build backend frontend",
-    "dev:up:all": "docker compose --env-file .env.dev -f docker-compose.yml up -d --build",
-    "dev:down": "docker compose --env-file .env.dev -f docker-compose.yml down",
-    "dev:restart": "docker compose --env-file .env.dev -f docker-compose.yml restart",
-    "dev:ps": "docker compose --env-file .env.dev -f docker-compose.yml ps",
-    "dev:logs": "docker compose --env-file .env.dev -f docker-compose.yml logs -f",
-    "dev:logs:backend": "docker compose --env-file .env.dev -f docker-compose.yml logs -f backend",
-    "dev:logs:frontend": "docker compose --env-file .env.dev -f docker-compose.yml logs -f frontend"
+    "dev:up": "docker compose up -d --build",
+    "dev:down": "docker compose down",
+    "dev:restart": "docker compose restart",
+    "dev:ps": "docker compose ps",
+    "dev:logs": "docker compose logs -f",
+    "dev:logs:backend": "docker compose logs -f backend",
+    "dev:seed": "docker compose exec backend python scripts/seed_measurements.py && docker compose exec backend python scripts/seed_sizes.py",
+    "dev:smoke": "docker compose exec backend python scripts/smoke_e2e.py"
   }
 }
+

@@ -68,6 +68,7 @@ class Step1Context:
     direct_avatar_export_path: Path | None = None
     extracted_avatar_path: Path | None = None
     extracted_artifacts: dict[str, str] = field(default_factory=dict)
+    avatar_glb_path: Path | None = None
 
     step_results: list[dict[str, Any]] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)

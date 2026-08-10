@@ -1,35 +1,15 @@
-"""The cloth-physics hand-off seam (TRYON_ENGINE_MODE=demo|live).
+"""The cloth-physics hand-off seam.
 
-demo: no cloth physics — a staged, clearly-labelled simulation so the
-frontend can integrate before the CLO3D worker exists.
-
-live: will hand the render to the CLO3D VTO pipeline via the worker queue
-(same pending decision as avatars). Refuses cleanly until then.
+Every try-on render is handed to the native CLO worker (worker/run_worker.py,
+repo root) via Redis/RQ — same queue as avatars, see
+.agent/website-launch/07-step0-worker-queue.md.
 """
 
-from datetime import datetime, timezone
+from ..core.queue import enqueue
+from .models import TryonRenderDocument
 
-from ..config import get_settings
-from ..core.errors import ServiceUnavailable
-from .models import DEMO_RENDERING_SECONDS, DEMO_REQUESTED_SECONDS, TryonRenderDocument
-
-
-def engine_mode() -> str:
-    return get_settings().tryon_engine_mode
+TRYON_JOB_TIMEOUT_SECONDS = 25 * 60  # simulation can run longer than avatar generation; see worker/README.md
 
 
 def start_render(render: TryonRenderDocument) -> None:
-    if engine_mode() == "live":
-        raise ServiceUnavailable(
-            "Live try-on engine is not wired yet (CLO3D worker queue pending)",
-            code="engine_unavailable",
-        )
-
-
-def derive_demo_state(render: TryonRenderDocument) -> str:
-    elapsed = (datetime.now(timezone.utc) - render.created_at).total_seconds()
-    if elapsed < DEMO_REQUESTED_SECONDS:
-        return "requested"
-    if elapsed < DEMO_REQUESTED_SECONDS + DEMO_RENDERING_SECONDS:
-        return "rendering"
-    return "ready"
+    enqueue("worker.tasks.run_tryon_render", render.id, job_timeout=TRYON_JOB_TIMEOUT_SECONDS)

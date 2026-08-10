@@ -98,41 +98,6 @@ export const avatarProfileSchema = z.object({
   unitsPreference: z.enum(["metric", "imperial"]),
 });
 
-export const captureSessionStateSchema = z.enum([
-  "created",
-  "qr_ready",
-  "paired",
-  "consent_pending",
-  "capturing",
-  "uploading",
-  "uploaded",
-  "processing",
-  "completed",
-  "expired",
-  "cancelled",
-  "failed",
-]);
-
-export const captureStepSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  guidance: z.string(),
-  silhouette: z.enum(["front", "side", "back"]),
-  required: z.boolean(),
-});
-
-export const captureSessionSchema = z.object({
-  captureSessionId: z.string(),
-  state: captureSessionStateSchema,
-  oneTimeToken: z.string(),
-  manualCode: z.string(),
-  expiresAt: z.string(),
-  steps: z.array(captureStepSchema),
-  uploadedStepIds: z.array(z.string()),
-  failureReason: z.string().nullable(),
-  avatarJobId: z.string().nullable(),
-});
-
 export const avatarJobSchema = z.object({
   jobId: z.string(),
   state: z.enum([

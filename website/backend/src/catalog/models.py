@@ -3,8 +3,14 @@ See schemas.py for pagination — this module has no request-body schemas
 (public GET endpoints, query params only).
 
 Reads the existing sizes collection (written by the Step 2 pipeline and the
-seed script) — flat schema, one doc per size_id. Read-only service: garments
-are produced by product_ingestion (Step 2), never created through this API.
+seed script) — flat schema, one doc per size_id:
+    size_id, fit_type, the 12 measurement fields below (all cm; the last two
+    are optional and read back as null on documents seeded before them),
+    optional cloth metadata (cloth_id, cloth_label, category),
+    created_at, updated_at
+
+Read-only service: garments are produced by product_ingestion (Step 2),
+never created through this API.
 """
 
 from datetime import datetime
@@ -25,6 +31,10 @@ SIZE_MEASUREMENT_FIELDS = (
     "bicep_width_cm",
     "armhole_depth_cm",
     "seam_allowance_cm",
+    # Full flat taper widths. Optional in the schema, so documents seeded
+    # before these existed report them as null rather than being omitted.
+    "hem_width_cm",
+    "wrist_width_cm",
 )
 
 

@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -27,10 +28,18 @@ class Settings(BaseSettings):
     # The frontend dev server runs on 3000 (vite --port=3000, package.json)
     cors_origins: str = "http://localhost:3000"
 
-    avatar_engine_mode: str = "demo"  # demo | live
-    tryon_engine_mode: str = "demo"  # demo | live
+    # Mirrors the frontend's VITE_APP_ENV. Read directly by the worker
+    # process (os.environ, via worker/.env — see worker/live_upload.py) to
+    # pick dev_upload/ vs live_upload/; not yet consumed by the backend
+    # itself (Step 6's serving route will need it once built — see
+    # .agent/website-launch/22-remove-demo-live-mode-and-upload-split.md).
+    app_env: Literal["development", "production"] = "development"
 
-    uploads_dir: str = "uploads"
+    # Redis/RQ hand-off to the native CLO worker (worker/, repo root) — see
+    # .agent/website-launch/07-step0-worker-queue.md. Native/local default;
+    # the Dockerized backend overrides this to redis://redis:6379/0 via
+    # website/backend/.env.docker.dev (compose service name, not localhost).
+    redis_url: str = "redis://localhost:6379/0"
 
     # Google OAuth (03-backend-behavior-plan.md, "Google OAuth plan"). Empty
     # client id/secret means Google sign-in is treated as unconfigured.
@@ -43,11 +52,6 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
-
-    @property
-    def uploads_path(self) -> Path:
-        p = Path(self.uploads_dir)
-        return p if p.is_absolute() else BACKEND_DIR / p
 
 
 @lru_cache

@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Minus,
@@ -14,7 +15,8 @@ import {
 } from "lucide-react";
 import TextReveal, { KineticText } from "./TextReveal";
 
-export default function MirrorCTA({ onBookDemo }: { onBookDemo: () => void }) {
+export default function MirrorCTA() {
+  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -65,10 +67,10 @@ export default function MirrorCTA({ onBookDemo }: { onBookDemo: () => void }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            onClick={onBookDemo}
+            onClick={() => navigate("/auth/sign-up")}
             className="mx-auto rounded-full bg-ink px-9 py-4 text-sm font-semibold tracking-widest text-bg uppercase shadow-lg transition-colors hover:bg-wine hover:text-white"
           >
-            <KineticText>Book a demo</KineticText>
+            <KineticText>Get Started</KineticText>
           </motion.button>
         </div>
 

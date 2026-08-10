@@ -1,8 +1,8 @@
 """Avatars business logic: job lifecycle + profile storage.
 
-"Start generation" reads the user's stored measurements directly — no
-capture session required (backend-implementation-plan.md, Phase 4). When the
-capture service lands (Phase 8), its complete() calls start_generation too.
+"Start generation" reads the user's stored measurements directly, triggered
+straight from the frontend once measurements are saved (capture-session
+photo pairing was removed — see .agent/website-launch execution logs).
 """
 
 from datetime import datetime, timezone
@@ -24,7 +24,6 @@ async def start_generation(user_id: str) -> AvatarJobDocument:
     job = AvatarJobDocument(
         id=new_id("aj"),
         user_id=user_id,
-        engine_mode=engine.engine_mode(),
         measurement_snapshot=measurements.model_dump(exclude_none=True),
         state="queued",
         failure_reason=None,
@@ -32,7 +31,7 @@ async def start_generation(user_id: str) -> AvatarJobDocument:
         created_at=_now(),
         completed_at=None,
     )
-    engine.start_job(job)  # live mode raises until the worker exists
+    engine.start_job(job)  # hands off to the CLO worker via Redis
     await avatar_jobs_col().insert_one(job.to_mongo())
     return await get_job(job.id, user_id)
 
@@ -42,19 +41,7 @@ async def get_job(job_id: str, user_id: str) -> AvatarJobDocument:
     raw = await avatar_jobs_col().find_one({"_id": job_id, "user_id": user_id})
     if not raw:
         raise NotFound("Avatar job not found")
-    job = AvatarJobDocument.model_validate(raw)
-    if job.engine_mode == "demo" and job.state not in ("ready", "failed"):
-        state = engine.derive_demo_state(job)
-        if state != job.state:
-            job.state = state
-            updates: dict = {"state": state}
-            if state == "ready":
-                profile = await _materialize_profile(job)
-                job.avatar_profile_id = profile.id
-                job.completed_at = _now()
-                updates.update(avatar_profile_id=profile.id, completed_at=job.completed_at)
-            await avatar_jobs_col().update_one({"_id": job_id}, {"$set": updates})
-    return job
+    return AvatarJobDocument.model_validate(raw)
 
 
 async def _materialize_profile(job: AvatarJobDocument) -> AvatarProfileDocument:

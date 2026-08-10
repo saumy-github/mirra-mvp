@@ -45,7 +45,7 @@ from view_selection import list_cloth_images, select_primary_image  # noqa: E402
 from segmentation import run_segmentation  # noqa: E402
 from colour_extraction import extract_colours  # noqa: E402
 from design_extraction import extract_design, make_empty_graphic_like  # noqa: E402
-from panel_generation import generate_panels  # noqa: E402
+from panel_generation_clo import generate_panels  # noqa: E402
 from run_manifest import get_next_product_run_dir  # noqa: E402
 from texture_projection import project_textures  # noqa: E402
 
@@ -337,7 +337,7 @@ def run_product_ingestion(args) -> int:
 
     print("\n[5/5] Panel generation")
     measurements = GarmentMeasurements.from_sizes_db(size_id)
-    panel_result = generate_panels(measurements, panels_dir)
+    panel_result = generate_panels(measurements, panels_dir, size_label=size_id)
 
     print("\n[6/6] Texture projection")
     texture_result = None

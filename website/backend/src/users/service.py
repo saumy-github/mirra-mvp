@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 
 from ..auth.models import UserDocument
 from ..auth.service import delete_all_for_user as delete_refresh_tokens
-from ..capture.service import delete_all_for_user as delete_capture_data
 from ..core.errors import NotFound
 from ..db import (
     avatar_jobs_col,
@@ -49,8 +48,7 @@ async def update_consents(user_id: str, consents: dict[str, bool]) -> UserDocume
 
 async def delete_account(user_id: str) -> None:
     """Account deletion cascades across every collection that keys on
-    user_id (backend-structure-plan.md invariant). Capture's hook also
-    removes the retained photo files from disk."""
+    user_id (backend-structure-plan.md invariant)."""
     user = await users_col().find_one({"_id": user_id}, {"_id": 1})
     if not user:
         raise NotFound("User not found")
@@ -61,6 +59,5 @@ async def delete_account(user_id: str) -> None:
     await tryon_sessions_col().delete_many({"user_id": user_id})
     await tryon_renders_col().delete_many({"user_id": user_id})
     await signature_looks_col().delete_many({"user_id": user_id})
-    await delete_capture_data(user_id)
     await delete_refresh_tokens(user_id)
     await users_col().delete_one({"_id": user_id})

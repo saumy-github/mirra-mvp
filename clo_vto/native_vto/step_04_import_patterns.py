@@ -1,6 +1,7 @@
 """Step 4: Import DXF pattern pieces."""
 
 import hashlib
+import os
 import time
 from pathlib import Path
 
@@ -12,6 +13,22 @@ except Exception:
     ezdxf_units = None
 
 from .helpers import print_result
+
+# Seconds to wait for CLO to drain one queued import-pattern command.
+#
+# Was 30s, which is shorter than a single DXF import takes on some machines —
+# measured ~34s per pattern on an M-series Mac with CLO 2026. The failure mode
+# is nasty rather than obvious: the import actually succeeds, but the client
+# gives up before CLO's main-thread queue drains, sees an unchanged pattern
+# count, reports "failed to import", and fires a retry that imports the same
+# DXF a SECOND time. The scene then holds 8 patterns instead of 4, and step 06's
+# edge-count validation aborts the run. Every result in /status reads
+# "success": true throughout.
+#
+# CLO drains its queue on a 200ms Qt timer on the main thread, so import time
+# scales with pattern complexity and whatever else CLO is doing. Prefer waiting
+# too long over retrying: the retry is destructive, the wait is not.
+IMPORT_DRAIN_TIMEOUT = int(os.environ.get("CLO_IMPORT_DRAIN_TIMEOUT", "180"))
 
 
 def _collect_entity_points(entity, points: list) -> None:
@@ -212,7 +229,7 @@ def run(ctx):
             continue
 
         try:
-            ctx.client.wait_for_queue(timeout=30)
+            ctx.client.wait_for_queue(timeout=IMPORT_DRAIN_TIMEOUT)
         except Exception as exc:
             print(f"  [WARN] {fname} import drain timed out: {exc} — checking pattern count anyway.")
 
@@ -226,7 +243,7 @@ def run(ctx):
             time.sleep(2.0)
             print_result(ctx.client.import_pattern(str(path), scale=import_scale), f"{fname} (retry)")
             try:
-                ctx.client.wait_for_queue(timeout=30)
+                ctx.client.wait_for_queue(timeout=IMPORT_DRAIN_TIMEOUT)
             except Exception as exc:
                 print(f"  [WARN] {fname} retry drain timed out: {exc}")
             resp = ctx.client.get_pattern_count()

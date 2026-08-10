@@ -9,9 +9,6 @@ export type MirraErrorCode =
   | "email_unverified"
   | "invalid_credentials"
   | "account_exists"
-  | "capture_session_expired"
-  | "capture_token_used"
-  | "capture_session_not_found"
   | "avatar_job_failed"
   | "render_not_found"
   | "render_expired"
@@ -58,10 +55,6 @@ export function userMessage(code: MirraErrorCode): string {
       return "That email and password combination doesn't match our records.";
     case "account_exists":
       return "An account with this email already exists. Try logging in instead.";
-    case "capture_session_expired":
-      return "This pairing code has expired. Generate a fresh one to continue.";
-    case "capture_token_used":
-      return "This pairing link was already used. Generate a fresh one to continue.";
     case "network_error":
       return "You appear to be offline. Check your connection and retry.";
     case "rate_limited":

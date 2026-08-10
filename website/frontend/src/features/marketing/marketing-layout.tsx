@@ -6,13 +6,8 @@ import Lenis from "lenis";
 import Header from "./components/Header";
 import MirrorCTA from "./components/MirrorCTA";
 import { CustomCursor } from "./components/CustomCursor";
-import { WaitlistModal } from "./components/WaitlistModal";
 
 gsap.registerPlugin(ScrollTrigger);
-
-export interface MarketingContext {
-  onBookDemo: () => void;
-}
 
 /** Single smooth-scroll instance, shared by every marketing page. Scoped to
  * this layout only — the app/studio pages have their own scroll containers
@@ -40,12 +35,11 @@ function useSmoothScroll() {
 
 /**
  * Wraps the marketing pages (Home, Pricing, Team) ported from
- * Mirra-landing-page — header, footer CTA, custom cursor, waitlist modal,
- * and smooth scroll, all scoped to this route subtree via <Outlet context>.
- * Not used by any /app route.
+ * Mirra-landing-page — header, footer CTA, custom cursor, and smooth
+ * scroll, all scoped to this route subtree via <Outlet>. Not used by any
+ * /app route.
  */
 export default function MarketingLayout() {
-  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -68,10 +62,6 @@ export default function MarketingLayout() {
       .catch(() => setIsPlaying(false));
   };
 
-  const handleBookDemo = () => {
-    setIsWaitlistOpen(true);
-  };
-
   return (
     <div className="min-h-screen overflow-x-clip bg-bg text-ink selection:bg-wine/20">
       <audio
@@ -84,13 +74,12 @@ export default function MarketingLayout() {
         onError={() => setIsPlaying(false)}
       />
       <CustomCursor />
-      <WaitlistModal isOpen={isWaitlistOpen} onClose={() => setIsWaitlistOpen(false)} />
 
-      <Header onJoinWaitlist={handleBookDemo} isPlaying={isPlaying} toggleSound={toggleSound} />
+      <Header isPlaying={isPlaying} toggleSound={toggleSound} />
 
-      <Outlet context={{ onBookDemo: handleBookDemo } satisfies MarketingContext} />
+      <Outlet />
 
-      <MirrorCTA onBookDemo={handleBookDemo} />
+      <MirrorCTA />
     </div>
   );
 }

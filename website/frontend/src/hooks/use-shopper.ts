@@ -82,3 +82,24 @@ export function useAvatarProfile(enabled = true) {
     staleTime: 30_000,
   });
 }
+
+/** Triggers avatar generation from the shopper's already-saved measurements
+ * — no photo capture involved. */
+export function useGenerateAvatar() {
+  return useMutation({
+    mutationFn: () => getRuntimeProvider().generateAvatar(),
+  });
+}
+
+export function useAvatarJob(jobId: string | null) {
+  return useQuery({
+    queryKey: ["avatar-job", jobId],
+    queryFn: () => getRuntimeProvider().getAvatarJob(jobId!),
+    enabled: !!jobId,
+    refetchInterval: (query) => {
+      const state = query.state.data?.state;
+      if (state === "ready" || state === "failed" || state === "cancelled") return false;
+      return 1200;
+    },
+  });
+}

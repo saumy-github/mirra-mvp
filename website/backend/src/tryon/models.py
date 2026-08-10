@@ -20,11 +20,6 @@ STAGE_LABELS = {
     "failed": "Try-on failed",
 }
 
-# Demo-mode staged timeline (seconds since render request).
-DEMO_REQUESTED_SECONDS = 1
-DEMO_RENDERING_SECONDS = 4
-
-
 class TryonSessionDocument(BaseModel):
     """The `tryon_sessions` collection doc shape."""
 
@@ -39,9 +34,9 @@ class TryonSessionDocument(BaseModel):
 
 
 class TryonRenderDocument(BaseModel):
-    """The `tryon_renders` collection doc shape. `state` derives from
-    elapsed time on read in demo mode until ready, then it's persisted and
-    every later read is a cheap restore (the Hanger no-recompute path)."""
+    """The `tryon_renders` collection doc shape. `state` is authoritative,
+    written only by the worker; once ready every later read is a cheap
+    restore (the Hanger no-recompute path)."""
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -51,7 +46,6 @@ class TryonRenderDocument(BaseModel):
     size_id: str
     garment_snapshot: SizeDocument  # catalog doc at request time
     avatar_profile_id: str
-    engine_mode: str
     state: Literal["requested", "rendering", "ready", "failed"]
     failure_reason: str | None = None
     created_at: datetime

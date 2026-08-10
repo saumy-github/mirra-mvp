@@ -1,40 +1,18 @@
-"""The CLO3D hand-off seam (AVATAR_ENGINE_MODE=demo|live).
+"""The CLO3D hand-off seam.
 
-demo: no real work — the job's state is derived from elapsed time on read
-(queued → processing → ready), so the frontend can integrate against real
-endpoints before the worker/queue exists.
-
-live: will hand the job to the clo_avatar_generation/avatar_runtime pipeline
-via the (not-yet-decided) worker queue — backend-implementation-plan.md,
-Phase 0 item 3. Until then it refuses cleanly instead of pretending.
+Every avatar job is handed to the native CLO worker (worker/run_worker.py,
+repo root) via Redis/RQ — see .agent/website-launch/07-step0-worker-queue.md.
+The worker drives clo_avatar_generation/avatar_runtime directly; this
+process never imports that pipeline code.
 """
 
-from datetime import datetime, timezone
+from ..core.queue import enqueue
+from .models import AvatarJobDocument
 
-from ..config import get_settings
-from ..core.errors import ServiceUnavailable
-from .models import DEMO_PROCESSING_SECONDS, DEMO_QUEUE_SECONDS, AvatarJobDocument
-
-
-def engine_mode() -> str:
-    return get_settings().avatar_engine_mode
+AVATAR_JOB_TIMEOUT_SECONDS = 20 * 60  # generous margin over a normal run; see worker/README.md
 
 
 def start_job(job: AvatarJobDocument) -> None:
-    """Called at job creation. Demo mode needs nothing; live mode is the
-    future enqueue-to-CLO3D-worker call."""
-    if engine_mode() == "live":
-        raise ServiceUnavailable(
-            "Live avatar engine is not wired yet (CLO3D worker queue pending)",
-            code="engine_unavailable",
-        )
-
-
-def derive_demo_state(job: AvatarJobDocument) -> str:
-    """Time-staged progression for demo jobs."""
-    elapsed = (datetime.now(timezone.utc) - job.created_at).total_seconds()
-    if elapsed < DEMO_QUEUE_SECONDS:
-        return "queued"
-    if elapsed < DEMO_QUEUE_SECONDS + DEMO_PROCESSING_SECONDS:
-        return "processing"
-    return "ready"
+    """Called at job creation — hands the job to the CLO worker queue
+    (worker.tasks.run_avatar_job)."""
+    enqueue("worker.tasks.run_avatar_job", job.id, job_timeout=AVATAR_JOB_TIMEOUT_SECONDS)

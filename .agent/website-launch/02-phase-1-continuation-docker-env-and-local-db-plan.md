@@ -1,6 +1,6 @@
 # 02 - Phase 1 continuation: service-owned envs, local Mongo, hot reload, Render/Vercel deployment path
 
-**Status:** planned, not yet executed
+**Status:** planned, not yet executed. **Note:** `AVATAR_ENGINE_MODE`/`TRYON_ENGINE_MODE`/`VITE_INTEGRATION_MODE`/`VITE_AVATAR_ENGINE_MODE`/`VITE_TRYON_ENGINE_MODE` referenced throughout this doc's env examples no longer exist — demo/live engine mode and frontend mock mode were both removed, see [22-remove-demo-live-mode-and-upload-split.md](22-remove-demo-live-mode-and-upload-split.md). The rest of this doc's Render/Vercel/Atlas deployment plan is unaffected and still the target.
 **Created:** 2026-08-02
 **Continues:** [01-docker-and-clo-render-pipeline.md](01-docker-and-clo-render-pipeline.md), Phase 1
 
@@ -106,9 +106,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=30
 COOKIE_SECURE=false
 CORS_ORIGINS=http://localhost:3000
-AVATAR_ENGINE_MODE=demo
-TRYON_ENGINE_MODE=demo
-UPLOADS_DIR=uploads
+APP_ENV=development
 ```
 
 Production on Render:
@@ -123,9 +121,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=15
 REFRESH_TOKEN_EXPIRE_DAYS=30
 COOKIE_SECURE=true
 CORS_ORIGINS=https://<vercel-domain>
-AVATAR_ENGINE_MODE=demo
-TRYON_ENGINE_MODE=demo
-UPLOADS_DIR=uploads
+APP_ENV=production
 ```
 
 Note: Render filesystem persistence depends on service configuration. For production capture/photo/GLB storage, local disk should eventually move to object storage. For pilot, if uploads are needed on Render, explicitly decide whether to use Render Disk or S3-style storage before relying on it.
@@ -146,9 +142,6 @@ Example values:
 VITE_RUNTIME_ORIGIN=http://localhost:3000
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 VITE_AUTH_PROVIDER=live
-VITE_AVATAR_ENGINE_MODE=demo
-VITE_TRYON_ENGINE_MODE=demo
-VITE_INTEGRATION_MODE=live
 VITE_ANALYTICS_ENABLED=true
 VITE_APP_VERSION=0.1.0
 VITE_APP_ENV=development
@@ -162,9 +155,6 @@ Vercel project environment variables:
 VITE_RUNTIME_ORIGIN=https://<vercel-domain>
 VITE_API_BASE_URL=https://<render-backend-domain>/api/v1
 VITE_AUTH_PROVIDER=live
-VITE_AVATAR_ENGINE_MODE=demo
-VITE_TRYON_ENGINE_MODE=demo
-VITE_INTEGRATION_MODE=live
 VITE_ANALYTICS_ENABLED=true
 VITE_APP_VERSION=0.1.0
 VITE_APP_ENV=production
@@ -403,7 +393,7 @@ Required Render env:
 - `ACCESS_TOKEN_SECRET`
 - `COOKIE_SECURE=true`
 - `CORS_ORIGINS=https://<vercel-domain>`
-- engine mode vars
+- `APP_ENV=production`
 
 Backend health check:
 
@@ -424,7 +414,6 @@ Required Vercel env:
 
 - `VITE_API_BASE_URL=https://<render-backend-domain>/api/v1`
 - `VITE_RUNTIME_ORIGIN=https://<vercel-domain>`
-- `VITE_INTEGRATION_MODE=live`
 - `VITE_AUTH_PROVIDER=live`
 - other public `VITE_*` values
 
@@ -449,7 +438,7 @@ Render/Vercel pilot:
 - Vercel frontend deploys successfully
 - browser can call Render API without CORS errors
 - refresh-token cookie settings work in production
-- demo avatar/try-on states still work
+- avatar/try-on generation against Render: **not yet possible** — Render can't reach the local CLO worker's filesystem (see doc 05's "Serving strategy" and doc 22's "Out of scope"); this stays broken on a Render deployment until the object-storage bridge is built separately
 
 Migration:
 
@@ -464,7 +453,6 @@ Migration:
 - object storage migration for uploads/GLB files
 - Kubernetes/ECS-scale deployment
 - real production autoscaling plan
-- changing from demo engine mode to live CLO jobs
 
 Those belong after the local dev/prod boundary is clean and the website is deployable on Render/Vercel.
 

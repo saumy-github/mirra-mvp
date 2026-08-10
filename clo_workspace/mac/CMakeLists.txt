@@ -31,12 +31,18 @@ set(CLO_API_DIR "${CLO_SDK_ROOT}/CLOAPIInterface")
 message(STATUS "CLO SDK root : ${CLO_SDK_ROOT}")
 message(STATUS "CLO API dir  : ${CLO_API_DIR}")
 
-# ─── Qt 5.15 ──────────────────────────────────────────────────────────────────
-# We need Qt5 headers for QTimer/QObject, but we do NOT link against Qt5::Core.
-# CLO already has Qt5 loaded in its process; -undefined dynamic_lookup lets
-# Qt symbols resolve from CLO's own Qt5 at runtime (no duplicate Qt5 instance).
-find_package(Qt5 COMPONENTS Core REQUIRED)
-message(STATUS "Qt5Core      : ${Qt5Core_DIR}")
+# ─── Qt 6 ─────────────────────────────────────────────────────────────────────
+# We need Qt headers for QTimer/QObject, but we do NOT link against Qt::Core.
+# CLO already has Qt loaded in its process; -undefined dynamic_lookup lets
+# Qt symbols resolve from CLO's own Qt at runtime (no duplicate Qt instance).
+#
+# Qt6, not Qt5: CLO 2026 (verified on 2026.0.374) ships Qt 6.10.3 and no Qt5
+# at all. A Qt5-header build links fine but dlopen fails at load time —
+# QArrayData::shared_null, QArrayData::deallocate(QArrayData*,ulong,ulong) and
+# QString::fromUtf8_helper(const char*,int) were all removed or resigned in
+# Qt6, so CLO cannot satisfy them. Keep this on Qt6 unless CLO reverts.
+find_package(Qt6 COMPONENTS Core REQUIRED)
+message(STATUS "Qt6Core      : ${Qt6Core_DIR}")
 
 # ─── Shared headers from clo_workspace/shared/ ──────────────────────────────────
 set(SHARED_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/../shared")
@@ -49,8 +55,8 @@ target_include_directories(RestPlugin PRIVATE
     "${CLO_API_DIR}/include"
     "${SHARED_HEADERS}"
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    # Qt5 headers only — not linked, symbols resolved from CLO's Qt5 at runtime
-    "$<TARGET_PROPERTY:Qt5::Core,INTERFACE_INCLUDE_DIRECTORIES>"
+    # Qt6 headers only — not linked, symbols resolved from CLO's Qt6 at runtime
+    "$<TARGET_PROPERTY:Qt6::Core,INTERFACE_INCLUDE_DIRECTORIES>"
 )
 
 # Find CLOAPIInterface static/dynamic library
@@ -64,11 +70,11 @@ message(STATUS "CLOAPIInterface: ${CLO_API_LIB}")
 
 target_link_libraries(RestPlugin PRIVATE
     "${CLO_API_LIB}"
-    # Qt5::Core intentionally omitted — CLO provides Qt5 at runtime.
+    # Qt6::Core intentionally omitted — CLO provides Qt6 at runtime.
     # -undefined dynamic_lookup allows Qt symbols to be unresolved at link time.
 )
 
-# Allow unresolved Qt symbols — they resolve from CLO's loaded Qt5 at runtime.
+# Allow unresolved Qt symbols — they resolve from CLO's loaded Qt6 at runtime.
 target_link_options(RestPlugin PRIVATE -undefined dynamic_lookup)
 
 # ─── Compiler flags ───────────────────────────────────────────────────────────
@@ -77,6 +83,14 @@ target_compile_options(RestPlugin PRIVATE -fvisibility=hidden)
 
 target_compile_definitions(RestPlugin PRIVATE
     CPPHTTPLIB_THREAD_POOL_COUNT=4
+    # Qt headers emit a reference to qt_version_tag_<major>_<minor> matching the
+    # headers you compiled against. CLO ships Qt 6.10.3 while Homebrew's qt is
+    # 6.11.x, so that symbol does not exist in the host and dlopen fails with
+    # "symbol not found in flat namespace '_qt_version_tag_6_11'" — CLO then
+    # reports "The plug-in has a problem." Qt provides this macro to suppress
+    # the tag; the plugin only uses long-stable QtCore API, so exact-minor
+    # matching buys nothing. Remove only if you build against CLO's exact Qt.
+    QT_NO_VERSION_TAGGING
 )
 
 # ─── Output name and directory ────────────────────────────────────────────────

@@ -9,7 +9,6 @@ def shape_job(job: AvatarJobDocument) -> dict:
         "jobId": job.id,
         "state": job.state,
         "stageLabel": STAGE_LABELS.get(job.state, job.state),
-        "engineMode": job.engine_mode,
         "failureReason": job.failure_reason,
         "avatarProfileId": job.avatar_profile_id,
         "createdAt": job.created_at.isoformat(),

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useNavigate } from "react-router-dom";
 import TextReveal from "./TextReveal";
 import "./ProblemTeardown.css";
 
@@ -144,11 +145,8 @@ function StepArt({ label }: { label: string }) {
   );
 }
 
-interface ProblemTeardownProps {
-  onBookDemo: () => void;
-}
-
-export default function ProblemTeardown({ onBookDemo }: ProblemTeardownProps) {
+export default function ProblemTeardown() {
+  const navigate = useNavigate();
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.utils.toArray<Element>(".step-slide").forEach((slide, index, slides) => {
@@ -230,8 +228,12 @@ export default function ProblemTeardown({ onBookDemo }: ProblemTeardownProps) {
                     </div>
                   </div>
 
-                  <button className="primary-button step-button" type="button" onClick={onBookDemo}>
-                    Book a Demo
+                  <button
+                    className="primary-button step-button"
+                    type="button"
+                    onClick={() => navigate("/auth/sign-up")}
+                  >
+                    Get Started
                   </button>
                 </div>
 

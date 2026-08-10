@@ -30,20 +30,36 @@ crashes with a `UnicodeEncodeError` on your machine, run
 
 ## Run (development)
 
-From `website/backend/`:
+**Option A — Docker (recommended, matches CI/prod more closely):** from the
+**repo root**:
+
+```powershell
+npm run dev:up
+```
+
+Builds and starts the backend with hot reload (`uvicorn --reload`, source
+bind-mounted — edits apply with no rebuild). Env comes from
+`website/backend/.env.docker.dev` (gitignored, copy `.env.example` to create
+it), not the `.env` from the venv flow below. Stop with `npm run dev:down`,
+tail logs with `npm run dev:logs:backend`.
+
+**Option B — native venv**, from `website/backend/`:
 
 ```powershell
 ..\..\.venv\Scripts\fastapi dev src/main.py
 ```
 
+Either way:
 - API: http://localhost:8000/api/v1 (matches the frontend's `VITE_API_BASE_URL`)
 - Health: http://localhost:8000/api/v1/health
 - Interactive docs: http://localhost:8000/docs
 
-`fastapi dev` auto-reloads on code changes. Production later runs the same
-app via uvicorn/gunicorn workers instead — no code changes.
+The frontend (`website/frontend`) always runs natively either way — see
+its own README. Only the backend has a Docker option today.
 
 ## Seed dev data
+
+Docker: `npm run dev:seed` (from repo root). Native venv:
 
 ```powershell
 ..\..\.venv\Scripts\python scripts\seed_measurements.py
@@ -52,18 +68,18 @@ app via uvicorn/gunicorn workers instead — no code changes.
 
 ## Verify everything works
 
+Docker: `npm run dev:smoke` (from repo root). Native venv:
+
 ```powershell
 ..\..\.venv\Scripts\python scripts\smoke_e2e.py
 ```
 
-Runs the full pilot flow (guest → measurements → capture → demo avatar →
-catalog → demo try-on → signature look → analytics → account deletion)
-in-process against the real database, cleaning up after itself.
-Exit code 0 = healthy.
+Runs the flows that don't need CLO3D (guest → measurements → catalog →
+analytics → account deletion) in-process against the real database,
+cleaning up after itself. Exit code 0 = healthy.
 
-## Engine modes
-
-`AVATAR_ENGINE_MODE` / `TRYON_ENGINE_MODE` are `demo` by default: staged
-fake jobs so the frontend can integrate before the CLO3D worker exists.
-`live` currently refuses with a 503 — it's the seam for the future worker
-queue (deliberately undecided, see implementation plan Phase 0 item 3).
+Avatar generation and try-on rendering always run the real CLO3D pipeline
+now (no demo/live mode) — they're covered by CLI runs
+(`clo_avatar_generation/run_avatar.py`, `clo_vto/run_clo_vto.py`) and manual
+live tests against the native worker instead, not this smoke test. See
+`.agent/website-launch/22-remove-demo-live-mode-and-upload-split.md`.

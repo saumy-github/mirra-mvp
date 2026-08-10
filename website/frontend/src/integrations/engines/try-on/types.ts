@@ -2,11 +2,9 @@ import type { SignatureLookLayer, TryOnRender, TryOnSession } from "@/integratio
 
 /**
  * TryOnEngineProvider — the typed seam in front of the real CLO3D VTO
- * pipeline. In demo mode results are layered garment assets, not a physics
- * simulation, and are labelled as such.
+ * pipeline.
  */
 export interface TryOnEngineProvider {
-  readonly mode: "live" | "demo";
   readonly engineVersion: string;
 
   createTryOnSession(): Promise<TryOnSession>;

@@ -22,8 +22,6 @@ export interface HttpClientOptions {
 const STATUS_TO_CODE: Record<number, MirraErrorCode> = {
   401: "unauthenticated",
   404: "product_not_found",
-  409: "capture_token_used",
-  410: "capture_session_expired",
   422: "validation_failed",
   429: "rate_limited",
   503: "api_degraded",
@@ -37,8 +35,6 @@ const BODY_CODE_TO_CODE: Record<string, MirraErrorCode> = {
   refresh_expired: "unauthenticated",
   invalid_credentials: "invalid_credentials",
   account_exists: "account_exists",
-  already_paired: "capture_token_used",
-  gone: "capture_session_expired",
   validation_error: "validation_failed",
   engine_unavailable: "api_degraded",
   service_unavailable: "api_degraded",

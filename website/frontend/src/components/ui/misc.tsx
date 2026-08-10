@@ -38,13 +38,3 @@ export function PulseDot({ active = true, label }: { active?: boolean; label?: s
     </span>
   );
 }
-
-/** Honest badge shown wherever demo engines stand in for real ones. */
-export function DemoModeNotice({ subject }: { subject: string }) {
-  return (
-    <p className="mono-tag rounded-md border border-line bg-mist/60 px-2.5 py-1.5 text-[11px] leading-relaxed tracking-normal! normal-case!">
-      Demo mode — {subject} is simulated for development. No real body analysis or cloth physics
-      runs here.
-    </p>
-  );
-}

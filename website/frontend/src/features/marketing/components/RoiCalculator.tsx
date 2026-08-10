@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import TextReveal, { KineticText } from "./TextReveal";
 
-interface RoiCalculatorProps {
-  onBookDemo: () => void;
-}
-
-export default function RoiCalculator({ onBookDemo }: RoiCalculatorProps) {
+export default function RoiCalculator() {
+  const navigate = useNavigate();
   const [monthlyGMV, setMonthlyGMV] = useState(30000);
   const [returnRate, setReturnRate] = useState(37);
   const [showFormula, setShowFormula] = useState(false);
@@ -61,10 +59,10 @@ export default function RoiCalculator({ onBookDemo }: RoiCalculatorProps) {
               over half of it. Drag the sliders to see what it costs — and what Mirra retains.
             </TextReveal>
             <button
-              onClick={onBookDemo}
+              onClick={() => navigate("/auth/sign-up")}
               className="rounded-full bg-black px-8 py-4 text-sm font-semibold text-white transition-colors hover:bg-black/80"
             >
-              <KineticText>Book a Demo</KineticText>
+              <KineticText>Get Started</KineticText>
             </button>
           </div>
 

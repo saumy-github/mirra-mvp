@@ -12,22 +12,13 @@ def shape_render(render: TryonRenderDocument) -> dict:
         "sessionId": render.session_id,
         "state": render.state,
         "stageLabel": STAGE_LABELS.get(render.state, render.state),
-        "engineMode": render.engine_mode,
         "sizeId": render.size_id,
         "avatarProfileId": render.avatar_profile_id,
         "failureReason": render.failure_reason,
         "createdAt": render.created_at.isoformat(),
         "completedAt": render.completed_at.isoformat() if render.completed_at else None,
-        # Demo result: no cloth physics, clearly labelled (reference
-        # contract's DemoModeNotice equivalent).
         "result": (
-            {
-                "kind": render.engine_mode,
-                "demoNotice": "Demo render — no cloth physics, flat garment preview"
-                if render.engine_mode == "demo"
-                else None,
-                "garment": shape_garment(render.garment_snapshot),
-            }
+            {"garment": shape_garment(render.garment_snapshot)}
             if ready
             else None
         ),

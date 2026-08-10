@@ -1,12 +1,9 @@
 import React from "react";
 import { motion } from "motion/react";
 import { Zap, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import LiquidMetal from "./LiquidMetal";
 import TextReveal, { KineticText } from "./TextReveal";
-
-interface HeroProps {
-  onBookDemo: () => void;
-}
 
 const EarlyAccessPill = ({ onClick }: { onClick?: () => void }) => {
   return (
@@ -47,7 +44,7 @@ const EarlyAccessPill = ({ onClick }: { onClick?: () => void }) => {
               <Zap size={11} className="fill-ink/70 text-ink/70" />
             </motion.div>
             <span className="text-[10px] font-semibold tracking-widest text-ink/50 uppercase transition-colors group-hover:text-ink/80">
-              Join waitlist
+              Get started
             </span>
             <motion.div
               animate={{ x: [0, 4, 0] }}
@@ -65,11 +62,12 @@ const EarlyAccessPill = ({ onClick }: { onClick?: () => void }) => {
   );
 };
 
-export default function Hero({ onBookDemo }: HeroProps) {
+export default function Hero() {
+  const navigate = useNavigate();
   return (
     <section className="relative mx-auto flex min-h-screen max-w-7xl flex-col items-center overflow-hidden px-5 pt-32 pb-16 text-center sm:px-8 sm:pt-48 lg:px-12">
       <div className="relative z-10 flex w-full flex-col items-center">
-        <EarlyAccessPill onClick={onBookDemo} />
+        <EarlyAccessPill onClick={() => navigate("/auth/sign-up")} />
 
         <TextReveal
           as="h1"
@@ -97,16 +95,16 @@ export default function Hero({ onBookDemo }: HeroProps) {
           className="mt-10 flex flex-col items-center gap-4 sm:flex-row"
         >
           <button
-            onClick={onBookDemo}
+            onClick={() => navigate("/auth/sign-up")}
             className="rounded-full bg-black px-8 py-3.5 font-medium text-white transition-transform hover:scale-105 hover:bg-ink"
           >
-            <KineticText>Book a Demo</KineticText>
+            <KineticText>Get Started</KineticText>
           </button>
           <button
-            onClick={onBookDemo}
+            onClick={() => navigate("/auth/login")}
             className="rounded-full border border-silver bg-transparent px-8 py-3.5 font-medium text-ink transition-colors hover:bg-surface"
           >
-            <KineticText>Join Waitlist</KineticText>
+            <KineticText>Login</KineticText>
           </button>
         </motion.div>
       </div>

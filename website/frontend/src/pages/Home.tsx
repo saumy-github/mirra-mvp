@@ -1,7 +1,5 @@
 import React from "react";
 import { motion } from "motion/react";
-import { useOutletContext } from "react-router-dom";
-import type { MarketingContext } from "../features/marketing/marketing-layout";
 import Hero from "../features/marketing/components/Hero";
 import ProblemTeardown from "../features/marketing/components/ProblemTeardown";
 import ProductReveal from "../features/marketing/components/ProductReveal";
@@ -11,7 +9,6 @@ import RoiCalculator from "../features/marketing/components/RoiCalculator";
 import Closure from "../features/marketing/components/Closure";
 
 export default function Home() {
-  const { onBookDemo } = useOutletContext<MarketingContext>();
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -21,10 +18,10 @@ export default function Home() {
     >
       <main>
         {/* Zone 1 — The First Impression */}
-        <Hero onBookDemo={onBookDemo} />
+        <Hero />
 
         {/* Zone 2A — Problem Teardown Story */}
-        <ProblemTeardown onBookDemo={onBookDemo} />
+        <ProblemTeardown />
 
         {/* Zone 2B — Mirra Product Reveal */}
         <ProductReveal />
@@ -36,7 +33,7 @@ export default function Home() {
         <DemoPlaceholder />
 
         {/* Zone 3B — ROI Calculator */}
-        <RoiCalculator onBookDemo={onBookDemo} />
+        <RoiCalculator />
 
         {/* Home Page Finale (Team Teaser & FAQ) */}
         <Closure />

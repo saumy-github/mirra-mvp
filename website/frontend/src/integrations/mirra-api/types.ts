@@ -101,44 +101,6 @@ export interface AvatarProfile {
   unitsPreference: "metric" | "imperial";
 }
 
-// ── Capture / pairing ────────────────────────────────────────────────
-
-export type CaptureSessionState =
-  | "created"
-  | "qr_ready"
-  | "paired"
-  | "consent_pending"
-  | "capturing"
-  | "uploading"
-  | "uploaded"
-  | "processing"
-  | "completed"
-  | "expired"
-  | "cancelled"
-  | "failed";
-
-export interface CaptureStep {
-  id: string;
-  title: string;
-  guidance: string;
-  silhouette: "front" | "side" | "back";
-  required: boolean;
-}
-
-export interface CaptureSession {
-  captureSessionId: string;
-  state: CaptureSessionState;
-  /** One-time token embedded in the QR. Never exposes user IDs. */
-  oneTimeToken: string;
-  /** Short manual pairing code (accessibility fallback). */
-  manualCode: string;
-  expiresAt: string;
-  steps: CaptureStep[];
-  uploadedStepIds: string[];
-  failureReason: string | null;
-  avatarJobId: string | null;
-}
-
 // ── Avatar job ───────────────────────────────────────────────────────
 // This is the CLO3D integration seam — see backend-structure-plan.md.
 

@@ -42,7 +42,10 @@ Source of truth for indices: `clo_vto/default_panels/edge_manifest.json`
 | 9   | right_hem          | 270.0 |
 
 **sleeve_left** (pattern index 2) and **sleeve_right** (pattern index 3) —
-5 edges each, identical geometry (mirrored at placement, not in the DXF):
+5 edges each, same edge lengths, but the geometry is **mirrored in the DXF
+itself** (`sr.x = -sl.x + 9.4854`), not at placement time. See "Why
+`arm-R-front`/`arm-R-back` need `db=True`" below — that reflection is the
+reason the right sleeve's flags differ:
 
 | idx | manifest name    | length (CLO units) |
 |-----|-------------------|---------------------|
@@ -119,13 +122,30 @@ mirrors the back panel's DXF left/right when placing it rearward.
 
 ### Why `arm-R-front`/`arm-R-back` need `db=True` but `arm-L-front`/`arm-L-back` don't
 
-`sleeve_right` and `sleeve_left` share identical DXF geometry — CLO mirrors
-`sleeve_right` only at placement time, not in the pattern file itself. That
-placement-time mirror flips the edge's effective winding direction as CLO's
-stitcher sees it, so the right sleeve's armhole seams need the opposite `db`
-parity from the left sleeve's to avoid a twist. The tube seams (`sleeve-L/R
--tube`) are self-seams within one piece, so both needed the same `da=True`
-fix (this one wasn't about left/right mirroring — see below).
+`sleeve_right` is **already mirrored in the DXF**. CLO does not mirror it at
+placement time — the reflection is baked into the pattern file, and the flags
+compensate for that, not for anything CLO does later.
+
+Measured on `product_ingestion/clo_block/reference_dxf/`, walking the boundary
+polyline of each sleeve (135 vertices each, in the same order):
+
+    sr.x = -sl.x + 9.4854      spread across all 135 vertices: 0.00003 mm
+    max |sr.y - sl.y|                                          0.0012 mm
+    signed area   sleeve_left  -83181.0
+                  sleeve_right +83181.1
+
+Opposite-signed areas of equal magnitude are the reflection: the two outlines
+wind in opposite directions. That reversed winding is what flips the edge's
+effective direction as CLO's stitcher walks it, so the right sleeve's armhole
+seams need the opposite `db` parity from the left sleeve's to avoid a twist.
+
+The consequence for anyone reading this: **do not "fix" the `db` flags.** They
+look asymmetric because the geometry is asymmetric. Setting `arm-R-front` /
+`arm-R-back` back to `db=False` for symmetry's sake reintroduces the twist.
+
+The tube seams (`sleeve-L/R-tube`) are self-seams within one piece, so both
+needed the same `da=True` fix — that one was never about left/right mirroring
+(see below).
 
 ## Debugging history (chronological)
 

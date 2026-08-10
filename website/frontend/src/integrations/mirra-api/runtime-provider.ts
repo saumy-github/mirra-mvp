@@ -2,7 +2,6 @@ import type {
   AnalyticsEvent,
   AvatarJob,
   AvatarProfile,
-  CaptureSession,
   MeasurementKey,
   ProductListPage,
   PublicProduct,
@@ -16,8 +15,8 @@ import type {
 /**
  * The single seam between the UI and the backend. UI code depends only on
  * this interface — never on fixtures, never on fetch directly. Maps onto
- * the `catalog`, `auth`, `capture`, `avatars`, `tryon`, `signature_looks`,
- * and `analytics` services in website/backend-structure-plan.md.
+ * the `catalog`, `auth`, `avatars`, `tryon`, `signature_looks`, and
+ * `analytics` services in website/backend-structure-plan.md.
  */
 export interface MirraRuntimeProvider {
   // Catalogue
@@ -45,31 +44,10 @@ export interface MirraRuntimeProvider {
   updateConsents(consents: Partial<ShopperAccount["consents"]>): Promise<ShopperAccount>;
   deleteAccount(): Promise<void>;
 
-  // Capture / pairing
-  createCaptureSession(): Promise<CaptureSession>;
-  getCaptureSession(sessionId: string): Promise<CaptureSession>;
-  getCaptureSessionByToken(token: string): Promise<CaptureSession>;
-  resolveManualCode(code: string): Promise<{ token: string }>;
-  pairCaptureSession(token: string): Promise<CaptureSession>;
-  giveCaptureConsent(token: string): Promise<CaptureSession>;
-  submitCaptureAsset(
-    token: string,
-    stepId: string,
-    payload: {
-      mimeType: string;
-      byteSize: number;
-      width: number;
-      height: number;
-      /** Actual photo bytes — required by the live backend, ignored by the
-       * mock. When absent in live mode a placeholder is uploaded so the
-       * flow still completes (demo engine only). */
-      blob?: Blob;
-    },
-  ): Promise<CaptureSession>;
-  completeCapture(token: string): Promise<CaptureSession>;
-  cancelCaptureSession(sessionId: string): Promise<CaptureSession>;
-
   // Avatar — the CLO3D seam
+  /** Triggers generation from the shopper's already-saved measurements —
+   * no photo capture involved. */
+  generateAvatar(): Promise<AvatarJob>;
   getAvatarJob(jobId: string): Promise<AvatarJob>;
   getAvatarProfile(): Promise<AvatarProfile | null>;
   updateMeasurements(

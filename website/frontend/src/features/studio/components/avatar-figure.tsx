@@ -29,11 +29,10 @@ const FIGURE_SPRING = {
  * The composed avatar figure: the mannequin plus garment layers, all drawn
  * in one shared 400×800 space. Never slimmed, never beautified.
  *
- * This is "demo mode" — flat image layering, not a physics simulation. Real
- * 3D rendering (React Three Fiber + GLB assets from the CLO3D pipeline, per
- * website/frontend-structure-plan.md) is future work once those assets
- * exist; this component is the honest placeholder for that, matching the
- * source app's own DemoModeNotice pattern.
+ * This is flat image layering, not a physics simulation. Real 3D rendering
+ * (React Three Fiber + GLB assets from the CLO3D pipeline, per
+ * website/frontend-structure-plan.md) is future work once Step 6's serving
+ * route exists — this component is the placeholder until then.
  */
 export function AvatarFigure({
   previewAssetUrl,
