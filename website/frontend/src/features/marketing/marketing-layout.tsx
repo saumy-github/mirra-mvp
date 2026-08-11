@@ -5,7 +5,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Header from "./components/Header";
 import MirrorCTA from "./components/MirrorCTA";
-import { CustomCursor } from "./components/CustomCursor";
 import { WaitlistModal } from "./components/WaitlistModal";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -46,27 +45,8 @@ function useSmoothScroll() {
  */
 export default function MarketingLayout() {
   const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
 
   useSmoothScroll();
-
-  const toggleSound = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!audio.paused) {
-      audio.pause();
-      return;
-    }
-
-    audio.volume = 0.42;
-    audio.load();
-    audio
-      .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false));
-  };
 
   const handleBookDemo = () => {
     setIsWaitlistOpen(true);
@@ -74,19 +54,9 @@ export default function MarketingLayout() {
 
   return (
     <div className="min-h-screen overflow-x-clip bg-bg text-ink selection:bg-orange/20">
-      <audio
-        ref={audioRef}
-        src="/leberch-ethereal-cinematic-512569.mp3"
-        preload="none"
-        loop
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onError={() => setIsPlaying(false)}
-      />
-      <CustomCursor />
       <WaitlistModal isOpen={isWaitlistOpen} onClose={() => setIsWaitlistOpen(false)} />
 
-      <Header onJoinWaitlist={handleBookDemo} isPlaying={isPlaying} toggleSound={toggleSound} />
+      <Header onJoinWaitlist={handleBookDemo} />
 
       <Outlet context={{ onBookDemo: handleBookDemo } satisfies MarketingContext} />
 

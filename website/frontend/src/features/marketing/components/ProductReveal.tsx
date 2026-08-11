@@ -129,7 +129,7 @@ export default function ProductReveal() {
 
       const startCycling = () => {
         if (intervalId !== undefined || images.length <= 1) return;
-        intervalId = window.setInterval(switchImage, 800);
+        intervalId = window.setInterval(switchImage, 200);
       };
 
       const stopCycling = () => {
