@@ -5,7 +5,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
 import Header from "./components/Header";
 import MirrorCTA from "./components/MirrorCTA";
-import { CustomCursor } from "./components/CustomCursor";
+// no waitlist modal or custom cursor
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -40,42 +40,11 @@ function useSmoothScroll() {
  * /app route.
  */
 export default function MarketingLayout() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
-
   useSmoothScroll();
 
-  const toggleSound = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!audio.paused) {
-      audio.pause();
-      return;
-    }
-
-    audio.volume = 0.42;
-    audio.load();
-    audio
-      .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false));
-  };
-
   return (
-    <div className="min-h-screen overflow-x-clip bg-bg text-ink selection:bg-wine/20">
-      <audio
-        ref={audioRef}
-        src="/leberch-ethereal-cinematic-512569.mp3"
-        preload="none"
-        loop
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onError={() => setIsPlaying(false)}
-      />
-      <CustomCursor />
-
-      <Header isPlaying={isPlaying} toggleSound={toggleSound} />
+    <div className="min-h-screen overflow-x-clip bg-bg text-ink selection:bg-orange/20">
+      <Header />
 
       <Outlet />
 
