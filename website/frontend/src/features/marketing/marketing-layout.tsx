@@ -7,6 +7,11 @@ import Header from "./components/Header";
 import MirrorCTA from "./components/MirrorCTA";
 // no waitlist modal or custom cursor
 
+// Landing design system. Every rule is scoped to `.mirra-landing` so it cannot
+// reach the app routes, which are light-themed and share styles/globals.css.
+// Imported here rather than in main.tsx so it ships in the marketing chunk.
+import "./marketing.css";
+
 gsap.registerPlugin(ScrollTrigger);
 
 /** Single smooth-scroll instance, shared by every marketing page. Scoped to
