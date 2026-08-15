@@ -3,12 +3,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
 import { X } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-interface HeaderProps {
-  isPlaying: boolean;
-  toggleSound: () => void;
-}
-
-export default function Header({ isPlaying, toggleSound }: HeaderProps) {
+export default function Header() {
   const { scrollY } = useScroll();
   const [isSticky, setIsSticky] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -136,25 +131,6 @@ export default function Header({ isPlaying, toggleSound }: HeaderProps) {
 
         {/* Desktop Right Actions */}
         <div className="hidden items-center gap-6 md:flex">
-          <button
-            onClick={toggleSound}
-            className="group relative flex items-center gap-2 px-2 py-1 text-[10px] font-bold tracking-widest uppercase opacity-60 transition-all hover:opacity-100"
-          >
-            <span>{isPlaying ? "sound on" : "sound off"}</span>
-            <div className="flex h-3 items-end gap-0.5">
-              {[1, 2, 3, 4].map((i) => (
-                <motion.div
-                  key={i}
-                  animate={isPlaying ? { height: ["20%", "100%", "20%"] } : { height: "20%" }}
-                  transition={
-                    isPlaying ? { repeat: Infinity, duration: 0.5 + i * 0.1, delay: i * 0.1 } : {}
-                  }
-                  className="w-0.5 rounded-full bg-wine"
-                />
-              ))}
-            </div>
-          </button>
-
           <Link
             to="/auth/login"
             className="group relative overflow-hidden rounded-full bg-black px-5 py-2 text-[11px] font-bold tracking-wider text-white uppercase transition-transform duration-300 hover:scale-105 hover:bg-black/80"
@@ -225,26 +201,6 @@ export default function Header({ isPlaying, toggleSound }: HeaderProps) {
                 </Link>
 
                 <div className="mx-2 h-6 w-px shrink-0 bg-silver" />
-
-                <button
-                  onClick={toggleSound}
-                  className="group flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-black/10"
-                >
-                  <div className="flex h-3 items-end gap-0.5 opacity-60 transition-opacity group-hover:opacity-100">
-                    {[1, 2, 3, 4].map((i) => (
-                      <motion.div
-                        key={i}
-                        animate={isPlaying ? { height: ["20%", "100%", "20%"] } : { height: "20%" }}
-                        transition={
-                          isPlaying
-                            ? { repeat: Infinity, duration: 0.5 + i * 0.1, delay: i * 0.1 }
-                            : {}
-                        }
-                        className="w-0.5 rounded-full bg-wine"
-                      />
-                    ))}
-                  </div>
-                </button>
 
                 <Link
                   to="/auth/login"

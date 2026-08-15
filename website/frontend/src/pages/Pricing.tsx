@@ -54,23 +54,27 @@ export default function Pricing() {
 
         {/* Pricing Cards */}
         <div className="mb-24 grid w-full grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-          {/* Early Access */}
+          {/* Startup */}
           <div className="flex flex-col rounded-4xl border border-silver bg-bg p-8 shadow-sm sm:p-10">
             <TextReveal as="h3" variant="chars" className="mb-6 text-2xl font-bold text-ink">
-              Early Access
+              Startup
             </TextReveal>
-            <div className="mb-2">
-              <span className="font-mono text-5xl font-bold tracking-tighter">Custom</span>
+            <div className="mb-2 flex items-end gap-1">
+              <span className="font-mono text-5xl font-bold tracking-tighter">
+                ${isAnnual ? "72" : "80"}
+              </span>
+              <span className="mb-1 text-muted">/mo</span>
             </div>
             <div className="mb-8 min-h-10 text-sm text-muted">
-              Pilot program for select Shopify Plus merchants.
+              Ideal for early-stage brands & startups.
             </div>
 
             <div className="mb-10 flex flex-1 flex-col gap-4">
               {[
-                "White-glove onboarding",
-                "Up to 50 SKUs digitized",
+                "Up to 50 Products",
                 "Basic analytics dashboard",
+                "Self-serve onboarding",
+                "Standard email support",
               ].map((feature, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface">
@@ -85,32 +89,29 @@ export default function Pricing() {
               onClick={() => navigate("/auth/sign-up")}
               className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
             >
-              <KineticText>Apply for Early Access</KineticText>
+              <KineticText>Get Started</KineticText>
             </button>
           </div>
 
-          {/* Growth */}
+          {/* Custom */}
           <div className="relative flex transform flex-col rounded-4xl border border-ink bg-ink p-8 text-bg shadow-xl sm:p-10 md:-translate-y-4">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-black px-4 py-1 text-xs font-bold tracking-widest text-white uppercase shadow-sm">
-              Most Popular
-            </div>
             <TextReveal as="h3" variant="chars" className="mb-6 text-2xl font-bold">
-              Growth
+              Custom
             </TextReveal>
             <div className="mb-2 flex items-end gap-1">
-              <span className="font-mono text-5xl font-bold tracking-tighter">TBA</span>
-              <span className="mb-1 text-bg/60">/mo</span>
+              <span className="font-mono text-5xl font-bold tracking-tighter">Custom</span>
             </div>
             <div className="mb-8 min-h-10 text-sm text-bg/60">
-              {isAnnual ? "Billed annually" : "Billed monthly"} — finalized with early partners
+              Ideal for Enterprise retailers & global fashion brands.
             </div>
 
             <div className="mb-10 flex flex-1 flex-col gap-4">
               {[
-                "Unlimited usage",
-                "Up to 200 SKUs digitized",
-                "Advanced conversion tracking",
-                "Dedicated Slack channel",
+                "Custom Product Catalog",
+                "White-glove onboarding",
+                "Custom analytics API",
+                "Custom SLA & 24/7 support",
+                "Dedicated Account Manager",
               ].map((feature, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-silver/20">
@@ -125,28 +126,32 @@ export default function Pricing() {
               onClick={() => navigate("/auth/sign-up")}
               className="w-full rounded-full bg-silver-light py-4 font-bold text-ink transition-colors hover:bg-silver"
             >
-              <KineticText>Talk to Sales</KineticText>
+              <KineticText>Contact Sales</KineticText>
             </button>
           </div>
 
-          {/* Enterprise */}
+          {/* Business */}
           <div className="flex flex-col rounded-4xl border border-silver bg-bg p-8 shadow-sm sm:p-10">
             <TextReveal as="h3" variant="chars" className="mb-6 text-2xl font-bold text-ink">
-              Enterprise
+              Business
             </TextReveal>
-            <div className="mb-2">
-              <span className="font-mono text-5xl font-bold tracking-tighter">Custom</span>
+            <div className="mb-2 flex items-end gap-1">
+              <span className="font-mono text-5xl font-bold tracking-tighter">
+                ${isAnnual ? "144" : "160"}
+              </span>
+              <span className="mb-1 text-muted">/mo</span>
             </div>
             <div className="mb-8 min-h-10 text-sm text-muted">
-              For large catalogs and custom integrations.
+              Ideal for growing D2C & e-commerce brands.
             </div>
 
             <div className="mb-10 flex flex-1 flex-col gap-4">
               {[
-                "Full catalog digitization",
-                "Custom analytics API",
-                "Custom SLA & 24/7 support",
-                "On-site deployment options",
+                "Up to 240 Products",
+                "Advanced conversion tracking",
+                "Priority email support",
+                "Dedicated Slack channel",
+                "Early access to new features",
               ].map((feature, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface">
@@ -161,7 +166,7 @@ export default function Pricing() {
               onClick={() => navigate("/auth/sign-up")}
               className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
             >
-              <KineticText>Contact Team</KineticText>
+              <KineticText>Get Started</KineticText>
             </button>
           </div>
         </div>
