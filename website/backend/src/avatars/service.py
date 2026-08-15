@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from ..core.errors import NotFound
 from ..core.security import new_id
 from ..db import avatar_jobs_col, avatar_profiles_col
-from ..measurements.service import get_for_user as get_measurements
+from ..user_measurements.service import get_for_user as get_measurements
 from . import engine
 from .models import AvatarJobDocument, AvatarProfileDocument
 

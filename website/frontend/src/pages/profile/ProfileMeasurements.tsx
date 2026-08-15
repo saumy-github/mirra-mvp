@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MeasurementRow } from "@/features/onboarding/components/measurement-row";
+import { MeasurementForm } from "@/features/onboarding/components/measurement-form";
 import { Button } from "@/components/ui/button";
 import { useAvatarProfile, useAccount } from "@/hooks/use-shopper";
 import { getRuntimeProvider } from "@/integrations/mirra-api";
@@ -29,7 +30,21 @@ export default function ProfileMeasurements() {
   });
 
   if (!avatar) {
-    return <p className="text-sm text-muted">Measurements appear here once an avatar exists.</p>;
+    return (
+      <div>
+        <p className="mono-tag tracking-widest!">Your measurements</p>
+        <h1 className="mt-2 text-xl font-semibold tracking-tight">
+          Tell us your body measurements.
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted">
+          These are used to build your digital twin. You can fine-tune them again later — nothing
+          here is permanent.
+        </p>
+        <div className="mt-6">
+          <MeasurementForm />
+        </div>
+      </div>
+    );
   }
 
   return (

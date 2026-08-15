@@ -160,14 +160,15 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     }
     let measurements: Record<string, unknown>;
     try {
-      measurements = (await this.http.patch("/measurements/me", live.measurementsEnvelope, fields))
-        .measurements;
+      measurements = (
+        await this.http.patch("/user-measurements/me", live.measurementsEnvelope, fields)
+      ).measurements;
     } catch (err) {
       if (err instanceof MirraApiError && err.status === 404) {
         // First submission — defaults preserve prior (pre-form) behaviour
         // for callers that don't pass gender/accuracy explicitly.
         measurements = (
-          await this.http.put("/measurements/me", live.measurementsEnvelope, {
+          await this.http.put("/user-measurements/me", live.measurementsEnvelope, {
             gender: opts.gender ?? "male",
             accuracy: opts.accuracy ?? "approx",
             ...fields,

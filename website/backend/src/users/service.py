@@ -8,10 +8,10 @@ from ..core.errors import NotFound
 from ..db import (
     avatar_jobs_col,
     avatar_profiles_col,
-    measurements_col,
     signature_looks_col,
     tryon_renders_col,
     tryon_sessions_col,
+    user_measurements_col,
     users_col,
 )
 
@@ -53,7 +53,7 @@ async def delete_account(user_id: str) -> None:
     if not user:
         raise NotFound("User not found")
 
-    await measurements_col().delete_many({"user_id": user_id})
+    await user_measurements_col().delete_many({"user_id": user_id})
     await avatar_jobs_col().delete_many({"user_id": user_id})
     await avatar_profiles_col().delete_many({"user_id": user_id})
     await tryon_sessions_col().delete_many({"user_id": user_id})

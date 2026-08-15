@@ -54,6 +54,13 @@ def measurements_col() -> AsyncCollection:
     return get_db()["measurements"]
 
 
+def user_measurements_col() -> AsyncCollection:
+    """The live, website-facing measurements store (dev and production) —
+    measurements_col() above stays CLI/dev-fixture-only from here on. See
+    .agent/website-launch/23-profile-measurements-form-and-user-measurements-model.md."""
+    return get_db()["user_measurements"]
+
+
 def sizes_col() -> AsyncCollection:
     return get_db()["sizes"]
 
@@ -98,6 +105,7 @@ async def ensure_indexes() -> None:
     # Parity with mirra_measurements/db.py:
     await measurements_col().create_index([("user_id", ASCENDING)], unique=True)
     await measurements_col().create_index([("gender", ASCENDING)])
+    await user_measurements_col().create_index([("user_id", ASCENDING)], unique=True)
     await sizes_col().create_index([("size_id", ASCENDING)], unique=True, name="size_id_unique")
 
     # Backend-owned collections (string _id doubles as the public id):
