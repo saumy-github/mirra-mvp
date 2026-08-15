@@ -46,20 +46,19 @@ studio, profile and capture are out of scope and must not be touched.
 
 ## Route mapping
 
-| Route | This repo | Redesign | Action |
+**Decided:** the standalone site is a complete overhaul, not a redesign of the
+old one, and is the sole source of truth for this surface. The previous
+landing site is phased out wholesale — nothing is carried over.
+
+| Route | Before | After | Action |
 |---|---|---|---|
-| `/` | `pages/Home.tsx` | `app/page.tsx` | REPLACE |
-| `/pricing` | `pages/Pricing.tsx` | `app/pricing/PricingClient.tsx` | REPLACE |
-| `/meet-the-team` | `pages/Team.tsx` | *(none)* | **DECISION NEEDED** |
-| `/faq` | *(none)* | `app/faq/FAQClient.tsx` | **DECISION NEEDED** |
+| `/` | `pages/Home.tsx` | `app/page.tsx` | REPLACED |
+| `/pricing` | `pages/Pricing.tsx` | `app/pricing/PricingClient.tsx` | REPLACED |
+| `/faq` | *(none)* | `app/faq/FAQClient.tsx` | ADDED |
+| `/meet-the-team` | `pages/Team.tsx` | *(none)* | RETIRED |
 
-Two open questions, flagged rather than guessed:
-
-1. `/meet-the-team` has no redesigned counterpart. Restyle it to match the new
-   design, or leave it on the old look?
-2. `/faq` exists only in the redesign. Add it as a new route, or drop it?
-
-Neither blocks phases 1–2.
+`/meet-the-team` was safe to retire: nothing outside the marketing feature
+linked to it or to `Team.tsx`.
 
 ## Migration map
 
@@ -171,13 +170,16 @@ Verified in the build output: the landing CSS lands entirely in the
 Each phase is one commit that builds. `npm run build` before every commit.
 
 1. **Design system + assets** — scoped stylesheet, fonts, images. Inert. ✅
-2. Shared layout / navigation — apply `.mirra-landing`, swap header + footer.
-3. `/` (Home)
-4. `/pricing`
-5. `/meet-the-team` and `/faq` — pending the decisions above.
-6. **App regression pass** — `/studio`, `/profile`, `/onboarding/measurements`,
-   `/auth/login` must be pixel-identical to `pre-migration`.
-7. Animations, responsive, `build` + `typecheck` + `lint`.
+2. **Site replacement** — old landing removed, overhaul ported, framework
+   rewrites, auth and Lenis reconciled. `tsc`/`eslint`/`build` clean. ✅
+3. **Visual regression pass** — NOT YET DONE. `/studio`, `/profile`,
+   `/onboarding/measurements`, `/auth/login` must look identical to
+   `pre-migration`; `/`, `/pricing`, `/faq` must match the standalone site.
+   Requires a browser; static checks alone cannot confirm this.
+4. Behavioural pass — GSAP timelines, Draggable, scroll triggers and route
+   transitions under react-router rather than the App Router.
+5. Responsive + reduced-motion.
+6. Backend-dependent checks — navbar account state against a live session.
 
 ## Known follow-ups
 
