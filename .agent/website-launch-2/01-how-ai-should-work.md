@@ -21,6 +21,34 @@ To do this safely:
 2. **Use isolated git worktrees for parallel agents** (the `Agent` tool's `isolation: "worktree"` option). Each agent gets its own checkout/branch; merge back once done. This makes file-ownership mistakes non-destructive instead of silently clobbering another agent's work.
 3. Respect sequencing even across "parallel" work — some website work depends on CLO-agent output landing first (e.g. anything that loads/displays a GLB depends on Step 6 existing). See `02-remaining-work.md` for what depends on what.
 
+### Worktree setup on Windows — junction `node_modules`, and the things a worktree silently lacks
+
+A git worktree checks out **tracked files from a commit only**. Everything untracked is missing, and on this repo the untracked things are load-bearing. Set every worktree up like this, and **tell every subagent working in one to use it** — this is not optional, it's how we avoid burning ~330 MB per agent.
+
+**1. Junction `node_modules` instead of running `npm install`.** `website/frontend/node_modules` is ~327 MB and untracked; the tracked working tree is only ~15 MB. A Windows directory junction makes the worktree share the main checkout's copy at near-zero disk cost:
+
+```powershell
+New-Item -ItemType Junction `
+  -Path   "<worktree>\website\frontend\node_modules" `
+  -Target "C:\D-drive-data\mirra-mvp\website\frontend\node_modules"
+```
+
+Run it right after creating the worktree, before any `npx`/`npm` command. Then `npx tsc --noEmit`, `npx eslint`, and `npm run build` all work immediately.
+
+- **Hard rule that makes the junction safe: a junctioned worktree must never run `npm install`, `npm ci`, `npm update`, or edit `package.json`/`package-lock.json`.** All worktrees share one real `node_modules`; installing in any of them mutates it for everyone, including the main checkout. If a task genuinely needs a dependency change, that task does not belong in a junctioned worktree — stop and raise it.
+- Only the **frontend** needs this. The backend is Python/FastAPI with no `node_modules` and no `package.json`.
+- Junctions are removed with `Remove-Item <path>` (or `cmd /c rmdir`), which deletes the link, not the target. Do not `Remove-Item -Recurse` a junction — depending on the tool that can walk into the target and delete the real `node_modules`.
+
+**2. The repo-root `.venv/` is also untracked** and will not exist in a worktree. Python work in a worktree can therefore only do static checks against the main checkout's interpreter, or defer verification to after merge-back.
+
+**3. `.env*` files are untracked and will not exist in a worktree.** As of 2026-08-15 the repo has these (names only — never read their contents): root `.env.dev`; `clo_workspace/.env`; `mirra_measurements/.env`; `website/backend/.env.dev`, `.env.docker.dev`; `website/frontend/.env.dev`, `.env.development`; `worker/.env`. A worktree gets none of them. **Ask the user to copy whichever a lane actually needs — never read one to find out what's in it, and never reconstruct one from guesses.**
+
+**4. Port conflicts are real — assume collision, not luck.** Ports in use: **backend 8000** and **Redis 6379** (`docker-compose.yml`), **Vite dev server 3000** (`website/frontend/vite.config.ts:14`).
+- `docker compose` derives its project name from the directory, so a worktree spawns a *second* stack that immediately fights the main one for 8000/6379. **Only one checkout runs Docker — the main one.** A worktree lane needing backend verification either uses the main checkout's already-running backend, or defers Docker verification to after merge-back. It must not `docker compose up` from inside a worktree.
+- **Only one Vite dev server at a time.** Beyond the port, concurrent dev servers sharing a junctioned `node_modules/.vite` cache can corrupt each other's dep-optimization cache. `tsc`, `eslint`, and `build` are safe to run concurrently; `npm run dev` is not.
+
+**5. Merging work back without committing.** Agents never commit (see the standing rules). To get parallel work into the main checkout as one reviewable diff: confirm each worktree's changed-file list stays inside that lane's declared ownership, then **copy those files into the main checkout**. This is safe only because lanes are assigned strictly disjoint file sets up front — that assignment is what makes a plain copy equivalent to a merge, with no conflict resolution and no commits anywhere. If an agent touched a file outside its ownership, stop and show the user rather than copying.
+
 ## Standing rules carried over from the previous session (still in force)
 
 - **Never read `.env*` files with any tool, for any reason.** Ask the user to paste/handle values themselves. This is enforced at the harness level too — Read/Grep/Glob against `.env*` files will be silently denied or return empty; that's expected, not evidence the file is missing.
@@ -31,12 +59,22 @@ To do this safely:
   - Backend: `python -m py_compile` on every touched file, `python -c "from src.main import app"` import check, rebuild+restart the Docker backend, run the smoke test (`docker compose exec backend python scripts/smoke_e2e.py`).
   - Frontend: `npx tsc --noEmit`, `npx eslint src --max-warnings=0`, `npm run build`. When deleting a feature, grep the built `dist/` output for the feature's own strings/copy to confirm it's genuinely gone, not just unreachable via routing.
   - CLO-touching: an actual live run against running CLO3D + the worker. Nothing else counts as verification for this category.
-- **Nothing in this repo has been committed yet this session** — everything is uncommitted work on the `saumy` branch. Check `git status` before any destructive git operation; never force-push or hard-reset without being asked.
+- **NEVER COMMIT. This rule is absolute and has no exceptions.** No agent or subagent may run `git commit`, `git add`, `git stash`, `git checkout`/`git restore` over changed files, `git merge`, `git rebase`, or any other git command that writes to history, the index, or the working tree. Not at the start of work. Not on completion. Not "just a checkpoint before something risky." Not even when a subagent finishes its task and the work looks obviously done. **The user commits every single change manually, themselves, always.**
+  - If some piece of work appears to *require* a commit before it can proceed — the common case being "a git worktree can only branch from a commit, and the work it needs is uncommitted" — **stop and ask the user to commit it**. Do not commit on their behalf to unblock yourself.
+  - Read-only git is fine and encouraged: `git status`, `git log`, `git diff`, `git show`, `git ls-files`.
+  - Never force-push and never hard-reset, under any circumstances, asked or not.
+- The `saumy` branch is at any moment a mix of committed history and uncommitted working-tree changes (including untracked new modules). Run `git status` before assuming which — and remember that untracked files do **not** appear in a new worktree.
 
 ## Known, load-bearing technical facts (don't rediscover these the hard way)
 
 - **Windows can't fork** — the worker uses `rq.worker.SimpleWorker`, never the default `rq.Worker`. Already implemented; don't "simplify" it back.
-- **CLO's `/export` endpoint cannot produce true binary `.glb` on this installed CLO version.** `ExportGLB` is an unimplemented stub in this SDK version; `ExportGLTF` always writes JSON glTF-separate (external `.bin` + texture files) regardless of any binary flag — confirmed by reading the plugin's own C++ source, not assumed. The fix is entirely Python-side: `clo_avatar_generation/avatar_runtime/step_12_export_glb.py` packs the raw export into a real self-contained binary `.glb` via `pygltflib` afterward. Don't try to fix this at the plugin/CLO level — already investigated, not possible on this CLO version.
+- **CLO's `/export` endpoint cannot produce true binary `.glb` with the SDK we currently build against.** `ExportGLB` is a bare stub (returns an empty vector) in that SDK's header; `ExportGLTF` always writes JSON glTF-separate (external `.bin` + texture files) regardless of any binary flag — confirmed by reading the plugin's own C++ source, not assumed. The fix is entirely Python-side: `clo_avatar_generation/avatar_runtime/step_12_export_glb.py` packs the raw export into a real self-contained binary `.glb` via `pygltflib` (`_pack_self_contained_glb`, using `convert_images(DATAURI)` + `convert_buffers(BINARYBLOB)`).
+  - **Corrected 2026-08-15. The old claim "ExportGLB is an unimplemented stub, so this is impossible at the CLO level" rests on a misreading of the SDK header, and should not be repeated.** What is actually true, verified by reading `C:\Users\Saumy\Downloads\CLO_SDK_v2025.2.368_Win\CLOAPIInterface\include\ExportAPIInterface.h` directly:
+    - **Every** export method in that header has an empty default body — `ExportOBJW` (L108), `ExportGLTF` (L118), `ExportGLTFW` (L128), `ExportGLB` (L608), `ExportGLBW` (L618), `ExportGLTFWithDialog` (L675), `ExportGLBWithDialog` (L685); `ExportBOMW` (L669) just returns `false`. This is an **abstract interface**: the SDK ships no-op defaults and the real implementations live in `CLOAPIInterface.dll`, overriding the virtuals at runtime.
+    - The proof that an empty body means nothing: **`ExportGLTF` is a bare stub in this same header and our pipeline calls it successfully on every run.** So "stub body in the header" is not evidence of non-implementation, and never was.
+    - The empirical fact still stands and is not in dispute: `ExportGLB` returned an empty result in real manual testing (`RestPlugin_windows.cpp:1774-1780`). Only the *explanation* was wrong.
+    - **Leading hypothesis, untested**: vtable/ABI skew. We build against a 2025.2-line SDK header while running a 2026.0 app. With a pure-virtual interface, if CLO inserted or reordered virtuals between those versions, a call dispatches to the wrong slot — or falls through to the header's own empty default. Consistent with the observed split: `ExportGLTF` sits early in the class (L118) and works; `ExportGLB` sits far later (L608) and returns empty, which is exactly where accumulated vtable divergence would bite. If this is right, **rebuilding the plugin against a matching-line SDK may fix `ExportGLB` outright** — not because it was newly implemented, but because the vtable would line up. Testable, and cheaper than an app upgrade.
+    - Practical consequence: keep the Python packing workaround (it works), but **do not record it as permanent or the CLO path as impossible.** See `03-clo-2026.1-upgrade-assessment.md`, whose Q1 conclusion is built on the same header misreading and should be read with this correction in hand.
 - **`dev_upload/` vs `live_upload/`** is controlled by `APP_ENV`, read directly from the worker process's own environment (`worker/.env`). `development` (default, unset included) → `dev_upload/`; `production` → `live_upload/`. `live_upload/` is reserved for real production data only — never write test/dev output there.
 - **`measurements` vs `user_measurements`**: `measurements` (old collection) is now CLI/dev-fixture-only — `golden_users`/`seed_measurements.py`, and the CLO pipeline's own CLI-invoked reads. `user_measurements` (new collection) is the only thing the website itself writes to, dev and production alike. **Known, deliberate, still-open gap**: the CLO pipeline's own live fetch (`clo_avatar_generation/avatar_runtime/step_03_fetch_measurements.py`) still reads the *old* collection — this is item 1 in `02-remaining-work.md`, not yet fixed.
 - **No demo/live engine mode exists anymore.** Removed entirely. Every avatar/try-on request always goes through the real Redis → worker → CLO3D path. Don't reintroduce a mode flag or fake timers.

@@ -4,6 +4,8 @@ Status as of 2026-08-11, cross-checked against the actual code (not just doc sta
 
 ## Group A — CLO / worker territory (exactly one agent, ever, at a time)
 
+**A1 + A2 + A3 are planned together in `04-clo-measurement-repoint-and-glb-serving.md`** (2026-08-15) — one agent, primary checkout, not a worktree (untracked `.env` files mean a worktree can't run the worker). All three re-verified against code that day and confirmed genuinely open.
+
 ### A1. Repoint the CLO pipeline's measurement read to `user_measurements`
 `clo_avatar_generation/avatar_runtime/step_03_fetch_measurements.py` still reads the *old* `measurements` collection directly (via `mirra_measurements.db.get_measurements_collection()`), independent of anything the backend does. Real signed-in users now save to `user_measurements` instead (old-folder doc 23) — so today, a real user's `POST /avatars/generate` would run the pipeline, find nothing, and fail.
 
@@ -49,10 +51,21 @@ Catalog *browsing* itself needs no CLO involvement (pure Mongo + thumbnail) — 
 Items B1-B5 are scoped to **signed-in users only** — guest users are explicitly deferred (Group C).
 
 ### B1. Fix `ProfileAvatar.tsx`'s dead end
-`/profile/avatar` with no avatar yet shows static leftover copy from the deleted photo-capture feature with no button at all. Needs a real "Create your avatar" CTA → `/onboarding/avatar` (reuse that flow, don't duplicate generation-trigger logic). Add an "Open Studio" link once an avatar exists — nothing in the signed-in flow links to `/studio` today.
+Planned in `05-delete-onboarding-consolidate-on-profile.md` (folded into the `/onboarding` deletion — `/profile/avatar` now *absorbs* the generation flow rather than linking out to it).
 
-### B2. Decide + wire the post-generation "continue" destination
-`SynchronizedState`'s "Continue" currently goes to `/profile/measurements` (artifact of `/onboarding/measurements`'s deletion). Worth deciding whether it should go to `/studio` instead now that there's an actual next step there.
+`/profile/avatar` with no avatar yet shows static leftover copy from the deleted photo-capture feature with no button at all — confirmed 2026-08-15 (`ProfileAvatar.tsx:24-34`, zero buttons).
+
+**Correction 2026-08-15**: this item's rationale said "nothing in the signed-in flow links to `/studio` today." Not true — `onboarding/Avatar.tsx:160` ("Use my saved avatar") does. What's actually true is that nothing under `/profile/*` links to Studio. The fix stands; the reasoning didn't.
+
+### B2. ~~Decide + wire the post-generation "continue" destination~~ → superseded, and the original was factually wrong
+**Corrected 2026-08-15 after reading the code** — planned in `05-delete-onboarding-consolidate-on-profile.md`.
+
+This item claimed Continue goes to `/profile/measurements` and framed the work as a preference call. Both wrong:
+
+- `router.tsx` registers exactly one onboarding route, `/onboarding/avatar`. **`/onboarding/measurements` and `/measurements` no longer exist.**
+- `onboarding/Avatar.tsx` navigates to those deleted routes from **three** live call sites — line 98/226 (`goToMeasurements`, the Continue handler), line 169 ("update measurements"), and line 207 (the "Add measurements" CTA on the `measurements-required` phase, which is the first screen a signed-in user without measurements ever sees). All three 404 into `NotFound`. `tsc`/eslint can't catch it — route targets are string literals.
+
+So this is a live broken-navigation bug, not a decision. **User decision 2026-08-15**: `/studio` shows the VTO, `/profile/measurements` takes measurements, and **the `/onboarding` pages are to be deleted completely** — everything consolidates under `/profile`. That deletion fixes the dead links by construction.
 
 ### B3. Wire generation trigger from `/profile/measurements`'s first save — scoped carefully
 Auto-trigger only on the true first-time save (no avatar yet). **Do not** auto-trigger on every subsequent edit — CLO is concurrency=1; repeated tweak-and-save would queue up multiple real ~90s CLO runs. Keep "save" and "regenerate" separate explicit actions post-first-generation, matching `onboarding/Avatar.tsx`'s existing pattern.
@@ -75,6 +88,8 @@ Confirmed via a real production build, not assumed. Ranked by impact/effort:
 5. Investigate the `rotate-ccw-*.js` shared icon chunk (45.84 kB gzip) — confirm it's expected Rollup chunking vs. an accidental over-broad `lucide-react` import.
 
 ### B8. Comment out email/password UI for pilot (product decision made 2026-08-04, still not executed)
+Planned in `06-pilot-auth-google-only-and-consent.md` together with B9 and Group E — B8 makes Google the only signup path, and B9 is a confirmed bug in exactly that path, so shipping B8 alone would mean every pilot user signs up with no consent record. Doc 03's open sub-question is answered there: **keep the routes registered in `router.tsx`, comment out page content only.**
+
 Old-folder doc 03, Section 2 — decided, never done. Exact file list already specified there: `Login.tsx` (comment out the email/password form, "or continue with email" divider, "Forgot password?" link, "Create account" link — keep `GoogleButton` + "Continue as guest"), `SignUp.tsx` (comment out page content), `ForgotPassword.tsx` (comment out page content), `VerifyEmail.tsx` (comment out — nothing left for it to do once password signup is gone). **Comment out, not delete** — backend routes and code stay intact per doc 03's own explicit rule. Open sub-question doc 03 never resolved: should the routes also be removed from `router.tsx` (fully unreachable) or just the page content (route stays registered, reachable by direct URL)?
 
 ### B9. Fix the Google OAuth consent gap (doc 20, confirmed real bug, not fixed)
