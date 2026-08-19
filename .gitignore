@@ -40,6 +40,11 @@ pipeline_star/generated/*
 **/*.glb
 **/*.gltf
 **/*.svg
+# ...but the website's static SVGs are hand-authored design assets, not
+# pipeline output. Without this the landing page's brand-logo strip and
+# favicon build locally and 404 in production.
+!website/frontend/public/**/*.svg
+!website/frontend/src/**/*.svg
 **/*.avt
 **/*.zprj
 2d_patterned_garment_generation_clo3d/output/**/pattern_metadata.json

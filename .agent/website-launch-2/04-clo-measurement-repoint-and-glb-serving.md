@@ -2,7 +2,12 @@
 
 **Status**: planned, not started. Written 2026-08-15.
 **Covers**: `02-remaining-work.md` items **A1, A2, A3**.
-**Agent assignment**: exactly ONE agent, working in the **primary checkout** (`C:\D-drive-data\mirra-mvp`), never a worktree — see "Why not a worktree" below. No other agent may touch CLO, `worker/`, `clo_avatar_generation/`, or `clo_vto/` while this runs.
+**Agent assignment**: exactly ONE agent — `subagent_type: mirra-lane-clo` (Sonnet, medium effort) — working in the **primary checkout** (`C:\D-drive-data\mirra-mvp`), never a worktree; see "Why not a worktree" below. No other agent may touch CLO, `worker/`, `clo_avatar_generation/`, or `clo_vto/` while this runs.
+
+> **You are running alongside Lanes 2 and 3 (2026-08-19).** Both are website lanes in this same checkout, kept apart from you by file ownership only. Two consequences:
+> - **Shared resources belong to the parent session, not to you** (user decision, 2026-08-19 — the deliberately safe option). **You do not run `docker compose build/up/down/restart`, and you do not rebuild the CLO plugin.** When your work needs a rebuild or restart — and A2's compose mount change does — **stop and ask the parent, then wait.** `docker compose exec` against an already-running stack is read-only and fine.
+> - This directly affects your sequencing: you cannot rebuild-then-run at will. Land the code changes, ask the parent for the rebuild/restart, wait for confirmation, **then** do the A3 live run.
+> - **Run verification once, at the end** — not after each edit. `py_compile`, the import check and the smoke test are end-of-work checks. Re-running a specific check while debugging a specific failure is fine; routine after-every-change checking is not.
 
 ## Why these three together
 
@@ -24,6 +29,28 @@ They are one causal chain, and splitting them across agents would violate concur
 
 ## A1 — measurement fetch: try `user_measurements`, fall back to `measurements`
 
+### The user's ruling, 2026-08-19 — this is additive, and nothing is removed
+
+Both collections are **permanent and intentional**, not a migration in progress:
+
+- **`measurements`** — for CLI-mode testing of CLO3D work (golden users, `seed_measurements.py`). Kept.
+- **`user_measurements`** — for the website, in **both dev and production**. Kept.
+
+> *"we have to keep both of them, so wherever our pipeline is reading from the measurements model we have to add the user_measurements model also, and not remove anything."*
+
+So this is strictly **additive**. **Do not delete, rename, deprecate, or stop writing to anything.** Do not "clean up" the old accessor, do not migrate documents between collections, and do not touch `seed_measurements.py` (it is a *writer* for golden users, not a read site). The title's word "fall back" describes lookup order only — it does not imply the old collection is on its way out. It is not.
+
+**Every read site — enumerated 2026-08-19, so you do not have to go looking:**
+
+| Site | What it reads | Action |
+|---|---|---|
+| `clo_avatar_generation/avatar_runtime/step_03_fetch_measurements.py:150,159` | `get_measurements_collection()` — body measurements, the live pipeline fetch | **This is the one to change.** |
+| `product_ingestion/legacy/generate_patterns_clo3d.py:31`, `legacy/generate_for_avatar.py:55` | `get_avatar_collection` (an alias of the same accessor) | **Out of scope** — `legacy/`. Leave alone. |
+| `mirra_measurements/seed_measurements.py:200` | writes golden users into `measurements` | Not a read site. Leave alone. |
+| `product_ingestion/run_product_ingestion.py:42` | `get_sizes_collection` | Garment sizes, unrelated collection. Leave alone. |
+
+That leaves exactly one file to modify for A1. If you find yourself editing a second, stop and re-read this table.
+
 Approach (from old-folder doc 23 Part C):
 
 1. In `step_03_fetch_measurements.py`, replace the single `get_measurements_collection()` read with: look up `user_measurements` by `user_id` first; if nothing found, fall back to the old `measurements` collection.
@@ -35,7 +62,7 @@ Collection accessor: `mirra_measurements/db.py` hardcodes `AVATAR_COLLECTION_NAM
 
 **Database name: confirmed the same, 2026-08-15 — this was flagged as A1's highest risk and it checked out.** `website/backend/src/config.py:20` declares `database_name: str = "mirratest"`, `mirra_measurements/db.py` declares `DATABASE_NAME = "mirratest"`, and `website/backend/src/db.py:1-3` states it outright: "Async MongoDB client for the shared **mirratest** database. Ported from `mirra_measurements/db.py` (sync) — same database, same [convention]." The website and the pipeline read and write the same database. The only residual is that `database_name` is a Settings field with a default, so a deployment env var *could* override it — worth one glance at the effective setting, not worth treating as an open risk.
 
-Optional, only if it stays trivial: `product_ingestion/run_product_ingestion.py:~42` imports `mirra_measurements` the same way. Do not expand into the full `mirra_measurements` migration — that is deliberately deferred (Group D).
+**Superseded 2026-08-19**: the old "optional, only if it stays trivial" note about `product_ingestion/run_product_ingestion.py:~42` is dropped — that line reads `get_sizes_collection` (garment sizes), an unrelated collection. Leave it alone. There is no `mirra_measurements` migration to expand into; per the ruling above, both collections stay.
 
 ## A2 — `GET /api/v1/avatars/profile/glb`
 

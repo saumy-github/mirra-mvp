@@ -1,85 +1,51 @@
-import { useEffect, useRef, useState } from "react";
-import { Outlet } from "react-router-dom";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
-import Header from "./components/Header";
-import MirrorCTA from "./components/MirrorCTA";
-import { CustomCursor } from "./components/CustomCursor";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { Outlet, useLocation } from "react-router-dom";
+import { SiteFooter } from "./components/SiteFooter";
+import { SiteNavbar } from "./components/SiteNavbar";
+import { SmoothNavigation } from "./components/SmoothNavigation";
 
-gsap.registerPlugin(ScrollTrigger);
-
-/** Single smooth-scroll instance, shared by every marketing page. Scoped to
- * this layout only — the app/studio pages have their own scroll containers
- * and would fight with Lenis. */
-function useSmoothScroll() {
-  useEffect(() => {
-    const lenis = new Lenis({
-      lerp: 0.08,
-      wheelMultiplier: 0.85,
-      touchMultiplier: 1.1,
-      smoothWheel: true,
-    });
-
-    const raf = (time: number) => lenis.raf(time * 1000);
-    lenis.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add(raf);
-    gsap.ticker.lagSmoothing(0);
-
-    return () => {
-      gsap.ticker.remove(raf);
-      lenis.destroy();
-    };
-  }, []);
-}
+// Landing design system. Every rule is scoped to `.mirra-landing` so it cannot
+// reach the app routes, which are light-themed and share styles/globals.css.
+// Imported here rather than in main.tsx so it ships in the marketing chunk.
+import "./marketing.css";
 
 /**
- * Wraps the marketing pages (Home, Pricing, Team) ported from
- * Mirra-landing-page — header, footer CTA, custom cursor, and smooth
- * scroll, all scoped to this route subtree via <Outlet>. Not used by any
- * /app route.
+ * Chrome for the marketing site — navbar, footer, smooth scroll and route
+ * transitions — scoped to this route subtree via <Outlet>. Not used by any
+ * app route.
+ *
+ * Ported from the standalone landing site's SiteChrome. Smooth scrolling now
+ * lives entirely in <SmoothNavigation>, which owns its own Lenis instance
+ * (anchor handling, menu lock, teardown on unmount). The layout must not
+ * create a second one — two instances fight over the scroll position, and the
+ * studio has its own scroll containers that Lenis must never touch.
+ *
+ * The `mirra-landing` class is what activates the landing stylesheet. Without
+ * it every rule in marketing.css is inert, which is exactly the property that
+ * keeps the app routes safe.
  */
 export default function MarketingLayout() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  useSmoothScroll();
-
-  const toggleSound = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (!audio.paused) {
-      audio.pause();
-      return;
-    }
-
-    audio.volume = 0.42;
-    audio.load();
-    audio
-      .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false));
-  };
+  const { pathname } = useLocation();
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-bg text-ink selection:bg-wine/20">
-      <audio
-        ref={audioRef}
-        src="/leberch-ethereal-cinematic-512569.mp3"
-        preload="none"
-        loop
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onError={() => setIsPlaying(false)}
-      />
-      <CustomCursor />
-
-      <Header isPlaying={isPlaying} toggleSound={toggleSound} />
-
-      <Outlet />
-
-      <MirrorCTA />
-    </div>
+    <MotionConfig reducedMotion="user">
+      <div className="mirra-landing">
+        <SmoothNavigation />
+        <SiteNavbar />
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            className="site-route"
+            key={pathname}
+            initial={{ opacity: 0.72, y: 8, filter: "blur(4px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0.82, y: -4, filter: "blur(3px)" }}
+            transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
+        <SiteFooter />
+      </div>
+    </MotionConfig>
   );
 }

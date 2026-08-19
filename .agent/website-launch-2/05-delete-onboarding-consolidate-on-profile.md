@@ -2,7 +2,9 @@
 
 **Status**: planned, not started. Written 2026-08-15.
 **Covers**: `02-remaining-work.md` items **B1, B2 (revised — see below), B5**, plus a dead-route bug the doc did not capture.
-**Agent assignment**: one agent, **isolated worktree**. Touches no CLO, no worker, no pipeline, no backend.
+**Agent assignment**: one agent — `subagent_type: mirra-lane-frontend` (Sonnet, medium effort). Runs in the **main checkout**, in parallel with Lanes 1 and 3, kept apart by file ownership alone. Touches no CLO, no worker, no pipeline, no backend.
+
+> **Line numbers in this doc predate the landing-redesign merge (2026-08-19).** That merge rewrote `pages/Home.tsx`, `pages/Pricing.tsx`, `router.tsx`, and all of `features/marketing/`, and retired `/meet-the-team` in favour of `/faq`. **Re-locate every reference below by searching for the code, not by trusting the line number.** The `router.tsx` references (`:19`, `:54`) and `Pricing.tsx:71` are the ones most likely to have moved. The *substance* of this plan is unaffected — the merge touched only the marketing surface, which this lane does not own.
 
 ## The product decision driving this (user, 2026-08-15)
 
@@ -45,6 +47,8 @@ Cosmetic, do last if at all: `src/styles/globals.css:6` has a comment listing "a
 
 **Judgment call to make and record**: the folder `src/features/onboarding/` survives this, still holding four components, two of which `/profile/measurements` depends on. Leaving a folder named `onboarding` after deleting the onboarding concept is a half-deletion. Recommend renaming it to `src/features/profile/` and updating the four import sites. Do this as the **last** step, in its own pass, so a rename conflict never obscures the functional work.
 
+> **Contradiction resolved 2026-08-19 — read this before doing the rename.** The rule below says do not touch `ProfileMeasurements.tsx`, but that file imports `measurement-row.tsx`/`measurement-form.tsx` from `features/onboarding/`, so the rename *cannot* happen without editing its import line. Both cannot be true. The resolution: **the rename is permitted to change import statements in `ProfileMeasurements.tsx`, and nothing else in it.** No logic, no JSX, no formatting — one import path, mechanically. If the rename turns out to need more than that, **skip the rename entirely** and record why; it is cosmetic and not worth risking mid-flight work over. The original reason for the restriction was that `ProfileMeasurements.tsx` held uncommitted work; that work is committed as of 2026-08-19, which lowers the stakes but does not make the file yours to redesign.
+
 ## The real work: `ProfileAvatar.tsx` absorbs the generation flow
 
 `pages/profile/ProfileAvatar.tsx` today (verified) has, when no avatar exists, static leftover copy from the **deleted photo-capture feature** — "One is created the next time you complete a photo session" — and **zero buttons**. That's B1's dead end, and it's also now the only place the generation flow can live.
@@ -78,7 +82,9 @@ Also note `ProfileLayout.tsx:24-26` runs its own inline auth guard. That duplica
 
 - **Never commit.** Not on completion. The user commits manually, including merging this worktree back. See `01-how-ai-should-work.md`.
 - Owned files: `src/pages/onboarding/**` (deleting), `src/pages/profile/ProfileAvatar.tsx`, `src/pages/Studio.tsx`, `src/router.tsx`, `src/features/onboarding/**`.
-- **Do not touch** `src/pages/auth/**` or `src/pages/profile/ProfileMeasurements.tsx` — Lane 3 owns the auth pages, and ProfileMeasurements is mid-flight uncommitted work.
+- **Do not touch** `src/pages/auth/**` — Lane 3 owns the auth pages this window. `src/pages/profile/ProfileMeasurements.tsx` is likewise not yours, with the single narrow exception carved out above: the folder rename may update its **import path only**.
+- **Do not touch `src/features/marketing/**`, `src/pages/{Home,Pricing,FAQ}.tsx`, or `index.html`** — the landing redesign landed 2026-08-19 and has open follow-ups of its own. `router.tsx` is yours, but only the auth/app/profile route block; leave the marketing routes (`/`, `/pricing`, `/faq`) and the `MarketingLayout` wrapper exactly as they are.
+- **Shared resources**: you own `npm run build` and `dist/`. You do **not** own Docker (Lane 1 does) — never run `docker compose build/up/down/restart`. The Vite dev server on port 3000 is one-at-a-time; Lane 3 may also want it, so check before starting one and stop it when done.
 - No backend changes. If something here seems to need a new API surface, that's B4 — stop and flag it rather than adding a route.
 
 ## Execution log

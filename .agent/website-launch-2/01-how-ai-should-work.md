@@ -21,7 +21,60 @@ To do this safely:
 2. **Use isolated git worktrees for parallel agents** (the `Agent` tool's `isolation: "worktree"` option). Each agent gets its own checkout/branch; merge back once done. This makes file-ownership mistakes non-destructive instead of silently clobbering another agent's work.
 3. Respect sequencing even across "parallel" work — some website work depends on CLO-agent output landing first (e.g. anything that loads/displays a GLB depends on Step 6 existing). See `02-remaining-work.md` for what depends on what.
 
+### Launching subagents: Sonnet at medium effort, and where they can actually write
+
+**Every subagent on this repo runs Sonnet at medium reasoning effort.** User instruction, 2026-08-15. The user reserves Opus for their own chats and pays for subagent tokens separately, so an Opus subagent is a real and unwanted cost.
+
+**This is now mechanically enforced. Use the agent definitions in `.claude/agents/` — do not launch lanes as `general-purpose`.** Created 2026-08-19:
+
+| `subagent_type` | Lane | Plan doc | Territory |
+|---|---|---|---|
+| `mirra-lane-clo` | 1 | `04` | CLO, `worker/`, `clo_avatar_generation/`, `clo_vto/`, backend avatars + Docker. **Holds the CLO lock — never run two.** |
+| `mirra-lane-frontend` | 2 | `05` | `/onboarding` deletion, `ProfileAvatar.tsx`, `Studio.tsx`, `router.tsx`, `features/onboarding/`. Owns `npm run build`/`dist/`. |
+| `mirra-lane-auth` | 3 | `06` | `pages/auth/**`, backend `auth/` + `users/routes.py`. |
+| `mirra-lane` | — | (assigned) | Generic fallback for ad-hoc work that maps to none of the above. |
+
+Each file pins `model: sonnet` and `effort: medium` in its frontmatter, and restates the non-negotiables inline (never commit, never read `.env*`, CLO concurrency=1, never `npm install`, file ownership) so a lane agent carries them even if it skims this doc.
+
+- **Model**: also pass `model: "sonnet"` explicitly on the `Agent` call as a belt-and-braces measure. Omitting it on a `general-purpose` launch makes the subagent **inherit the parent's model** — on an Opus session that silently launches Opus agents. Omission is not a neutral default here, it is the wrong default.
+- **Effort**: `effort` is a real frontmatter key — confirmed 2026-08-19 against shipped agent definitions in the official plugin marketplace (e.g. `claude-security/agents/explore.md` uses `model: sonnet` + `effort: xhigh`). The `Agent` **tool** still has no effort parameter, so the definition file is the only way to set it. That is why lanes must be launched by `subagent_type`, not as `general-purpose` with a model override — the latter sets the model and silently inherits effort.
+
+Because the plan docs (`04`, `05`, `06`) carry the detailed, pre-verified context, Sonnet at medium is a reasonable fit: the hard thinking is already written down, and the lanes are execution against a specific plan rather than open-ended design.
+
+**Keep the agent files in sync.** If a rule in this doc changes — a new standing constraint, a change to file ownership, a lane's scope shifting — update the corresponding `.claude/agents/*.md` too. A lane agent reads its own definition first and reads `01` second; a rule that lives only here can be missed under a tight context budget.
+
+**Hand-rolled git worktrees outside the project root do not work.** Confirmed the hard way 2026-08-15: worktrees were created at `C:\D-drive-data\mirra-worktrees\...`, agents were pointed at them, and the agent died immediately — *"writes outside the main project root are blocked by default."* The permission layer sandboxes agents to the main project root. Creating the worktree succeeds; the agent simply cannot write in it. Two options that do work:
+
+1. **Run every lane in the main checkout** (`C:\D-drive-data\mirra-mvp`) with **strictly disjoint file ownership assigned up front**. This is the simpler path, and it has a real bonus: all work lands directly in the user's own `git status` as one reviewable diff, with no copy-back step. Given the user commits everything manually, this matches how they actually work.
+2. Use the `Agent` tool's own `isolation: "worktree"` option, which creates a worktree the harness knows about and permits. Note the agent will then need to create the `node_modules` junction itself as its first step (see below), since a fresh worktree has none.
+
+**When several lanes share the main checkout, assign the shared, stateful things to exactly one owner each** — otherwise concurrent agents clobber each other even with disjoint source files:
+**User decision, 2026-08-19: every shared resource is operated by the orchestrating (parent) session, not by any lane.** A lane that needs one *asks and waits*. This is the safe version, chosen deliberately over letting lanes self-serve.
+
+- **Docker lifecycle** (`build`/`up`/`down`/`restart`, ports 8000/6379) → **parent only**. **No lane runs `docker compose build/up/down/restart`, including Lane 1.** A restart mid-way through Lane 1's live CLO run corrupts that run, and a lane cannot know what the other two are doing. `docker compose exec` against an already-running stack is read-only and permitted.
+- **The CLO plugin rebuild** → **parent only.** No lane rebuilds the plugin.
+- **`npm run build` / `dist/`** → one frontend lane only (Lane 2), and **only the repo's own `website/frontend/dist/`** — see the dist rule below.
+- The Vite dev server (port 3000) → one at a time, arranged through the parent. Beyond the port, concurrent servers corrupt each other's `node_modules/.vite` dep-optimization cache.
+- **`website/backend/scripts/smoke_e2e.py`** → Lane 1 owns the *file*; other lanes may *run* it but never edit it.
+- `npx tsc --noEmit` and `npx eslint` write nothing, so they are safe from any lane at any time.
+
+### The dist rule: this repo's `dist/` and no other
+
+`npm run build` and every `dist/` check mean **`C:\D-drive-data\mirra-mvp\website\frontend\dist\`** — the build output of *this* repo, and nothing else. Never build, read, or grep a `dist/` belonging to another checkout, another clone, the standalone landing redesign, or any path outside this repo. When a plan says "grep the built `dist/` output", it means this one. If the path you are about to touch is not under the project root, stop.
+
+### Verification runs once, at the end — not after every edit
+
+**User instruction, 2026-08-19.** `npx tsc --noEmit`, `npx eslint src --max-warnings=0`, `npm run build`, `py_compile`, and the smoke test are **end-of-work checks**, run once after all the changes for that lane are complete. Do not run them after each small edit.
+
+Why it matters here beyond wasted time: three lanes share one checkout and one `node_modules`. A lane that rebuilds after every edit multiplies contention on `dist/` and the Vite cache, and floods its own context with output it will only act on at the end anyway. Make the whole change, then verify it.
+
+The exception is a genuine debugging loop — if a check fails and you are iterating on that specific failure, re-run it as needed until it passes. That is diagnosis, not routine checking.
+
+**Unowned this window — nobody touches these:** `src/features/marketing/**`, `src/pages/{Home,Pricing,FAQ}.tsx`, `index.html`, `public/**`. The landing redesign merged 2026-08-19 and has open follow-ups (unwired favicon/OG tags, ~10 MB of dead assets, placeholder client logos) that are deliberately **not** assigned to a lane.
+
 ### Worktree setup on Windows — junction `node_modules`, and the things a worktree silently lacks
+
+**Only relevant if using harness-managed worktrees (`isolation: "worktree"`) — see the note above about hand-rolled ones being unwritable.**
 
 A git worktree checks out **tracked files from a commit only**. Everything untracked is missing, and on this repo the untracked things are load-bearing. Set every worktree up like this, and **tell every subagent working in one to use it** — this is not optional, it's how we avoid burning ~330 MB per agent.
 

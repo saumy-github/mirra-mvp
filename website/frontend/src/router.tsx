@@ -2,11 +2,12 @@ import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { PageFallback } from "@/components/layout/PageFallback";
 
-// Marketing (ported from Mirra-landing-page, already matches the stack)
+// Marketing — the standalone landing overhaul, which is the source of truth
+// for this surface. The previous landing site was phased out wholesale.
 const MarketingLayout = lazy(() => import("@/features/marketing/marketing-layout"));
 const Home = lazy(() => import("@/pages/Home"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
-const Team = lazy(() => import("@/pages/Team"));
+const FAQ = lazy(() => import("@/pages/FAQ"));
 
 // Auth
 const SignUp = lazy(() => import("@/pages/auth/SignUp"));
@@ -42,7 +43,7 @@ export function AppRoutes() {
         <Route element={<MarketingLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/meet-the-team" element={<Team />} />
+          <Route path="/faq" element={<FAQ />} />
         </Route>
 
         <Route path="/auth/sign-up" element={<SignUp />} />

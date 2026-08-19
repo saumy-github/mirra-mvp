@@ -1,171 +1,192 @@
-import React, { useState } from "react";
-import { motion } from "motion/react";
-import { Check } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import TextReveal, { KineticText } from "../features/marketing/components/TextReveal";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { useState } from "react";
+import { LiquidCTA } from "@/features/marketing/components/LiquidCTA";
+import styles from "./pricing.module.css";
 
-export default function Pricing() {
-  const navigate = useNavigate();
-  const [isAnnual, setIsAnnual] = useState(true);
+type BillingCycle = "monthly" | "annually";
+
+type PricingTier = {
+  name: string;
+  monthlyPrice: string;
+  annualPrice: string;
+  idealFor: string;
+  features: readonly string[];
+  cta: string;
+  featured?: boolean;
+};
+
+const PRICING_TIERS: readonly PricingTier[] = [
+  {
+    name: "Startup",
+    monthlyPrice: "$80",
+    annualPrice: "$72",
+    idealFor: "Early-stage brands & startups.",
+    features: [
+      "Up to 50 Products",
+      "Basic analytics dashboard",
+      "Self-serve onboarding",
+      "Standard email support",
+    ],
+    cta: "Get Started",
+  },
+  {
+    name: "Custom",
+    monthlyPrice: "Custom",
+    annualPrice: "Custom",
+    idealFor: "Enterprise retailers & global fashion brands.",
+    features: [
+      "Custom Product Catalog",
+      "White-glove onboarding",
+      "Custom analytics API",
+      "Custom SLA & 24/7 support",
+      "Dedicated Account Manager",
+    ],
+    cta: "Contact Sales",
+    featured: true,
+  },
+  {
+    name: "Business",
+    monthlyPrice: "$160",
+    annualPrice: "$144",
+    idealFor: "Growing D2C & e-commerce brands.",
+    features: [
+      "Up to 240 Products",
+      "Advanced conversion tracking",
+      "Priority email support",
+      "Dedicated Slack channel",
+      "Early access to new features",
+    ],
+    cta: "Get Started",
+  },
+] as const;
+
+function LiquidLink({
+  children,
+  href,
+  compact = false,
+  onClick,
+}: {
+  children: string;
+  href: string;
+  compact?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <LiquidCTA
+      className={`${styles.liquidButton}${compact ? ` ${styles.compactButton}` : ""}`}
+      compact={compact}
+      href={href}
+      onClick={onClick}
+    >
+      {children}
+    </LiquidCTA>
+  );
+}
+
+export default function PricingClient() {
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("annually");
+  const annual = billingCycle === "annually";
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="w-full pt-32 pb-24"
-    >
-      <div className="mx-auto flex max-w-300 flex-col items-center px-5 sm:px-8">
-        <div className="mb-12 text-center">
-          <TextReveal
-            as="h1"
-            variant="wipe-right"
-            className="mb-4 text-4xl font-semibold tracking-tight text-ink md:text-5xl lg:text-6xl"
-          >
-            Simple, transparent pricing.
-          </TextReveal>
-          <TextReveal as="p" variant="lift" delay={0.16} className="text-lg text-muted">
-            Choose the rollout path that fits your store.
-          </TextReveal>
-          <p className="mt-2 text-sm text-muted opacity-70">
-            Final pricing is being locked in with our early access partners.
-          </p>
-        </div>
+    <MotionConfig reducedMotion="user">
+    <div className="site">
+      <main className={styles.page}>
+        <section className={styles.pricingSection} id="top" aria-labelledby="pricing-title">
+          <div className={styles.intro}>
+            <p className={styles.eyebrow}>Pricing</p>
+            <h1 id="pricing-title">
+              <span className={styles.srOnly}>Simple, transparent pricing.</span>
+              <span className={styles.visualLine} aria-hidden="true">Simple, transparent</span>
+              <span className={styles.visualLine} aria-hidden="true">pricing.</span>
+            </h1>
+            <p className={styles.subheading}>Choose the rollout path that fits your store.</p>
+            <p className={styles.note}>Final pricing is being locked in with our early access partners.</p>
 
-        {/* Toggle */}
-        <div className="mb-16 flex items-center gap-4">
-          <span className={`text-sm font-semibold ${!isAnnual ? "text-ink" : "text-muted"}`}>
-            Monthly
-          </span>
-          <button
-            onClick={() => setIsAnnual(!isAnnual)}
-            className="flex h-7 w-14 cursor-pointer items-center rounded-full bg-ink px-1 transition-colors"
-          >
-            <motion.div
-              className="h-5 w-5 rounded-full bg-silver-light shadow-sm"
-              animate={{ x: isAnnual ? 28 : 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            />
-          </button>
-          <span className={`text-sm font-semibold ${isAnnual ? "text-ink" : "text-muted"}`}>
-            Annually
-          </span>
-        </div>
-
-        {/* Pricing Cards */}
-        <div className="mb-24 grid w-full grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-          {/* Early Access */}
-          <div className="flex flex-col rounded-4xl border border-silver bg-bg p-8 shadow-sm sm:p-10">
-            <TextReveal as="h3" variant="chars" className="mb-6 text-2xl font-bold text-ink">
-              Early Access
-            </TextReveal>
-            <div className="mb-2">
-              <span className="font-mono text-5xl font-bold tracking-tighter">Custom</span>
+            <div className={styles.billingToggle} role="group" aria-label="Billing cycle">
+              <button
+                type="button"
+                className={!annual ? styles.activeToggle : ""}
+                onClick={() => setBillingCycle("monthly")}
+                aria-pressed={!annual}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                className={styles.cycleSwitch}
+                onClick={() => setBillingCycle((current) => current === "monthly" ? "annually" : "monthly")}
+                aria-label={annual ? "Switch to monthly billing" : "Switch to annual billing"}
+              >
+                <motion.span
+                  animate={{ x: annual ? 18 : 0 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                className={annual ? styles.activeToggle : ""}
+                onClick={() => setBillingCycle("annually")}
+                aria-pressed={annual}
+              >
+                Annually
+              </button>
             </div>
-            <div className="mb-8 min-h-10 text-sm text-muted">
-              Pilot program for select Shopify Plus merchants.
-            </div>
-
-            <div className="mb-10 flex flex-1 flex-col gap-4">
-              {[
-                "White-glove onboarding",
-                "Up to 50 SKUs digitized",
-                "Basic analytics dashboard",
-              ].map((feature, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface">
-                    <Check size={12} className="text-ink" />
-                  </div>
-                  <span className="text-sm font-medium text-muted">{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => navigate("/auth/sign-up")}
-              className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
-            >
-              <KineticText>Apply for Early Access</KineticText>
-            </button>
           </div>
 
-          {/* Growth */}
-          <div className="relative flex transform flex-col rounded-4xl border border-ink bg-ink p-8 text-bg shadow-xl sm:p-10 md:-translate-y-4">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-black px-4 py-1 text-xs font-bold tracking-widest text-white uppercase shadow-sm">
-              Most Popular
-            </div>
-            <TextReveal as="h3" variant="chars" className="mb-6 text-2xl font-bold">
-              Growth
-            </TextReveal>
-            <div className="mb-2 flex items-end gap-1">
-              <span className="font-mono text-5xl font-bold tracking-tighter">TBA</span>
-              <span className="mb-1 text-bg/60">/mo</span>
-            </div>
-            <div className="mb-8 min-h-10 text-sm text-bg/60">
-              {isAnnual ? "Billed annually" : "Billed monthly"} — finalized with early partners
-            </div>
+          <div className={styles.tierGrid}>
+            {PRICING_TIERS.map((tier, index) => {
+              const price = annual ? tier.annualPrice : tier.monthlyPrice;
+              const custom = price === "Custom";
 
-            <div className="mb-10 flex flex-1 flex-col gap-4">
-              {[
-                "Unlimited usage",
-                "Up to 200 SKUs digitized",
-                "Advanced conversion tracking",
-                "Dedicated Slack channel",
-              ].map((feature, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-silver/20">
-                    <Check size={12} className="text-silver-light" />
+              return (
+                <article
+                  className={`${styles.tierCard}${tier.featured ? ` ${styles.featuredCard}` : ""}`}
+                  key={tier.name}
+                >
+                  <div className={styles.cardTopline}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    {tier.featured && <span className={styles.partnerBadge}>For larger teams</span>}
                   </div>
-                  <span className="text-sm font-medium text-bg/80">{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => navigate("/auth/sign-up")}
-              className="w-full rounded-full bg-silver-light py-4 font-bold text-ink transition-colors hover:bg-silver"
-            >
-              <KineticText>Talk to Sales</KineticText>
-            </button>
+                  <h2>{tier.name}</h2>
+                  <div className={`${styles.price}${custom ? ` ${styles.customPrice}` : ""}`} aria-live="polite">
+                    <AnimatePresence mode="wait" initial={false}>
+                      <motion.div
+                        key={`${tier.name}-${billingCycle}`}
+                        initial={{ opacity: 0, y: 12, filter: "blur(5px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, y: -12, filter: "blur(5px)" }}
+                        transition={{ duration: 0.24 }}
+                      >
+                        <strong>{price}</strong>
+                        {!custom && <span>/mo</span>}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                  <p className={styles.billingDetail}>
+                    {custom ? "Built around your rollout." : annual ? "Billed annually." : "Billed monthly."}
+                  </p>
+                  <p className={styles.idealFor}><span>Ideal For:</span> {tier.idealFor}</p>
+                  <ul className={styles.featureList}>
+                    {tier.features.map((feature) => (
+                      <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>
+                    ))}
+                  </ul>
+                  <LiquidLink href="/#book-a-demo">{tier.cta}</LiquidLink>
+                </article>
+              );
+            })}
           </div>
 
-          {/* Enterprise */}
-          <div className="flex flex-col rounded-4xl border border-silver bg-bg p-8 shadow-sm sm:p-10">
-            <TextReveal as="h3" variant="chars" className="mb-6 text-2xl font-bold text-ink">
-              Enterprise
-            </TextReveal>
-            <div className="mb-2">
-              <span className="font-mono text-5xl font-bold tracking-tighter">Custom</span>
-            </div>
-            <div className="mb-8 min-h-10 text-sm text-muted">
-              For large catalogs and custom integrations.
-            </div>
-
-            <div className="mb-10 flex flex-1 flex-col gap-4">
-              {[
-                "Full catalog digitization",
-                "Custom analytics API",
-                "Custom SLA & 24/7 support",
-                "On-site deployment options",
-              ].map((feature, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface">
-                    <Check size={12} className="text-ink" />
-                  </div>
-                  <span className="text-sm font-medium text-muted">{feature}</span>
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={() => navigate("/auth/sign-up")}
-              className="w-full rounded-full border-2 border-silver py-4 font-bold text-ink transition-colors hover:border-wine"
-            >
-              <KineticText>Contact Team</KineticText>
-            </button>
+          <div className={styles.faqPrompt}>
+            <p>You may have some questions.</p>
+            <LiquidCTA className={styles.faqButton} href="/faq" tone="white" compact>
+              Read our FAQ
+            </LiquidCTA>
           </div>
-        </div>
-      </div>
-    </motion.div>
+        </section>
+      </main>
+    </div>
+    </MotionConfig>
   );
 }
