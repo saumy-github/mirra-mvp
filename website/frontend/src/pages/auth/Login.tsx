@@ -66,6 +66,20 @@ export default function Login() {
     }
   }
 
+  async function onQuickAccess() {
+    setError(null);
+    try {
+      await continueAsGuest.mutateAsync();
+      track("login_completed", {
+        authenticated: true,
+        properties: { method: "quick_access" },
+      });
+      navigate(params.get("next") ? postAuthDestination(params.get("next")) : "/studio");
+    } catch {
+      setError("Quick access login didn't complete. Please retry.");
+    }
+  }
+
   return (
     <AuthShell>
       <AuthHeading
@@ -74,15 +88,24 @@ export default function Login() {
         subtitle="Log in to use your saved avatar and Signature Looks"
       />
 
-      <div>
+      <div className="auth-provider-stack">
+        <Button
+          type="button"
+          onClick={onQuickAccess}
+          loading={continueAsGuest.isPending}
+          className="auth-primary-action w-full bg-ink text-sm font-semibold text-white shadow-md hover:bg-black"
+          size="lg"
+        >
+          ⚡ Quick Access (Auto Log In)
+        </Button>
         <GoogleButton onClick={onGoogle} loading={google.isPending} />
       </div>
 
-      <div className="my-5">
+      <div className="auth-divider my-5">
         <OrDivider label="or continue with email" />
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+      <form onSubmit={onSubmit} className="auth-form" noValidate>
         <Field
           label="Email"
           name="email"
@@ -101,17 +124,22 @@ export default function Login() {
         />
 
         {error && (
-          <p role="alert" className="text-sm text-error">
+          <p role="alert" className="auth-error text-sm text-error">
             {error}
           </p>
         )}
 
-        <Button type="submit" className="w-full" size="lg" loading={login.isPending}>
+        <Button
+          type="submit"
+          className="auth-primary-action w-full"
+          size="lg"
+          loading={login.isPending}
+        >
           Log in <span aria-hidden>→</span>
         </Button>
       </form>
 
-      <div className="mt-5 flex items-center justify-between text-sm">
+      <div className="auth-link-row mt-5 flex items-center justify-between text-sm">
         <Link to="/auth/forgot-password" className="text-muted hover:text-ink">
           Forgot password?
         </Link>
@@ -127,7 +155,7 @@ export default function Login() {
         type="button"
         onClick={onGuest}
         disabled={continueAsGuest.isPending}
-        className="mt-6 w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
+        className="auth-secondary-action mt-6 w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
       >
         {continueAsGuest.isPending
           ? "Setting up a guest avatar…"

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { StudioThumbnail } from "./studio-thumbnail";
 import { formatPrice } from "@/lib/format";
 import type { StudioCartItem } from "@/stores/studio-store";
 import { Button } from "@/components/ui/button";
@@ -28,25 +29,10 @@ export interface CartDrawerProps {
   items: StudioCartItem[];
   onSetQuantity: (variantPublicId: string, quantity: number) => void;
   onRemove: (variantPublicId: string) => void;
-  onCheckout: () => void;
-  checkoutBusy: boolean;
-  checkoutError: string | null;
 }
 
-/**
- * Local multi-item bag. The merchant handoff happens only when checkout is
- * explicitly committed by the shopper.
- */
-export function CartDrawer({
-  open,
-  onClose,
-  items,
-  onSetQuantity,
-  onRemove,
-  onCheckout,
-  checkoutBusy,
-  checkoutError,
-}: CartDrawerProps) {
+/** Local multi-item preview bag. Checkout is intentionally unavailable. */
+export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: CartDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -54,6 +40,7 @@ export function CartDrawer({
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
   const subtotal = items.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
+  const hasCompletePricing = items.length > 0 && items.every((item) => item.unitPrice > 0);
 
   useEffect(() => {
     if (!open) return;
@@ -221,10 +208,10 @@ export function CartDrawer({
                   </svg>
                 </span>
                 <h3 className="mt-5 text-lg font-semibold tracking-[-0.02em]">
-                  Your cart is ready
+                  Your styling cart is empty
                 </h3>
                 <p className="mt-2 max-w-67.5 text-sm leading-relaxed text-muted">
-                  Add pieces as you style. They will stay here until you are ready to check out.
+                  Add pieces as you style. They will stay here while you keep building the look.
                 </p>
               </div>
             ) : (
@@ -242,7 +229,12 @@ export function CartDrawer({
                         transition={transition}
                       >
                         <div className="h-27 overflow-hidden rounded-field border border-line/80 bg-surface">
-                          <img src={item.thumbnailUrl} alt="" className="size-full object-cover" />
+                          <StudioThumbnail
+                            src={item.thumbnailUrl}
+                            label={item.productName}
+                            fit="cover"
+                            className="size-full"
+                          />
                         </div>
 
                         <div className="flex min-w-0 flex-col">
@@ -256,7 +248,9 @@ export function CartDrawer({
                               </p>
                             </div>
                             <p className="shrink-0 text-[13px] font-semibold tracking-[-0.01em]">
-                              {formatPrice(item.unitPrice * item.quantity, item.currency)}
+                              {item.unitPrice > 0
+                                ? formatPrice(item.unitPrice * item.quantity, item.currency)
+                                : "Price unavailable"}
                             </p>
                           </div>
 
@@ -332,36 +326,27 @@ export function CartDrawer({
                 <div>
                   <p className="text-[13px] font-semibold">Subtotal</p>
                   <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
-                    Shipping and taxes calculated at checkout
+                    {hasCompletePricing
+                      ? "Shipping and taxes would be calculated at checkout"
+                      : "Pricing will appear when commerce data is connected"}
                   </p>
                 </div>
                 <p className="text-xl font-semibold tracking-tight tabular-nums">
-                  {formatPrice(subtotal, items[0]?.currency ?? "INR")}
+                  {hasCompletePricing ? formatPrice(subtotal, items[0]?.currency ?? "INR") : "—"}
                 </p>
               </div>
-
-              {checkoutError && (
-                <p
-                  role="alert"
-                  className="mt-3 rounded-lg border border-error/20 bg-error/7 px-3 py-2.5 text-xs leading-relaxed text-error"
-                >
-                  {checkoutError}
-                </p>
-              )}
 
               <Button
                 type="button"
                 variant="studio-dark"
                 size="lg"
-                onClick={onCheckout}
-                loading={checkoutBusy}
-                disabled={items.length === 0}
+                disabled
                 className="mt-4 w-full rounded-field"
               >
-                {checkoutBusy ? "Preparing checkout…" : "Checkout"}
+                Checkout coming soon
               </Button>
-              <p className="mt-2.5 text-center text-[10px] leading-relaxed text-muted">
-                Your cart is saved for this session.
+              <p className="mt-2.5 text-center text-xs leading-relaxed text-muted">
+                Preview only. Your cart stays intact in this tab while you keep styling.
               </p>
             </footer>
           </motion.div>

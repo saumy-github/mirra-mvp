@@ -8,6 +8,8 @@ const MarketingLayout = lazy(() => import("@/features/marketing/marketing-layout
 const Home = lazy(() => import("@/pages/Home"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const FAQ = lazy(() => import("@/pages/FAQ"));
+const Join = lazy(() => import("@/pages/Join"));
+const PublicInfo = lazy(() => import("@/pages/PublicInfo"));
 
 // Auth
 const SignUp = lazy(() => import("@/pages/auth/SignUp"));
@@ -19,6 +21,7 @@ const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
 // Onboarding
 const OnboardingMeasurements = lazy(() => import("@/pages/onboarding/Measurements"));
 const OnboardingAvatar = lazy(() => import("@/pages/onboarding/Avatar"));
+const QrPairing = lazy(() => import("@/pages/onboarding/QrPairing"));
 
 // Standalone manual measurement intake (no avatar/photo required)
 const Measurements = lazy(() => import("@/pages/Measurements"));
@@ -48,6 +51,10 @@ export function AppRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/join" element={<Join />} />
+          <Route path="/terms" element={<PublicInfo />} />
+          <Route path="/privacy" element={<PublicInfo />} />
+          <Route path="/security" element={<PublicInfo />} />
         </Route>
 
         <Route path="/auth/sign-up" element={<SignUp />} />
@@ -58,6 +65,7 @@ export function AppRoutes() {
 
         <Route path="/measurements" element={<Measurements />} />
         <Route path="/onboarding/measurements" element={<OnboardingMeasurements />} />
+        <Route path="/onboarding/qr" element={<QrPairing />} />
         <Route path="/onboarding/avatar" element={<OnboardingAvatar />} />
 
         <Route path="/studio" element={<Studio />} />

@@ -32,7 +32,7 @@ export default function VerifyEmail() {
         subtitle="We've sent a six-digit code to your inbox"
       />
 
-      <form onSubmit={onSubmit} className="space-y-3" noValidate>
+      <form onSubmit={onSubmit} className="auth-form" noValidate>
         <Field
           label="Verification code"
           name="code"
@@ -43,11 +43,16 @@ export default function VerifyEmail() {
           required
         />
         {error && (
-          <p role="alert" className="text-sm text-error">
+          <p role="alert" className="auth-error text-sm text-error">
             {error}
           </p>
         )}
-        <Button type="submit" className="w-full" size="lg" loading={verifyEmail.isPending}>
+        <Button
+          type="submit"
+          className="auth-primary-action w-full"
+          size="lg"
+          loading={verifyEmail.isPending}
+        >
           Verify <span aria-hidden>→</span>
         </Button>
       </form>
@@ -55,7 +60,7 @@ export default function VerifyEmail() {
       <button
         type="button"
         onClick={() => navigate(postAuthDestination(params.get("next")))}
-        className="mt-6 w-full text-center text-sm text-muted hover:text-ink"
+        className="auth-secondary-action mt-6 w-full text-center text-sm text-muted hover:text-ink"
       >
         Verify later
       </button>

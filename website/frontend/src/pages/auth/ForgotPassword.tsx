@@ -26,14 +26,17 @@ export default function ForgotPassword() {
       />
 
       {sent ? (
-        <div role="status" className="rounded-field border border-line bg-surface p-5 text-center">
+        <div
+          role="status"
+          className="auth-status-card rounded-field border border-line bg-surface p-5 text-center"
+        >
           <p className="text-sm text-ink-soft">
             If an account exists for that address, a reset link is on its way. It expires in 30
             minutes.
           </p>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="space-y-3" noValidate>
+        <form onSubmit={onSubmit} className="auth-form" noValidate>
           <Field
             label="Email"
             name="email"
@@ -42,13 +45,18 @@ export default function ForgotPassword() {
             autoComplete="email"
             required
           />
-          <Button type="submit" className="w-full" size="lg" loading={requestReset.isPending}>
+          <Button
+            type="submit"
+            className="auth-primary-action w-full"
+            size="lg"
+            loading={requestReset.isPending}
+          >
             Send reset link <span aria-hidden>→</span>
           </Button>
         </form>
       )}
 
-      <p className="mt-6 text-center text-sm text-muted">
+      <p className="auth-secondary-copy mt-6 text-center text-sm text-muted">
         Remembered it?{" "}
         <Link to="/auth/login" className="font-semibold text-blue hover:text-blue-dark">
           Log in

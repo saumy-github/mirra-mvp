@@ -27,7 +27,7 @@ const PRICING_TIERS: readonly PricingTier[] = [
       "Self-serve onboarding",
       "Standard email support",
     ],
-    cta: "Get Started",
+    cta: "Join",
   },
   {
     name: "Custom",
@@ -41,7 +41,7 @@ const PRICING_TIERS: readonly PricingTier[] = [
       "Custom SLA & 24/7 support",
       "Dedicated Account Manager",
     ],
-    cta: "Contact Sales",
+    cta: "Join",
     featured: true,
   },
   {
@@ -56,7 +56,7 @@ const PRICING_TIERS: readonly PricingTier[] = [
       "Dedicated Slack channel",
       "Early access to new features",
     ],
-    cta: "Get Started",
+    cta: "Join",
   },
 ] as const;
 
@@ -82,7 +82,6 @@ function LiquidLink({
     </LiquidCTA>
   );
 }
-
 export default function PricingClient() {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("annually");
   const annual = billingCycle === "annually";
@@ -172,7 +171,7 @@ export default function PricingClient() {
                       <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>
                     ))}
                   </ul>
-                  <LiquidLink href="/#book-a-demo">{tier.cta}</LiquidLink>
+                  <LiquidLink href="/join">{tier.cta}</LiquidLink>
                 </article>
               );
             })}

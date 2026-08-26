@@ -2,8 +2,11 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
+import { Check, ChevronRight, LockKeyhole } from "lucide-react";
 import { AvatarFigure } from "@/features/studio/components/avatar-figure";
 import { Button } from "@/components/ui/button";
+import { FabricPanel } from "@/components/ui/fabric-panel";
+import { MirraLogo, MirraMark } from "@/components/ui/logo";
 import { Skeleton } from "@/components/ui/misc";
 import { MeasurementRow } from "@/features/onboarding/components/measurement-row";
 import { useAvatarProfile, useAccount } from "@/hooks/use-shopper";
@@ -27,6 +30,7 @@ export default function OnboardingMeasurements() {
 
   const [draft, setDraft] = useState<Partial<Record<MeasurementKey, number>>>({});
   const [units, setUnits] = useState<UnitSystem>("metric");
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accountLoading && !account) {
@@ -50,13 +54,20 @@ export default function OnboardingMeasurements() {
         resetEstimates: opts.reset,
         unitsPreference: units,
       }),
+    onMutate: () => setStatusMessage(null),
     onSuccess: (profile, opts) => {
       qc.setQueryData(["account", "avatar-profile"], profile);
       setDraft({});
       if (Object.keys(draft).length > 0 && !opts.reset) {
         track("measurements_updated", { authenticated: true });
       }
-      if (opts.continueAfter) navigate("/studio");
+      if (opts.continueAfter) {
+        navigate("/studio");
+      } else {
+        setStatusMessage(
+          opts.reset ? "Estimated measurements restored." : "Your measurements are saved.",
+        );
+      }
     },
   });
 
@@ -71,115 +82,135 @@ export default function OnboardingMeasurements() {
       }));
   }, [avatar, draft]);
 
+  const hasChanges =
+    Object.keys(draft).length > 0 || (avatar ? units !== avatar.unitsPreference : false);
+  const hasAvatarPreview = Boolean(avatar?.previewAssetUrl);
+
   if (isLoading || accountLoading) {
     return (
-      <main className="grid min-h-dvh place-items-center">
-        <Skeleton className="h-64 w-80" />
+      <main className="grid min-h-dvh place-items-center bg-canvas px-5">
+        <div className="w-full max-w-sm rounded-[26px] border border-white/85 bg-paper/80 p-8 text-center shadow-[0_22px_64px_-38px_rgba(0,0,0,0.32)] backdrop-blur-2xl">
+          <MirraMark size={34} className="mx-auto text-ink" />
+          <p className="mt-4 text-sm font-medium text-ink-soft">Preparing your fit profile</p>
+          <Skeleton className="mt-6 h-1.5 w-full rounded-full" />
+        </div>
       </main>
     );
   }
 
   if (!avatar) {
     return (
-      <main className="flex min-h-dvh flex-col items-center justify-center px-6 text-center">
-        <p className="mono-tag">[ NO AVATAR YET ]</p>
-        <p className="mt-4 max-w-sm text-sm text-muted">
-          There&apos;s no avatar on this account yet — a quick photo session creates one.
-        </p>
-        <Button className="mt-8" onClick={() => navigate("/onboarding/avatar")}>
-          Create your avatar
-        </Button>
+      <main className="grid min-h-dvh place-items-center bg-canvas px-5 py-12">
+        <section className="w-full max-w-md rounded-[26px] border border-line bg-paper p-7 text-center shadow-[0_22px_64px_-38px_rgba(0,0,0,0.32)] sm:p-10">
+          <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-mist text-ink">
+            <MirraMark size={28} />
+          </div>
+          <h1 className="mt-6 text-[2rem] leading-tight font-medium tracking-[-0.035em] text-ink">
+            Create your avatar first
+          </h1>
+          <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted">
+            Your avatar gives these measurements a visual fit preview. It only takes a moment to
+            create one.
+          </p>
+          <Button
+            className="mt-7 w-full sm:w-auto sm:min-w-52"
+            onClick={() => navigate("/onboarding/avatar")}
+          >
+            Create your avatar
+            <ChevronRight aria-hidden size={17} />
+          </Button>
+        </section>
       </main>
     );
   }
 
   return (
-    <main className="min-h-dvh bg-canvas lg:grid lg:h-dvh lg:grid-cols-[minmax(0,1.12fr)_minmax(460px,0.88fr)] lg:overflow-hidden">
-      {/* Avatar preview */}
-      <div className="p-2 lg:p-3 lg:pr-0">
-        <motion.section
-          className="relative flex h-full min-h-[48svh] items-center justify-center overflow-hidden rounded-[28px] border border-white/80 bg-surface shadow-[0_24px_70px_-44px_rgba(0,0,0,0.28)]"
-          initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -18, scale: 0.99 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={
-            reduceMotion
-              ? { duration: 0.16 }
-              : { type: "spring", stiffness: 260, damping: 31, mass: 0.95 }
-          }
-        >
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 55%, rgba(226,210,207,0.68), transparent 36%), radial-gradient(circle at 20% 12%, rgba(255,255,255,0.95), transparent 32%), linear-gradient(145deg, #fbfbfc 0%, #f2f2f5 100%)",
-            }}
-          />
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-60"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, rgba(29,29,31,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(29,29,31,0.035) 1px, transparent 1px)",
-              backgroundSize: "64px 64px",
-              maskImage: "radial-gradient(circle at center, black, transparent 74%)",
-            }}
-          />
+    <main className="safe-screen min-h-dvh bg-canvas lg:grid lg:h-dvh lg:grid-cols-[minmax(0,1.04fr)_minmax(500px,0.96fr)] lg:overflow-hidden">
+      <motion.aside
+        className="hidden h-dvh p-3 lg:block"
+        initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -18, scale: 0.99 }}
+        animate={{ opacity: 1, x: 0, scale: 1 }}
+        transition={
+          reduceMotion
+            ? { duration: 0.16 }
+            : { type: "spring", stiffness: 240, damping: 30, mass: 1 }
+        }
+        aria-label="Avatar preview"
+      >
+        <div className="h-full overflow-hidden rounded-[28px] shadow-[0_28px_80px_-44px_rgba(62,52,43,0.42)]">
+          <FabricPanel className="min-h-0">
+            <div className="relative flex h-full w-full items-center justify-center">
+              <div className="glass absolute top-0 left-0 z-10 flex items-center gap-2.5 rounded-full px-3.5 py-2.5">
+                <span
+                  className="grid size-5 place-items-center rounded-full bg-ink text-white"
+                  aria-hidden
+                >
+                  <Check size={12} strokeWidth={2.4} />
+                </span>
+                <span className="text-xs font-medium text-ink-soft">Profile synchronized</span>
+              </div>
 
-          <div className="glass absolute top-4 left-4 z-10 flex items-center gap-2 rounded-full px-3.5 py-2 sm:top-6 sm:left-6">
-            <span
-              className="flex size-5 items-center justify-center rounded-full bg-ok/12 text-ok"
-              aria-hidden
-            >
-              ✓
-            </span>
-            <span className="text-xs font-semibold text-ink-soft">Profile synchronized</span>
-          </div>
+              <motion.div
+                initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.985 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0.18 }
+                    : {
+                        type: "spring",
+                        stiffness: 240,
+                        damping: 28,
+                        mass: 1,
+                        delay: 0.08,
+                      }
+                }
+              >
+                {hasAvatarPreview ? (
+                  <AvatarFigure
+                    previewAssetUrl={avatar.previewAssetUrl}
+                    layers={[]}
+                    className="h-[68vh] max-h-170 min-h-110"
+                    alt="Your generated avatar, wearing base layers only"
+                  />
+                ) : (
+                  <div
+                    className="flex max-w-72 flex-col items-center text-center"
+                    role="img"
+                    aria-label="Your fit profile is ready; the avatar preview is still being prepared"
+                  >
+                    <div className="glass grid size-36 place-items-center rounded-[36px] text-ink sm:size-40">
+                      <MirraMark size={72} strokeWidth={1.05} />
+                    </div>
+                    <p className="mt-7 text-lg font-medium tracking-[-0.02em] text-ink">
+                      Fit profile ready
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-muted">
+                      Your avatar preview will appear here when generation is complete.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
 
-          <div className="absolute top-4 right-4 z-10 rounded-full bg-ink/6 px-3 py-2 text-[11px] font-medium text-muted sm:top-6 sm:right-6">
-            Step 3 of 3
-          </div>
+              <div className="glass absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-5 rounded-[18px] px-4 py-3.5 text-xs text-muted">
+                <div>
+                  <p className="font-medium text-ink">
+                    {hasAvatarPreview ? `Avatar ${avatar.avatarLabel}` : "Fit profile"}
+                  </p>
+                  <p className="mt-0.5 text-[11px]">
+                    {hasAvatarPreview ? "Fit preview" : "Preview pending"}
+                  </p>
+                </div>
+                <p className="max-w-55 text-right leading-5">
+                  Adjustments change fit only, not your appearance.
+                </p>
+              </div>
+            </div>
+          </FabricPanel>
+        </div>
+      </motion.aside>
 
-          <motion.div
-            className="relative z-1"
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={
-              reduceMotion
-                ? { duration: 0.18 }
-                : {
-                    type: "spring",
-                    stiffness: 240,
-                    damping: 28,
-                    mass: 1,
-                    delay: 0.08,
-                  }
-            }
-          >
-            <AvatarFigure
-              previewAssetUrl={avatar.previewAssetUrl}
-              layers={[]}
-              className="my-12 h-[42svh] min-h-75 lg:h-[68vh] lg:min-h-110"
-              alt="Your generated avatar, wearing base layers only"
-            />
-          </motion.div>
-
-          <div className="glass absolute inset-x-4 bottom-4 z-10 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-[11px] text-muted sm:inset-x-6 sm:bottom-6">
-            <span className="font-medium text-ink-soft">Avatar {avatar.avatarLabel}</span>
-            <span className="hidden sm:inline">
-              Adjustments change fit only—not your appearance.
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-ok" />
-              Ready
-            </span>
-          </div>
-        </motion.section>
-      </div>
-
-      {/* Metrics panel */}
       <motion.section
-        className="rail-scroll flex flex-col px-5 py-8 sm:px-8 lg:overflow-hidden lg:px-10 lg:py-10 xl:px-14"
+        className="rail-scroll relative min-h-dvh overflow-x-clip lg:h-dvh lg:min-h-0 lg:overflow-y-auto"
         initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 18 }}
         animate={{ opacity: 1, x: 0 }}
         transition={
@@ -194,115 +225,172 @@ export default function OnboardingMeasurements() {
               }
         }
       >
-        <div className="mx-auto flex w-full max-w-155 flex-1 flex-col">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-md">
-              <p className="mono-tag tracking-widest!">Configure Studio Metrics</p>
-              <h1 className="mt-2 text-[clamp(2rem,4vw,2.75rem)] leading-[1.04] font-semibold tracking-[-0.045em]">
-                Make the fit yours.
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_50%_-20%,rgba(255,255,255,0.95),transparent_68%)] lg:hidden"
+        />
+
+        <div className="relative mx-auto flex min-h-dvh w-full max-w-180 flex-col px-5 pt-24 pb-6 sm:px-8 lg:min-h-full lg:max-w-none lg:px-12 lg:pt-18 lg:pb-5 xl:px-15">
+          <div className="absolute inset-x-0 top-7 flex items-center justify-center lg:top-6">
+            <MirraLogo height={36} />
+          </div>
+
+          <div className="my-auto w-full max-w-145 self-center">
+            <div className="text-center">
+              <span className="inline-flex min-h-7 items-center rounded-full border border-line bg-paper/80 px-3.5 py-1 text-xs font-medium text-ink-soft shadow-[0_1px_0_rgba(255,255,255,0.9)_inset]">
+                Fit setup · Step 2 of 2
+              </span>
+              <h1 className="mt-4 text-[clamp(2rem,5vw,2.6rem)] leading-[1.08] font-medium tracking-[-0.035em] text-ink lg:mt-3">
+                Make the fit yours
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-muted">
-                These are estimates from your photos. Fine-tune anything that looks off—you can
-                always reset it later.
+              <p className="mx-auto mt-3 max-w-lg text-[15px] leading-6 text-muted lg:mt-2">
+                Review the estimates from your profile and adjust anything that doesn&apos;t feel
+                right. You can change these later.
               </p>
             </div>
 
-            <div
-              className="relative flex rounded-full border border-line bg-paper p-1 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset]"
-              role="group"
-              aria-label="Units"
-            >
-              {(["metric", "imperial"] as const).map((u) => (
-                <button
-                  key={u}
-                  type="button"
-                  onClick={() => setUnits(u)}
-                  aria-pressed={units === u}
-                  className={`relative z-0 min-h-9 rounded-full px-3.5 text-xs font-semibold capitalize ${
-                    units === u ? "text-white" : "text-muted hover:text-ink"
-                  }`}
-                >
-                  {units === u && (
-                    <motion.span
-                      layoutId="measurement-unit"
-                      className="absolute inset-0 -z-10 rounded-full bg-ink"
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 38,
-                        mass: 0.7,
-                      }}
-                    />
-                  )}
-                  {u}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="rail-scroll mt-7 flex-1 rounded-3xl border border-line bg-paper/80 px-5 shadow-[0_16px_44px_-34px_rgba(0,0,0,0.3)] sm:px-6 lg:max-h-[50vh] lg:flex-none lg:overflow-y-auto">
-            <div className="divide-y divide-line">
-              {fields.map((field) => (
-                <MeasurementRow
-                  key={field.key}
-                  field={field}
-                  units={units}
-                  onChange={(value) => setDraft((d) => ({ ...d, [field.key]: value }))}
-                />
-              ))}
-            </div>
-          </div>
-
-          {save.error && (
-            <p role="alert" className="mt-3 rounded-xl bg-error/8 px-4 py-3 text-sm text-error">
-              {save.error instanceof Error
-                ? save.error.message
-                : "Saving didn't complete — please retry."}
-            </p>
-          )}
-
-          <div className="mt-6 space-y-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-            <Button
-              type="button"
-              size="lg"
-              className="w-full justify-between px-5!"
-              onClick={() => save.mutate({ continueAfter: true })}
-              loading={save.isPending}
-            >
-              <span>Initialize studio engine</span>
-              <span
-                className="flex size-7 items-center justify-center rounded-full bg-white/12"
-                aria-hidden
-              >
-                →
+            <div className="mt-7 flex items-center gap-3 rounded-[18px] border border-line bg-paper p-3.5 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] lg:hidden">
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-mist text-ink">
+                <Check aria-hidden size={16} strokeWidth={2.2} />
               </span>
-            </Button>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-ink">Profile synchronized</p>
+                <p className="truncate text-xs text-muted">
+                  {hasAvatarPreview
+                    ? `Avatar ${avatar.avatarLabel} is ready`
+                    : "Measurements ready to review"}
+                </p>
+              </div>
+            </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs font-medium">
-              <button
+            <section
+              className="mt-7 overflow-hidden rounded-[22px] border border-line bg-paper shadow-[0_18px_52px_-38px_rgba(0,0,0,0.34)] lg:mt-5"
+              aria-labelledby="measurement-list-title"
+            >
+              <div className="flex flex-col gap-4 border-b border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div>
+                  <h2 id="measurement-list-title" className="text-sm font-medium text-ink">
+                    Your measurements
+                  </h2>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {fields.length} fit {fields.length === 1 ? "point" : "points"} · Stored
+                    privately
+                  </p>
+                </div>
+
+                <div
+                  className="relative grid w-full grid-cols-2 rounded-xl bg-mist p-1 sm:w-auto"
+                  role="group"
+                  aria-label="Measurement unit system"
+                >
+                  {(["metric", "imperial"] as const).map((unit) => {
+                    const selected = units === unit;
+                    return (
+                      <button
+                        key={unit}
+                        type="button"
+                        onClick={() => setUnits(unit)}
+                        aria-pressed={selected}
+                        className={`relative z-0 min-h-9 rounded-[9px] px-4 text-xs font-medium transition-colors ${
+                          selected ? "text-ink" : "text-muted hover:text-ink"
+                        }`}
+                      >
+                        {selected && (
+                          <motion.span
+                            layoutId="measurement-unit"
+                            className="absolute inset-0 -z-10 rounded-[9px] border border-line bg-paper shadow-sm"
+                            transition={
+                              reduceMotion
+                                ? { duration: 0 }
+                                : { type: "spring", stiffness: 500, damping: 38, mass: 0.7 }
+                            }
+                          />
+                        )}
+                        {unit === "metric" ? "Metric" : "Imperial"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rail-scroll divide-y divide-line px-5 sm:px-6 lg:max-h-[min(34vh,360px)] lg:overflow-y-auto">
+                {fields.map((field) => (
+                  <MeasurementRow
+                    key={field.key}
+                    field={field}
+                    units={units}
+                    onChange={(value) => {
+                      setStatusMessage(null);
+                      setDraft((current) => ({ ...current, [field.key]: value }));
+                    }}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <div className="mt-3 min-h-6" aria-live="polite">
+              {save.error ? (
+                <p
+                  role="alert"
+                  className="rounded-xl border border-error/20 bg-error/8 px-4 py-3 text-sm text-error"
+                >
+                  {save.error instanceof Error
+                    ? save.error.message
+                    : "Saving didn't complete — please retry."}
+                </p>
+              ) : statusMessage ? (
+                <p role="status" className="flex items-center gap-2 px-1 text-sm text-ok">
+                  <Check aria-hidden size={15} strokeWidth={2.2} />
+                  {statusMessage}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="mt-4 space-y-3 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+              <Button
                 type="button"
-                className="min-h-9 text-muted hover:text-ink"
-                onClick={() => navigate("/onboarding/avatar")}
+                size="lg"
+                className="w-full justify-between"
+                onClick={() => save.mutate({ continueAfter: true })}
+                loading={save.isPending}
               >
-                Retake photographs
-              </button>
-              <button
-                type="button"
-                className="min-h-9 text-muted hover:text-ink"
-                onClick={() => save.mutate({ continueAfter: false, reset: true })}
-              >
-                Reset estimated values
-              </button>
-              <button
-                type="button"
-                className="min-h-9 text-blue hover:text-blue-dark disabled:opacity-40"
-                disabled={Object.keys(draft).length === 0 || save.isPending}
-                onClick={() => save.mutate({ continueAfter: false })}
-              >
-                Save for future visits
-              </button>
+                <span>Continue to studio</span>
+                <ChevronRight aria-hidden size={18} strokeWidth={1.9} />
+              </Button>
+
+              <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs font-medium">
+                <button
+                  type="button"
+                  className="min-h-10 rounded-lg px-2 text-muted transition-colors hover:bg-mist hover:text-ink disabled:opacity-40"
+                  onClick={() => navigate("/onboarding/avatar")}
+                  disabled={save.isPending}
+                >
+                  Regenerate avatar
+                </button>
+                <button
+                  type="button"
+                  className="min-h-10 rounded-lg px-2 text-muted transition-colors hover:bg-mist hover:text-ink disabled:opacity-40"
+                  onClick={() => save.mutate({ continueAfter: false, reset: true })}
+                  disabled={save.isPending}
+                >
+                  Reset estimates
+                </button>
+                <button
+                  type="button"
+                  className="min-h-10 rounded-lg px-2 text-blue transition-colors hover:bg-blue/6 hover:text-blue-dark disabled:opacity-40"
+                  disabled={!hasChanges || save.isPending}
+                  onClick={() => save.mutate({ continueAfter: false })}
+                >
+                  Save changes
+                </button>
+              </div>
             </div>
           </div>
+
+          <p className="mt-6 flex shrink-0 items-center justify-center gap-2 text-center text-[11px] text-faint lg:mt-4">
+            <LockKeyhole aria-hidden size={13} strokeWidth={1.7} />
+            Your measurements are private and only used to improve fit
+          </p>
         </div>
       </motion.section>
     </main>

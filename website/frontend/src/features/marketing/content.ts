@@ -62,17 +62,14 @@ export const MIRRA_HEADER = {
   },
   demo: {
     label: "Join",
-    href: "/#book-a-demo",
+    href: "/join",
   },
 } as const;
 
 export const MIRRA_HERO = {
   titleLines: ["Realistic Virtual Try On", "for your Shopify store"],
   accessibleTitle: "Realistic Virtual Try On for your Shopify store",
-  supportLines: [
-    "See exactly how Mirra fits",
-    "into your Shopify store.",
-  ],
+  supportLines: ["See exactly how Mirra fits", "into your Shopify store."],
 } as const;
 
 export const MIRRA_LEARN = {
@@ -86,8 +83,7 @@ export const MIRRA_LEARN = {
     { text: "conversions", emphasis: true },
     { text: "." },
   ],
-  body:
-    "Mirra brings the fitting-room moment into your Shopify store—reducing sizing uncertainty before it becomes bracket ordering, avoidable returns, and lost margin.",
+  body: "Mirra brings the fitting-room moment into your Shopify store—reducing sizing uncertainty before it becomes bracket ordering, avoidable returns, and lost margin.",
 } as const satisfies {
   eyebrow: string;
   title: RichText;
@@ -201,8 +197,8 @@ export const MIRRA_FEATURES: readonly FeatureCardContent[] = [
       },
     ],
     media: {
-      video: "/mwg/video-feature-1.mp4",
-      poster: "/mwg/feature-1.png",
+      video: "/mirra/video/s17-feature-one-button.mp4",
+      poster: "/mirra/posters/s17-feature-one-button.webp",
       alt: "A Mirra Try On button beside product imagery",
     },
   },
@@ -220,8 +216,8 @@ export const MIRRA_FEATURES: readonly FeatureCardContent[] = [
       },
     ],
     media: {
-      video: "/mwg/video-feature-2.mp4",
-      poster: "/mwg/feature-2.png",
+      video: "/mirra/video/s18-feature-existing-catalogue.mp4",
+      poster: "/mirra/posters/s18-feature-existing-catalogue.webp",
       alt: "Existing fashion catalogue becoming ready for virtual try-on",
     },
   },
@@ -236,8 +232,8 @@ export const MIRRA_FEATURES: readonly FeatureCardContent[] = [
       { text: "fit, not an AI illusion.", emphasis: true },
     ],
     media: {
-      video: "/mwg/video-feature-4.mp4",
-      poster: "/mwg/feature-4.png",
+      video: "/mirra/video/s19-feature-realistic-drape.mp4",
+      poster: "/mirra/posters/s19-feature-realistic-drape.webp",
       alt: "A realistic virtual garment try-on in motion",
     },
     featured: true,
@@ -253,8 +249,8 @@ export const MIRRA_FEATURES: readonly FeatureCardContent[] = [
       { text: "without leaving your store.", emphasis: true },
     ],
     media: {
-      video: "/mwg/video-feature-3.mp4",
-      poster: "/mwg/feature-3.png",
+      video: "/mirra/video/s20-feature-in-browser.mp4",
+      poster: "/mirra/posters/s20-feature-in-browser.webp",
       alt: "An in-browser Mirra virtual try-on experience",
     },
   },
@@ -272,8 +268,8 @@ export const MIRRA_FEATURES: readonly FeatureCardContent[] = [
       },
     ],
     media: {
-      video: "/mwg/video-feature-5.mp4",
-      poster: "/mwg/feature-5.png",
+      video: "/mirra/video/s21-feature-brand-owned.mp4",
+      poster: "/mirra/posters/s21-feature-brand-owned.webp",
       alt: "A brand-owned shopping journey powered by Mirra",
     },
   },
@@ -293,8 +289,8 @@ export const MIRRA_FEATURES: readonly FeatureCardContent[] = [
       },
     ],
     media: {
-      video: "/mwg/video-feature-2.mp4",
-      poster: "/mwg/feature-2.png",
+      video: "/mirra/video/s22-feature-seven-day-launch.mp4",
+      poster: "/mirra/posters/s22-feature-seven-day-launch.webp",
       alt: "Mirra going live on a Shopify storefront in seven days",
     },
   },
@@ -306,18 +302,18 @@ export const MIRRA_LATEST_METADATA = {
     primary: "What we’ve shipped,",
     secondary: "for better retail.",
   },
-  brandLabel: "<Brand Name>",
-  tryOnLabel: "Try it On",
+  brandLabel: "Mirra proof",
+  tryOnLabel: "Join",
 } as const;
 
 export const MIRRA_APP_CTA = {
   sectionId: "book-a-demo",
   eyebrow: "BUILT AROUND YOUR STACK",
   action: {
-    label: "START A 90-DAY PILOT",
-    href: "#footer",
+    label: "Join",
+    href: "/join",
   },
-  note: "BUILT FOR SHOPIFY · NO REPLATFORMING",
+  note: "Built for Shopify · No replatforming",
   media: {
     src: "/image.png",
     alt: "Mirra appearing alongside existing Shopify stack",
@@ -327,8 +323,8 @@ export const MIRRA_APP_CTA = {
 export const MIRRA_FOOTER_CTA = {
   headline: "Put fit to work.",
   actions: [
-    { label: "BOOK A DEMO", href: "#book-a-demo" },
-    { label: "SEE MIRRA IN ACTION", href: "#mirra-in-action" },
+    { label: "Join", href: "/join" },
+    { label: "See Mirra in action", href: "#mirra-in-action" },
   ],
 } as const;
 
@@ -337,51 +333,45 @@ export const MIRRA_FOOTER_NEWSLETTER = {
   emailLabel: "Work email",
   emailPlaceholder: "WORK EMAIL",
   submitLabel: "KEEP ME POSTED",
-  body:
-    "Occasional notes on virtual try-on, returns, sizing behaviour and the economics of fashion e-commerce.",
-  social: {
-    label: "LinkedIn",
-    href: "#footer",
-  },
+  body: "Occasional notes on virtual try-on, returns, sizing behaviour and the economics of fashion e-commerce.",
 } as const;
 
 export const MIRRA_FOOTER_COLUMNS = [
   {
-    title: "COMPANY",
+    title: "Company",
     links: [
-      { label: "WHY MIRRA", href: "#why-mirra" },
-      { label: "OUTCOMES", href: "#outcomes" },
-      { label: "CONTACT", href: "#book-a-demo" },
-      { label: "CAREERS", href: "#footer" },
+      { label: "Why Mirra", href: "#why-mirra" },
+      { label: "Outcomes", href: "#outcomes" },
+      { label: "Contact", href: "/join" },
     ],
   },
   {
-    title: "PRODUCT",
+    title: "Product",
     links: [
-      { label: "HOW IT WORKS", href: "#product" },
-      { label: "VIRTUAL TRY-ON", href: "#mirra-in-action" },
-      { label: "SHOPIFY INTEGRATION", href: "#product" },
-      { label: "SECURITY", href: "#data-security" },
+      { label: "How it works", href: "#product" },
+      { label: "Virtual try-on", href: "#mirra-in-action" },
+      { label: "Shopify integration", href: "#product" },
+      { label: "Security", href: "/security" },
       { label: "FAQ", href: "/faq" },
     ],
   },
   {
-    title: "FOR BRANDS",
+    title: "For brands",
     links: [
-      { label: "BOOK A DEMO", href: "#book-a-demo" },
-      { label: "SEE MIRRA IN ACTION", href: "#mirra-in-action" },
-      { label: "IMPLEMENTATION", href: "#product" },
-      { label: "PARTNER WITH US", href: "#book-a-demo" },
+      { label: "Join", href: "/join" },
+      { label: "See Mirra in action", href: "#mirra-in-action" },
+      { label: "Implementation", href: "#product" },
+      { label: "Partner with us", href: "/join" },
     ],
   },
 ] as const satisfies readonly FooterLinkColumn[];
 
 export const MIRRA_FOOTER_LEGAL = {
-  copyright: "© 2026 MIRRA",
+  copyright: "© 2026 Mirra",
   links: [
-    { label: "TERMS", href: "#data-security" },
-    { label: "PRIVACY", href: "#data-security" },
-    { label: "DATA & SECURITY", href: "#data-security" },
+    { label: "Terms", href: "/terms" },
+    { label: "Privacy", href: "/privacy" },
+    { label: "Data & security", href: "/security" },
   ],
   brand: {
     wordmark: "Mirra",

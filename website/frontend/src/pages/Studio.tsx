@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -28,17 +28,18 @@ import { useStudioStore } from "@/stores/studio-store";
  * The Mirra studio. Avatar left, garment panel right, Hanger + Signature
  * Looks below. All data flows through the runtime provider. Adapted from
  * user-side's tenant/Shopify-embedded version — cart handoff to a merchant
- * is replaced with a local cart (no real checkout backend exists yet for
- * this pilot; "Checkout" surfaces an honest toast instead of a dead link).
+ * is replaced with a local preview cart because no real checkout backend
+ * exists yet for this pilot.
  */
 export default function Studio() {
   const navigate = useNavigate();
+  const location = useLocation();
   const qc = useQueryClient();
   const api = getRuntimeProvider();
 
   const { data: account, isLoading: accountLoading } = useAccount();
   const { data: avatar, isLoading: avatarLoading } = useAvatarProfile(!!account);
-  const { data: looks = [] } = useSignatureLooks(!!account);
+  const { data: looks = [], isLoading: looksLoading } = useSignatureLooks(!!account);
   const { createLook, deleteLook } = useSignatureLookMutations();
 
   const store = useStudioStore();
@@ -49,7 +50,13 @@ export default function Studio() {
   const [lookNotice, setLookNotice] = useState<string | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [cartNotice, setCartNotice] = useState<string | null>(null);
-  const [cartError, setCartError] = useState<string | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [sessionRetrying, setSessionRetrying] = useState(false);
+  const requestedLookId =
+    typeof (location.state as { signatureLookId?: unknown } | null)?.signatureLookId === "string"
+      ? ((location.state as { signatureLookId: string }).signatureLookId ?? null)
+      : null;
+  const requestedLookApplied = useRef<string | null>(null);
 
   // ── Guards ──
   useEffect(() => {
@@ -66,16 +73,35 @@ export default function Studio() {
     }
   }, [avatar, avatarLoading, account, navigate]);
 
+  useEffect(() => {
+    if (account) useStudioStore.getState().scopeToShopper(account.shopperId);
+  }, [account]);
+
   // ── Try-on session + telemetry ──
   const opened = useRef(false);
+  const startTryOnSession = useCallback(async () => {
+    if (!account || !avatar) return;
+
+    setSessionRetrying(true);
+    setSessionError(null);
+    try {
+      const session = await api.createTryOnSession();
+      useStudioStore.getState().setTryOnSessionId(session.tryOnSessionId);
+    } catch {
+      setSessionError(
+        "The fitting preview could not start. You can still browse pieces while you reconnect.",
+      );
+    } finally {
+      setSessionRetrying(false);
+    }
+  }, [account, avatar, api]);
+
   useEffect(() => {
     if (!account || !avatar || opened.current) return;
     opened.current = true;
     track("studio_opened", { authenticated: true });
-    api.createTryOnSession().then((s) => {
-      useStudioStore.getState().setTryOnSessionId(s.tryOnSessionId);
-    });
-  }, [account, avatar, api]);
+    void startTryOnSession();
+  }, [account, avatar, startTryOnSession]);
 
   // ── Active product ──
   const activeProductId = store.activeProductId;
@@ -348,10 +374,50 @@ export default function Studio() {
     [deleteLook],
   );
 
+  // A saved look opened from Profile is applied once, after its data and the
+  // try-on session are ready. Clear the transient route state after consuming it.
+  useEffect(() => {
+    if (
+      !requestedLookId ||
+      requestedLookApplied.current === requestedLookId ||
+      !avatar ||
+      !store.tryOnSessionId ||
+      looksLoading
+    ) {
+      return;
+    }
+
+    requestedLookApplied.current = requestedLookId;
+    const requested = looks.find((look) => look.lookId === requestedLookId);
+    if (!requested) {
+      setLookNotice("That Signature Look is no longer available.");
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+    if (requested.avatarProfileVersion !== avatar.version) {
+      setLookNotice(`"${requested.name}" was created for an older avatar version.`);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+
+    void onApplyLook(requested).finally(() => {
+      navigate(location.pathname, { replace: true, state: null });
+    });
+  }, [
+    avatar,
+    location.pathname,
+    looks,
+    looksLoading,
+    navigate,
+    onApplyLook,
+    requestedLookId,
+    store.tryOnSessionId,
+  ]);
+
   // ── Default Signature Look: applied once, on entering the studio ──
   const defaultLookApplied = useRef(false);
   useEffect(() => {
-    if (defaultLookApplied.current || !avatar || !store.tryOnSessionId) return;
+    if (defaultLookApplied.current || requestedLookId || !avatar || !store.tryOnSessionId) return;
     const s = useStudioStore.getState();
     if (s.appliedLookId || Object.keys(s.layers).length > 0) {
       defaultLookApplied.current = true;
@@ -362,12 +428,11 @@ export default function Studio() {
       defaultLookApplied.current = true;
       void onApplyLook(def);
     }
-  }, [looks, avatar, store.tryOnSessionId, onApplyLook]);
+  }, [looks, avatar, store.tryOnSessionId, onApplyLook, requestedLookId]);
 
   // ── Cart (local only — no checkout backend exists yet for this pilot) ──
   const onAddToCart = useCallback(() => {
     if (!activeProduct || !activeVariant) return;
-    setCartError(null);
     useStudioStore.getState().addCartItem({
       productPublicId: activeProduct.publicProductId,
       variantPublicId: activeVariant.publicVariantId,
@@ -388,25 +453,9 @@ export default function Studio() {
     });
   }, [activeProduct, activeVariant]);
 
-  const onCheckoutCart = useCallback(() => {
-    const cart = useStudioStore.getState().cart;
-    if (cart.length === 0) return;
-    setCartError(null);
-    useStudioStore.getState().clearCart();
-    setCartOpen(false);
-    toast.info("Checkout isn't live in this preview yet — your picks were saved to this session.");
-  }, []);
-
-  const onDirectCheckout = useCallback(() => {
-    if (!activeProduct) return;
-    onAddToCart();
-  }, [activeProduct, onAddToCart]);
-
   // ── Derived ──
   const wornLayers = Object.values(store.layers).filter((l): l is OutfitLayer => !!l);
   const cartCount = store.cart.reduce((sum, line) => sum + line.quantity, 0);
-  const selectedPiecePrice = activeVariant?.price ?? activeProduct?.price ?? 0;
-  const selectedPieceCurrency = activeVariant?.currency ?? activeProduct?.currency ?? "INR";
   const otherLayers = wornLayers.filter((l) => l.category !== activeProduct?.garmentCategory);
 
   if (accountLoading || avatarLoading || !avatar) {
@@ -428,6 +477,29 @@ export default function Studio() {
         cartCount={cartCount}
         onCartOpen={() => setCartOpen(true)}
       />
+
+      {sessionError && (
+        <div
+          role="alert"
+          className="relative z-20 flex flex-col gap-3 bg-[#fff3df] px-4 py-3 text-sm text-[#6e4614] sm:flex-row sm:items-center sm:justify-between sm:px-5"
+        >
+          <span className="flex items-start gap-2.5">
+            <span aria-hidden className="mt-1 size-2 shrink-0 rounded-full bg-[#c77a1a]" />
+            <span>
+              <strong className="font-semibold">Preview temporarily unavailable.</strong>{" "}
+              {sessionError}
+            </span>
+          </span>
+          <button
+            type="button"
+            onClick={() => void startTryOnSession()}
+            disabled={sessionRetrying}
+            className="min-h-10 shrink-0 rounded-full bg-[#6e4614] px-4 text-xs font-semibold text-white transition-opacity disabled:opacity-55"
+          >
+            {sessionRetrying ? "Trying again…" : "Try again"}
+          </button>
+        </div>
+      )}
 
       <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.6fr_1fr]">
         {/* Stage + rail */}
@@ -498,14 +570,9 @@ export default function Studio() {
         currentRenderId={store.tryOn.renderId}
         looks={looks}
         appliedLookId={store.appliedLookId}
-        currency={selectedPieceCurrency}
-        checkoutPrice={selectedPiecePrice}
         onRestore={onRestoreEntry}
         onApplyLook={onApplyLook}
         onRemoveLook={onRemoveLook}
-        onDirectCheckout={onDirectCheckout}
-        checkoutBusy={false}
-        checkoutDisabled={!activeProduct}
       />
 
       <CartDrawer
@@ -516,9 +583,6 @@ export default function Studio() {
           useStudioStore.getState().setCartQuantity(variantPublicId, quantity)
         }
         onRemove={(variantPublicId) => useStudioStore.getState().removeCartItem(variantPublicId)}
-        onCheckout={onCheckoutCart}
-        checkoutBusy={false}
-        checkoutError={cartError}
       />
 
       <SignatureLookDialog

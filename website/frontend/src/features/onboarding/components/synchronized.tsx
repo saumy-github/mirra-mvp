@@ -23,7 +23,7 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
       }
       animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
       transition={reduceMotion ? { duration: 0.18 } : MATERIAL_SPRING}
-      className="flex w-full max-w-md flex-col items-center text-center"
+      className="flex w-full max-w-lg flex-col items-center text-center"
       role="status"
       aria-live="assertive"
     >
@@ -64,15 +64,17 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
         </svg>
       </div>
 
-      <p className="mono-tag mt-7 text-[10px]! tracking-[0.28em]! text-ok">PROFILE SYNCHRONIZED</p>
-      <h1 className="mt-3 text-[2rem] leading-[1.05] font-semibold tracking-[-0.04em] text-ink">
+      <p className="mono-tag mt-8 font-sans! text-[11px]! font-medium! tracking-[0.045em]! text-ok">
+        PROFILE SYNCHRONIZED
+      </p>
+      <h1 className="mt-4 text-[2rem] leading-[1.1] font-semibold tracking-[-0.04em] text-ink">
         Your avatar is ready
       </h1>
-      <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
+      <p className="mt-3.5 max-w-sm text-sm leading-6 text-muted">
         Next, you can review every measurement before entering the fitting room.
       </p>
 
-      <div className="mt-7 flex items-center gap-2 rounded-full border border-line/75 bg-white/55 px-4 py-2 text-[11px] text-ink-soft backdrop-blur-xl">
+      <div className="mt-8 flex items-center gap-2.5 rounded-full border border-line/75 bg-white/55 px-4.5 py-2.5 text-[12px] font-medium text-ink-soft backdrop-blur-xl">
         <motion.span
           className="size-1.5 rounded-full bg-ok"
           animate={reduceMotion ? undefined : { opacity: [0.45, 1, 0.45] }}
@@ -89,7 +91,7 @@ export function SynchronizedState({ onContinue }: { onContinue: () => void }) {
         onClick={onContinue}
         whileTap={reduceMotion ? undefined : { scale: 0.98 }}
         transition={MATERIAL_SPRING}
-        className="mt-7 min-h-11 rounded-full bg-ink px-7 py-2.5 text-sm font-medium text-canvas shadow-sm hover:bg-black"
+        className="mt-8 min-h-11 rounded-full bg-ink px-8 py-2.5 text-sm font-medium text-canvas shadow-sm hover:bg-black"
       >
         Continue now
       </motion.button>

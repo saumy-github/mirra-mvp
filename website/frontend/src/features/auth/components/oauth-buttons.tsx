@@ -9,7 +9,7 @@ export function GoogleButton({ onClick, loading }: { onClick: () => void; loadin
       onClick={onClick}
       disabled={loading}
       aria-label="Continue with Google"
-      className="pressable flex h-12.5 w-full items-center justify-center gap-3 rounded-[14px] border border-line-strong bg-paper/90 px-5 text-sm font-semibold text-ink shadow-[0_1px_0_rgba(255,255,255,0.9)_inset] hover:border-ink/50 hover:bg-paper disabled:opacity-50"
+      className="auth-oauth-button pressable flex h-12.5 w-full items-center justify-center gap-3 rounded-[14px] border border-line-strong bg-paper/90 px-5 text-sm font-semibold text-ink shadow-[0_1px_0_rgba(255,255,255,0.9)_inset] hover:border-ink/50 hover:bg-paper disabled:opacity-50"
     >
       <svg width="19" height="19" viewBox="0 0 24 24" aria-hidden>
         <path

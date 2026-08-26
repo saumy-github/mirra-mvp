@@ -30,6 +30,7 @@ interface TryOnStatus {
 }
 
 export interface StudioState {
+  ownerShopperId: string | null;
   tryOnSessionId: string | null;
   activeProductId: string | null;
   activeColor: string | null;
@@ -41,6 +42,7 @@ export interface StudioState {
   appliedLookName: string | null;
   cart: StudioCartItem[];
 
+  scopeToShopper: (shopperId: string) => void;
   setTryOnSessionId: (id: string) => void;
   selectProduct: (productId: string) => void;
   setColor: (color: string) => void;
@@ -65,6 +67,7 @@ export interface StudioState {
 const initialTryOn: TryOnStatus = { state: "idle", renderId: null, failureReason: null };
 
 export const useStudioStore = create<StudioState>((set) => ({
+  ownerShopperId: null,
   tryOnSessionId: null,
   activeProductId: null,
   activeColor: null,
@@ -76,6 +79,23 @@ export const useStudioStore = create<StudioState>((set) => ({
   appliedLookName: null,
   cart: [],
 
+  scopeToShopper: (shopperId) =>
+    set((state) => {
+      if (state.ownerShopperId === shopperId) return state;
+      return {
+        ownerShopperId: shopperId,
+        tryOnSessionId: null,
+        activeProductId: null,
+        activeColor: null,
+        activeSize: null,
+        layers: {},
+        tryOn: initialTryOn,
+        hanger: [],
+        appliedLookId: null,
+        appliedLookName: null,
+        cart: [],
+      };
+    }),
   setTryOnSessionId: (id) => set({ tryOnSessionId: id }),
   selectProduct: (productId) => set({ activeProductId: productId }),
   setColor: (color) => set({ activeColor: color }),
@@ -169,7 +189,8 @@ export const useStudioStore = create<StudioState>((set) => ({
   clearCart: () => set({ cart: [] }),
 
   reset: () =>
-    set({
+    set((state) => ({
+      ownerShopperId: state.ownerShopperId,
       tryOnSessionId: null,
       activeProductId: null,
       activeColor: null,
@@ -180,5 +201,5 @@ export const useStudioStore = create<StudioState>((set) => ({
       appliedLookId: null,
       appliedLookName: null,
       cart: [],
-    }),
+    })),
 }));

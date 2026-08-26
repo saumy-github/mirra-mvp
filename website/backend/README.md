@@ -54,6 +54,18 @@ Either way:
 - Health: http://localhost:8000/api/v1/health
 - Interactive docs: http://localhost:8000/docs
 
+## Join acknowledgement email
+
+`POST /api/v1/join` always stores a valid early-access application before attempting email.
+To send the applicant acknowledgement, configure `SMTP_HOST`, `SMTP_PORT`,
+`SMTP_FROM_EMAIL`, and any required `SMTP_USERNAME` / `SMTP_PASSWORD` values from
+`.env.example`. Set `SMTP_SECURITY` to `starttls`, `ssl`, or `none`. An optional
+`JOIN_NOTIFICATION_EMAIL` also receives the internal application summary.
+
+The response's `confirmationEmailSent` field is `true` only after the applicant message is
+accepted by the SMTP server, so the frontend never claims an email was sent when delivery is
+unavailable.
+
 The frontend (`website/frontend`) always runs natively either way — see
 its own README. Only the backend has a Docker option today.
 

@@ -1,7 +1,7 @@
 import { useId } from "react";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { MirraMark } from "./logo";
+import { MirraLogo } from "./logo";
 
 /**
  * The quiet "silk" visual used on the left of split-screen compositions
@@ -125,20 +125,19 @@ export function FabricPanel({
   );
 }
 
-/** Default center content for the auth screen: frosted mark + wordmark. */
+/** Default center content for the auth screen: official Mirra lockup. */
 export function FabricBrandBadge() {
   return (
     <div className="flex flex-col items-center text-center">
       <motion.div
-        className="glass flex size-40 items-center justify-center rounded-[36px] text-white"
+        className="glass flex min-h-40 min-w-64 items-center justify-center rounded-[36px] px-8"
         initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 220, damping: 25, mass: 0.95 }}
       >
-        <MirraMark size={74} strokeWidth={1.05} className="drop-shadow-sm" />
+        <MirraLogo variant="light" height={74} className="drop-shadow-sm" />
       </motion.div>
-      <p className="mt-8 text-lg font-medium tracking-[0.58em] text-[#777064] uppercase">MIRRA</p>
-      <p className="mt-2 text-sm font-medium text-[#8a8275]">A fitting room made for you</p>
+      <p className="mt-8 text-sm font-medium text-[#8a8275]">A fitting room made for you</p>
       <div className="glass mt-6 flex items-center gap-2 rounded-full px-3.5 py-2 text-[11px] font-medium text-[#70695f]">
         <span className="size-1.5 rounded-full bg-ok" />
         Private, encrypted avatar creation

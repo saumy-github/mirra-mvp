@@ -13,7 +13,7 @@ import { postAuthDestination } from "@/lib/post-auth";
 export default function SignUp() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { signUp, google } = useAuthMutations();
+  const { signUp, google, continueAsGuest } = useAuthMutations();
   const [error, setError] = useState<string | null>(null);
   const [accepted, setAccepted] = useState(false);
 
@@ -65,6 +65,20 @@ export default function SignUp() {
     }
   }
 
+  async function onQuickAccess() {
+    setError(null);
+    try {
+      await continueAsGuest.mutateAsync();
+      track("login_completed", {
+        authenticated: true,
+        properties: { method: "quick_access" },
+      });
+      navigate(params.get("next") ? postAuthDestination(params.get("next")) : "/studio");
+    } catch {
+      setError("Quick access login didn't complete. Please retry.");
+    }
+  }
+
   return (
     <AuthShell>
       <AuthHeading
@@ -73,15 +87,24 @@ export default function SignUp() {
         subtitle="Save your avatar, measurements, and Signature Looks across stores"
       />
 
-      <div>
+      <div className="auth-provider-stack">
+        <Button
+          type="button"
+          onClick={onQuickAccess}
+          loading={continueAsGuest.isPending}
+          className="auth-primary-action w-full bg-ink text-sm font-semibold text-white shadow-md hover:bg-black"
+          size="lg"
+        >
+          ⚡ Quick Access (Auto Log In)
+        </Button>
         <GoogleButton onClick={onGoogle} loading={google.isPending} />
       </div>
 
-      <div className="my-5">
+      <div className="auth-divider my-5">
         <OrDivider label="or continue with email" />
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
+      <form onSubmit={onSubmit} className="auth-form" noValidate>
         <Field
           label="Name"
           name="displayName"
@@ -108,33 +131,44 @@ export default function SignUp() {
           minLength={8}
         />
 
-        <label className="flex cursor-pointer items-start gap-3 rounded-[14px] px-1 py-1 text-xs leading-relaxed text-muted">
+        <div className="auth-consent flex items-start gap-3 rounded-[14px] px-1 py-1 text-xs leading-relaxed text-muted">
           <input
+            aria-labelledby="signup-consent-copy"
             type="checkbox"
             checked={accepted}
             onChange={(e) => setAccepted(e.target.checked)}
             className="mt-0.5 size-4.5 shrink-0 accent-blue"
           />
-          <span>
-            I accept the <span className="underline decoration-line-strong">Terms of Service</span>{" "}
+          <span id="signup-consent-copy">
+            I accept the{" "}
+            <Link className="underline decoration-line-strong" to="/terms">
+              Terms of Service
+            </Link>{" "}
             and acknowledge the{" "}
-            <span className="underline decoration-line-strong">Privacy Notice</span>. Photographs
-            are used only to build your avatar and are never shown to anyone else.
+            <Link className="underline decoration-line-strong" to="/privacy">
+              Privacy Notice
+            </Link>
+            . Photographs are used only to build your avatar and are never shown to anyone else.
           </span>
-        </label>
+        </div>
 
         {error && (
-          <p role="alert" className="text-sm text-error">
+          <p role="alert" className="auth-error text-sm text-error">
             {error}
           </p>
         )}
 
-        <Button type="submit" className="w-full" size="lg" loading={signUp.isPending}>
+        <Button
+          type="submit"
+          className="auth-primary-action w-full"
+          size="lg"
+          loading={signUp.isPending}
+        >
           Sign up <span aria-hidden>→</span>
         </Button>
       </form>
 
-      <p className="mt-5 text-center text-sm text-muted">
+      <p className="auth-secondary-copy mt-5 text-center text-sm text-muted">
         Already have an account?{" "}
         <Link
           to={`/auth/login${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}

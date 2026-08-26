@@ -49,6 +49,17 @@ class Settings(BaseSettings):
     frontend_auth_success_url: str = "http://localhost:3000/auth/callback"
     frontend_auth_failure_url: str = "http://localhost:3000/auth/login"
 
+    # Optional transactional email for early-access confirmations. The form
+    # still persists applications when SMTP is intentionally not configured.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "Mirra"
+    smtp_security: Literal["starttls", "ssl", "none"] = "starttls"
+    join_notification_email: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

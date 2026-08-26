@@ -39,7 +39,7 @@ export function AvatarStage({
   const reduceMotion = useReducedMotion();
 
   const stageLayers: StageLayer[] = Object.values(layers)
-    .filter((l): l is OutfitLayer => !!l)
+    .filter((l): l is OutfitLayer => Boolean(l?.assetUrl))
     .map((l) => ({
       category: l.category,
       assetUrl: l.assetUrl,
@@ -47,12 +47,14 @@ export function AvatarStage({
     }));
 
   const worn = Object.values(layers).filter((l): l is OutfitLayer => !!l);
-  const altText =
-    worn.length === 0
+  const selectedPieces = worn
+    .map((l) => `${l.name}${l.size ? ` in size ${l.size}` : ""}`)
+    .join(", ");
+  const altText = avatar.previewAssetUrl
+    ? worn.length === 0
       ? "Your avatar wearing base layers only."
-      : `Your avatar wearing ${worn
-          .map((l) => `${l.name}${l.size ? ` in size ${l.size}` : ""}`)
-          .join(", ")}. Rendering state: ${tryOnState}.`;
+      : `Your avatar wearing ${selectedPieces}. Rendering state: ${tryOnState}.`
+    : `Avatar preview unavailable.${selectedPieces ? ` Selected pieces: ${selectedPieces}.` : ""}`;
 
   const busy =
     tryOnState === "requesting" || tryOnState === "processing" || tryOnState === "restoring";

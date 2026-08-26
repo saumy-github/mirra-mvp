@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import type { OutfitLayer } from "@/stores/studio-store";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { PinchCarousel } from "./pinch-carousel";
+import { StudioThumbnail } from "./studio-thumbnail";
 
 const CONTROL_SPRING = {
   type: "spring" as const,
@@ -36,10 +37,9 @@ export function CuratedLookRail({
             active ? "border-ink/65" : "border-white/80"
           }`}
         >
-          <img
+          <StudioThumbnail
             src={layer.thumbnailUrl}
-            alt=""
-            draggable={false}
+            label={layer.name}
             className="mx-auto aspect-5/6 w-full object-contain"
           />
           <p className="mt-0.5 truncate text-[9px] font-medium text-muted" title={layer.name}>
