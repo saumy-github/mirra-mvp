@@ -14,6 +14,7 @@ import {
   useRef,
   useState,
   type ChangeEvent,
+  type FocusEvent,
   type FormEvent,
   type InputHTMLAttributes,
 } from "react";
@@ -33,13 +34,25 @@ type JoinForm = {
   company: string;
   website: string;
   role: "" | JoinRole;
-  monthlyOrders: "" | MonthlyOrders;
+  monthlyOrders: MonthlyOrdersChoice;
   goals: string;
   consent: boolean;
 };
 
 type JoinField = keyof JoinForm;
 type JoinErrors = Partial<Record<JoinField, string>>;
+type JoinTouched = Partial<Record<JoinField, boolean>>;
+type MonthlyOrdersChoice = "" | MonthlyOrders | "prefer-not-to-say";
+
+const FIELD_ORDER: ReadonlyArray<JoinField> = [
+  "name",
+  "email",
+  "company",
+  "website",
+  "role",
+  "goals",
+  "consent",
+];
 
 const EMPTY_FORM: JoinForm = {
   name: "",
@@ -60,8 +73,11 @@ const ROLE_OPTIONS: ReadonlyArray<{ value: JoinRole; label: string }> = [
   { value: "other", label: "Something else" },
 ];
 
-const ORDER_OPTIONS: ReadonlyArray<{ value: "" | MonthlyOrders; label: string }> = [
-  { value: "", label: "Prefer not to say" },
+const ORDER_OPTIONS: ReadonlyArray<{
+  value: Exclude<MonthlyOrdersChoice, "">;
+  label: string;
+}> = [
+  { value: "prefer-not-to-say", label: "Prefer not to say" },
   { value: "under-1k", label: "Under 1,000" },
   { value: "1k-10k", label: "1,000–10,000" },
   { value: "10k-50k", label: "10,000–50,000" },
@@ -106,36 +122,56 @@ function validate(form: JoinForm): JoinErrors {
 
 function TextField({
   error,
+  formatAccepted,
   label,
   name,
   optional,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
+  formatAccepted?: boolean;
   label: string;
   name: JoinField;
   optional?: boolean;
 }) {
+  const inputId = `join-${name}`;
+  const labelId = `${name}-label`;
   const errorId = `${name}-error`;
 
   return (
-    <label className={styles.field}>
-      <span>
-        {label}
-        {optional && <small>Optional</small>}
-      </span>
-      <input
-        {...props}
-        name={name}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? errorId : undefined}
-      />
+    <div className={styles.field}>
+      <label
+        className={styles.controlShell}
+        data-state={error ? "error" : formatAccepted ? "accepted" : undefined}
+        htmlFor={inputId}
+      >
+        <span className={styles.insetLabel}>
+          <span id={labelId}>{label}</span>
+          {optional && <small>Optional</small>}
+        </span>
+        <input
+          {...props}
+          id={inputId}
+          name={name}
+          aria-labelledby={labelId}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? errorId : undefined}
+        />
+        {formatAccepted && !error && (
+          <Check
+            className={styles.formatAcceptedIcon}
+            size={17}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+        )}
+      </label>
       {error && (
         <small className={styles.fieldError} id={errorId}>
           {error}
         </small>
       )}
-    </label>
+    </div>
   );
 }
 
@@ -213,6 +249,7 @@ export default function Join() {
   const reducedMotion = useReducedMotion();
   const [form, setForm] = useState<JoinForm>(EMPTY_FORM);
   const [errors, setErrors] = useState<JoinErrors>({});
+  const [touched, setTouched] = useState<JoinTouched>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<JoinApplicationResponse | null>(null);
@@ -223,15 +260,43 @@ export default function Join() {
   ) => {
     const name = event.target.name as JoinField;
     const value = event.target.value;
-    setForm((current) => ({ ...current, [name]: value }));
-    setErrors((current) => (current[name] ? { ...current, [name]: undefined } : current));
+    const nextForm = { ...form, [name]: value };
+    setForm(nextForm);
+    if (touched[name] || errors[name]) {
+      setErrors((current) => ({ ...current, [name]: validate(nextForm)[name] }));
+    }
     setSubmitError(null);
   };
 
+  const finishField = (
+    event: FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
+  ) => {
+    const name = event.target.name as JoinField;
+    const value = event.target.value;
+    const candidate = name === "website" && value.trim() ? normalizeWebsite(value) : value;
+    const nextForm = { ...form, [name]: candidate };
+    const nextError = validate(nextForm)[name];
+
+    setTouched((current) => ({ ...current, [name]: true }));
+    setErrors((current) => ({ ...current, [name]: nextError }));
+
+    if (name === "website" && !nextError && candidate !== value) {
+      setForm(nextForm);
+    }
+  };
+
   const updateConsent = (event: ChangeEvent<HTMLInputElement>) => {
-    setForm((current) => ({ ...current, consent: event.target.checked }));
-    setErrors((current) => (current.consent ? { ...current, consent: undefined } : current));
+    const nextForm = { ...form, consent: event.target.checked };
+    setForm(nextForm);
+    if (touched.consent || errors.consent) {
+      setErrors((current) => ({ ...current, consent: validate(nextForm).consent }));
+    }
     setSubmitError(null);
+  };
+
+  const finishConsent = () => {
+    setTouched((current) => ({ ...current, consent: true }));
+    setErrors((current) => ({ ...current, consent: validate(form).consent }));
   };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -241,7 +306,11 @@ export default function Join() {
     setSubmitError(null);
 
     if (Object.keys(nextErrors).length > 0) {
-      const firstError = Object.keys(nextErrors)[0] as JoinField | undefined;
+      setTouched((current) => ({
+        ...current,
+        ...Object.fromEntries(Object.keys(nextErrors).map((name) => [name, true])),
+      }));
+      const firstError = FIELD_ORDER.find((name) => nextErrors[name]);
       const firstInvalid = firstError
         ? event.currentTarget.querySelector<HTMLElement>(`[name="${firstError}"]`)
         : null;
@@ -259,7 +328,9 @@ export default function Join() {
         company: form.company.trim(),
         ...(form.website.trim() ? { website: normalizeWebsite(form.website) } : {}),
         role: form.role as JoinRole,
-        ...(form.monthlyOrders ? { monthlyOrders: form.monthlyOrders } : {}),
+        ...(form.monthlyOrders && form.monthlyOrders !== "prefer-not-to-say"
+          ? { monthlyOrders: form.monthlyOrders }
+          : {}),
         goals: form.goals.trim(),
       });
       successEmail.current = email;
@@ -317,9 +388,11 @@ export default function Join() {
                     name="name"
                     value={form.name}
                     onChange={updateField}
+                    onBlur={finishField}
                     error={errors.name}
                     autoComplete="name"
                     placeholder="Avery Chen"
+                    autoCapitalize="words"
                     maxLength={100}
                     required
                   />
@@ -329,9 +402,14 @@ export default function Join() {
                     type="email"
                     value={form.email}
                     onChange={updateField}
+                    onBlur={finishField}
                     error={errors.email}
+                    formatAccepted={touched.email && !errors.email && Boolean(form.email.trim())}
                     autoComplete="email"
                     placeholder="avery@yourbrand.com"
+                    inputMode="email"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     maxLength={254}
                     required
                   />
@@ -342,9 +420,11 @@ export default function Join() {
                   name="company"
                   value={form.company}
                   onChange={updateField}
+                  onBlur={finishField}
                   error={errors.company}
                   autoComplete="organization"
                   placeholder="Your brand"
+                  autoCapitalize="words"
                   maxLength={120}
                   required
                 />
@@ -355,38 +435,56 @@ export default function Join() {
                   type="url"
                   value={form.website}
                   onChange={updateField}
+                  onBlur={finishField}
                   error={errors.website}
+                  formatAccepted={
+                    touched.website && !errors.website && Boolean(form.website.trim())
+                  }
                   autoComplete="url"
                   placeholder="yourbrand.com"
+                  inputMode="url"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   maxLength={300}
                   optional
                 />
 
-                <label className={styles.field}>
-                  <span>Your role</span>
-                  <select
-                    name="role"
-                    value={form.role}
-                    onChange={updateField}
-                    aria-invalid={Boolean(errors.role)}
-                    aria-describedby={errors.role ? "role-error" : undefined}
-                    required
+                <div className={styles.field}>
+                  <label
+                    className={`${styles.controlShell} ${styles.selectShell}`}
+                    data-state={errors.role ? "error" : undefined}
+                    htmlFor="join-role"
                   >
-                    <option value="" disabled>
-                      Choose one
-                    </option>
-                    {ROLE_OPTIONS.map((option) => (
-                      <option value={option.value} key={option.value}>
-                        {option.label}
+                    <span className={styles.insetLabel} id="role-label">
+                      Your role
+                    </span>
+                    <select
+                      id="join-role"
+                      name="role"
+                      value={form.role}
+                      onChange={updateField}
+                      onBlur={finishField}
+                      aria-labelledby="role-label"
+                      aria-invalid={Boolean(errors.role)}
+                      aria-describedby={errors.role ? "role-error" : undefined}
+                      required
+                    >
+                      <option value="" disabled>
+                        Choose the closest match
                       </option>
-                    ))}
-                  </select>
+                      {ROLE_OPTIONS.map((option) => (
+                        <option value={option.value} key={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   {errors.role && (
                     <small className={styles.fieldError} id="role-error">
                       {errors.role}
                     </small>
                   )}
-                </label>
+                </div>
 
                 <fieldset className={styles.orderField}>
                   <legend>
@@ -395,7 +493,7 @@ export default function Join() {
                   </legend>
                   <div className={styles.orderPills}>
                     {ORDER_OPTIONS.map((option) => (
-                      <label className={styles.orderPill} key={option.value || "not-sure"}>
+                      <label className={styles.orderPill} key={option.value}>
                         <input
                           type="radio"
                           name="monthlyOrders"
@@ -410,11 +508,13 @@ export default function Join() {
                 </fieldset>
 
                 <label className={styles.field}>
-                  <span>What would you like to test?</span>
+                  <span id="goals-label">What would you like to test?</span>
                   <textarea
                     name="goals"
                     value={form.goals}
                     onChange={updateField}
+                    onBlur={finishField}
+                    aria-labelledby="goals-label"
                     aria-invalid={Boolean(errors.goals)}
                     aria-describedby={errors.goals ? "goals-hint goals-error" : "goals-hint"}
                     placeholder="Tell us about your catalogue, shoppers, or the fit problem you want Mirra to help solve."
@@ -440,6 +540,7 @@ export default function Join() {
                       name="consent"
                       checked={form.consent}
                       onChange={updateConsent}
+                      onBlur={finishConsent}
                       aria-invalid={Boolean(errors.consent)}
                       aria-describedby={
                         errors.consent ? "consent-note consent-error" : "consent-note"
@@ -473,7 +574,7 @@ export default function Join() {
               )}
 
               <button type="submit" className={styles.submitButton} disabled={submitting}>
-                <span>{submitting ? "Sending…" : "Join"}</span>
+                <span>{submitting ? "Sending application…" : "Send application"}</span>
                 <span className={styles.submitIcon} aria-hidden="true">
                   {submitting ? <i /> : <ArrowRight size={18} strokeWidth={1.7} />}
                 </span>

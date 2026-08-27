@@ -273,12 +273,12 @@
   box-shadow:
     0 1px 1px rgb(255 255 255 / 84%) inset,
     0 30px 74px -54px rgb(36 29 33 / 42%);
-  padding: clamp(36px, 4vw, 52px);
+  padding: clamp(34px, 3.4vw, 46px);
   position: relative;
 }
 
 .formHeading {
-  margin-bottom: 36px;
+  margin-bottom: 30px;
 }
 
 .formPill {
@@ -316,18 +316,18 @@
 
 .formBody {
   display: grid;
-  gap: 25px;
+  gap: 18px;
 }
 
 .twoColumns {
   display: grid;
-  gap: 20px;
+  gap: 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .field {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -339,30 +339,29 @@
   font-weight: 500;
   gap: 5px;
   letter-spacing: -0.01em;
-  margin-bottom: 9px;
 }
 
 .field > span:first-child small,
-.orderField legend small {
-  color: #898782;
+.orderField legend small,
+.insetLabel small {
+  color: #77756f;
   font-size: 12px;
   font-weight: 400;
 }
 
-.field input,
-.field select,
-.field textarea {
+.controlShell {
+  align-content: center;
   appearance: none;
   background: rgb(255 255 255 / 76%);
   border: 1px solid #dfded9;
-  border-radius: 16px;
+  border-radius: 18px;
   box-shadow: 0 1px 0 rgb(255 255 255 / 86%) inset;
-  color: var(--join-ink);
-  font:
-    400 15px/1.35 "LayGrotesk",
-    Arial,
-    sans-serif;
-  outline: 0;
+  cursor: text;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(20px, 1fr);
+  min-height: 60px;
+  padding: 8px 15px 7px;
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -370,63 +369,132 @@
   width: 100%;
 }
 
-.field input,
-.field select {
-  height: 54px;
-  padding: 0 16px;
+.selectShell {
+  cursor: default;
 }
 
-.field select {
+.insetLabel {
+  align-items: baseline;
+  color: #67655f;
+  display: flex;
+  font-size: 12px;
+  font-weight: 500;
+  gap: 5px;
+  grid-column: 1;
+  grid-row: 1;
+  letter-spacing: 0.005em;
+  line-height: 1.15;
+  margin-bottom: 3px;
+  min-width: 0;
+}
+
+.insetLabel small {
+  color: #77756f;
+  font-size: 11px;
+}
+
+.controlShell input,
+.controlShell select {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--join-ink);
+  font:
+    400 15px/1.25 "LayGrotesk",
+    Arial,
+    sans-serif;
+  grid-column: 1;
+  grid-row: 2;
+  height: 22px;
+  min-width: 0;
+  outline: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.controlShell select {
   background-image:
     linear-gradient(45deg, transparent 50%, #6a6964 50%),
     linear-gradient(135deg, #6a6964 50%, transparent 50%);
   background-position:
-    calc(100% - 20px) 24px,
-    calc(100% - 15px) 24px;
+    calc(100% - 7px) 9px,
+    calc(100% - 2px) 9px;
   background-repeat: no-repeat;
   background-size:
     5px 5px,
     5px 5px;
-  padding-right: 40px;
+  grid-column: 1 / -1;
+  padding-right: 30px;
 }
 
 .field textarea {
-  min-height: 144px;
+  appearance: none;
+  background: rgb(255 255 255 / 76%);
+  border: 1px solid #dfded9;
+  border-radius: 18px;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 86%) inset;
+  color: var(--join-ink);
+  font:
+    400 15px/1.4 "LayGrotesk",
+    Arial,
+    sans-serif;
+  min-height: 136px;
+  outline: 0;
   padding: 16px;
   resize: vertical;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+  width: 100%;
 }
 
-.field input::placeholder,
+.controlShell input::placeholder,
 .field textarea::placeholder {
-  color: #a09e99;
+  color: #77756f;
 }
 
-.field input:hover,
-.field select:hover,
+.controlShell:hover,
 .field textarea:hover {
   border-color: #c5c3bd;
 }
 
-.field input:focus,
-.field select:focus,
+.controlShell:focus-within,
 .field textarea:focus {
   background: #fff;
-  border-color: #8a8781;
+  border-color: #77746e;
   box-shadow: 0 0 0 4px rgb(24 24 23 / 6%);
 }
 
-.field input[aria-invalid="true"],
-.field select[aria-invalid="true"],
+.controlShell[data-state="error"],
 .field textarea[aria-invalid="true"] {
   border-color: #a94d52;
+  box-shadow: 0 0 0 3px rgb(169 77 82 / 7%);
+}
+
+.controlShell[data-state="error"]:focus-within,
+.field textarea[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 4px rgb(169 77 82 / 20%);
+}
+
+.controlShell[data-state="accepted"] {
+  border-color: #c8c5bf;
+}
+
+.formatAcceptedIcon {
+  align-self: center;
+  color: #67655f;
+  grid-column: 2;
+  grid-row: 1 / 3;
+  margin-left: 10px;
 }
 
 .fieldError {
   color: #963f46;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.35;
-  margin-top: 7px;
+  padding-inline: 2px;
 }
 
 .orderField {
@@ -502,7 +570,7 @@
 
 .textareaMeta {
   align-items: center;
-  color: #898782;
+  color: #77756f;
   display: flex;
   font-size: 11px;
   justify-content: space-between;
@@ -646,7 +714,7 @@
     500 15px/1 "LayGrotesk",
     Arial,
     sans-serif;
-  margin-top: 30px;
+  margin-top: 24px;
   width: 100%;
 }
 
@@ -1031,6 +1099,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .backLink,
+  .controlShell,
   .field input,
   .field select,
   .field textarea,
