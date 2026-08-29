@@ -62,11 +62,7 @@ class AvatarProfileDocument(BaseModel):
     # this against that root. None if the run's GLB export failed
     # (non-blocking, see step_12_export_glb.py) or hasn't run yet.
     avatar_glb_path: str | None = None
-    # Which measurements_version this avatar was built from — not yet
-    # populated: measurements_version doesn't exist on MeasurementDocument
-    # yet (.agent/website-launch/09-step2-measurements-form.md "Remaining
-    # work"). Stays None until that lands; Step 6 must treat None as
-    # "unknown, don't claim freshness" rather than crashing.
+    # None for avatars predating this field; treated as "unknown", not stale.
     source_measurements_version: int | None = None
     generated_at: datetime | None = None
     # e.g. "u_001-004" — traces back to clo_avatar_generation/output/<run>/

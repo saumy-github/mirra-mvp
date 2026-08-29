@@ -57,9 +57,18 @@ const garmentSchema = z.object({
   updatedAt: z.string().nullable().optional(),
 });
 
-export const garmentEnvelope = z.object({ garment: garmentSchema });
+// A product is a cloth and its variants are that cloth's sizes (doc 13 §47).
+const clothSchema = z.object({
+  clothId: z.string(),
+  label: z.string(),
+  category: z.string().nullable().optional(),
+  sizes: z.array(garmentSchema),
+  updatedAt: z.string().nullable().optional(),
+});
+
+export const garmentEnvelope = z.object({ garment: clothSchema });
 export const garmentListEnvelope = z.object({
-  items: z.array(garmentSchema),
+  items: z.array(clothSchema),
   total: z.number(),
   limit: z.number(),
   offset: z.number(),
@@ -97,7 +106,9 @@ const renderSchema = z.object({
   sessionId: z.string(),
   state: z.enum(["requested", "rendering", "ready", "failed"]),
   stageLabel: z.string(),
+  clothId: z.string(),
   sizeId: z.string(),
+  hasModel: z.boolean().optional(),
   avatarProfileId: z.string(),
   failureReason: z.string().nullable(),
   createdAt: z.string(),
@@ -124,6 +135,7 @@ export const lookListEnvelope = z.object({ items: z.array(lookSchema) });
 
 type BackendAccount = z.infer<typeof accountSchema>;
 type BackendGarment = z.infer<typeof garmentSchema>;
+type BackendCloth = z.infer<typeof clothSchema>;
 type BackendJob = z.infer<typeof jobSchema>;
 type BackendProfile = z.infer<typeof profileSchema>;
 type BackendRender = z.infer<typeof renderSchema>;
@@ -191,48 +203,52 @@ export function mapAccount(a: BackendAccount): ShopperAccount {
   };
 }
 
-export function mapGarment(g: BackendGarment): PublicProduct {
-  const sizeChartMeasurements: Record<string, string> = {};
+function sizeChartRow(g: BackendGarment) {
+  const measurements: Record<string, string> = {};
   for (const [field, value] of Object.entries(g.measurements)) {
-    if (value !== null) sizeChartMeasurements[field] = `${value} cm`;
+    if (value !== null) measurements[field] = `${value} cm`;
   }
+  return { size: g.sizeId, measurements };
+}
+
+/** One cloth → one product. Its sizes become the variants, so the studio's
+ * existing product/variant selection carries both ids a render needs. */
+export function mapGarment(c: BackendCloth): PublicProduct {
   return {
-    publicProductId: g.sizeId,
-    name: g.clothLabel ?? `T-shirt ${g.sizeId}`,
+    publicProductId: c.clothId,
+    name: c.label,
     subtitle: null,
-    category: g.category ?? "tops",
+    category: c.category ?? "tops",
     garmentCategory: "top",
     description: null,
     materialAndCare: null,
     manufacturingInfo: null,
-    fitInfo: `Fit: ${g.fitType}`,
+    fitInfo: null,
     taxNote: null,
     // Step 2 output carries no commerce data yet — placeholder, not real.
     price: 0,
     currency: "INR",
     thumbnailUrl: "",
     publicationStatus: "published",
-    tryOnEligible: true,
-    sizeChart: [{ size: g.fitType, measurements: sizeChartMeasurements }],
-    variants: [
-      {
-        publicVariantId: g.sizeId,
-        colorName: "Default",
-        colorSwatch: "#c7c7cc",
-        size: g.fitType,
-        price: 0,
-        currency: "INR",
-        inStock: true,
-        tryOnEligible: true,
-        garmentAssetUrl: null,
-        assetStatus: "missing",
-      },
-    ],
+    tryOnEligible: c.sizes.length > 0,
+    sizeChart: c.sizes.map(sizeChartRow),
+    variants: c.sizes.map((s) => ({
+      publicVariantId: s.sizeId,
+      colorName: "Default",
+      colorSwatch: "#c7c7cc",
+      size: s.sizeId,
+      price: 0,
+      currency: "INR",
+      inStock: true,
+      tryOnEligible: true,
+      garmentAssetUrl: null,
+      assetStatus: "missing" as const,
+    })),
   };
 }
 
 export function mapGarmentList(page: {
-  items: BackendGarment[];
+  items: BackendCloth[];
   total: number;
   limit: number;
   offset: number;
@@ -305,20 +321,22 @@ export function mapRender(r: BackendRender): TryOnRender {
     renderId: r.renderId,
     tryOnSessionId: r.sessionId,
     state: r.state === "failed" ? "failed" : ready ? "ready" : "processing",
-    productPublicId: r.sizeId,
+    productPublicId: r.clothId,
     variantPublicId: r.sizeId,
-    size: r.result?.garment.fitType ?? null,
+    size: r.sizeId,
     layers: ready
-      ? { top: { productPublicId: r.sizeId, variantPublicId: r.sizeId, assetUrl: "" } }
+      ? { top: { productPublicId: r.clothId, variantPublicId: r.sizeId, assetUrl: "" } }
       : {},
     avatarProfileVersion: 1,
     // Must match integrations/engines/try-on/provider.ts's ENGINE_VERSION —
     // both feed lib/hanger.ts::isEntryRestorable's cache-compatibility check.
     engineVersion: "clo-vto",
-    // No rendered imagery yet — Step 7 (catalog -> real garment pattern
-    // wiring) and Step 6's GLB serving route aren't built. See
-    // .agent/website-launch/06-avatar-vto-implementation-status.md.
-    renderedAssetUrl: null,
+    // The GLB needs an auth header, so it is fetched through the client
+    // rather than linked. This flags that one exists to fetch.
+    renderedAssetUrl:
+      ready && r.hasModel !== false
+        ? `/tryon/sessions/${r.sessionId}/renders/${r.renderId}/glb`
+        : null,
     generatedAt: r.completedAt ?? r.createdAt,
     failureReason: r.failureReason,
   };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MeasurementRow } from "@/features/onboarding/components/measurement-row";
-import { MeasurementForm } from "@/features/onboarding/components/measurement-form";
+import { MeasurementRow } from "@/features/profile/components/measurement-row";
+import { MeasurementForm } from "@/features/profile/components/measurement-form";
 import { Button } from "@/components/ui/button";
 import { useAvatarProfile, useAccount } from "@/hooks/use-shopper";
 import { getRuntimeProvider } from "@/integrations/mirra-api";

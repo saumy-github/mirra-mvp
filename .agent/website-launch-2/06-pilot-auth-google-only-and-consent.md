@@ -112,4 +112,75 @@ Report the diff itself in the execution log, not just a verdict. "Fields match" 
 
 ## Execution log
 
-*(To be written after the work, per `01`'s workflow step 3.)*
+**Executed 2026-08-19 by Lane 3 (`mirra-lane-auth`).** Ran in the main checkout, not a worktree, per the reframed instructions. Google OAuth being settled and the acceptance test being a server-side parity diff (not a browser login) were both taken as given, per the parent's instructions overriding the older wording in this doc.
+
+### Job 1 — comment out the in-house login UI
+
+- `src/pages/auth/Login.tsx`: kept `GoogleButton` and "Continue as guest." Commented out (not deleted) the email/password form, the "or continue with email" divider, "Forgot password?" and "Create account" links, and the imports they alone needed (`Link`, `Button`, `Field`, `OrDivider`, `MirraApiError`, `userMessage`). Each block carries a comment pointing back at this doc. `login` mutation is still returned by `useAuthMutations()` and fully wired underneath — it's just not destructured, since nothing renders that calls it right now.
+- `src/pages/auth/SignUp.tsx`, `ForgotPassword.tsx`, `VerifyEmail.tsx`: original bodies commented out in full (imports included, to avoid unused-import lint failures) and replaced with a small functional shell (`AuthShell`/`AuthHeading` + a link back to `/auth/login`) so a stale bookmark renders a real (if minimal) page rather than a blank screen. Routes were **not** touched — `router.tsx` is Lane 2's file and B8's own decision is "leave the routes registered."
+- Backend routes/logic for sign-up, login, password reset, and verify-email are untouched and still fully functional — confirmed by reading `auth/routes.py`, `auth/controller.py`, `auth/service.py` end to end; nothing in Job 1 touched them except the Group E removal below (a genuinely dead route, not part of the in-house flow itself).
+
+### Job 2 — parity between the Google and email/password paths
+
+**Field-by-field comparison of `UserDocument` as produced by `sign_up()` vs `google_login()` (`auth/service.py`):** both build the same Pydantic model. The only fields that differ in *presence* are `password_hash`/`verification_code` (password-only, correctly absent for Google since `to_mongo()` uses `exclude_none`) and `auth_providers` (Google-only, correctly empty for password accounts). Those are inherent to the two different account-creation mechanisms, not a bug. The one field that was genuinely broken was `consents`: both paths *insert* the account with `consents={}`, but only the email/password path ever went back and populated it — `HttpRuntimeProvider.signUp()` (`http-runtime-provider.ts:60-66`) calls the existing `PATCH /users/me/consents` right after account creation; nothing on the Google path ever did.
+
+**Design chosen: reuse that exact same call from both paths, rather than inventing a second write.** This is the "one shared code path" the doc asks for — literally the same function (`HttpRuntimeProvider.updateConsents`), same endpoint (`PATCH /users/me/consents`), same shape (`{terms: true, privacy: true}`), fired from two different pages at their respective "session just got established" moments:
+- Email/password: unchanged, already did this (`SignUp.tsx` → `signUp.mutateAsync` → `HttpRuntimeProvider.signUp`).
+- Google: `Login.tsx`'s `onGoogle()` now gates the button behind a consent checkbox (new — Google is now the primary signup surface after Job 1) and, once ticked, calls `markPendingConsent()` before handing off to the full-page Google redirect. `AuthCallback.tsx` (the landing page after the OAuth round trip) calls `consumePendingConsent()` once the session hydrates and, if set, fires the identical `updateConsents({terms: true, privacy: true})` call.
+- New file `src/pages/auth/pending-consent.ts` is the bridge across the redirect (sessionStorage-backed, since the browser fully navigates away to Google and back — there's no single function call that can span both ends). This was the one piece of new shared infrastructure needed; it carries a flag, not a second consent implementation.
+- Failure mode handled per the doc's own instruction: the `updateConsents` call in `AuthCallback.tsx` is wrapped in try/catch — if it fails, the account exists with `consents={}}` and login still proceeds, exactly the same best-effort failure mode the email/password path already accepted (its own call is also swallowed on failure, `http-runtime-provider.ts:63`).
+
+**Why no backend change was needed for consent parity**: the infrastructure (`PATCH /users/me/consents`, `UpdateConsentsRequest`, `users/service.py::update_consents`) already existed and was already the mechanism the email/password path used — the bug was purely that nothing on the Google path ever called it. `auth/service.py::google_login()` was read in full and left unmodified; a backend-side fix (e.g. carrying acceptance through the OAuth redirect via a new cookie + writing consent inside `google_login()` itself) was considered and explicitly rejected here as more invasive than necessary: it would require touching `auth/routes.py`'s query params, `auth/schemas.py`, and `google_start`/`google_callback`'s cookie set for a result that's already achievable by reusing the existing endpoint from both entry points. Flagging this per the doc's instruction to say so explicitly if a fuller shared-path refactor is judged out of scope for this lane: **a fully server-side, redirect-carried consent write was judged unnecessary, not "bigger than this lane should carry" — the frontend convergence above already produces field-for-field identical documents**, verified below.
+
+**The Google button is inert until the checkbox is ticked** (`Login.tsx::onGoogle`): if `!accepted`, it sets an error message and returns before calling `google.mutateAsync()` — no navigation happens. Confirmed by reading the code path (guard clause is the first line of the function); not run through a live browser, since that would require the parent's Vite dev server slot.
+
+### Group E — dead route removal
+
+Re-ran the caller survey myself before cutting, per the doc's own warning:
+- Grepped `website/frontend/src/integrations/mirra-api/http-runtime-provider.ts` and `website/backend/scripts/smoke_e2e.py` for `password-reset` and `users/me`. Confirmed: `POST /auth/password-reset` (no `/confirm`) is called at `http-runtime-provider.ts:110` — left untouched. `DELETE /api/v1/users/me` is called at `http-runtime-provider.ts:127` and `smoke_e2e.py:61` — left untouched. No caller anywhere of `POST /auth/password-reset/confirm` or `GET /users/me`.
+- `website/backend/src/auth/routes.py`: removed the `POST /password-reset/confirm` route (decorator + handler + the now-unused `PasswordResetConfirmRequest` import). Left `controller.confirm_password_reset` and `service.confirm_password_reset` in place, unrouted — those files weren't in scope for this removal (only `routes.py` was named in the plan), and deleting a function is a bigger, non-reversible move than un-registering a route.
+- `website/backend/src/users/routes.py`: removed only the `GET /me` handler. `PATCH /me`, `PATCH /me/consents`, `DELETE /me` and the router/module/prefix are all untouched. Left `controller.me` in place, unrouted, same reasoning as above.
+
+### Verification performed
+
+- `npx tsc --noEmit` — clean, no errors.
+- `npx eslint src --max-warnings=0` — clean, no warnings (confirmed no unused imports left behind by any of the comment-outs).
+- `python -m py_compile` on `auth/routes.py`, `auth/service.py`, `users/routes.py` — clean.
+- `python -c "from src.main import app"` (repo-root `.venv`) — clean import, no errors.
+- **Parity diff (the acceptance test)**: exercised `service.sign_up()` and `service.google_login()` directly inside the running `backend` container (`docker compose exec backend python <script>`, copied in via `docker compose cp`, deleted afterward — no source files touched, purely ephemeral), then applied the same `updateConsents`-equivalent Mongo update both flows now perform, then read both documents back and diffed them. Actual diff:
+
+```
+=== PASSWORD USER DOC ===
+{
+  "_id": "u_956c28c48b713159", "email": "lane3-parity-pw-...@example.com", "name": "Parity PW",
+  "password_hash": "$2b$12$...", "is_guest": false, "email_verified": false,
+  "verification_code": "617091", "auth_providers": [],
+  "consents": {"terms": true, "privacy": true},
+  "created_at": "...", "updated_at": "..."
+}
+=== GOOGLE USER DOC ===
+{
+  "_id": "u_370a594cf3211082", "email": "lane3-parity-google-...@example.com", "name": "Parity Google",
+  "is_guest": false, "email_verified": true,
+  "auth_providers": [{"provider": "google", "provider_user_id": "lane3-parity-google-sub-123"}],
+  "consents": {"terms": true, "privacy": true},
+  "created_at": "...", "updated_at": "..."
+}
+=== FIELD SET DIFF ===
+only in password doc: {'password_hash', 'verification_code'}
+only in google doc: set()
+=== consents ===
+password: {'terms': True, 'privacy': True}
+google:   {'terms': True, 'privacy': True}
+```
+
+`consents` non-empty and identical in shape on both. The only field-set difference is the password-only fields, which is correct and expected (not a bug — see the field-by-field analysis above). Both test users were deleted after the check; nothing left behind in Mongo.
+
+- **Smoke test — blocked, not by my changes.** Ran `docker compose exec backend python scripts/smoke_e2e.py` (no rebuild needed since `scripts/` wasn't touched by this lane). It fails, but at the **catalog-listing step**, before it ever reaches any auth/users route: `AttributeError: 'SizeDocument' object has no attribute 'hem_width_cm'` in `catalog/controller.py::shape_garment`. This is a pre-existing bug in a module outside this lane's ownership (catalog, not auth/users) — confirmed by reading the traceback, which never enters `auth/` or `users/` code. **I am not declaring the Group E removals verified by this run**, since the test never got far enough to exercise them; the parity diff above is what actually exercises the routes I changed (indirectly, by using the same `service.py` functions the routes call) but doesn't substitute for the harness itself passing. Flagging the catalog bug to the parent as a blocker for anyone relying on `smoke_e2e.py` as a pass/fail gate — it's unrelated to auth and I did not attempt to fix it (out of ownership).
+- Did not perform a browser login (per the parent's explicit instruction not to ask for one) and did not read any `.env*` file.
+
+### What didn't match the plan
+
+- The plan's B9 write-up assumed the fix would land either fully server-side in `google_login()` or fully client-side in `AuthCallback.tsx` with a same-tick failure handled locally. What was actually built is a third shape: client-side on both ends, bridged across the OAuth redirect via `sessionStorage` (`pending-consent.ts`), because the Google flow is a full-page navigation and no single function call can span it. This still satisfies "prefer one shared code path" — the shared part is the `updateConsents` call itself, invoked identically from both flows.
+- `auth/service.py` was **not modified at all** for Job 2, despite being an owned file — the fix needed no backend change once the reuse-the-existing-endpoint design was chosen. It was still read in full to do the field-by-field comparison.
+- The Group E "not verified until smoke_e2e.py passes" bar could not be cleared — not because of anything in this lane's scope, but because of a pre-existing, unrelated catalog bug that the test suite hits first. Handing this back to the parent rather than declaring the removals verified.

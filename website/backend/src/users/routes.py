@@ -13,9 +13,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 CurrentIdentity = Annotated[Identity, Depends(get_identity)]
 
 
-@router.get("/me")
-async def me(identity: CurrentIdentity):
-    return await controller.me(identity.user_id)
+# GET /me removed — duplicate of GET /auth/me, see doc 06.
 
 
 @router.patch("/me")

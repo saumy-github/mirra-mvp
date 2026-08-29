@@ -65,6 +65,11 @@ def sizes_col() -> AsyncCollection:
     return get_db()["sizes"]
 
 
+def cloths_col() -> AsyncCollection:
+    """One doc per product_ingestion/input/c_XXX/ folder; names its sizes."""
+    return get_db()["cloths"]
+
+
 # New collections owned by this backend:
 
 
@@ -107,6 +112,7 @@ async def ensure_indexes() -> None:
     await measurements_col().create_index([("gender", ASCENDING)])
     await user_measurements_col().create_index([("user_id", ASCENDING)], unique=True)
     await sizes_col().create_index([("size_id", ASCENDING)], unique=True, name="size_id_unique")
+    await cloths_col().create_index([("cloth_id", ASCENDING)], unique=True, name="cloth_id_unique")
 
     # Backend-owned collections (string _id doubles as the public id):
     await users_col().create_index([("email", ASCENDING)], unique=True, sparse=True)

@@ -62,7 +62,7 @@ export default function Studio() {
 
   useEffect(() => {
     if (!avatarLoading && account && !avatar) {
-      navigate("/onboarding/avatar", { replace: true });
+      navigate("/profile/avatar", { replace: true });
     }
   }, [avatar, avatarLoading, account, navigate]);
 
@@ -449,6 +449,8 @@ export default function Studio() {
             }}
             onMakeSignatureLook={() => setLookDialogOpen(true)}
             canMakeLook={wornLayers.length > 0}
+            tryOnSessionId={store.tryOnSessionId}
+            renderId={store.tryOn.renderId}
           />
         </section>
 

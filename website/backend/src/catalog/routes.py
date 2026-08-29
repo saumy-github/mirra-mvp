@@ -20,6 +20,6 @@ async def list_garments(
     return await controller.list_garments(fit_type, category, q, limit, offset)
 
 
-@router.get("/garments/{size_id}")
-async def get_garment(size_id: str):
-    return await controller.get_garment(size_id)
+@router.get("/garments/{cloth_id}")
+async def get_garment(cloth_id: str):
+    return await controller.get_garment(cloth_id)

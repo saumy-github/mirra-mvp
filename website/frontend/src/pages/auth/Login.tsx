@@ -1,49 +1,64 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
 import { GoogleButton } from "@/features/auth/components/oauth-buttons";
-import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
-import { OrDivider } from "@/components/ui/misc";
 import { useAuthMutations } from "@/hooks/use-shopper";
-import { MirraApiError, userMessage } from "@/integrations/mirra-api";
 import { track } from "@/lib/analytics";
 import { postAuthDestination } from "@/lib/post-auth";
+import { markPendingConsent } from "./pending-consent";
+
+// Pilot: in-house login gated off, see doc 06.
+// import { Link } from "react-router-dom";
+// import { Button } from "@/components/ui/button";
+// import { Field } from "@/components/ui/field";
+// import { OrDivider } from "@/components/ui/misc";
+// import { MirraApiError, userMessage } from "@/integrations/mirra-api";
 
 export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { login, google, continueAsGuest } = useAuthMutations();
+  // `login` mutation still wired, just unused while the UI is hidden.
+  const { google, continueAsGuest } = useAuthMutations();
   const [error, setError] = useState<string | null>(
     params.get("error") ? "Google sign-in didn't complete. Please retry." : null,
   );
+  // Gates the Google button — first-time Google login is now the sign-up.
+  const [accepted, setAccepted] = useState(false);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    const data = new FormData(e.currentTarget);
-    try {
-      await login.mutateAsync({
-        email: String(data.get("email") ?? ""),
-        password: String(data.get("password") ?? ""),
-      });
-      track("login_completed", {
-        authenticated: true,
-        properties: { method: "password" },
-      });
-      navigate(postAuthDestination(params.get("next")));
-    } catch (err) {
-      setError(
-        err instanceof MirraApiError
-          ? userMessage(err.code)
-          : "Something went wrong. Please retry.",
-      );
-    }
-  }
+  // Pilot: in-house login gated off, see doc 06.
+  // async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  //   e.preventDefault();
+  //   setError(null);
+  //   const data = new FormData(e.currentTarget);
+  //   try {
+  //     await login.mutateAsync({
+  //       email: String(data.get("email") ?? ""),
+  //       password: String(data.get("password") ?? ""),
+  //     });
+  //     track("login_completed", {
+  //       authenticated: true,
+  //       properties: { method: "password" },
+  //     });
+  //     navigate(postAuthDestination(params.get("next")));
+  //   } catch (err) {
+  //     setError(
+  //       err instanceof MirraApiError
+  //         ? userMessage(err.code)
+  //         : "Something went wrong. Please retry.",
+  //     );
+  //   }
+  // }
 
   async function onGoogle() {
+    if (!accepted) {
+      // Inert until consent is ticked.
+      setError("Please accept the Terms and Privacy Notice to continue.");
+      return;
+    }
     setError(null);
     try {
+      // Carried across the OAuth redirect to AuthCallback.tsx.
+      markPendingConsent();
       await google.mutateAsync();
       track("login_completed", {
         authenticated: true,
@@ -74,10 +89,26 @@ export default function Login() {
         subtitle="Log in to use your saved avatar and Signature Looks"
       />
 
-      <div>
+      <label className="flex cursor-pointer items-start gap-3 rounded-[14px] px-1 py-1 text-xs leading-relaxed text-muted">
+        <input
+          type="checkbox"
+          checked={accepted}
+          onChange={(e) => setAccepted(e.target.checked)}
+          className="mt-0.5 size-4.5 shrink-0 accent-blue"
+        />
+        <span>
+          I accept the <span className="underline decoration-line-strong">Terms of Service</span>{" "}
+          and acknowledge the{" "}
+          <span className="underline decoration-line-strong">Privacy Notice</span>. Photographs
+          are used only to build your avatar and are never shown to anyone else.
+        </span>
+      </label>
+
+      <div className="mt-4">
         <GoogleButton onClick={onGoogle} loading={google.isPending} />
       </div>
 
+      {/* Pilot: in-house login gated off, see doc 06.
       <div className="my-5">
         <OrDivider label="or continue with email" />
       </div>
@@ -100,12 +131,6 @@ export default function Login() {
           required
         />
 
-        {error && (
-          <p role="alert" className="text-sm text-error">
-            {error}
-          </p>
-        )}
-
         <Button type="submit" className="w-full" size="lg" loading={login.isPending}>
           Log in <span aria-hidden>→</span>
         </Button>
@@ -122,6 +147,13 @@ export default function Login() {
           Create account
         </Link>
       </div>
+      */}
+
+      {error && (
+        <p role="alert" className="mt-4 text-sm text-error">
+          {error}
+        </p>
+      )}
 
       <button
         type="button"

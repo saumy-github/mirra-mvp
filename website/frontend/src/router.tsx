@@ -16,9 +16,6 @@ const VerifyEmail = lazy(() => import("@/pages/auth/VerifyEmail"));
 const ForgotPassword = lazy(() => import("@/pages/auth/ForgotPassword"));
 const AuthCallback = lazy(() => import("@/pages/auth/AuthCallback"));
 
-// Onboarding
-const OnboardingAvatar = lazy(() => import("@/pages/onboarding/Avatar"));
-
 // Studio — the heaviest page; kept in its own chunk like everything else
 // here, and the natural place a future R3F/Three.js upgrade stays isolated.
 const Studio = lazy(() => import("@/pages/Studio"));
@@ -51,8 +48,6 @@ export function AppRoutes() {
         <Route path="/auth/verify-email" element={<VerifyEmail />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
-
-        <Route path="/onboarding/avatar" element={<OnboardingAvatar />} />
 
         <Route path="/studio" element={<Studio />} />
 

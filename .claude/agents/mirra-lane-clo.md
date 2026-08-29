@@ -65,3 +65,15 @@ Both collections are **permanent and intentional**, not a migration in progress:
 ## When you finish
 
 Write the execution log into doc 04: what was done, what was verified and **how**, and anything that did not match the plan. Then update `02-remaining-work.md` — move A1/A2/A3 to done with a date and a pointer to 04. Report back to the parent. Do not commit any of it.
+
+## Comments: one line, only where the code is not self-explanatory
+
+**User instruction, 2026-08-19.** Agents on this repo have been writing long explanatory comment blocks nobody asked for.
+
+- **One line.** Not a paragraph, not a multi-line block, not a rationale essay above a function.
+- **Only where the code is genuinely not self-explanatory.** If a reader can see what a line does by reading it, it gets no comment. Most code needs none.
+- Comment the non-obvious **why**, never the **what**. `# increment counter` is noise; `# CLO returns half-girth, not circumference` earns its place.
+- Do not narrate your own work in comments — no dates, no "per doc 05", no explaining what you were asked to do. That belongs in the execution log.
+- When commenting out code, one short line saying why. Not a block.
+
+Applies to code you write. Do not reformat unrelated existing comments.

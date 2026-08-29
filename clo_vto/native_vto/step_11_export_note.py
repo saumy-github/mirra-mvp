@@ -19,6 +19,14 @@ from .helpers import print_result
 # almost certainly an error response or an empty write.
 _MIN_GLB_BYTES = 1024
 
+GLB_MAGIC = b"glTF"
+
+
+def _is_binary_glb(path: Path) -> bool:
+    """True if the file really is binary GLB rather than JSON named .glb."""
+    with path.open("rb") as handle:
+        return handle.read(4) == GLB_MAGIC
+
 
 def run(ctx) -> bool:
     print("\n[11] Exporting GLB simulation ...")
@@ -59,6 +67,13 @@ def run(ctx) -> bool:
 
     size_mb = size_bytes / (1024 * 1024)
     print(f"  [OK] GLB written — {size_mb:.1f} MB")
+
+    # ExportGLB writes one self-contained binary file. If CLO ever falls back
+    # to glTF-separate we get JSON plus a .bin plus ~26 loose textures beside
+    # it — say so rather than letting it pass unnoticed (doc 11 Part 5).
+    if not _is_binary_glb(glb_path):
+        print("  [WARN] Export is JSON glTF, not binary GLB — expect loose .bin/texture files.")
+        print("         Check the plugin was built against the installed CLO SDK.")
 
     # Publish path so step_12 can pick it up.
     ctx.glb_path = glb_path

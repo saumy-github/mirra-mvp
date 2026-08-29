@@ -3,7 +3,8 @@ import { AnimatePresence, motion } from "motion/react";
 import type { AvatarProfile, TryOnState } from "@/integrations/mirra-api/types";
 import { Spinner } from "@/components/ui/misc";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
-import { AvatarFigure, type StageLayer } from "./avatar-figure";
+import { GlbViewer } from "@/features/profile/components/avatar-glb-viewer";
+import { getRuntimeProvider } from "@/integrations/mirra-api";
 import type { OutfitLayer } from "@/stores/studio-store";
 
 const STAGE_SPRING = {
@@ -26,6 +27,8 @@ export function AvatarStage({
   onRetry,
   onMakeSignatureLook,
   canMakeLook,
+  tryOnSessionId,
+  renderId,
 }: {
   avatar: AvatarProfile;
   layers: Partial<Record<string, OutfitLayer>>;
@@ -34,22 +37,21 @@ export function AvatarStage({
   onRetry: () => void;
   onMakeSignatureLook: () => void;
   canMakeLook: boolean;
+  tryOnSessionId: string | null;
+  renderId: string | null;
 }) {
   const [zoom, setZoom] = useState(1);
   const reduceMotion = useReducedMotion();
 
-  const stageLayers: StageLayer[] = Object.values(layers)
-    .filter((l): l is OutfitLayer => !!l)
-    .map((l) => ({
-      category: l.category,
-      assetUrl: l.assetUrl,
-      key: `${l.category}-${l.variantPublicId}`,
-    }));
+  // A finished render's GLB holds avatar and garment together — the plugin
+  // exports with bExportAvatar always on. Before one exists, show the plain
+  // avatar so the stage is never empty.
+  const showRender = !!(tryOnSessionId && renderId) && (tryOnState === "ready" || tryOnState === "cached");
 
   const worn = Object.values(layers).filter((l): l is OutfitLayer => !!l);
-  const altText =
+  const stageLabel =
     worn.length === 0
-      ? "Your avatar wearing base layers only."
+      ? "Your avatar, wearing nothing yet."
       : `Your avatar wearing ${worn
           .map((l) => `${l.name}${l.size ? ` in size ${l.size}` : ""}`)
           .join(", ")}. Rendering state: ${tryOnState}.`;
@@ -100,12 +102,23 @@ export function AvatarStage({
           animate={{ scale: zoom }}
           transition={reduceMotion ? { duration: 0.01 } : STAGE_SPRING}
         >
-          <AvatarFigure
-            previewAssetUrl={avatar.previewAssetUrl}
-            layers={stageLayers}
-            className="h-full max-h-[min(58vh,680px)] min-h-70 sm:min-h-85"
-            alt={altText}
-          />
+          <span className="sr-only">{stageLabel}</span>
+          {showRender ? (
+            <GlbViewer
+              key={renderId}
+              queryKey={["tryon-render-glb", renderId]}
+              fetchGlb={() => getRuntimeProvider().getTryOnRenderGlb(tryOnSessionId!, renderId!)}
+              className="h-full max-h-[min(58vh,680px)] min-h-70 w-full sm:min-h-85"
+              emptyMessage="This try-on's model isn't available."
+            />
+          ) : (
+            <GlbViewer
+              queryKey={["account", "avatar-glb"]}
+              fetchGlb={() => getRuntimeProvider().getAvatarGlb().then((r) => r.blob)}
+              className="h-full max-h-[min(58vh,680px)] min-h-70 w-full sm:min-h-85"
+              emptyMessage="Your avatar model isn't available."
+            />
+          )}
         </motion.div>
 
         {/* Engine states */}

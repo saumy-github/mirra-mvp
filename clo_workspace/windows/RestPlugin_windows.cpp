@@ -182,6 +182,10 @@ static std::vector<CommandResult>   g_lastResults;
 static std::mutex                   g_resultsMutex;
 static std::atomic<bool>            g_queueProcessing{false};
 static std::atomic<int>      g_patternsLoaded{0};
+// Avatars we imported this session. Queried instead of asking CLO:
+// GetAvatarProperties(0) on an empty scene crashed CLO outright (2026-08-22),
+// and GetAvatarCount/GetAvatarNameList are in the SEH-crash-prone EXPORT_API.
+static std::atomic<int>      g_avatarsLoaded{0};
 static Server*               g_server = nullptr;
 
 // ── Fabric dispatch globals ───────────────────────────────────────────────────
@@ -1218,6 +1222,37 @@ void StartRESTServer()
         }
     });
 
+    // NewProject() clears garments only, so avatars survive it and accumulate
+    // across runs. param3 = highest index to delete.
+    svr.Post("/clear-avatars", [](const Request& req, Response& res) {
+        try {
+            int maxIndex = 7;
+            if (!req.body.empty()) {
+                json body = json::parse(req.body);
+                if (body.contains("max_index")) maxIndex = body["max_index"].get<int>();
+            }
+            APICommand cmd;
+            cmd.type = "clear-avatars";
+            cmd.param3 = maxIndex;
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+            }
+            json response = {
+                {"success",    true},
+                {"supported",  true},
+                {"message",    "Clear avatars queued"},
+                {"max_index",  maxIndex},
+                {"queue_size", (int)g_commandQueue.size()}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"supported", true}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
     // ── Arrange Pattern in 3D space around the avatar ────────────────────────
     // Must be called AFTER import and BEFORE simulation.
     // Coordinates are in CLO centimetres; Y is the up-axis.
@@ -1613,7 +1648,9 @@ void ProcessCommandQueue()
                 options.scale = 1.0f;
                 TraceLog("BEGIN import-avatar-avt path=" + cmd.param1 + " scale=" + std::to_string(options.scale));
                 asyncResult.success = IMPORT_API->ImportAvatar(cmd.param1, options);
-                TraceLog("END   import-avatar-avt success=" + std::string(asyncResult.success ? "true" : "false"));
+                if (asyncResult.success) g_avatarsLoaded++;
+                TraceLog("END   import-avatar-avt success=" + std::string(asyncResult.success ? "true" : "false")
+                    + " avatarsLoaded=" + std::to_string(g_avatarsLoaded.load()));
                 {
                     std::lock_guard<std::mutex> lock(g_nativeAvatarDebugMutex);
                     g_nativeAvatarDebugState.last_native_avatar_path    = cmd.param1;
@@ -1770,35 +1807,44 @@ void ProcessCommandQueue()
             }
             // ── Export GLB/GLTF ───────────────────────────────────────────
             else if (cmd.type == "export") {
-                // NOTE: "format":"glb" requests still land here but are served via
-                // ExportGLTF, NOT EXPORT_API->ExportGLB(). ExportGLB always returned an
-                // empty result in manual testing (avatar-only and otherwise) regardless of
-                // options - the installed CLO app is 2026.0.374 while this plugin builds
-                // against CLO_SDK_v2025.2.368, and ExportGLB's declared body in that SDK's
-                // header is a bare stub (returns an empty vector) - consistent with this
-                // CLO version simply not implementing it yet, rather than an options bug.
-                // ExportGLTF's own bGLBinary flag also does NOT yield true binary .glb - it
-                // writes JSON glTF with base64-embedded buffers either way - but IS reliable
-                // (verified twice against a real avatar-loaded scene). Until CLO exposes a
-                // working binary-GLB path, callers must treat this output as .gltf content,
-                // not .glb, regardless of the requested "format" value.
+                // format=glb uses ExportGLB, which writes one self-contained binary
+                // file. ExportGLTF writes glTF-separate — JSON plus a .bin plus every
+                // texture loose beside it — which then has to be repacked in Python.
+                //
+                // ExportGLB previously returned empty, attributed to CLO not
+                // implementing it. That was a misreading: the empty body in the SDK
+                // header is the abstract-interface pattern, and ExportGLTF's body is
+                // equally empty while working fine. The real cause was almost
+                // certainly vtable skew from building against CLO_SDK_v2025.2.368
+                // while running a newer app — the same skew that made NewProject()
+                // hang until the 2026.0.356 rebuild fixed it.
                 Marvelous::ImportExportOption options;
                 // CLO's internal unit is millimeters; gltf/glb expect meters.
                 // SDK sample comment (ExportAPIInterface.h): "use 0.001 for gltf in default".
                 options.scale          = 0.001f;
                 options.bExportGarment = (g_patternsLoaded.load() > 0);
                 options.bExportAvatar  = true;
-                std::vector<std::string> out =
-                    EXPORT_API->ExportGLTF(cmd.param1, options, false);
+
+                bool wantGLB = (cmd.param2 == "glb");
+                TraceLog(std::string("BEGIN export format=") + (wantGLB ? "glb" : "gltf")
+                    + " path=" + cmd.param1);
+                std::vector<std::string> out = wantGLB
+                    ? EXPORT_API->ExportGLB(cmd.param1, options)
+                    : EXPORT_API->ExportGLTF(cmd.param1, options, false);
+                TraceLog(std::string("END   export files=") + std::to_string(out.size()));
+
                 asyncResult.success = !out.empty();
                 asyncResult.message = asyncResult.success
                     ? "Exported to: " + cmd.param1
-                    : "Export failed";
+                    : (wantGLB ? "ExportGLB returned no files" : "Export failed");
             }
             // ── New project ───────────────────────────────────────────────
             else if (cmd.type == "new-project") {
                 UTILITY_API->NewProject();
                 g_patternsLoaded = 0;
+                // g_avatarsLoaded is deliberately NOT reset here: avatars
+                // survive NewProject, so zeroing the count would make the
+                // following clear-avatars delete nothing and leak them.
                 {
                     std::lock_guard<std::mutex> lock(g_importDebugMutex);
                     g_lastPatternImports.clear();
@@ -1816,6 +1862,32 @@ void ProcessCommandQueue()
                 }
                 asyncResult.success = true;
                 asyncResult.message = "New project created";
+            }
+            // ── Clear every avatar from the scene ─────────────────────────
+            else if (cmd.type == "clear-avatars") {
+                // Never ask CLO how many avatars exist — every query API for
+                // that either hangs or crashes on an absent index. We delete
+                // only the indexes we know we imported.
+                int loaded = g_avatarsLoaded.load();
+                TraceLog("BEGIN clear-avatars tracked=" + std::to_string(loaded));
+
+                bool deleted = true;
+                if (loaded > 0) {
+                    std::vector<int> indices;
+                    for (int i = 0; i < loaded; ++i) indices.push_back(i);
+                    TraceLog("  DeleteAvatar begin count=" + std::to_string(indices.size()));
+                    deleted = UTILITY_API->DeleteAvatar(indices);
+                    TraceLog(std::string("  DeleteAvatar end deleted=") + (deleted ? "true" : "false"));
+                    if (deleted) g_avatarsLoaded = 0;
+                }
+
+                TraceLog(std::string("END   clear-avatars deleted=") + (deleted ? "true" : "false")
+                    + " remaining=" + std::to_string(g_avatarsLoaded.load()));
+
+                asyncResult.success = deleted && g_avatarsLoaded.load() == 0;
+                asyncResult.message = asyncResult.success
+                    ? "Avatars cleared"
+                    : "Avatar deletion did not complete";
             }
             // ── Arrange pattern in 3D space ───────────────────────────────
             // param3 = patternIndex, param4 = arrangementIndex (-1 = skip SetArrangement)

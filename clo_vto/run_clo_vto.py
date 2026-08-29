@@ -68,6 +68,27 @@ def main() -> int:
              "image_info/ and panels/). Required with --use-default-panels "
              "to locate colors.json and texture atlases.",
     )
+    # Run identity — decides the output directory. Given explicitly rather
+    # than derived from paths; path-sniffing is how avatar discovery got loose.
+    parser.add_argument("--user-id", default=None, help="For example u_011.")
+    parser.add_argument("--cloth-id", default=None, help="For example c_001.")
+    parser.add_argument("--size-id", default=None, help="For example s_001.")
+    # Strict modes exist on create_context but had no way in until now.
+    parser.add_argument(
+        "--strict-seams",
+        action="store_true",
+        help="Abort instead of falling back to DEFAULT_SEAMS when the edge manifest is missing.",
+    )
+    parser.add_argument(
+        "--strict-dxf-units",
+        action="store_true",
+        help="Abort when DXF units cannot be determined instead of assuming scale 1.0.",
+    )
+    parser.add_argument(
+        "--strict-seam-hash",
+        action="store_true",
+        help="Require a non-empty geometry hash baseline in step 9.",
+    )
     args = parser.parse_args()
 
     from clo_vto.native_vto.pipeline import run_pipeline
@@ -89,6 +110,12 @@ def main() -> int:
         report_path=report_path,
         use_default_panels=args.use_default_panels,
         ingestion_output_dir=args.ingestion_output_dir,
+        user_id=args.user_id,
+        cloth_id=args.cloth_id,
+        size_id=args.size_id,
+        allow_seam_fallback=not args.strict_seams,
+        strict_dxf_units=args.strict_dxf_units,
+        strict_seam_hash=args.strict_seam_hash,
     )
     return 0 if ok else 1
 

@@ -1,0 +1,100 @@
+2026-08-19 16:44:26,499 INFO mirra.worker: Starting CLO worker: redis=redis://localhost:6379/0 queue='clo' (SimpleWorker, concurrency=1 — required on Windows, see worker/README.md)
+2026-08-19 16:44:26,528 INFO rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: started with PID 13476, version 2.10.0
+2026-08-19 16:44:26,528 INFO rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: subscribing to channel rq:pubsub:55b1f6030a534bb48a9149e63d16d590
+2026-08-19 16:44:26,536 INFO rq.worker: *** Listening on clo...
+2026-08-19 16:44:26,537 INFO rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: cleaning registries for queue: clo
+2026-08-19 16:44:56,540 INFO rq.worker: clo: worker.tasks.run_avatar_job('aj_be0da281bb6c0a12') (51fd6842-3afc-48c4-bea7-8a96f6ca6891)
+2026-08-19 16:45:18,861 ERROR rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: job 51fd6842-3afc-48c4-bea7-8a96f6ca6891: exception raised while executing (worker.tasks.run_avatar_job)
+Traceback (most recent call last):
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\srv_resolver.py", line 96, in get_options
+    results = await _resolve(self.__fqdn, "TXT", lifetime=self.__connect_timeout)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\srv_resolver.py", line 57, in _resolve
+    return await asyncresolver.resolve(*args, **kwargs)  # type:ignore[return-value]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\dns\asyncresolver.py", line 306, in resolve
+    return await get_default_resolver().resolve(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\dns\asyncresolver.py", line 92, in resolve
+    timeout = self._compute_timeout(start, lifetime, resolution.errors)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\dns\resolver.py", line 1084, in _compute_timeout
+    raise LifetimeTimeout(timeout=duration, errors=errors)
+dns.resolver.LifetimeTimeout: The resolution lifetime expired after 21.201 seconds: Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 1.999 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 1.999 seconds
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\rq\worker\base.py", line 1550, in perform_job
+    return_value = job.perform()
+                   ^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\rq\job.py", line 1368, in perform
+    self._result = self._execute()
+                   ^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\rq\job.py", line 1428, in _execute
+    result = self.func(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\worker\tasks.py", line 83, in run_avatar_job
+    _get_loop().run_until_complete(_run_avatar_job(job_id))
+  File "C:\Users\Saumy\AppData\Local\Programs\Python\Python312\Lib\asyncio\base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\worker\tasks.py", line 87, in _run_avatar_job
+    raw = await avatar_jobs_col().find_one({"_id": job_id})
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\collection.py", line 1756, in find_one
+    async for result in cursor.limit(-1):
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\cursor.py", line 1291, in __anext__
+    return await self.next()
+           ^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\cursor.py", line 1267, in next
+    if len(self._data) or await self._refresh():
+                          ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\cursor.py", line 1215, in _refresh
+    await self._send_message(q)
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\cursor.py", line 1110, in _send_message
+    response = await client._run_operation(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\_csot.py", line 115, in csot_wrapper
+    return await func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 1942, in _run_operation
+    return await self._retryable_read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 2052, in _retryable_read
+    return await self._retry_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\_csot.py", line 115, in csot_wrapper
+    return await func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 2007, in _retry_internal
+    return await _ClientConnectionRetryable(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 2773, in run
+    return await self._read() if self._is_read else await self._write()
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 2918, in _read
+    self._server = await self._get_server()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 2866, in _get_server
+    return await self._client._select_server(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 1824, in _select_server
+    topology = await self._get_topology()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 1762, in _get_topology
+    await self._resolve_srv()
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\mongo_client.py", line 910, in _resolve_srv
+    res = await uri_parser._parse_srv(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\uri_parser.py", line 169, in _parse_srv
+    dns_options = await dns_resolver.get_options()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\D-drive-data\mirra-mvp\.venv\Lib\site-packages\pymongo\asynchronous\srv_resolver.py", line 101, in get_options
+    raise ConfigurationError(str(exc)) from exc
+pymongo.errors.ConfigurationError: The resolution lifetime expired after 21.201 seconds: Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 1.999 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 2.000 seconds; Server Do53:192.168.0.1@53 answered The DNS operation timed out after 1.999 seconds
+
+2026-08-19 16:58:48,970 INFO rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: cleaning registries for queue: clo
+2026-08-19 17:12:19,079 INFO rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: cleaning registries for queue: clo
+2026-08-19 17:25:49,243 INFO rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: cleaning registries for queue: clo
+2026-08-19 17:39:19,419 INFO rq.worker: Worker 55b1f6030a534bb48a9149e63d16d590: cleaning registries for queue: clo

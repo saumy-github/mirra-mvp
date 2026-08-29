@@ -1,5 +1,7 @@
 """HTTP ↔ domain translation for avatars."""
 
+from fastapi.responses import FileResponse
+
 from . import service
 from .models import STAGE_LABELS, AvatarJobDocument, AvatarProfileDocument
 
@@ -49,3 +51,21 @@ async def get_profile(user_id: str) -> dict:
 async def delete_profile(user_id: str) -> dict:
     await service.delete_profile(user_id)
     return {"ok": True}
+
+
+async def get_profile_glb(user_id: str) -> FileResponse:
+    resolved = await service.get_profile_glb(user_id)
+    headers = {
+        # Version-scoped path, never overwritten in place.
+        "Cache-Control": "public, max-age=31536000, immutable",
+        # "unknown" when the source version was never recorded.
+        "X-Avatar-Measurements-Stale": (
+            "unknown" if resolved.is_stale is None else str(resolved.is_stale).lower()
+        ),
+    }
+    return FileResponse(
+        path=resolved.path,
+        media_type="model/gltf-binary",
+        filename="avatar.glb",
+        headers=headers,
+    )

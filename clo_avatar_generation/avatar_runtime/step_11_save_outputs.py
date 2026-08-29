@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 import shutil
 import time
 import zipfile
@@ -31,25 +32,47 @@ MESH_SIZE_TOLERANCE_PCT = 3.0
 MAX_SAVE_ATTEMPTS = 3
 
 
+def _trailing_index(member: str) -> int:
+    """Trailing integer in a member name (result_project_2.avt -> 2), else -1."""
+    match = re.search(r"_(\d+)$", Path(member).stem)
+    return int(match.group(1)) if match else -1
+
+
+def _select_member(members: list[str]) -> str:
+    """The scene's active avatar is the highest-numbered member, not the first.
+
+    CLO writes result_project_0..N; index 0 is a leftover when several avatars
+    are present. Selecting position 0 is what exported another run's body.
+    """
+    return max(members, key=_trailing_index)
+
+
+def count_project_avatars(zprj_path: Path) -> list[str]:
+    """.avt members in the saved project. Exactly one is the healthy case."""
+    if not zipfile.is_zipfile(zprj_path):
+        return []
+    with zipfile.ZipFile(zprj_path, "r") as archive:
+        return [m for m in archive.namelist() if Path(m).suffix.lower() == ".avt"]
+
+
 def _extract_project_artifacts(zprj_path: Path, run_dir: Path) -> dict[str, str]:
     extracted: dict[str, str] = {}
     if not zipfile.is_zipfile(zprj_path):
         return extracted
 
     with zipfile.ZipFile(zprj_path, "r") as archive:
-        seen_suffixes: set[str] = set()
+        by_suffix: dict[str, list[str]] = {}
         for member in archive.namelist():
-            member_path = Path(member)
-            suffix = member_path.suffix.lower()
-            if suffix not in EXTRACTABLE_SUFFIXES or suffix in seen_suffixes:
-                continue
+            suffix = Path(member).suffix.lower()
+            if suffix in EXTRACTABLE_SUFFIXES:
+                by_suffix.setdefault(suffix, []).append(member)
 
-            target_name = EXTRACTABLE_SUFFIXES[suffix]
-            target_path = run_dir / target_name
-            with archive.open(member) as src, target_path.open("wb") as dst:
+        for suffix, members in by_suffix.items():
+            chosen = _select_member(members)
+            target_path = run_dir / EXTRACTABLE_SUFFIXES[suffix]
+            with archive.open(chosen) as src, target_path.open("wb") as dst:
                 shutil.copyfileobj(src, dst)
             extracted[suffix.lstrip(".")] = str(target_path)
-            seen_suffixes.add(suffix)
     return extracted
 
 
@@ -255,6 +278,24 @@ def run(ctx: Step1Context) -> bool:
                 "The project saved, but no avatar artifact was produced through direct AVT export or project extraction."
             )
 
+    # Extra avatars are reported, not fatal: CLO offers no safe way to remove them
+    # (DeleteAvatar hangs, GetAvatarProperties crashes), and the active one is
+    # selected correctly regardless. The warning keeps the leak visible.
+    project_avatars: list[str] = []
+    if ctx.exported_project_path:
+        project_avatars = count_project_avatars(Path(ctx.exported_project_path))
+        ctx.logger.info("Project contains %d avatar(s): %s", len(project_avatars), project_avatars)
+        if len(project_avatars) > 1:
+            ctx.warnings.append(
+                f"Scene held {len(project_avatars)} avatars ({', '.join(project_avatars)}); "
+                f"extracted the active one. Restart CLO if this keeps growing."
+            )
+            ctx.logger.warning(
+                "Scene not clean: %d avatars in the saved project, extracted the active one (%s)",
+                len(project_avatars),
+                project_avatars[-1] if project_avatars else "none",
+            )
+
     measurement_verification: dict | None = None
     if final_success and ctx.base_avatar_path is not None and ctx.extracted_avatar_path is not None:
         # Prefer the project-extracted AVT for verification: it has the binary-header + embedded-zip
@@ -288,6 +329,8 @@ def run(ctx: Step1Context) -> bool:
         "save_queue_result": save_queue_result,
         "save_status": save_status,
         "project_path": str(ctx.exported_project_path) if ctx.exported_project_path else None,
+        "project_avatar_count": len(project_avatars),
+        "project_avatar_members": project_avatars,
         "direct_avatar_export_available": direct_export_available,
         "direct_avatar_export_result": direct_avatar_result or None,
         "direct_avatar_export_queue_status": direct_avatar_queue_status or None,

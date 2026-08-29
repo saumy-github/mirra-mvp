@@ -89,4 +89,51 @@ Also note `ProfileLayout.tsx:24-26` runs its own inline auth guard. That duplica
 
 ## Execution log
 
-*(To be written after the work, per `01`'s workflow step 3.)*
+**Done 2026-08-19, Lane 2 (`mirra-lane-frontend`).** All of B1, B2-revised, B5 completed as planned. No backend/CLO/worker files touched, no `docker` commands run, no git writes.
+
+### What was done
+
+1. **Deleted `/onboarding` entirely.**
+   - Removed `src/pages/onboarding/Avatar.tsx` and its folder.
+   - Removed the lazy import and the `<Route path="/onboarding/avatar">` from `src/router.tsx`. Left the marketing routes (`/`, `/pricing`, `/faq`), `MarketingLayout`, and every other route in the auth/app/profile block untouched — only the onboarding import/route lines were removed.
+
+2. **Repointed the two dead-link call sites** (the actual bug doc 05 flagged, not a preference call):
+   - `src/pages/Studio.tsx` — avatar-less redirect now goes to `/profile/avatar` instead of the 404ing `/onboarding/avatar`.
+   - The generation flow's "measurements-required" CTA and the post-generation Continue now target `/profile/measurements` and `/studio` respectively (see next point) — both real routes, replacing the old `/onboarding/measurements`/`/measurements` targets that never existed.
+
+3. **Migrated the generation phase machine into `src/pages/profile/ProfileAvatar.tsx`**, replacing its old dead-end ("no avatar" copy with zero buttons). Reused `GenerationProgress` and `SynchronizedState` from the components folder rather than rewriting them (this is B5). Behavioral changes from the old `onboarding/Avatar.tsx`:
+   - `measurements-required` phase's "Add measurements" → `/profile/measurements` (was the 404ing `/onboarding/measurements`).
+   - `synchronized` phase's Continue → `/studio` (was the 404ing `/measurements`, and per the user's product decision that Studio is where the VTO lives).
+   - "Use my saved avatar" already went to `/studio` in the old code and still does.
+   - Added the mitigation doc 05 calls for explicitly (since B4 — persisting job state across navigation — is out of scope for this lane): the `generating` phase now shows "This takes about 90 seconds. Leaving this page will lose track of the run." directly above `GenerationProgress`.
+   - Kept the explicit save/regenerate separation; did not add any auto-trigger on measurement save (that's B3, deliberately deferred).
+   - Adapted the phase transitions from full-screen `min-h-dvh` centering to panel-scale centering (`flex w-full justify-center` inside `ProfileLayout`'s existing `max-w-3xl` shell) per the "stay inside ProfileLayout" decision — no layout escape hatch was built. Kept the `AnimatePresence`/`motion` transitions, just re-scaled.
+   - The existing saved-avatar view (figure, metadata, delete-with-confirm) was preserved essentially as-is; added "Use my saved avatar" and "Regenerate avatar" buttons to it since B1 was exactly this file having "zero buttons."
+
+4. **Folder rename: `src/features/onboarding/` → `src/features/profile/`.** Did this — it did not need more than the exception doc 05 carved out. Moved the `components/` subfolder (all four files: `generation-progress.tsx`, `synchronized.tsx`, `measurement-row.tsx`, `measurement-form.tsx`) with `Move-Item`, no content changes to any of the four. Updated exactly two import sites, exactly one line change per file:
+   - `src/pages/profile/ProfileAvatar.tsx` — both `@/features/onboarding/components/...` imports repointed to `@/features/profile/components/...`.
+   - `src/pages/profile/ProfileMeasurements.tsx` — same, for its two imports (`MeasurementRow`, `MeasurementForm`). **This is the only change made to that file** — no logic, no JSX, no reformatting, confirmed by diff-equivalence of everything else in the file.
+   - Did this rename before the final verification pass, per the sequencing instruction.
+
+### What was verified, and how
+
+- `npx tsc --noEmit` — clean, no output, exit 0.
+- `npx eslint src --max-warnings=0` — clean, no output, exit 0.
+- `npm run build` — succeeded (5.48s, 660 modules). Confirmed in the chunk list that no `Avatar-*.js` chunk exists anymore (the old onboarding page's chunk is gone) and `ProfileAvatar-*.js` now carries the generation-flow weight (15.19 kB, up from a trivial size before, consistent with it having absorbed the phase machine).
+- `grep -rn "onboarding" src/` — six hits, all permitted: a CSS comment (`globals.css:6`), two `Pricing.tsx` marketing-copy strings ("Self-serve onboarding"/"White-glove onboarding" — customer-onboarding copy, not a route, untouched), and three prose comments in the new `ProfileAvatar.tsx` referencing the old route/feature name for context. **No route, `navigate(...)`, or import referencing `/onboarding` remains anywhere in `src/`.**
+- Grepped the built `dist/` for `/onboarding` (any case) — zero matches, confirming the string is genuinely gone from shipped output, not merely unroutable. Also grepped for the old dead-end copy strings ("Preparing your fitting room", "One is created the next time you complete a photo session") — zero matches in `dist/`.
+- Did not click through in a live browser (no dev server was started — Lane 3 might have needed port 3000, and this wasn't a blocking risk given the route/logic tracing below). Instead traced the three scenarios by reading the final code:
+  1. Signed-in, no measurements → `/profile/avatar`: `avatar` resolves `null`/undefined → effect sets `phase="generating"` → `generate.mutate()` 404s → `phase="measurements-required"` → "Add measurements" button navigates to `/profile/measurements` (a real route, not a 404). Matches the exact bug doc 05 called out as broken.
+  2. Measurements saved, then generation runs to completion → `job.state === "ready"` → `phase="synchronized"` → `SynchronizedState`'s auto-continue and its "Continue now" button both call `goToStudio` → `/studio`.
+  3. `/studio` with no avatar → its existing guard effect now calls `navigate("/profile/avatar", { replace: true })` instead of the dead `/onboarding/avatar`.
+  - **Flagging this as the one verification gap**: doc 05 asked for a hand click-through; this was done by static trace against the actual hook/mutation contracts (`useAvatarProfile`, `useGenerateAvatar`, `useAvatarJob`) rather than a running browser, because no backend/CLO run was available or in this lane's scope to trigger. If a live click-through is wanted, someone with access to a running backend + worker should do one pass through the three scenarios above.
+
+### Judgment call: the `features/onboarding/` → `features/profile/` rename
+
+Done, per doc 05's own recommendation, since the narrow-exception path held: `ProfileMeasurements.tsx` only needed its two import lines changed, nothing else. No skip was necessary.
+
+### Where this diverged from the plan
+
+Nothing substantive diverged. Two small implementation notes not spelled out in the plan:
+- The old `onboarding/Avatar.tsx` had a `phase="checking"` state gating on `accountLoading` before deciding "decision" vs. "generating". `ProfileAvatar.tsx` didn't need an equivalent `checking` phase — `ProfileLayout` already blocks rendering its `<Outlet>` until `account` resolves (see `ProfileLayout.tsx`'s own `if (!account) return null`), so `ProfileAvatar` only ever mounts once auth is already settled. This also means `ProfileAvatar` no longer needs its own auth-guard redirect — `ProfileLayout`'s existing inline guard already covers it. (That guard's duplication is B6's territory, explicitly not touched here.)
+- The old code's "decision" phase (separate full-screen "Welcome back" card offering "Use my saved avatar" / "Review measurements" / "Regenerate avatar" for users who already have an avatar) is superseded by the pre-existing saved-avatar panel view in `ProfileAvatar.tsx` — that view already showed the avatar's metadata and a delete action; B1 was exactly that it had no other buttons. Rather than layering the old decision card on top, "Use my saved avatar" and "Regenerate avatar" were added directly to the existing panel view, since a `/profile/avatar` visit for a user who already has an avatar is naturally "here's your avatar" rather than a fresh decision prompt. Net effect is the same set of actions, presented in the panel's existing style instead of a re-introduced full-screen card (which the "stay inside ProfileLayout" decision ruled out anyway).

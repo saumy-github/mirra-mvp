@@ -39,14 +39,14 @@ if str(_HERE) not in sys.path:
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from mirra_measurements.db import get_sizes_collection  # noqa: E402
+from mirra_measurements.db import get_cloths_collection, get_sizes_collection  # noqa: E402
 from garment_measurements import GarmentMeasurements  # noqa: E402
 from view_selection import list_cloth_images, select_primary_image  # noqa: E402
 from segmentation import run_segmentation  # noqa: E402
 from colour_extraction import extract_colours  # noqa: E402
 from design_extraction import extract_design, make_empty_graphic_like  # noqa: E402
 from panel_generation_clo import generate_panels  # noqa: E402
-from run_manifest import get_next_product_run_dir  # noqa: E402
+from run_manifest import build_product_run_id, get_next_product_run_dir  # noqa: E402
 from texture_projection import project_textures  # noqa: E402
 
 
@@ -66,10 +66,23 @@ def load_size_doc(size_id: str) -> dict:
     return doc
 
 
+def load_cloth_doc(cloth_id: str) -> dict:
+    """Load one cloth document from MongoDB."""
+    doc = get_cloths_collection().find_one({"cloth_id": cloth_id}, {"_id": 0})
+    if doc is None:
+        raise ValueError(
+            f"cloth_id '{cloth_id}' was not found in the cloths collection. "
+            "Seed it first: python -m mirra_measurements.seed_cloths"
+        )
+    return doc
+
+
 def list_size_docs_for_cloth(cloth_id: str) -> list[dict]:
-    """List size documents for a specific cloth_id."""
+    """List the size documents this cloth is actually offered in."""
+    cloth = load_cloth_doc(cloth_id)
+    size_ids = cloth.get("size_ids") or []
     collection = get_sizes_collection()
-    return list(collection.find({}, {"_id": 0}).sort("size_id", 1))
+    return list(collection.find({"size_id": {"$in": size_ids}}, {"_id": 0}).sort("size_id", 1))
 
 
 def prompt_for_cloth_id(input_root: Path) -> str:
@@ -114,10 +127,17 @@ def prompt_for_size_doc(cloth_id: str) -> dict:
 
 
 def validate_cloth_and_size(cloth_id: str, cloth_dir: Path, size_doc: dict) -> None:
-    """Ensure the selected cloth folder and size document agree."""
+    """Ensure the folder, the cloth document and the size document agree."""
     if not cloth_dir.exists():
         raise FileNotFoundError(f"Cloth folder not found: {cloth_dir}")
-    return
+
+    cloth = load_cloth_doc(cloth_id)
+    size_id = size_doc["size_id"]
+    if size_id not in (cloth.get("size_ids") or []):
+        raise ValueError(
+            f"{cloth_id} is not offered in {size_id}. "
+            f"Available: {', '.join(cloth.get('size_ids') or []) or 'none'}"
+        )
 
 
 def write_colors_json(output_path: Path, colour_result) -> Path:
@@ -204,9 +224,12 @@ def build_run_summary(
             "textures": {k: str(v) for k, v in texture_result.textures.items()},
         }
 
+    # run_dir.name is just "001" under the nested tree, so the flat id is
+    # carried explicitly — it is what logs and Mongo refer to.
     return {
         "timestamp": datetime.now().isoformat(),
-        "run_id": run_dir.name,
+        "run_id": build_product_run_id(cloth_dir.name, size_doc["size_id"], int(run_dir.name)),
+        "run_dir": str(run_dir),
         "cloth_id": cloth_dir.name,
         "size_id": size_doc["size_id"],
         "input_folder": str(cloth_dir),

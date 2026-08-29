@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .context import create_context
 from .helpers import step_header, step_footer
+from .logging_setup import RunLog
 from .step_01_health import run as step_01_health
 from .step_02_new_project import run as step_02_new_project
 from .step_03_import_avatar import run as step_03_import_avatar
@@ -17,6 +18,7 @@ from .step_07_arrange_patterns import run as step_07_arrange_patterns
 from .step_08_apply_fabric import run as step_08_apply_fabric
 from .step_09_create_seams import run as step_09_create_seams
 from .step_10_simulate import run as step_10_simulate
+from .step_10b_save_project import run as step_10b_save_project
 from .step_11_export_note import run as step_11_export_glb
 from .step_12_texture_glb import run as step_12_texture_glb
 
@@ -33,6 +35,7 @@ _STEP_NAMES = {
     "step_08_apply_fabric":       "Apply Fabric",
     "step_09_create_seams":       "Create Seams",
     "step_10_simulate":           "Simulate",
+    "step_10b_save_project":      "Save Project",
     "step_11_export_note":         "Export GLB",
     "step_12_texture_glb":         "GLB Texture Inject",
 }
@@ -46,7 +49,28 @@ def _build_report(ctx, overall_ok, step_results):
     return {
         "status": "completed" if overall_ok else "failed",
         "created_at": _utc_now_iso_z(),
+        "run_id": ctx.run_id,
         "mode": "default_panels" if ctx.use_default_panels else "generated_panels",
+        # What produced this report. Without these a surviving report cannot
+        # say which avatar or which garment it describes (doc 13 section 42).
+        "inputs": {
+            "user_id": ctx.user_id,
+            "cloth_id": ctx.cloth_id,
+            "size_id": ctx.size_id,
+            "run_number": ctx.run_number,
+            "avatar_path": str(ctx.avatar_path),
+            "patterns_dir": str(ctx.patterns_dir),
+            "ingestion_output_dir": (
+                str(ctx.ingestion_output_dir) if ctx.ingestion_output_dir else None
+            ),
+            "output_dir": str(ctx.output_dir),
+        },
+        "artifacts": {
+            "zprj": str(ctx.zprj_path) if ctx.zprj_path else None,
+            "glb": str(ctx.glb_path) if ctx.glb_path else None,
+            "textured_glb": str(ctx.textured_glb_path) if ctx.textured_glb_path else None,
+            "project_avatars": ctx.project_avatars,
+        },
         "steps": step_results,
         "diagnostics": {
             "loaded_patterns": ctx.loaded_patterns,
@@ -166,10 +190,10 @@ def _step_extras(step_num: int, ctx) -> dict:
     if step_num == 9:
         return {"seams": f"{len(ctx.seams)} defined"}
 
-    if step_num == 11:
+    if step_num in (11, 12):
         return {"output_dir": str(ctx.output_dir)}
 
-    if step_num == 12:
+    if step_num == 13:
         def _ep(path) -> str:
             p = Path(path)
             return f"{p}  ({'EXISTS' if p.exists() else 'MISSING'})"
@@ -200,6 +224,13 @@ def run_pipeline(
     report_path: str | None = None,
     use_default_panels: bool = False,
     ingestion_output_dir: str | None = None,
+    user_id: str | None = None,
+    cloth_id: str | None = None,
+    size_id: str | None = None,
+    allow_seam_fallback: bool = True,
+    strict_seam_hash: bool = False,
+    strict_dxf_units: bool = False,
+    return_context: bool = False,
 ):
     """Run the isolated CLO-native VTO pipeline.
 
@@ -213,16 +244,35 @@ def run_pipeline(
         Root of the product ingestion run output (the directory that contains
         image_info/ and panels/). Required when use_default_panels=True to
         locate colors.json and the texture atlases.
+    user_id, cloth_id, size_id : str | None
+        Run identity. Decides the output directory
+        (<output>/<user>/<cloth>/<size>/<NNN>/) and therefore whether two
+        renders can overwrite each other. Callers that omit them land in a
+        shared ad-hoc bucket.
     """
-    pipeline_start = time.monotonic()
-
     ctx = create_context(
         seam_map=seam_map,
         avatar_path=avatar_path,
         patterns_dir=patterns_dir,
         use_default_panels=use_default_panels,
         ingestion_output_dir=ingestion_output_dir,
+        user_id=user_id,
+        cloth_id=cloth_id,
+        size_id=size_id,
+        allow_seam_fallback=allow_seam_fallback,
+        strict_seam_hash=strict_seam_hash,
+        strict_dxf_units=strict_dxf_units,
     )
+    # The run directory exists before step 1, so a failure still leaves a
+    # run.log and a report behind.
+    with RunLog(ctx.output_dir):
+        ok = _run_steps(ctx, csv_path, report_path, use_default_panels, ingestion_output_dir)
+    # Callers that ship artifacts need the run identity and paths back.
+    return (ok, ctx) if return_context else ok
+
+
+def _run_steps(ctx, csv_path, report_path, use_default_panels, ingestion_output_dir):
+    pipeline_start = time.monotonic()
     setattr(ctx, "native_measurement_csv", Path(csv_path) if csv_path else None)
 
     # Resolve texture artifact paths.
@@ -241,6 +291,8 @@ def run_pipeline(
     print("  CLO Native-Avatar Virtual Try-On Pipeline")
     print("═" * 64)
     mode_label = "DEFAULT PANELS" if use_default_panels else "GENERATED PANELS"
+    print(f"  Run           : {ctx.run_id}")
+    print(f"  Run dir       : {ctx.output_dir}")
     print(f"  Mode          : {mode_label}")
     print(f"  Avatar        : {ctx.avatar_path}")
     print(f"  Patterns dir  : {ctx.patterns_dir}")
@@ -264,8 +316,9 @@ def run_pipeline(
         (8,  step_08_apply_fabric),
         (9,  step_09_create_seams),
         (10, step_10_simulate),
-        (11, step_11_export_glb),
-        (12, step_12_texture_glb),
+        (11, step_10b_save_project),
+        (12, step_11_export_glb),
+        (13, step_12_texture_glb),
     ]
 
     step_results = []
@@ -312,13 +365,18 @@ def run_pipeline(
     print("═" * 64)
 
     report = _build_report(ctx, overall_ok, step_results)
+    # Always written into the run directory; report_path is an extra copy for
+    # callers that want it somewhere specific.
+    targets = [ctx.output_dir / "run_report.json"]
     if report_path:
+        targets.append(Path(report_path))
+
+    for target in targets:
         try:
-            p = Path(report_path)
-            p.parent.mkdir(parents=True, exist_ok=True)
-            p.write_text(json.dumps(report, indent=2), encoding="utf-8")
-            print(f"  Report → {p}")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps(report, indent=2), encoding="utf-8")
+            print(f"  Report → {target}")
         except Exception as exc:
-            print(f"  [WARN] Failed to write pipeline report: {exc}")
+            print(f"  [WARN] Failed to write pipeline report to {target}: {exc}")
 
     return overall_ok

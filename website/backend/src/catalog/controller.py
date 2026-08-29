@@ -1,7 +1,7 @@
 """HTTP ↔ domain translation for catalog."""
 
 from . import service
-from .models import SIZE_MEASUREMENT_FIELDS, SizeDocument
+from .models import SIZE_MEASUREMENT_FIELDS, ClothDocument, SizeDocument
 
 
 def shape_garment(doc: SizeDocument) -> dict:
@@ -18,17 +18,27 @@ def shape_garment(doc: SizeDocument) -> dict:
     }
 
 
-async def list_garments(fit_type, category, q, limit, offset) -> dict:
-    items, total = await service.list_garments(
-        fit_type=fit_type, category=category, q=q, limit=limit, offset=offset
-    )
+def shape_cloth(cloth: ClothDocument, sizes: list[SizeDocument]) -> dict:
+    """A product: the cloth, with its sizes as variants."""
     return {
-        "items": [shape_garment(d) for d in items],
+        "clothId": cloth.cloth_id,
+        "label": cloth.label,
+        "category": cloth.category,
+        "sizes": [shape_garment(s) for s in sizes],
+        "updatedAt": cloth.updated_at.isoformat() if cloth.updated_at else None,
+    }
+
+
+async def list_garments(fit_type, category, q, limit, offset) -> dict:
+    items, total = await service.list_cloths(category=category, q=q, limit=limit, offset=offset)
+    return {
+        "items": [shape_cloth(cloth, sizes) for cloth, sizes in items],
         "total": total,
         "limit": limit,
         "offset": offset,
     }
 
 
-async def get_garment(size_id: str) -> dict:
-    return {"garment": shape_garment(await service.get_garment(size_id))}
+async def get_garment(cloth_id: str) -> dict:
+    cloth, sizes = await service.get_cloth(cloth_id)
+    return {"garment": shape_cloth(cloth, sizes)}

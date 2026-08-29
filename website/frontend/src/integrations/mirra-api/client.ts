@@ -68,6 +68,33 @@ export class MirraHttpClient {
     return this.send("POST", path, schema, () => ({ headers: {}, body: form }));
   }
 
+  /** Binary GET. Loaders can't send the Authorization header themselves, so
+   * callers fetch here and hand the result to the loader as an object URL. */
+  async getBlob(path: string): Promise<Blob> {
+    return (await this.getBlobWithHeaders(path)).blob;
+  }
+
+  /** Binary GET that also surfaces the response headers — some binary routes
+   * carry metadata there (X-Avatar-Measurements-Stale). */
+  async getBlobWithHeaders(path: string): Promise<{ blob: Blob; headers: Headers }> {
+    const payload = { headers: {} as Record<string, string> };
+    let res = await this.fetchOnce("GET", path, payload);
+
+    if (res.status === 401 && path !== "/auth/refresh") {
+      const token = await refreshAccessToken(this.baseUrl);
+      if (token) res = await this.fetchOnce("GET", path, payload);
+    }
+
+    if (!res.ok) {
+      throw new MirraApiError(
+        STATUS_TO_CODE[res.status] ?? "unknown",
+        `Request failed (${res.status})`,
+        res.status,
+      );
+    }
+    return { blob: await res.blob(), headers: res.headers };
+  }
+
   private async send<T>(
     method: string,
     path: string,

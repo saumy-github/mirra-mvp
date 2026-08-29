@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import FileResponse
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
@@ -26,6 +27,13 @@ async def request_render(session_id: str, body: RequestRenderRequest, identity: 
 @router.get("/sessions/{session_id}/renders/{render_id}")
 async def get_render(session_id: str, render_id: str, identity: CurrentIdentity):
     return await controller.get_render(session_id, render_id, identity.user_id)
+
+
+@router.get("/sessions/{session_id}/renders/{render_id}/glb")
+async def get_render_glb(
+    session_id: str, render_id: str, identity: CurrentIdentity
+) -> FileResponse:
+    return await controller.get_render_glb(session_id, render_id, identity.user_id)
 
 
 @router.get("/history")

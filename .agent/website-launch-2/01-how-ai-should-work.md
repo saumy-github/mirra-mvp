@@ -62,6 +62,20 @@ Because the plan docs (`04`, `05`, `06`) carry the detailed, pre-verified contex
 
 `npm run build` and every `dist/` check mean **`C:\D-drive-data\mirra-mvp\website\frontend\dist\`** — the build output of *this* repo, and nothing else. Never build, read, or grep a `dist/` belonging to another checkout, another clone, the standalone landing redesign, or any path outside this repo. When a plan says "grep the built `dist/` output", it means this one. If the path you are about to touch is not under the project root, stop.
 
+### Comments: one line, only where the code is not self-explanatory
+
+**User instruction, 2026-08-19.** Agents on this repo have been writing long explanatory comment blocks that nobody asked for and nobody needs.
+
+The rule:
+
+- **One line.** Not a paragraph, not a multi-line block, not a rationale essay above a function.
+- **Only where the code is genuinely not self-explanatory.** If a reader can see what the line does by reading it, it gets no comment. Most code needs none.
+- Comment the **non-obvious why**, never the **what**. `// increment counter` above `count++` is noise. `// CLO returns half-girth, not circumference` earns its place.
+- Do not narrate your own work in code comments — no "changed 2026-08-19", no "per doc 05", no explaining what you were asked to do. That belongs in the execution log, which is what the plan docs exist for.
+- Do not leave commented-out code with an explanation of why it is commented, beyond one short line.
+
+This applies to the code you write. Do not go reformatting unrelated existing comments.
+
 ### Verification runs once, at the end — not after every edit
 
 **User instruction, 2026-08-19.** `npx tsc --noEmit`, `npx eslint src --max-warnings=0`, `npm run build`, `py_compile`, and the smoke test are **end-of-work checks**, run once after all the changes for that lane are complete. Do not run them after each small edit.

@@ -13,7 +13,14 @@ if str(workspace_root) not in sys.path:
 
 from .client import CLORestClient
 from .helpers import resolve_patterns_dir
+from .run_manifest import build_vto_run_id, get_next_vto_run_dir
 from .seams import DEFAULT_SEAMS, SeamManifestError, load_seams_from_manifest
+
+# Used when a caller supplies no run identity — CLI debugging, mostly. Keeps
+# such runs out of the real per-user tree instead of colliding with it.
+FALLBACK_USER_ID = "u_adhoc"
+FALLBACK_CLOTH_ID = "c_adhoc"
+FALLBACK_SIZE_ID = "s_adhoc"
 
 
 @dataclass
@@ -84,6 +91,15 @@ class PipelineContext:
     glb_path: Optional[Path] = None
     textured_glb_path: Optional[Path] = None
     skip_glb_postprocess: bool = False
+    # Run identity. output_dir is <output>/<user>/<cloth>/<size>/<NNN>/.
+    user_id: str = FALLBACK_USER_ID
+    cloth_id: str = FALLBACK_CLOTH_ID
+    size_id: str = FALLBACK_SIZE_ID
+    run_number: int = 0
+    run_id: str = ""
+    # Set by step_10b once the project is saved.
+    zprj_path: Optional[Path] = None
+    project_avatars: list[str] = field(default_factory=list)
 
 
 def _load_manifest(patterns_dir: Path) -> dict:
@@ -140,6 +156,9 @@ def create_context(
     strict_dxf_units: bool = False,
     use_default_panels: bool = False,
     ingestion_output_dir: Optional[Path | str] = None,
+    user_id: Optional[str] = None,
+    cloth_id: Optional[str] = None,
+    size_id: Optional[str] = None,
 ):
     """Build a pipeline context with default paths and seam map.
 
@@ -165,10 +184,15 @@ def create_context(
         Root directory of the product ingestion run output (contains
         image_info/ and panels/). Only used when use_default_panels=True.
     """
-    output_dir = package_root / "output"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    user_id = user_id or FALLBACK_USER_ID
+    cloth_id = cloth_id or FALLBACK_CLOTH_ID
+    size_id = size_id or FALLBACK_SIZE_ID
+
+    output_dir = get_next_vto_run_dir(user_id, cloth_id, size_id)
     project_dir = output_dir / "projects"
     project_dir.mkdir(parents=True, exist_ok=True)
+    run_number = int(output_dir.name)
+    run_id = build_vto_run_id(user_id, cloth_id, size_id, run_number)
 
     if avatar_path:
         avatar_path = Path(avatar_path).resolve()
@@ -241,5 +265,10 @@ def create_context(
         use_default_panels=use_default_panels,
         default_panels_dir=_DEFAULT_PANELS_DIR if use_default_panels else None,
         ingestion_output_dir=ingestion_output_dir,
+        user_id=user_id,
+        cloth_id=cloth_id,
+        size_id=size_id,
+        run_number=run_number,
+        run_id=run_id,
     )
     return ctx
