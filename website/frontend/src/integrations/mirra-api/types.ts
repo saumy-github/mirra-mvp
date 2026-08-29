@@ -101,6 +101,12 @@ export interface AvatarProfile {
   unitsPreference: "metric" | "imperial";
 }
 
+export interface AvatarGlbResult {
+  blob: Blob;
+  /** From X-Avatar-Measurements-Stale; null when the backend can't tell. */
+  isStale: boolean | null;
+}
+
 // ── Avatar job ───────────────────────────────────────────────────────
 // This is the CLO3D integration seam — see backend-structure-plan.md.
 

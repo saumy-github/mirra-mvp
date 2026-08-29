@@ -7,7 +7,16 @@ import tseslint from "typescript-eslint";
 import prettierConfig from "eslint-config-prettier";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  {
+    ignores: [
+      "dist",
+      // Vendored Bklit UI chart primitives, pulled from the @bklit shadcn
+      // registry (see website/DASHBOARD_MIGRATION.md). Upstream source, kept
+      // byte-for-byte so it can be re-pulled/updated; our own dashboard code
+      // sits outside this directory and is linted normally.
+      "src/features/dashboard/charts/**",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

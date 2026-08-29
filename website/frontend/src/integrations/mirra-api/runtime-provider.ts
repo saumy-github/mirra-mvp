@@ -1,5 +1,6 @@
 import type {
   AnalyticsEvent,
+  AvatarGlbResult,
   AvatarJob,
   AvatarProfile,
   MeasurementKey,
@@ -50,6 +51,8 @@ export interface MirraRuntimeProvider {
   generateAvatar(): Promise<AvatarJob>;
   getAvatarJob(jobId: string): Promise<AvatarJob>;
   getAvatarProfile(): Promise<AvatarProfile | null>;
+  /** Binary GLB for the signed-in shopper's own avatar, plus staleness. */
+  getAvatarGlb(): Promise<AvatarGlbResult>;
   updateMeasurements(
     changes: Partial<Record<MeasurementKey, number>>,
     opts?: {
@@ -72,6 +75,8 @@ export interface MirraRuntimeProvider {
     baseLayers?: SignatureLookLayer[];
   }): Promise<TryOnRender>;
   getTryOnRender(tryOnSessionId: string, renderId: string): Promise<TryOnRender>;
+  /** Binary GLB of a finished render — avatar and garment in one file. */
+  getTryOnRenderGlb(tryOnSessionId: string, renderId: string): Promise<Blob>;
   /** Recent renders for this user — seeds the Hanger. */
   listRecentRenders(): Promise<TryOnRender[]>;
 

@@ -77,6 +77,15 @@ def _pack_self_contained_glb(raw_path: Path, packed_path: Path, logger) -> bool:
     return True
 
 
+GLB_MAGIC = b"glTF"
+
+
+def _is_binary_glb(path: Path) -> bool:
+    """True if the file really is binary GLB rather than JSON named .glb."""
+    with path.open("rb") as handle:
+        return handle.read(4) == GLB_MAGIC
+
+
 def run(ctx: Step1Context) -> bool:
     if not ctx.extracted_avatar_path:
         payload = {
@@ -90,7 +99,7 @@ def run(ctx: Step1Context) -> bool:
     run_dir = ctx.require_run_dir()
     raw_glb_path = run_dir / "result_avatar.glb"
 
-    ctx.logger.info("Exporting raw avatar GLB (glTF-separate, CLO plugin limitation): %s", raw_glb_path)
+    ctx.logger.info("Exporting avatar GLB: %s", raw_glb_path)
     export_result = ctx.client.export_avatar_glb(raw_glb_path)
     if not export_result.get("success", False):
         payload = {
@@ -124,6 +133,32 @@ def run(ctx: Step1Context) -> bool:
         return True
 
     ctx.logger.info("Raw GLB written (%d B) — packing into a self-contained binary .glb", size_bytes)
+    # ExportGLB writes one self-contained binary file, so there is nothing to pack.
+    # Packing only runs when CLO fell back to glTF-separate (JSON + .bin + textures).
+    if _is_binary_glb(raw_glb_path):
+        ctx.avatar_glb_path = raw_glb_path
+        payload = {
+            "exported": True,
+            "packed": False,
+            "reason": "ExportGLB produced binary GLB directly; no packing needed.",
+            "glb_path": str(raw_glb_path),
+            "glb_size_bytes": size_bytes,
+        }
+        ctx.log_json("export_glb", payload)
+        ctx.logger.info(
+            "GLB exported directly by CLO: %s (%.1f MB, single self-contained file)",
+            raw_glb_path,
+            size_bytes / (1024 * 1024),
+        )
+        return True
+
+    ctx.warnings.append(
+        "ExportGLB returned JSON glTF rather than binary GLB; falling back to Python packing. "
+        "The loose .bin and texture files beside it are the cause."
+    )
+    ctx.logger.warning(
+        "Export produced JSON glTF, not binary GLB - falling back to packing (see doc 11 Part 5)"
+    )
     packed_path = run_dir / "result_avatar_packed.glb"
     packed_ok = _pack_self_contained_glb(raw_glb_path, packed_path, ctx.logger)
 
@@ -142,6 +177,7 @@ def run(ctx: Step1Context) -> bool:
 
     packed_size = packed_path.stat().st_size
     ctx.avatar_glb_path = packed_path
+
     payload = {
         "exported": True,
         "packed": True,

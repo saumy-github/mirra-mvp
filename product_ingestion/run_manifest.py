@@ -1,4 +1,24 @@
-"""Helpers for canonical product_ingestion run folders."""
+"""Helpers for canonical product_ingestion run folders.
+
+Layout (doc 13, Phase 4):
+
+    output/
+      c_001/
+        s_001/
+          001/
+          002/
+        s_002/
+      c_002/
+
+Flat `c_001-s_001-001` folders predate 2026-08-23 and are deliberately not
+parsed here — see doc 13 section 52. The cloth/size directory patterns below
+reject any name containing a dash, so a legacy folder can never be mistaken
+for a cloth directory.
+
+The run *id* stays flat (`c_001-s_001-001`). Nesting is filesystem
+ergonomics; the id is what goes into run_summary.json, logs and Mongo, and
+`run_dir.name` alone ("001") would be meaningless there.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +27,10 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 _HERE = Path(__file__).parent.resolve()
-_RUN_RE = re.compile(r"^(c_[^-]+)-(s_[^-]+)-(\d{3})$")
+
+_CLOTH_RE = re.compile(r"^c_[^-]+$")
+_SIZE_RE = re.compile(r"^s_[^-]+$")
+_RUN_RE = re.compile(r"^(\d{3})$")
 
 
 def get_output_root(output_root: Optional[str | Path] = None) -> Path:
@@ -16,18 +39,35 @@ def get_output_root(output_root: Optional[str | Path] = None) -> Path:
     return base.resolve()
 
 
-def build_product_run_name(cloth_id: str, size_id: str, run_number: int) -> str:
-    """Build the canonical run name: <cloth_id>-<size_id>-<run_number>."""
+def build_product_run_id(cloth_id: str, size_id: str, run_number: int) -> str:
+    """The stable run identifier: <cloth_id>-<size_id>-<run_number>."""
     return f"{cloth_id}-{size_id}-{run_number:03d}"
 
 
-def parse_product_run_name(run_name: str) -> Optional[tuple[str, str, int]]:
-    """Parse a canonical product-ingestion run folder name."""
-    match = _RUN_RE.match(run_name)
-    if not match:
+# Kept under its old name for callers that still import it.
+build_product_run_name = build_product_run_id
+
+
+def get_product_run_dir(
+    cloth_id: str,
+    size_id: str,
+    run_number: int,
+    output_root: Optional[str | Path] = None,
+) -> Path:
+    """Path of one run directory under the nested tree."""
+    return get_output_root(output_root) / cloth_id / size_id / f"{run_number:03d}"
+
+
+def parse_product_run_dir(run_dir: Path) -> Optional[tuple[str, str, int]]:
+    """Parse a nested run directory into (cloth_id, size_id, run_number)."""
+    number_match = _RUN_RE.match(run_dir.name)
+    if not number_match:
         return None
-    cloth_id, size_id, run_number = match.groups()
-    return cloth_id, size_id, int(run_number)
+    size_dir = run_dir.parent
+    cloth_dir = size_dir.parent
+    if not _SIZE_RE.match(size_dir.name) or not _CLOTH_RE.match(cloth_dir.name):
+        return None
+    return cloth_dir.name, size_dir.name, int(number_match.group(1))
 
 
 def iter_product_runs(output_root: Optional[str | Path] = None) -> Iterable[Path]:
@@ -36,11 +76,16 @@ def iter_product_runs(output_root: Optional[str | Path] = None) -> Iterable[Path
     if not base.exists():
         return []
 
-    runs = []
-    for child in base.iterdir():
-        parsed = parse_product_run_name(child.name) if child.is_dir() else None
-        if parsed:
-            runs.append(child)
+    runs: list[Path] = []
+    for cloth_dir in base.iterdir():
+        if not cloth_dir.is_dir() or not _CLOTH_RE.match(cloth_dir.name):
+            continue
+        for size_dir in cloth_dir.iterdir():
+            if not size_dir.is_dir() or not _SIZE_RE.match(size_dir.name):
+                continue
+            for run_dir in size_dir.iterdir():
+                if run_dir.is_dir() and _RUN_RE.match(run_dir.name):
+                    runs.append(run_dir)
     return runs
 
 
@@ -52,7 +97,7 @@ def list_product_runs(
     """Return canonical run directories filtered by cloth_id and/or size_id."""
     runs = []
     for run_dir in iter_product_runs(output_root):
-        parsed = parse_product_run_name(run_dir.name)
+        parsed = parse_product_run_dir(run_dir)
         if not parsed:
             continue
         run_cloth_id, run_size_id, run_number = parsed
@@ -73,16 +118,15 @@ def get_next_product_run_dir(
 ) -> Path:
     """Create and return the next canonical run directory."""
     base = get_output_root(output_root)
-    base.mkdir(parents=True, exist_ok=True)
-
     existing = list_product_runs(cloth_id=cloth_id, size_id=size_id, output_root=base)
+
     next_number = 1
     if existing:
-        parsed = parse_product_run_name(existing[-1].name)
+        parsed = parse_product_run_dir(existing[-1])
         if parsed:
             next_number = parsed[2] + 1
 
-    run_dir = base / build_product_run_name(cloth_id, size_id, next_number)
+    run_dir = get_product_run_dir(cloth_id, size_id, next_number, output_root=base)
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
 

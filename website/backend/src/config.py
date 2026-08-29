@@ -7,6 +7,8 @@ from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
+# /app in the Docker image, which is where compose mounts the upload roots.
+REPO_ROOT = BACKEND_DIR.parent.parent
 
 
 class Settings(BaseSettings):
@@ -30,9 +32,7 @@ class Settings(BaseSettings):
 
     # Mirrors the frontend's VITE_APP_ENV. Read directly by the worker
     # process (os.environ, via worker/.env — see worker/live_upload.py) to
-    # pick dev_upload/ vs live_upload/; not yet consumed by the backend
-    # itself (Step 6's serving route will need it once built — see
-    # .agent/website-launch/22-remove-demo-live-mode-and-upload-split.md).
+    # pick dev_upload/ vs live_upload/, and here by avatars_upload_root below.
     app_env: Literal["development", "production"] = "development"
 
     # Redis/RQ hand-off to the native CLO worker (worker/, repo root) — see
@@ -49,9 +49,26 @@ class Settings(BaseSettings):
     frontend_auth_success_url: str = "http://localhost:3000/auth/callback"
     frontend_auth_failure_url: str = "http://localhost:3000/auth/login"
 
+    # Optional transactional email for early-access confirmations. The form
+    # still persists applications when SMTP is intentionally not configured.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "Mirra"
+    smtp_security: Literal["starttls", "ssl", "none"] = "starttls"
+    join_notification_email: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def avatars_upload_root(self) -> Path:
+        """Excludes the trailing "avatars" segment — avatar_glb_path already supplies it."""
+        root_name = "live_upload" if self.app_env == "production" else "dev_upload"
+        return REPO_ROOT / root_name
 
 
 @lru_cache

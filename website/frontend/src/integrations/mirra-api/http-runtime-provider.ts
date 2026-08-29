@@ -145,6 +145,11 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     const envelope = await this.http.get("/avatars/profile", live.profileEnvelope);
     return envelope.profile ? live.mapProfile(envelope.profile) : null;
   }
+  async getAvatarGlb() {
+    const { blob, headers } = await this.http.getBlobWithHeaders("/avatars/profile/glb");
+    const raw = headers.get("X-Avatar-Measurements-Stale");
+    return { blob, isStale: raw === "true" ? true : raw === "false" ? false : null };
+  }
   async updateMeasurements(
     changes: Partial<Record<MeasurementKey, number>>,
     opts: {
@@ -160,14 +165,15 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     }
     let measurements: Record<string, unknown>;
     try {
-      measurements = (await this.http.patch("/measurements/me", live.measurementsEnvelope, fields))
-        .measurements;
+      measurements = (
+        await this.http.patch("/user-measurements/me", live.measurementsEnvelope, fields)
+      ).measurements;
     } catch (err) {
       if (err instanceof MirraApiError && err.status === 404) {
         // First submission — defaults preserve prior (pre-form) behaviour
         // for callers that don't pass gender/accuracy explicitly.
         measurements = (
-          await this.http.put("/measurements/me", live.measurementsEnvelope, {
+          await this.http.put("/user-measurements/me", live.measurementsEnvelope, {
             gender: opts.gender ?? "male",
             accuracy: opts.accuracy ?? "approx",
             ...fields,
@@ -200,9 +206,11 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     size: string | null;
     baseLayers?: SignatureLookLayer[];
   }) {
+    // A product is a cloth and a variant is a size — see doc 13 §47.
     return this.http
       .post(`/tryon/sessions/${input.tryOnSessionId}/renders`, live.renderEnvelope, {
-        sizeId: input.productPublicId,
+        clothId: input.productPublicId,
+        sizeId: input.variantPublicId,
       })
       .then((envelope) => live.mapRender(envelope.render));
   }
@@ -210,6 +218,9 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     return this.http
       .get(`/tryon/sessions/${tryOnSessionId}/renders/${renderId}`, live.renderEnvelope)
       .then((envelope) => live.mapRender(envelope.render));
+  }
+  getTryOnRenderGlb(tryOnSessionId: string, renderId: string) {
+    return this.http.getBlob(`/tryon/sessions/${tryOnSessionId}/renders/${renderId}/glb`);
   }
   listRecentRenders() {
     return this.http

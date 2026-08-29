@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import FileResponse
 
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
@@ -25,6 +26,11 @@ async def get_job(job_id: str, identity: CurrentIdentity):
 @router.get("/profile")
 async def get_profile(identity: CurrentIdentity):
     return await controller.get_profile(identity.user_id)
+
+
+@router.get("/profile/glb")
+async def get_profile_glb(identity: CurrentIdentity) -> FileResponse:
+    return await controller.get_profile_glb(identity.user_id)
 
 
 @router.delete("/profile")

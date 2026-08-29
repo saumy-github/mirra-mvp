@@ -74,13 +74,35 @@ export function AvatarFigure({
           />
         </>
       )}
-      <img
-        src={previewAssetUrl}
-        alt=""
-        className="absolute inset-0 h-full w-full object-contain select-none"
-        draggable={false}
-        decoding="async"
-      />
+      {previewAssetUrl ? (
+        <img
+          src={previewAssetUrl}
+          alt=""
+          className="absolute inset-0 h-full w-full object-contain select-none"
+          draggable={false}
+          decoding="async"
+        />
+      ) : (
+        <div
+          aria-hidden
+          className="absolute inset-[10%] flex items-center justify-center rounded-[42%] border border-white/70 bg-paper/42 text-muted/65 shadow-[inset_0_0_60px_rgba(255,255,255,.44)] backdrop-blur-sm"
+        >
+          <svg
+            width="56%"
+            height="56%"
+            viewBox="0 0 180 360"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="90" cy="45" r="27" />
+            <path d="M65 82c-18 30-22 72-18 116l12 108M115 82c18 30 22 72 18 116l-12 108" />
+            <path d="M65 82c13 10 37 10 50 0M48 198h84M59 306l-15 39M121 306l15 39" />
+          </svg>
+        </div>
+      )}
       <AnimatePresence initial={false} mode="popLayout">
         {sorted.map((layer) => (
           <motion.img

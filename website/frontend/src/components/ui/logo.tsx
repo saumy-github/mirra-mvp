@@ -1,41 +1,65 @@
-/** Mirra mark — a quiet tulip/M glyph, stroke only. */
+export type MirraLogoVariant = "dark" | "light";
+
+const MIRRA_LOGO_ASSETS: Record<MirraLogoVariant, { mark: string; lockup: string }> = {
+  dark: {
+    mark: "/brand/Mirra-logo-dark.png",
+    lockup: "/brand/mirra-logo-dark-long.png",
+  },
+  light: {
+    mark: "/brand/Mirra-logo-light.png",
+    lockup: "/brand/mirra-logo-light-long.png",
+  },
+};
+
+type LogoImageProps = {
+  alt?: string;
+  className?: string;
+  variant?: MirraLogoVariant;
+};
+
 export function MirraMark({
+  alt = "",
   className = "",
   size = 30,
-  strokeWidth = 1.4,
-}: {
-  className?: string;
+  variant = "dark",
+}: LogoImageProps & {
   size?: number;
+  /** Kept for compatibility with the previous drawn mark. */
   strokeWidth?: number;
 }) {
   return (
-    <svg
+    <img
+      src={MIRRA_LOGO_ASSETS[variant].mark}
+      alt={alt}
+      aria-hidden={alt ? undefined : true}
+      draggable={false}
       width={size}
       height={size}
-      viewBox="0 0 32 32"
-      fill="none"
-      aria-hidden
-      className={className}
-    >
-      <path
-        d="M16 5.5 25.5 10.5 C26.3 17.5 22.8 24.2 16 27 C9.2 24.2 5.7 17.5 6.5 10.5 Z"
-        stroke="currentColor"
-        strokeWidth={strokeWidth}
-        strokeLinejoin="round"
-      />
-      <path
-        d="M11.5 9 16 16.5 20.5 9"
-        stroke="currentColor"
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      className={`shrink-0 object-contain ${className}`.trim()}
+    />
   );
 }
 
-export function MirraWordmark({ className = "" }: { className?: string }) {
+export function MirraLogo({
+  alt = "Mirra",
+  className = "",
+  height = 40,
+  variant = "dark",
+}: LogoImageProps & { height?: number }) {
   return (
-    <span className={`font-mono text-sm tracking-[0.42em] uppercase ${className}`}>MIRRA</span>
+    <img
+      src={MIRRA_LOGO_ASSETS[variant].lockup}
+      alt={alt}
+      aria-hidden={alt ? undefined : true}
+      draggable={false}
+      width={Math.round((height * 414) / 181)}
+      height={height}
+      className={`block max-w-full object-contain ${className}`.trim()}
+    />
   );
+}
+
+/** Compatibility alias for older call sites; new brand placements use MirraLogo. */
+export function MirraWordmark({ className = "" }: { className?: string }) {
+  return <MirraLogo className={className} height={34} />;
 }

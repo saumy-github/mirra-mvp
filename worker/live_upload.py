@@ -28,13 +28,23 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEV_UPLOAD_AVATARS_ROOT = REPO_ROOT / "dev_upload" / "avatars"
-LIVE_UPLOAD_AVATARS_ROOT = REPO_ROOT / "live_upload" / "avatars"
+DEV_UPLOAD_ROOT = REPO_ROOT / "dev_upload"
+LIVE_UPLOAD_ROOT = REPO_ROOT / "live_upload"
+DEV_UPLOAD_AVATARS_ROOT = DEV_UPLOAD_ROOT / "avatars"
+LIVE_UPLOAD_AVATARS_ROOT = LIVE_UPLOAD_ROOT / "avatars"
+
+
+def _upload_root() -> Path:
+    app_env = os.environ.get("APP_ENV", "development")
+    return LIVE_UPLOAD_ROOT if app_env == "production" else DEV_UPLOAD_ROOT
 
 
 def _avatars_root() -> Path:
-    app_env = os.environ.get("APP_ENV", "development")
-    return LIVE_UPLOAD_AVATARS_ROOT if app_env == "production" else DEV_UPLOAD_AVATARS_ROOT
+    return _upload_root() / "avatars"
+
+
+def _renders_root() -> Path:
+    return _upload_root() / "renders"
 
 
 @dataclass
@@ -108,6 +118,57 @@ def save_avatar_version(
         version_dir=version_dir,
         avt_path=saved_avt,
         zprj_path=saved_zprj,
+        glb_path=saved_glb,
+        glb_relative_path=glb_relative,
+    )
+
+
+@dataclass
+class SavedRenderVersion:
+    render_dir: Path
+    glb_path: Path | None
+    # Relative to the upload root — what tryon_renders.render_glb_path stores,
+    # since the serving route resolves against that same root.
+    glb_relative_path: str | None
+
+
+def save_render_version(
+    user_id: str,
+    render_id: str,
+    *,
+    run_id: str,
+    run_dir: Path,
+    glb_path: Path | None,
+    step_results: list[dict],
+) -> SavedRenderVersion:
+    """Copy one finished try-on render's shipped artifacts into
+    <dev_upload|live_upload>/renders/<user_id>/<render_id>/.
+
+    Keyed by render_id rather than a version counter: a render is already
+    unique and the frontend polls it by that id. Mirrors save_avatar_version
+    otherwise, including the run_manifest.json pointer back to the debug run.
+    """
+    render_dir = _renders_root() / user_id / render_id
+    render_dir.mkdir(parents=True, exist_ok=True)
+
+    saved_glb = _copy(glb_path, render_dir / "tryon.glb")
+    _copy(run_dir / "run.log", render_dir / "run.log")
+    _copy(run_dir / "run_report.json", render_dir / "run_report.json")
+
+    manifest = {
+        "user_id": user_id,
+        "render_id": render_id,
+        "source_run_id": run_id,
+        "source_run_dir": str(run_dir),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "steps": step_results,
+    }
+    (render_dir / "run_manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+    glb_relative = f"renders/{user_id}/{render_id}/tryon.glb" if saved_glb else None
+
+    return SavedRenderVersion(
+        render_dir=render_dir,
         glb_path=saved_glb,
         glb_relative_path=glb_relative,
     )

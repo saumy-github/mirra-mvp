@@ -9,7 +9,6 @@ from . import controller
 from .controller import GOOGLE_NEXT_COOKIE, GOOGLE_STATE_COOKIE, REFRESH_COOKIE
 from .schemas import (
     LoginRequest,
-    PasswordResetConfirmRequest,
     PasswordResetRequest,
     SignUpRequest,
     VerifyEmailRequest,
@@ -76,6 +75,4 @@ async def request_password_reset(body: PasswordResetRequest):
     return await controller.request_password_reset(body)
 
 
-@router.post("/password-reset/confirm")
-async def confirm_password_reset(body: PasswordResetConfirmRequest):
-    return await controller.confirm_password_reset(body)
+# /password-reset/confirm removed — dead route, see doc 06.

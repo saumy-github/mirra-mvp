@@ -38,6 +38,26 @@ SIZE_MEASUREMENT_FIELDS = (
 )
 
 
+VALID_CATEGORIES = ("top", "bottom", "outerwear", "footwear", "accessory")
+
+
+class ClothDocument(BaseModel):
+    """The `cloths` collection doc shape — one per input/c_XXX/ folder.
+
+    A cloth names the sizes it is offered in; a size does not name a cloth,
+    so two brands can use entirely different measurements while a single
+    brand's cloths share one chart. See doc 13 section 47.
+    """
+
+    cloth_id: str
+    label: str
+    category: str = "top"
+    size_ids: list[str] = []
+    brand_id: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
 class SizeDocument(BaseModel):
     """The `sizes` collection doc shape. No validation constraints beyond
     type — this is a read-only mirror of an externally-owned pipeline doc,
@@ -58,5 +78,7 @@ class SizeDocument(BaseModel):
     bicep_width_cm: float | None = None
     armhole_depth_cm: float | None = None
     seam_allowance_cm: float | None = None
+    hem_width_cm: float | None = None
+    wrist_width_cm: float | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None

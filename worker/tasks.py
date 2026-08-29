@@ -43,7 +43,9 @@ from src.avatars.models import AvatarJobDocument  # noqa: E402
 from src.db import avatar_jobs_col, avatar_profiles_col, tryon_renders_col  # noqa: E402
 from src.tryon.models import TryonRenderDocument  # noqa: E402
 
-from .live_upload import save_avatar_version  # noqa: E402
+from product_ingestion.run_manifest import get_latest_product_run_dir  # noqa: E402
+
+from .live_upload import save_avatar_version, save_render_version  # noqa: E402
 
 logger = logging.getLogger("mirra.worker")
 
@@ -201,30 +203,98 @@ async def _run_tryon_render(render_id: str) -> None:
         await _fail_render(render_id, f"Avatar file no longer exists on disk ({avt_path}) — regenerate your avatar.")
         return
 
-    # Step 7 (catalog -> real garment pattern wiring) isn't built yet, so
-    # every live try-on today renders the same default-panels t-shirt,
-    # untextured, regardless of the garment/size actually requested. See
-    # .agent/website-launch/06-avatar-vto-implementation-status.md Step 7/9.
-    report_path = VTO_OUTPUT_DIR / f"{render_id}__native_vto_report.json"
+    if not render.cloth_id:
+        await _fail_render(
+            render_id,
+            "This render predates cloth/size tracking and cannot be resolved to a garment. "
+            "Request the try-on again.",
+        )
+        return
+
+    # The garment the shopper actually picked. Falling back to default panels
+    # here is what made every try-on render the same untextured t-shirt, so a
+    # missing ingestion run fails the render instead (doc 13, Phase 6).
     try:
-        logger.info("run_tryon_render %s: starting live VTO pipeline (avatar=%s)", render_id, avt_path)
-        ok = run_vto_pipeline(
+        ingestion_dir = get_latest_product_run_dir(
+            cloth_id=render.cloth_id, size_id=render.size_id
+        )
+    except FileNotFoundError:
+        await _fail_render(
+            render_id,
+            f"No product-ingestion run exists for {render.cloth_id} + {render.size_id}. "
+            "Run product_ingestion for that cloth and size first.",
+        )
+        return
+
+    patterns_dir = ingestion_dir / "panels" / "dxf"
+    if not patterns_dir.is_dir() or not any(patterns_dir.glob("*.dxf")):
+        await _fail_render(
+            render_id,
+            f"Ingestion run {ingestion_dir.name} has no DXF panels at {patterns_dir}.",
+        )
+        return
+
+    report_path = VTO_OUTPUT_DIR / f"{render_id}__native_vto_report.json"
+    ctx = None
+    try:
+        logger.info(
+            "run_tryon_render %s: starting live VTO pipeline (avatar=%s cloth=%s size=%s panels=%s)",
+            render_id,
+            avt_path,
+            render.cloth_id,
+            render.size_id,
+            patterns_dir,
+        )
+        ok, ctx = run_vto_pipeline(
             avatar_path=str(avt_path),
-            patterns_dir=None,
-            use_default_panels=True,
-            ingestion_output_dir=None,
+            patterns_dir=str(patterns_dir),
+            use_default_panels=False,
+            ingestion_output_dir=str(ingestion_dir),
             report_path=str(report_path),
+            user_id=render.user_id,
+            cloth_id=render.cloth_id,
+            size_id=render.size_id,
+            return_context=True,
         )
     except Exception as exc:
         logger.exception("run_tryon_render %s: unhandled error", render_id)
         await _fail_render(render_id, str(exc))
         return
 
-    if ok:
-        await tryon_renders_col().update_one({"_id": render_id}, {"$set": {"state": "ready", "completed_at": _now()}})
-        logger.info("run_tryon_render %s: ready (report=%s)", render_id, report_path)
-    else:
-        await _fail_render(render_id, f"CLO VTO pipeline failed — see {report_path} and clo_vto/output/ for detail.")
+    if not ok:
+        await _fail_render(
+            render_id,
+            f"CLO VTO pipeline failed — see {report_path} and the run directory for detail.",
+        )
+        return
+
+    # Prefer the textured GLB; step_12 leaves it unset when it had nothing to inject.
+    shipped_glb = getattr(ctx, "textured_glb_path", None) or getattr(ctx, "glb_path", None)
+    saved = save_render_version(
+        render.user_id,
+        render_id,
+        run_id=ctx.run_id,
+        run_dir=ctx.output_dir,
+        glb_path=shipped_glb,
+        step_results=ctx.step_results,
+    )
+    await tryon_renders_col().update_one(
+        {"_id": render_id},
+        {
+            "$set": {
+                "state": "ready",
+                "completed_at": _now(),
+                "render_glb_path": saved.glb_relative_path,
+                "clo_run_id": ctx.run_id,
+            }
+        },
+    )
+    logger.info(
+        "run_tryon_render %s: ready (run=%s, glb=%s)",
+        render_id,
+        ctx.run_id,
+        saved.glb_relative_path,
+    )
 
 
 async def _fail_render(render_id: str, reason: str) -> None:

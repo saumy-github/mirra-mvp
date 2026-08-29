@@ -48,6 +48,14 @@ class CLORestClient:
     def new_project(self) -> dict:
         return self._post("/new-project", {})
 
+    def clear_avatars(self, max_index: int = 7) -> dict:
+        """Delete avatars 0..max_index. Older plugins lack this route — the
+        caller checks `supported` rather than treating 404 as a failure."""
+        try:
+            return self._post("/clear-avatars", {"max_index": max_index})
+        except Exception as exc:  # noqa: BLE001 - route absent on older plugins
+            return {"success": False, "supported": False, "error": str(exc)}
+
     def execute_queue(self) -> dict:
         return self._post("/execute", {})
 

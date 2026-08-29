@@ -47,7 +47,7 @@ with TestClient(app) as c:
     H = {"Authorization": f"Bearer {r.json()['accessToken']}"}
     check("guest session", r.status_code == 201)
 
-    r = c.put("/api/v1/measurements/me", headers=H, json={
+    r = c.put("/api/v1/user-measurements/me", headers=H, json={
         "gender": "male", "height_cm": 178.5, "weight_kg": 75.2, "chest_circumference_cm": 100.0})
     check("measurements submitted", r.status_code == 200)
 
@@ -63,7 +63,7 @@ with TestClient(app) as c:
 
 leftovers = sum(
     sync_db[col].count_documents({"user_id": user_id})
-    for col in ("measurements", "refresh_tokens", "avatar_jobs", "avatar_profiles",
+    for col in ("user_measurements", "refresh_tokens", "avatar_jobs", "avatar_profiles",
                 "tryon_sessions", "tryon_renders", "signature_looks")
 ) + sync_db["users"].count_documents({"_id": user_id})
 check("cascade left nothing behind", leftovers == 0, f"leftover docs: {leftovers}")

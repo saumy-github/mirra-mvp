@@ -9,6 +9,9 @@ services:
       - "8000:8000"
     volumes:
       - ./website/backend/src:/app/website/backend/src
+      # Both roots mounted so APP_ENV resolves the same way it does for the worker.
+      - ./dev_upload:/app/dev_upload:ro
+      - ./live_upload:/app/live_upload:ro
     command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     restart: unless-stopped
     depends_on:

@@ -1,49 +1,39 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
 import { GoogleButton } from "@/features/auth/components/oauth-buttons";
-import { Button } from "@/components/ui/button";
-import { Field } from "@/components/ui/field";
-import { OrDivider } from "@/components/ui/misc";
 import { useAuthMutations } from "@/hooks/use-shopper";
-import { MirraApiError, userMessage } from "@/integrations/mirra-api";
 import { track } from "@/lib/analytics";
 import { postAuthDestination } from "@/lib/post-auth";
+import { markPendingConsent } from "./pending-consent";
 
+/**
+ * Shopper login — reached from the "Log in" button in the site navbar.
+ * Google is the only pilot path (doc 06); first-time Google login is also
+ * the sign-up, which is why the consent checkbox gates the button here.
+ *
+ * Business accounts use email + password at `/business/login`.
+ */
 export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { login, google, continueAsGuest } = useAuthMutations();
+  const { google, continueAsGuest } = useAuthMutations();
   const [error, setError] = useState<string | null>(
     params.get("error") ? "Google sign-in didn't complete. Please retry." : null,
   );
-
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    const data = new FormData(e.currentTarget);
-    try {
-      await login.mutateAsync({
-        email: String(data.get("email") ?? ""),
-        password: String(data.get("password") ?? ""),
-      });
-      track("login_completed", {
-        authenticated: true,
-        properties: { method: "password" },
-      });
-      navigate(postAuthDestination(params.get("next")));
-    } catch (err) {
-      setError(
-        err instanceof MirraApiError
-          ? userMessage(err.code)
-          : "Something went wrong. Please retry.",
-      );
-    }
-  }
+  // Gates the Google button — first-time Google login is now the sign-up.
+  const [accepted, setAccepted] = useState(false);
 
   async function onGoogle() {
+    if (!accepted) {
+      // Inert until consent is ticked.
+      setError("Please accept the Terms and Privacy Notice to continue.");
+      return;
+    }
     setError(null);
     try {
+      // Carried across the OAuth redirect to AuthCallback.tsx.
+      markPendingConsent();
       await google.mutateAsync();
       track("login_completed", {
         authenticated: true,
@@ -74,65 +64,53 @@ export default function Login() {
         subtitle="Log in to use your saved avatar and Signature Looks"
       />
 
-      <div>
+      <label className="flex cursor-pointer items-start gap-3 rounded-[14px] px-1 py-1 text-xs leading-relaxed text-muted">
+        <input
+          type="checkbox"
+          checked={accepted}
+          onChange={(e) => setAccepted(e.target.checked)}
+          className="mt-0.5 size-4.5 shrink-0 accent-blue"
+        />
+        <span>
+          I accept the{" "}
+          <Link className="underline decoration-line-strong" to="/terms">
+            Terms of Service
+          </Link>{" "}
+          and acknowledge the{" "}
+          <Link className="underline decoration-line-strong" to="/privacy">
+            Privacy Notice
+          </Link>
+          . Photographs are used only to build your avatar and are never shown to anyone else.
+        </span>
+      </label>
+
+      <div className="mt-4">
         <GoogleButton onClick={onGoogle} loading={google.isPending} />
       </div>
 
-      <div className="my-5">
-        <OrDivider label="or continue with email" />
-      </div>
-
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        <Field
-          label="Email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          autoComplete="email"
-          required
-        />
-        <Field
-          label="Password"
-          name="password"
-          type="password"
-          placeholder="Password"
-          autoComplete="current-password"
-          required
-        />
-
-        {error && (
-          <p role="alert" className="text-sm text-error">
-            {error}
-          </p>
-        )}
-
-        <Button type="submit" className="w-full" size="lg" loading={login.isPending}>
-          Log in <span aria-hidden>→</span>
-        </Button>
-      </form>
-
-      <div className="mt-5 flex items-center justify-between text-sm">
-        <Link to="/auth/forgot-password" className="text-muted hover:text-ink">
-          Forgot password?
-        </Link>
-        <Link
-          to={`/auth/sign-up${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}
-          className="font-semibold text-blue hover:text-blue-dark"
-        >
-          Create account
-        </Link>
-      </div>
+      {error && (
+        <p role="alert" className="mt-4 text-sm text-error">
+          {error}
+        </p>
+      )}
 
       <button
         type="button"
         onClick={onGuest}
         disabled={continueAsGuest.isPending}
-        className="mt-6 w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
+        className="auth-secondary-action mt-6 w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
       >
         {continueAsGuest.isPending
           ? "Setting up a guest avatar…"
           : "Prefer not to sign in? Continue as a guest →"}
       </button>
+
+      <p className="auth-secondary-copy mt-6 text-center text-sm text-muted">
+        Are you a brand?{" "}
+        <Link to="/business/login" className="font-semibold text-blue hover:text-blue-dark">
+          Business log in
+        </Link>
+      </p>
     </AuthShell>
   );
 }

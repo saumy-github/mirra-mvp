@@ -265,6 +265,24 @@ class CLORestClient:
     def get_pattern_line_lengths(self, pattern_index):
         return self._get(f"/patterns/{pattern_index}/line-lengths")
 
+    def get_avatar_state(self):
+        return self._get("/avatars/state")
+
+    def get_avatar_count(self):
+        """Avatars currently in the scene, or -1 when the plugin can't say.
+
+        GetAvatarCount is the only index query documented as safe — see doc 12
+        section 2. Never probe with GetAvatarProperties or DeleteAvatar.
+        """
+        state = self.get_avatar_state()
+        if not isinstance(state, dict) or not state.get("success"):
+            return -1
+        count = state.get("avatar_count")
+        if isinstance(count, int):
+            return count
+        avatars = state.get("avatars")
+        return len(avatars) if isinstance(avatars, list) else -1
+
     def save_project(self, zprj_path, thumbnail=True):
         zprj_path = str(Path(zprj_path).as_posix())
         return self._post(

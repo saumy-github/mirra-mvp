@@ -4,7 +4,22 @@
  * version, which branched on merchant launch context — standalone always
  * has the same destination shape.
  */
+const AUTH_DESTINATIONS = new Set([
+  "/profile",
+  "/profile/avatar",
+  "/profile/measurements",
+  "/profile/privacy",
+  "/profile/signature-looks",
+  "/studio",
+]);
+
 export function postAuthDestination(nextParam?: string | null): string {
-  if (nextParam && /^\/(?!\/)/.test(nextParam)) return nextParam;
+  if (!nextParam || !/^\/(?!\/)/.test(nextParam)) return "/profile";
+
+  const destination = new URL(nextParam, "https://mirra.local");
+  if (AUTH_DESTINATIONS.has(destination.pathname)) {
+    return `${destination.pathname}${destination.search}${destination.hash}`;
+  }
+
   return "/profile";
 }

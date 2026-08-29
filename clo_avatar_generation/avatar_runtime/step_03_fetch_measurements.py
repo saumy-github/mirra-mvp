@@ -147,7 +147,10 @@ def run(ctx: Step1Context) -> bool:
         source_path = measurement_json_path
     else:
         try:
-            from mirra_measurements.db import get_measurements_collection
+            from mirra_measurements.db import (
+                get_measurements_collection,
+                get_user_measurements_collection,
+            )
         except ModuleNotFoundError as exc:
             raise RuntimeError(
                 "MongoDB dependencies are not available in this Python environment and no JSON measurement "
@@ -155,9 +158,17 @@ def run(ctx: Step1Context) -> bool:
                 "--measurement-file."
             ) from exc
 
+        # Website writes user_measurements; CLI golden users live in measurements.
         try:
-            collection = get_measurements_collection()
-            doc = collection.find_one({"user_id": ctx.user_id})
+            user_measurements_collection = get_user_measurements_collection()
+            doc = user_measurements_collection.find_one({"user_id": ctx.user_id})
+            if doc is not None:
+                source = "mongodb:user_measurements"
+            else:
+                measurements_collection = get_measurements_collection()
+                doc = measurements_collection.find_one({"user_id": ctx.user_id})
+                if doc is not None:
+                    source = "mongodb:measurements"
         except Exception as exc:
             local_snapshot = _load_latest_local_snapshot(ctx.user_id)
             if local_snapshot is None:
@@ -177,8 +188,8 @@ def run(ctx: Step1Context) -> bool:
             if local_snapshot is None:
                 raise ValueError(f"No measurements found for user_id: {ctx.user_id}")
             ctx.warnings.append(
-                "No live MongoDB document was found; using the latest clo_avatar_generation snapshot "
-                f"for user {ctx.user_id} instead."
+                "No live MongoDB document was found in either user_measurements or measurements; "
+                f"using the latest clo_avatar_generation snapshot for user {ctx.user_id} instead."
             )
             ctx.logger.warning("No live MongoDB document found; falling back to latest local snapshot")
             doc = local_snapshot

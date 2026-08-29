@@ -26,6 +26,13 @@ from mirra_measurements.size_model import (
     SIZE_TAPER_FIELDS,
 )
 
+# ── Cloth model ──────────────────────────────────────────────────────────────
+from mirra_measurements.cloth_model import (
+    create_cloth_doc,
+    validate_cloth_doc,
+    VALID_CATEGORIES,
+)
+
 # Legacy aliases kept while older Step 2 helpers still exist.
 create_garment_doc = create_size_doc
 validate_garment_doc = validate_size_doc

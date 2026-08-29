@@ -54,8 +54,20 @@ def measurements_col() -> AsyncCollection:
     return get_db()["measurements"]
 
 
+def user_measurements_col() -> AsyncCollection:
+    """The live, website-facing measurements store (dev and production) —
+    measurements_col() above stays CLI/dev-fixture-only from here on. See
+    .agent/website-launch/23-profile-measurements-form-and-user-measurements-model.md."""
+    return get_db()["user_measurements"]
+
+
 def sizes_col() -> AsyncCollection:
     return get_db()["sizes"]
+
+
+def cloths_col() -> AsyncCollection:
+    """One doc per product_ingestion/input/c_XXX/ folder; names its sizes."""
+    return get_db()["cloths"]
 
 
 # New collections owned by this backend:
@@ -93,12 +105,18 @@ def analytics_events_col() -> AsyncCollection:
     return get_db()["analytics_events"]
 
 
+def join_applications_col() -> AsyncCollection:
+    return get_db()["join_applications"]
+
+
 async def ensure_indexes() -> None:
     """Create all indexes once at startup (idempotent)."""
     # Parity with mirra_measurements/db.py:
     await measurements_col().create_index([("user_id", ASCENDING)], unique=True)
     await measurements_col().create_index([("gender", ASCENDING)])
+    await user_measurements_col().create_index([("user_id", ASCENDING)], unique=True)
     await sizes_col().create_index([("size_id", ASCENDING)], unique=True, name="size_id_unique")
+    await cloths_col().create_index([("cloth_id", ASCENDING)], unique=True, name="cloth_id_unique")
 
     # Backend-owned collections (string _id doubles as the public id):
     await users_col().create_index([("email", ASCENDING)], unique=True, sparse=True)
@@ -117,6 +135,7 @@ async def ensure_indexes() -> None:
     await tryon_renders_col().create_index([("session_id", ASCENDING)])
     await signature_looks_col().create_index([("user_id", ASCENDING)])
     await analytics_events_col().create_index([("event", ASCENDING), ("received_at", ASCENDING)])
+    await join_applications_col().create_index([("email", ASCENDING), ("created_at", ASCENDING)])
 
 
 async def ping() -> bool:

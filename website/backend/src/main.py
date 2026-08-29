@@ -13,9 +13,10 @@ from .analytics.routes import router as analytics_router
 from .auth.routes import router as auth_router
 from .avatars.routes import router as avatars_router
 from .catalog.routes import router as catalog_router
-from .measurements.routes import router as measurements_router
+from .join.routes import router as join_router
 from .signature_looks.routes import router as signature_looks_router
 from .tryon.routes import router as tryon_router
+from .user_measurements.routes import router as user_measurements_router
 from .users.routes import router as users_router
 
 logger = logging.getLogger("mirra.backend")
@@ -57,12 +58,13 @@ def create_app() -> FastAPI:
     # Service routers are mounted here as phases land (backend-implementation-plan.md).
     api.include_router(auth_router)
     api.include_router(users_router)
-    api.include_router(measurements_router)
+    api.include_router(user_measurements_router)
     api.include_router(avatars_router)
     api.include_router(catalog_router)
     api.include_router(tryon_router)
     api.include_router(signature_looks_router)
     api.include_router(analytics_router)
+    api.include_router(join_router)
     app.include_router(api)
     return app
 

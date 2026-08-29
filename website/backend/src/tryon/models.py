@@ -43,6 +43,10 @@ class TryonRenderDocument(BaseModel):
     id: str = Field(alias="_id")
     session_id: str
     user_id: str
+    # Empty on renders created before cloth and size were both recorded.
+    # Those predate real garment wiring and can only be re-requested, so the
+    # worker refuses them rather than guessing a cloth.
+    cloth_id: str = ""
     size_id: str
     garment_snapshot: SizeDocument  # catalog doc at request time
     avatar_profile_id: str
@@ -50,6 +54,9 @@ class TryonRenderDocument(BaseModel):
     failure_reason: str | None = None
     created_at: datetime
     completed_at: datetime | None = None
+    # Relative to the upload root, set by the worker once the render lands.
+    render_glb_path: str | None = None
+    clo_run_id: str | None = None
 
     def to_mongo(self) -> dict:
         return self.model_dump(by_alias=True)

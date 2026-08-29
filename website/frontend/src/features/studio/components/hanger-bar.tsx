@@ -1,9 +1,8 @@
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import type { SignatureLook } from "@/integrations/mirra-api/types";
 import type { HangerEntry } from "@/lib/hanger";
-import { formatPrice } from "@/lib/format";
-import { Button } from "@/components/ui/button";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { StudioThumbnail } from "./studio-thumbnail";
 
 const HANGER_SPRING = {
   type: "spring" as const,
@@ -22,41 +21,29 @@ export function HangerBar({
   currentRenderId,
   looks,
   appliedLookId,
-  currency,
-  checkoutPrice,
   onRestore,
   onApplyLook,
   onRemoveLook,
-  onDirectCheckout,
-  checkoutBusy,
-  checkoutDisabled,
 }: {
   entries: HangerEntry[];
   currentRenderId: string | null;
   looks: SignatureLook[];
   appliedLookId: string | null;
-  currency: string;
-  checkoutPrice: number;
   onRestore: (entry: HangerEntry) => void;
   onApplyLook: (look: SignatureLook) => void;
   onRemoveLook: (look: SignatureLook) => void;
-  onDirectCheckout: () => void;
-  checkoutBusy: boolean;
-  checkoutDisabled: boolean;
 }) {
   const reduceMotion = useReducedMotion();
 
   return (
     <LayoutGroup id="studio-hanger">
-      <footer className="relative z-20 flex h-46 shrink-0 flex-col gap-3 border-t border-white/70 bg-canvas/82 px-3 py-3 shadow-[0_-18px_44px_-40px_rgba(33,31,28,0.62)] backdrop-blur-2xl supports-backdrop-filter:bg-canvas/68 lg:h-32 lg:flex-row lg:items-center lg:gap-4 lg:px-5">
+      <footer className="relative z-20 flex h-40 shrink-0 flex-col gap-3 border-t border-white/70 bg-canvas/82 px-4 py-3 shadow-[0_-18px_44px_-40px_rgba(33,31,28,0.62)] backdrop-blur-2xl supports-backdrop-filter:bg-canvas/68 lg:h-28 lg:flex-row lg:items-center lg:gap-8 lg:px-5">
         {/* Hanger entries */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="mb-1.5 flex items-center justify-between gap-3 px-1">
-            <p className="font-mono text-[9px] font-semibold tracking-[0.17em] text-ink-soft uppercase">
-              The Hanger
-            </p>
-            <p className="text-[9px] text-faint">
-              {entries.length === 0 ? "Try-ons appear here" : `${entries.length} recent`}
+          <div className="mb-2 flex items-center justify-between gap-3 px-1">
+            <p className="text-xs font-semibold tracking-[-0.01em] text-ink">Recent try-ons</p>
+            <p className="text-xs text-muted">
+              {entries.length === 0 ? "Your history starts here" : `${entries.length} saved here`}
             </p>
           </div>
           <ul
@@ -64,15 +51,15 @@ export function HangerBar({
             className="rail-scroll flex min-h-18 items-center gap-2.5 overflow-x-auto px-1 pb-1"
           >
             {entries.length === 0 && (
-              <li className="flex min-h-17 min-w-55 items-center gap-3 rounded-2xl border border-dashed border-line-strong/80 bg-paper/35 px-4">
+              <li className="flex min-h-17 min-w-64 items-center gap-3 px-1">
                 <span
                   aria-hidden
                   className="flex size-9 items-center justify-center rounded-full bg-paper/80 text-base text-muted shadow-sm"
                 >
                   +
                 </span>
-                <span className="font-mono text-[9px] leading-relaxed tracking-[0.12em] text-faint uppercase">
-                  The Hanger — your tried looks will wait here
+                <span className="max-w-48 text-xs leading-5 text-muted">
+                  Try on a piece and it will stay within reach here.
                 </span>
               </li>
             )}
@@ -123,9 +110,9 @@ export function HangerBar({
                           transition={HANGER_SPRING}
                         />
                       )}
-                      <img
+                      <StudioThumbnail
                         src={entry.thumbnailUrl}
-                        alt=""
+                        label={entry.productName}
                         className="h-full w-full object-contain"
                       />
                       {isCurrent && (
@@ -150,22 +137,17 @@ export function HangerBar({
           </ul>
         </div>
 
-        <div className="flex min-w-0 items-center gap-3 lg:contents">
-          {/* Divider */}
-          <span aria-hidden className="h-12 w-px shrink-0 bg-line-strong/70" />
-
-          {/* Signature looks */}
-          <div className="flex min-w-0 flex-1 items-center gap-2.5 lg:flex-initial lg:flex-col lg:items-start lg:gap-1.5">
-            <p className="hidden font-mono text-[8px] font-semibold tracking-[0.14em] whitespace-nowrap text-muted uppercase sm:block">
-              Signature looks
-            </p>
+        {/* Signature looks */}
+        <div className="flex min-w-0 items-center gap-3 lg:w-72 lg:flex-col lg:items-start lg:gap-2">
+          <p className="shrink-0 text-xs font-semibold tracking-[-0.01em] text-ink">Saved looks</p>
+          <div className="min-w-0 flex-1 lg:w-full">
             <ul
               aria-label="Your Signature Looks"
-              className="rail-scroll flex min-w-0 items-center gap-2 overflow-x-auto p-1"
+              className="rail-scroll flex min-w-0 items-center gap-2 overflow-x-auto px-1 pb-1"
             >
               {looks.length === 0 && (
-                <li className="flex h-12 max-w-31.5 items-center font-mono text-[8px] leading-snug tracking-[0.12em] text-faint uppercase">
-                  No signature looks yet
+                <li className="flex h-12 items-center text-xs text-muted">
+                  Save an outfit to reuse it.
                 </li>
               )}
               <AnimatePresence initial={false} mode="popLayout">
@@ -199,17 +181,11 @@ export function HangerBar({
                             transition={HANGER_SPRING}
                           />
                         )}
-                        {look.thumbnailUrl ? (
-                          <img
-                            src={look.thumbnailUrl}
-                            alt=""
-                            className="h-full w-full object-contain"
-                          />
-                        ) : (
-                          <span className="text-xs font-medium text-muted">
-                            {look.name.slice(0, 2)}
-                          </span>
-                        )}
+                        <StudioThumbnail
+                          src={look.thumbnailUrl}
+                          label={look.name}
+                          className="h-full w-full rounded-full"
+                        />
                         {look.isDefault && (
                           <span
                             aria-hidden
@@ -232,37 +208,6 @@ export function HangerBar({
                 })}
               </AnimatePresence>
             </ul>
-          </div>
-
-          {/* One-click handoff for the selected product */}
-          <span aria-hidden className="h-12 w-px shrink-0 bg-line-strong/70" />
-          <div className="flex shrink-0 items-center gap-2.5">
-            <div className="hidden text-right sm:block">
-              <p className="font-mono text-[8px] font-medium tracking-[0.15em] text-muted uppercase">
-                Selected piece
-              </p>
-              <p className="text-base font-semibold tracking-[-0.015em]">
-                {formatPrice(checkoutPrice, currency)}
-              </p>
-            </div>
-            <motion.div
-              className="rounded-(--radius-compact)"
-              whileTap={
-                reduceMotion || checkoutBusy || checkoutDisabled ? undefined : { scale: 0.96 }
-              }
-              transition={HANGER_SPRING}
-            >
-              <Button
-                variant="studio-dark"
-                className="h-12 rounded-(--radius-compact)! px-4 shadow-[0_10px_24px_-18px_rgba(33,31,28,0.72)]"
-                onClick={onDirectCheckout}
-                loading={checkoutBusy}
-                disabled={checkoutDisabled}
-                title="Add this piece to your cart"
-              >
-                Add to cart
-              </Button>
-            </motion.div>
           </div>
         </div>
       </footer>
