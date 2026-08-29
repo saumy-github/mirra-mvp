@@ -6,6 +6,7 @@ import type { PublicProduct } from "@/integrations/mirra-api/types";
 import { Skeleton } from "@/components/ui/misc";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { PinchCarousel } from "./pinch-carousel";
+import { StudioThumbnail } from "./studio-thumbnail";
 
 const RAIL_SPRING = {
   type: "spring" as const,
@@ -159,10 +160,9 @@ export function ProductRail({
                       : "border-white/75 bg-paper/64"
                   }`}
                 >
-                  <img
+                  <StudioThumbnail
                     src={product.thumbnailUrl}
-                    alt=""
-                    draggable={false}
+                    label={product.name}
                     className={`size-full object-contain transition-transform duration-300 motion-reduce:transition-none ${
                       active ? "group-hover:scale-[1.025]" : ""
                     } ${!eligible ? "opacity-45" : ""}`}

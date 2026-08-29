@@ -8,6 +8,49 @@ import type { OutfitLayer } from "@/stores/studio-store";
 import { PANEL_SPRING } from "@/lib/motion-presets";
 import { CuratedLookRail } from "./curated-look-rail";
 
+const TRY_ON_COPY: Record<TryOnState, { title: string; body: string; tone: string }> = {
+  idle: {
+    title: "Ready to preview",
+    body: "Choose a colour and size to see this piece on your avatar.",
+    tone: "bg-silver",
+  },
+  requesting: {
+    title: "Starting your preview",
+    body: "Mirra is preparing this exact colour and size.",
+    tone: "bg-silver",
+  },
+  processing: {
+    title: "Draping on your avatar",
+    body: "The fitting engine is shaping the garment around your profile.",
+    tone: "bg-silver",
+  },
+  restoring: {
+    title: "Restoring your preview",
+    body: "A recent fitting is being placed back on your avatar.",
+    tone: "bg-silver",
+  },
+  ready: {
+    title: "Preview ready",
+    body: "This selected piece is now shown on your avatar.",
+    tone: "bg-ok",
+  },
+  cached: {
+    title: "Preview ready",
+    body: "This fitting was restored from your recent try-ons.",
+    tone: "bg-ok",
+  },
+  unsupported: {
+    title: "Preview unavailable",
+    body: "This piece can still be reviewed, but it cannot be draped yet.",
+    tone: "bg-error",
+  },
+  failed: {
+    title: "Preview needs another try",
+    body: "The fitting did not complete. Use Try again beside the avatar.",
+    tone: "bg-error",
+  },
+};
+
 /**
  * Right-hand product panel — the merchant's product, verbatim from the
  * shared backend. Missing data is omitted or shown as deliberately
@@ -57,21 +100,24 @@ export function ProductPanel({
     sizes.find((v) => v.size === activeSize) ?? sizes.find((v) => v.inStock) ?? sizes[0] ?? null;
 
   const price = activeVariant?.price ?? product.price;
+  const priceAvailable = Number.isFinite(price) && price > 0;
   const outOfStock = activeVariant ? !activeVariant.inStock : false;
+  const sizeChart = product.sizeChart ?? [];
+  const sizeChartColumns = sizeChart[0] ? Object.keys(sizeChart[0].measurements) : [];
+  const tryOnCopy = TRY_ON_COPY[tryOnState];
+  const tryOnBusy = ["requesting", "processing", "restoring"].includes(tryOnState);
 
   return (
     <LayoutGroup id={`product-panel-${product.publicProductId}`}>
-      <aside className="rail-scroll flex h-auto max-h-[52dvh] flex-col overflow-y-auto overscroll-contain rounded-t-[28px] border-t border-white/80 bg-paper/82 px-5 pt-6 pb-8 shadow-[0_-18px_50px_-42px_rgba(33,31,28,0.58)] backdrop-blur-2xl sm:px-7 lg:h-full lg:max-h-none lg:rounded-none lg:border-t-0 lg:px-9 lg:py-8 lg:shadow-none">
+      <aside className="rail-scroll flex h-auto max-h-[52dvh] flex-col overflow-y-auto overscroll-contain rounded-t-[28px] border-t border-white/80 bg-paper/88 px-5 pt-7 pb-9 shadow-[0_-18px_50px_-42px_rgba(33,31,28,0.58)] backdrop-blur-2xl sm:px-7 lg:h-full lg:max-h-none lg:rounded-none lg:border-t-0 lg:px-10 lg:py-9 lg:shadow-none">
         <motion.div
           key={product.publicProductId}
           initial={reduceMotion ? false : { opacity: 0.45, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={reduceMotion ? { duration: 0.01 } : PANEL_SPRING}
         >
-          <p className="font-mono text-[9px] font-medium tracking-[0.17em] text-faint uppercase">
-            Selected piece
-          </p>
-          <h1 className="mt-2 text-[clamp(1.55rem,3vw,2rem)] leading-[1.08] font-semibold tracking-[-0.028em] text-ink">
+          <p className="text-xs font-semibold tracking-[0.01em] text-muted">Selected piece</p>
+          <h1 className="mt-2 text-[clamp(1.75rem,3vw,2.25rem)] leading-[1.06] font-semibold tracking-[-0.035em] text-ink">
             {product.name}
           </h1>
           {product.subtitle && (
@@ -81,22 +127,59 @@ export function ProductPanel({
 
         <div className="mt-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xl font-semibold tracking-[-0.018em]">
-              {formatPrice(price, product.currency)}
+            <p className="text-xl font-semibold tracking-[-0.02em]">
+              {priceAvailable ? formatPrice(price, product.currency) : "Price unavailable"}
             </p>
             {product.taxNote && <p className="mt-1 text-xs text-muted">{product.taxNote}</p>}
+            {!priceAvailable && (
+              <p className="mt-1 text-xs leading-relaxed text-muted">
+                Commerce pricing has not been connected for this piece yet.
+              </p>
+            )}
           </div>
-          <span className="rounded-full border border-line/80 bg-surface px-2.5 py-1 font-mono text-[8px] tracking-[0.13em] text-muted uppercase">
-            {activeVariant?.inStock ? "In stock" : "Availability"}
+          <span className="flex items-center gap-2 text-xs font-medium text-muted">
+            <span
+              aria-hidden
+              className={`size-2 rounded-full ${activeVariant?.inStock ? "bg-ok" : "bg-error"}`}
+            />
+            {activeVariant?.inStock ? "In stock" : "Out of stock"}
           </span>
         </div>
 
+        <AnimatePresence initial={false} mode="wait">
+          <motion.div
+            key={tryOnState}
+            className="mt-6 flex items-start gap-3"
+            role="status"
+            aria-live="polite"
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -3 }}
+            transition={reduceMotion ? { duration: 0.12 } : PANEL_SPRING}
+          >
+            <motion.span
+              aria-hidden
+              className={`mt-1.5 size-2.5 shrink-0 rounded-full ${tryOnCopy.tone}`}
+              animate={
+                reduceMotion || !tryOnBusy
+                  ? undefined
+                  : { scale: [1, 1.35, 1], opacity: [0.6, 1, 0.6] }
+              }
+              transition={{ duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+            />
+            <span>
+              <span className="block text-sm font-semibold tracking-[-0.01em] text-ink">
+                {tryOnCopy.title}
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-muted">{tryOnCopy.body}</span>
+            </span>
+          </motion.div>
+        </AnimatePresence>
+
         {/* Colour variants */}
         {colors.length > 0 && (
-          <fieldset className="mt-6">
-            <legend className="font-mono text-[10px] font-medium tracking-[0.16em] text-ink-soft uppercase">
-              Shop by variant
-            </legend>
+          <fieldset className="mt-8">
+            <legend className="text-sm font-semibold tracking-[-0.01em] text-ink">Colour</legend>
             <div className="mt-3 flex flex-wrap gap-2.5">
               {colors.map((v) => {
                 const selected = (activeColor ?? colors[0].colorName) === v.colorName;
@@ -145,10 +228,8 @@ export function ProductPanel({
 
         {/* Sizes */}
         {sizes.length > 0 && (
-          <fieldset className="mt-6">
-            <legend className="font-mono text-[10px] font-medium tracking-[0.16em] text-ink-soft uppercase">
-              Select size
-            </legend>
+          <fieldset className="mt-8">
+            <legend className="text-sm font-semibold tracking-[-0.01em] text-ink">Size</legend>
             <div className="mt-3 flex flex-wrap gap-2.5">
               {sizes.map((v) => {
                 const selected = activeVariant?.publicVariantId === v.publicVariantId;
@@ -186,7 +267,7 @@ export function ProductPanel({
             {outOfStock && (
               <p className="mt-2 text-xs text-error">This option is currently out of stock.</p>
             )}
-            {product.sizeChart && (
+            {sizeChart.length > 0 && (
               <motion.button
                 type="button"
                 onClick={() => setChartOpen((o) => !o)}
@@ -199,7 +280,7 @@ export function ProductPanel({
               </motion.button>
             )}
             <AnimatePresence initial={false}>
-              {chartOpen && product.sizeChart && (
+              {chartOpen && sizeChart.length > 0 && (
                 <motion.div
                   className="mt-2 overflow-hidden"
                   initial={reduceMotion ? false : { opacity: 0, height: 0 }}
@@ -212,7 +293,7 @@ export function ProductPanel({
                       <thead className="bg-mist/70 font-mono tracking-wider text-muted uppercase">
                         <tr>
                           <th className="px-3 py-2.5">Size</th>
-                          {Object.keys(product.sizeChart[0].measurements).map((k) => (
+                          {sizeChartColumns.map((k) => (
                             <th key={k} className="px-3 py-2.5">
                               {k}
                             </th>
@@ -220,7 +301,7 @@ export function ProductPanel({
                         </tr>
                       </thead>
                       <tbody>
-                        {product.sizeChart.map((row) => (
+                        {sizeChart.map((row) => (
                           <tr key={row.size} className="border-t border-line">
                             <td className="px-3 py-2.5 font-medium">{row.size}</td>
                             {Object.values(row.measurements).map((v, i) => (
@@ -239,49 +320,8 @@ export function ProductPanel({
           </fieldset>
         )}
 
-        {/* Try-on status (screen-reader friendly) */}
-        <div className="mt-5 flex min-h-10 items-center gap-2 rounded-[13px] bg-surface/80 px-3 py-2">
-          <motion.span
-            aria-hidden
-            className={`size-2 rounded-full ${
-              tryOnState === "ready" || tryOnState === "cached"
-                ? "bg-ok"
-                : tryOnState === "failed" || tryOnState === "unsupported"
-                  ? "bg-error"
-                  : "bg-silver"
-            }`}
-            animate={
-              reduceMotion || !["requesting", "processing", "restoring"].includes(tryOnState)
-                ? undefined
-                : { scale: [1, 1.45, 1], opacity: [0.65, 1, 0.65] }
-            }
-            transition={{
-              duration: 1.4,
-              repeat: Number.POSITIVE_INFINITY,
-              ease: "easeInOut",
-            }}
-          />
-          <p
-            className="font-mono text-[9px] font-medium tracking-[0.14em] text-muted uppercase"
-            aria-live="polite"
-          >
-            Try-on:{" "}
-            {tryOnState === "ready" || tryOnState === "cached"
-              ? "on your avatar"
-              : tryOnState === "requesting" ||
-                  tryOnState === "processing" ||
-                  tryOnState === "restoring"
-                ? "in progress"
-                : tryOnState === "unsupported"
-                  ? "not available for this piece"
-                  : tryOnState === "failed"
-                    ? "didn't complete"
-                    : "idle"}
-          </p>
-        </div>
-
         {/* Add to cart */}
-        <div className="mt-4">
+        <div className="mt-7">
           <motion.div
             className="rounded-(--radius-control)"
             whileTap={
@@ -311,13 +351,13 @@ export function ProductPanel({
                 <path d="M6 8h12l-1 12H7L6 8Z" />
                 <path d="M9 8V6a3 3 0 0 1 6 0v2" />
               </svg>
-              Add to cart
+              Add to preview cart
             </Button>
           </motion.div>
           {cartNotice && (
             <motion.p
               role="status"
-              className="mt-2 flex items-center gap-2 rounded-(--radius-compact) bg-ok/10 px-3 py-2 text-xs text-ok"
+              className="mt-3 flex items-center gap-2 text-xs font-medium text-ok"
               initial={reduceMotion ? false : { opacity: 0, y: -3 }}
               animate={{ opacity: 1, y: 0 }}
               transition={reduceMotion ? { duration: 0.01 } : PANEL_SPRING}
@@ -334,12 +374,12 @@ export function ProductPanel({
         </div>
 
         {/* Product details accordion */}
-        <div className="mt-6 border-t border-line/80 pt-2">
+        <div className="mt-7">
           <motion.button
             type="button"
             onClick={() => setDetailsOpen((o) => !o)}
             aria-expanded={detailsOpen}
-            className="flex min-h-12 w-full items-center justify-between rounded-xl px-1 py-3 font-mono text-[10px] font-medium tracking-[0.16em] text-ink uppercase"
+            className="flex min-h-12 w-full items-center justify-between rounded-xl px-1 py-3 text-[13px] font-semibold text-ink"
             whileTap={reduceMotion ? undefined : { scale: 0.985 }}
             transition={PANEL_SPRING}
           >
@@ -385,16 +425,12 @@ export function ProductPanel({
 
         {/* The curated look — everything else currently on the avatar */}
         {otherLayers.length > 0 && (
-          <motion.div
-            layout
-            className="mt-5 border-t border-line/80 pt-5"
-            transition={PANEL_SPRING}
-          >
+          <motion.div layout className="mt-7" transition={PANEL_SPRING}>
             <div className="flex items-end justify-between gap-3">
-              <p className="font-mono text-[10px] font-medium tracking-[0.17em] text-ink-soft uppercase">
-                The curated <span className="text-xs tracking-normal normal-case italic">Look</span>
+              <p className="text-[13px] font-semibold tracking-[-0.01em] text-ink">
+                Paired with this look
               </p>
-              <span className="text-[10px] text-faint">{otherLayers.length} paired</span>
+              <span className="text-xs text-muted">{otherLayers.length} paired</span>
             </div>
             <CuratedLookRail layers={otherLayers} onUnlockLayer={onUnlockLayer} />
           </motion.div>
@@ -407,7 +443,7 @@ export function ProductPanel({
 function Detail({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <dt className="font-mono text-[10px] tracking-[0.16em] text-faint uppercase">{label}</dt>
+      <dt className="text-xs font-semibold text-muted">{label}</dt>
       <dd className="mt-1">{children}</dd>
     </div>
   );

@@ -1,0 +1,76 @@
+/*
+ * Dashboard-scoped styling. Everything else this surface needs comes from
+ * Tailwind utilities and the app's shared tokens in `src/styles/globals.css`
+ * (ink / muted / line / surface), which the prototype's near-identical
+ * neutrals were folded into on the way in — the two palettes differed by a
+ * few points and the app's values win, same rule the landing migration used.
+ *
+ * Only the indigo accent is dashboard-specific, and it lives in globals.css
+ * because Tailwind v4 resolves `@theme inline` values at build time and so
+ * cannot be overridden per-subtree.
+ */
+
+.dashboard-root {
+  /* The prototype's page ground — slightly warmer than the app's canvas,
+     which is what makes the dense white cards read as a console. */
+  background: #fafaf9;
+  color: var(--color-ink);
+  font-size: 14px;
+  min-height: 100vh;
+
+  /* ---------------------------------------------------------------- charts
+   * Runtime custom properties read by the vendored Bklit chart components.
+   * Unlike Tailwind theme tokens these are ordinary `var()` lookups, so they
+   * scope cleanly here and never reach the marketing surface.
+   *
+   * The two series hues are categorical slots 1 and 2 of the validated
+   * data-viz palette, in fixed order. Verified against this surface with
+   * `validate_palette.js --mode light --surface "#fbfbfd"`: lightness band,
+   * chroma floor, CVD separation (ΔE 24.7 protan), normal-vision floor
+   * (ΔE 33.6) and 3:1 contrast all PASS. Do not swap these for a prettier
+   * pair without re-running that check. */
+  --chart-1: #2a78d6; /* blue   — slot 1 */
+  --chart-2: #eb6834; /* orange — slot 2 */
+  --chart-3: #1baf7a; /* aqua   — slot 3, below 3:1 here: needs direct labels */
+  --chart-4: #eda100;
+  --chart-5: #e87ba4;
+
+  --chart-line-primary: var(--chart-1);
+  --chart-line-secondary: var(--chart-2);
+  --chart-indicator-color: var(--chart-1);
+  --chart-indicator-secondary-color: var(--chart-2);
+
+  /* Chrome stays recessive: hairline grid, neutral ink for every label.
+     Text never wears the series colour. */
+  --chart-background: var(--color-surface);
+  --chart-grid: var(--color-line);
+  --chart-crosshair: var(--color-faint);
+  --chart-label: var(--color-muted);
+  --chart-foreground: var(--color-ink);
+  --chart-foreground-muted: var(--color-muted);
+  --foreground: var(--color-ink);
+  --muted-foreground: var(--color-muted);
+
+  --chart-tooltip-background: var(--color-paper);
+  --chart-marker-background: var(--color-paper);
+  --chart-marker-foreground: var(--color-ink);
+  --chart-marker-border: var(--color-line-strong);
+  --chart-marker-badge-background: var(--color-ink);
+  --chart-marker-badge-foreground: var(--color-paper);
+  --chart-segment-line: var(--color-line-strong);
+  --chart-segment-background: rgb(42 120 214 / 0.08);
+  --chart-brush-border: var(--color-line-strong);
+}
+
+/* Motion is a system, not decoration: one shared reduced-motion contract for
+   the whole surface, including the charts' reveal animations. Reduced-motion
+   users still get the final state immediately — never a missing chart. */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-root *,
+  .dashboard-root *::before,
+  .dashboard-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

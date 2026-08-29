@@ -195,7 +195,7 @@ export default function ProfileAvatar() {
 
   return (
     <div className="flex flex-col gap-8">
-      <AvatarGlbViewer className="h-[32rem]" />
+      <AvatarGlbViewer className="h-128" />
 
       {isStale === true && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-mist px-5 py-4">

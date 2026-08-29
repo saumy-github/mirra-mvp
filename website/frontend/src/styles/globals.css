@@ -26,6 +26,14 @@
   --color-error: #b3261e;
   --color-ok: #2d7d46;
 
+  /* Dashboard-only tokens, additive. The merchant console keeps the indigo
+     accent it was designed with; its neutrals (ink/muted/line/surface) fold
+     into the app values above, which differ by only a few points.
+     `@theme inline` resolves at build time, so these cannot live in the
+     feature's own scoped stylesheet. */
+  --color-accent: #4f46e5;
+  --color-accent-soft: #eef2ff;
+
   /* Landing-only tokens, additive — no collision with the above */
   --color-bg: #f8f3f2;
   --color-wine: #6b1f2a;

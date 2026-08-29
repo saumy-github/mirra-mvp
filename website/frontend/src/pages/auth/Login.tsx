@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
 import { GoogleButton } from "@/features/auth/components/oauth-buttons";
 import { useAuthMutations } from "@/hooks/use-shopper";
@@ -7,47 +7,22 @@ import { track } from "@/lib/analytics";
 import { postAuthDestination } from "@/lib/post-auth";
 import { markPendingConsent } from "./pending-consent";
 
-// Pilot: in-house login gated off, see doc 06.
-// import { Link } from "react-router-dom";
-// import { Button } from "@/components/ui/button";
-// import { Field } from "@/components/ui/field";
-// import { OrDivider } from "@/components/ui/misc";
-// import { MirraApiError, userMessage } from "@/integrations/mirra-api";
-
+/**
+ * Shopper login — reached from the "Log in" button in the site navbar.
+ * Google is the only pilot path (doc 06); first-time Google login is also
+ * the sign-up, which is why the consent checkbox gates the button here.
+ *
+ * Business accounts use email + password at `/business/login`.
+ */
 export default function Login() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  // `login` mutation still wired, just unused while the UI is hidden.
   const { google, continueAsGuest } = useAuthMutations();
   const [error, setError] = useState<string | null>(
     params.get("error") ? "Google sign-in didn't complete. Please retry." : null,
   );
   // Gates the Google button — first-time Google login is now the sign-up.
   const [accepted, setAccepted] = useState(false);
-
-  // Pilot: in-house login gated off, see doc 06.
-  // async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-  //   e.preventDefault();
-  //   setError(null);
-  //   const data = new FormData(e.currentTarget);
-  //   try {
-  //     await login.mutateAsync({
-  //       email: String(data.get("email") ?? ""),
-  //       password: String(data.get("password") ?? ""),
-  //     });
-  //     track("login_completed", {
-  //       authenticated: true,
-  //       properties: { method: "password" },
-  //     });
-  //     navigate(postAuthDestination(params.get("next")));
-  //   } catch (err) {
-  //     setError(
-  //       err instanceof MirraApiError
-  //         ? userMessage(err.code)
-  //         : "Something went wrong. Please retry.",
-  //     );
-  //   }
-  // }
 
   async function onGoogle() {
     if (!accepted) {
@@ -97,57 +72,21 @@ export default function Login() {
           className="mt-0.5 size-4.5 shrink-0 accent-blue"
         />
         <span>
-          I accept the <span className="underline decoration-line-strong">Terms of Service</span>{" "}
+          I accept the{" "}
+          <Link className="underline decoration-line-strong" to="/terms">
+            Terms of Service
+          </Link>{" "}
           and acknowledge the{" "}
-          <span className="underline decoration-line-strong">Privacy Notice</span>. Photographs
-          are used only to build your avatar and are never shown to anyone else.
+          <Link className="underline decoration-line-strong" to="/privacy">
+            Privacy Notice
+          </Link>
+          . Photographs are used only to build your avatar and are never shown to anyone else.
         </span>
       </label>
 
       <div className="mt-4">
         <GoogleButton onClick={onGoogle} loading={google.isPending} />
       </div>
-
-      {/* Pilot: in-house login gated off, see doc 06.
-      <div className="my-5">
-        <OrDivider label="or continue with email" />
-      </div>
-
-      <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        <Field
-          label="Email"
-          name="email"
-          type="email"
-          placeholder="you@example.com"
-          autoComplete="email"
-          required
-        />
-        <Field
-          label="Password"
-          name="password"
-          type="password"
-          placeholder="Password"
-          autoComplete="current-password"
-          required
-        />
-
-        <Button type="submit" className="w-full" size="lg" loading={login.isPending}>
-          Log in <span aria-hidden>→</span>
-        </Button>
-      </form>
-
-      <div className="mt-5 flex items-center justify-between text-sm">
-        <Link to="/auth/forgot-password" className="text-muted hover:text-ink">
-          Forgot password?
-        </Link>
-        <Link
-          to={`/auth/sign-up${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}
-          className="font-semibold text-blue hover:text-blue-dark"
-        >
-          Create account
-        </Link>
-      </div>
-      */}
 
       {error && (
         <p role="alert" className="mt-4 text-sm text-error">
@@ -159,12 +98,19 @@ export default function Login() {
         type="button"
         onClick={onGuest}
         disabled={continueAsGuest.isPending}
-        className="mt-6 w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
+        className="auth-secondary-action mt-6 w-full text-center text-sm text-muted hover:text-ink disabled:opacity-50"
       >
         {continueAsGuest.isPending
           ? "Setting up a guest avatar…"
           : "Prefer not to sign in? Continue as a guest →"}
       </button>
+
+      <p className="auth-secondary-copy mt-6 text-center text-sm text-muted">
+        Are you a brand?{" "}
+        <Link to="/business/login" className="font-semibold text-blue hover:text-blue-dark">
+          Business log in
+        </Link>
+      </p>
     </AuthShell>
   );
 }

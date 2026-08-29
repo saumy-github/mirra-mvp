@@ -52,11 +52,13 @@ export default function AuthCallback() {
 
   return (
     <AuthShell>
-      <AuthHeading
-        pill="Almost there"
-        title="Finishing sign-in"
-        subtitle="Hang tight while we connect your Google account."
-      />
+      <div className="auth-callback" role="status" aria-live="polite">
+        <AuthHeading
+          pill="Almost there"
+          title="Finishing sign-in"
+          subtitle="Hang tight while we connect your Google account."
+        />
+      </div>
     </AuthShell>
   );
 }

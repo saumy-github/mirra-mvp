@@ -77,7 +77,6 @@ function GlassLink({ children, href }: { children: string; href: string }) {
     </LiquidCTA>
   );
 }
-
 function AccordionItem({
   answer,
   open,
@@ -175,7 +174,7 @@ export default function FAQClient() {
         <section className={styles.demo} aria-labelledby="faq-demo-title">
           <p>Still have a question?</p>
           <h2 id="faq-demo-title">See how Mirra fits your store.</h2>
-          <GlassLink href="/#book-a-demo">Book a Demo</GlassLink>
+          <GlassLink href="/join">Join</GlassLink>
         </section>
       </main>
     </div>

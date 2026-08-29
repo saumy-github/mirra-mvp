@@ -2,8 +2,15 @@ import Lenis from "lenis";
 import { useCallback, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const HEADER_OFFSET = -78;
 const AUTH_PATH = /^\/(?:signin-with-chatgpt|signout-with-chatgpt|api)(?:\/|$)/;
+const LENIS_OPTIONS = {
+  anchors: false,
+  autoRaf: true,
+  lerp: 0.075,
+  smoothWheel: true,
+  syncTouch: false,
+  wheelMultiplier: 0.8,
+} as const;
 
 function normalizedPath(pathname: string) {
   return pathname.replace(/\/+$/, "") || "/";
@@ -12,7 +19,9 @@ function normalizedPath(pathname: string) {
 function targetFromHash(hash: string) {
   if (!hash || hash === "#") return document.documentElement;
   const id = decodeURIComponent(hash.slice(1));
-  return document.getElementById(id) ?? document.querySelector<HTMLElement>(`[name="${CSS.escape(id)}"]`);
+  return (
+    document.getElementById(id) ?? document.querySelector<HTMLElement>(`[name="${CSS.escape(id)}"]`)
+  );
 }
 
 function focusTarget(target: HTMLElement) {
@@ -25,75 +34,104 @@ function focusTarget(target: HTMLElement) {
   }
 }
 
+function scrollMarginTop(target: HTMLElement) {
+  if (target === document.documentElement) return 0;
+  return Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
+}
+
+function targetScrollTop(target: HTMLElement) {
+  if (target === document.documentElement) return 0;
+  return target.getBoundingClientRect().top + window.scrollY - scrollMarginTop(target);
+}
+
 export function SmoothNavigation() {
   const pathname = useLocation().pathname;
   const navigate = useNavigate();
   const lenisRef = useRef<Lenis | null>(null);
   const reducedMotionRef = useRef(false);
   const routeChangeRef = useRef(false);
+  const scrollRequestRef = useRef(0);
 
   const scrollToTarget = useCallback((target: HTMLElement, shouldFocus = true) => {
     const reducedMotion = reducedMotionRef.current;
     const lenis = lenisRef.current;
-    const offset = target === document.documentElement ? 0 : HEADER_OFFSET;
+    const targetTop = targetScrollTop(target);
 
     if (reducedMotion || !lenis) {
-      const top = target === document.documentElement
-        ? 0
-        : target.getBoundingClientRect().top + window.scrollY + offset;
-      window.scrollTo({ top, behavior: "auto" });
+      window.scrollTo({ top: targetTop, behavior: "auto" });
       if (shouldFocus) focusTarget(target);
       return;
     }
 
-    const targetTop = target === document.documentElement
-      ? 0
-      : target.getBoundingClientRect().top + window.scrollY + offset;
     const distance = Math.abs(targetTop - window.scrollY);
-    const duration = Math.min(1.2, Math.max(0.72, distance / 1500));
+    const duration = Math.min(1.65, 0.72 + distance / 2400);
 
-    lenis.scrollTo(target, {
-      offset,
+    lenis.scrollTo(targetTop, {
+      offset: 0,
       duration,
       lock: false,
-      easing: (time) => Math.min(1, 1.001 - 2 ** (-10 * time)),
+      easing: (time) => (1 - Math.cos(Math.PI * time)) / 2,
       onComplete: () => {
         if (shouldFocus) focusTarget(target);
       },
     });
   }, []);
 
-  const scrollToHash = useCallback((hash: string, shouldFocus = true) => {
-    function seekTarget(attempt: number) {
-      const target = targetFromHash(hash);
-      if (target) {
-        scrollToTarget(target, shouldFocus);
-        return;
+  const scrollToHash = useCallback(
+    (hash: string, shouldFocus = true) => {
+      const request = ++scrollRequestRef.current;
+      const startedAt = window.performance.now();
+
+      function seekTarget() {
+        if (request !== scrollRequestRef.current) return;
+
+        const target = targetFromHash(hash);
+        if (target) {
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+              if (request === scrollRequestRef.current) {
+                scrollToTarget(target, shouldFocus);
+                window.setTimeout(() => {
+                  if (request !== scrollRequestRef.current) return;
+                  const settledTarget = targetFromHash(hash);
+                  if (!settledTarget) return;
+                  const alignmentError =
+                    settledTarget.getBoundingClientRect().top - scrollMarginTop(settledTarget);
+                  if (Math.abs(alignmentError) > 4) {
+                    scrollToTarget(settledTarget, false);
+                  }
+                }, 1200);
+              }
+            });
+          });
+          return;
+        }
+
+        if (window.performance.now() - startedAt < 3000) {
+          window.requestAnimationFrame(seekTarget);
+        }
       }
 
-      if (attempt < 24) {
-        window.requestAnimationFrame(() => seekTarget(attempt + 1));
-      }
-    }
-
-    seekTarget(0);
-  }, [scrollToTarget]);
+      void document.fonts.ready.then(() => {
+        if (request !== scrollRequestRef.current) return;
+        window.requestAnimationFrame(() => window.requestAnimationFrame(seekTarget));
+      });
+    },
+    [scrollToTarget],
+  );
 
   useEffect(() => {
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     reducedMotionRef.current = reducedMotionQuery.matches;
+    const notifyScroll = () => window.dispatchEvent(new CustomEvent("mirra:smooth-scroll"));
+    const createLenis = () => {
+      const lenis = new Lenis(LENIS_OPTIONS);
+      lenis.on("scroll", notifyScroll);
+      lenisRef.current = lenis;
+    };
 
     if (!reducedMotionQuery.matches) {
-      const lenis = new Lenis({
-        anchors: false,
-        autoRaf: true,
-        lerp: 0.09,
-        smoothWheel: true,
-        syncTouch: false,
-        wheelMultiplier: 0.9,
-      });
-      lenisRef.current = lenis;
-      lenis.on("scroll", () => window.dispatchEvent(new CustomEvent("mirra:smooth-scroll")));
+      createLenis();
     }
 
     const handlePreference = (event: MediaQueryListEvent) => {
@@ -102,7 +140,7 @@ export function SmoothNavigation() {
         lenisRef.current?.destroy();
         lenisRef.current = null;
       } else if (!lenisRef.current) {
-        lenisRef.current = new Lenis({ anchors: false, autoRaf: true, lerp: 0.09, smoothWheel: true, syncTouch: false, wheelMultiplier: 0.9 });
+        createLenis();
       }
     };
 
@@ -116,6 +154,7 @@ export function SmoothNavigation() {
     window.addEventListener("mirra:menu-state", handleMenuState);
 
     return () => {
+      scrollRequestRef.current += 1;
       reducedMotionQuery.removeEventListener("change", handlePreference);
       window.removeEventListener("mirra:menu-state", handleMenuState);
       lenisRef.current?.destroy();
@@ -132,7 +171,8 @@ export function SmoothNavigation() {
         event.ctrlKey ||
         event.shiftKey ||
         event.altKey
-      ) return;
+      )
+        return;
 
       const origin = event.target;
       if (!(origin instanceof Element)) return;
@@ -151,6 +191,7 @@ export function SmoothNavigation() {
         if (!target) return;
         event.preventDefault();
         event.stopPropagation();
+        scrollRequestRef.current += 1;
         window.dispatchEvent(new Event("mirra:navigation-start"));
         const nextUrl = `${url.pathname}${url.search}${url.hash}`;
         window.history.pushState(null, "", nextUrl);
@@ -188,7 +229,10 @@ export function SmoothNavigation() {
 
     window.requestAnimationFrame(() => {
       if (hash) scrollToHash(hash, true);
-      else if (shouldAnimate) scrollToTarget(document.documentElement, false);
+      else {
+        scrollRequestRef.current += 1;
+        if (shouldAnimate) scrollToTarget(document.documentElement, false);
+      }
     });
   }, [pathname, scrollToHash, scrollToTarget]);
 

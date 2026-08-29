@@ -105,6 +105,10 @@ def analytics_events_col() -> AsyncCollection:
     return get_db()["analytics_events"]
 
 
+def join_applications_col() -> AsyncCollection:
+    return get_db()["join_applications"]
+
+
 async def ensure_indexes() -> None:
     """Create all indexes once at startup (idempotent)."""
     # Parity with mirra_measurements/db.py:
@@ -131,6 +135,7 @@ async def ensure_indexes() -> None:
     await tryon_renders_col().create_index([("session_id", ASCENDING)])
     await signature_looks_col().create_index([("user_id", ASCENDING)])
     await analytics_events_col().create_index([("event", ASCENDING), ("received_at", ASCENDING)])
+    await join_applications_col().create_index([("email", ASCENDING), ("created_at", ASCENDING)])
 
 
 async def ping() -> bool:
