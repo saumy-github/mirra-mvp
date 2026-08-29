@@ -47,15 +47,50 @@ export const measurementsEnvelope = z.object({
   measurements: z.record(z.string(), z.unknown()),
 });
 
-const garmentSchema = z.object({
-  sizeId: z.string(),
-  fitType: z.string(),
-  clothId: z.string().nullable().optional(),
-  clothLabel: z.string().nullable().optional(),
-  category: z.string().nullable().optional(),
-  measurements: z.record(z.string(), z.number().nullable()),
-  updatedAt: z.string().nullable().optional(),
+/**
+ * Publication state, as the backend will send it.
+ *
+ * Every field is optional because today's Step-2 endpoint sends none of them —
+ * but the mapper now *reads* them rather than asserting values of its own, so
+ * the day the merchant API starts publishing this shape, the storefront
+ * already honours it. See `features/dashboard/data/publication.ts` for the
+ * resolver that produces it.
+ */
+const publicationSchema = z.object({
+  publicationStatus: z.enum(["published", "paused", "deleted"]).optional(),
+  tryOnEligible: z.boolean().optional(),
+  assetUrl: z.string().nullable().optional(),
+  assetStatus: z.enum(["ready", "processing", "failed", "missing"]).optional(),
+  /** Per-SKU commerce facts. Absent means this catalogue tracks no inventory. */
+  variants: z
+    .array(
+      z.object({
+        variantId: z.string(),
+        size: z.string(),
+        colorName: z.string().nullable().optional(),
+        colorSwatch: z.string().nullable().optional(),
+        price: z.number().nullable().optional(),
+        currency: z.string().nullable().optional(),
+        inStock: z.boolean().optional(),
+        tryOnEligible: z.boolean().optional(),
+        assetUrl: z.string().nullable().optional(),
+        assetStatus: z.enum(["ready", "processing", "failed", "missing"]).optional(),
+      }),
+    )
+    .optional(),
 });
+
+const garmentSchema = z
+  .object({
+    sizeId: z.string(),
+    fitType: z.string(),
+    clothId: z.string().nullable().optional(),
+    clothLabel: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
+    measurements: z.record(z.string(), z.number().nullable()),
+    updatedAt: z.string().nullable().optional(),
+  })
+  .merge(publicationSchema);
 
 export const garmentEnvelope = z.object({ garment: garmentSchema });
 export const garmentListEnvelope = z.object({
@@ -191,11 +226,71 @@ export function mapAccount(a: BackendAccount): ShopperAccount {
   };
 }
 
+/**
+ * This catalogue is Mirra's own Step-2 ingestion output, not a merchant's
+ * storefront: it carries no commerce data at all, so there is no inventory to
+ * report. `inStock: true` here means "this catalogue does not track stock",
+ * which is a different claim from "we checked and it is in stock" — and it is
+ * the only field where an absent value is treated as available.
+ *
+ * Everything that governs whether a shopper may try something on fails closed
+ * instead. `tryOnEligible` is derived from a rendered asset actually existing,
+ * because the alternative is offering a try-on that cannot be produced.
+ */
+const UNMANAGED_CATALOGUE = {
+  /** No merchant publication state on this endpoint yet. */
+  publicationStatus: "published" as const,
+  currency: "INR",
+  /** Stock is not modelled by Step 2; nothing is being asserted about it. */
+  inStock: true,
+};
+
 export function mapGarment(g: BackendGarment): PublicProduct {
   const sizeChartMeasurements: Record<string, string> = {};
   for (const [field, value] of Object.entries(g.measurements)) {
     if (value !== null) sizeChartMeasurements[field] = `${value} cm`;
   }
+
+  const assetStatus = g.assetStatus ?? (g.assetUrl ? "ready" : "missing");
+  // Try-on eligibility follows the asset, never a hardcoded true: with no
+  // rendered garment there is nothing to put on an avatar, and saying
+  // otherwise sends the shopper into a failure the UI cannot explain.
+  const assetReady = assetStatus === "ready" && Boolean(g.assetUrl);
+  const productEligible = g.tryOnEligible ?? assetReady;
+
+  const variants =
+    g.variants && g.variants.length > 0
+      ? g.variants.map((v) => {
+          const vStatus = v.assetStatus ?? (v.assetUrl ? "ready" : assetStatus);
+          const vReady = vStatus === "ready" && Boolean(v.assetUrl ?? g.assetUrl);
+          return {
+            publicVariantId: v.variantId,
+            colorName: v.colorName ?? "Default",
+            colorSwatch: v.colorSwatch ?? "#c7c7cc",
+            size: v.size,
+            price: v.price ?? 0,
+            currency: v.currency ?? UNMANAGED_CATALOGUE.currency,
+            inStock: v.inStock ?? UNMANAGED_CATALOGUE.inStock,
+            tryOnEligible: v.tryOnEligible ?? vReady,
+            garmentAssetUrl: v.assetUrl ?? g.assetUrl ?? null,
+            assetStatus: vStatus,
+          };
+        })
+      : [
+          {
+            publicVariantId: g.sizeId,
+            colorName: "Default",
+            colorSwatch: "#c7c7cc",
+            size: g.fitType,
+            price: 0,
+            currency: UNMANAGED_CATALOGUE.currency,
+            inStock: UNMANAGED_CATALOGUE.inStock,
+            tryOnEligible: assetReady,
+            garmentAssetUrl: g.assetUrl ?? null,
+            assetStatus,
+          },
+        ];
+
   return {
     publicProductId: g.sizeId,
     name: g.clothLabel ?? `T-shirt ${g.sizeId}`,
@@ -209,25 +304,12 @@ export function mapGarment(g: BackendGarment): PublicProduct {
     taxNote: null,
     // Step 2 output carries no commerce data yet — placeholder, not real.
     price: 0,
-    currency: "INR",
+    currency: UNMANAGED_CATALOGUE.currency,
     thumbnailUrl: "",
-    publicationStatus: "published",
-    tryOnEligible: true,
+    publicationStatus: g.publicationStatus ?? UNMANAGED_CATALOGUE.publicationStatus,
+    tryOnEligible: productEligible && variants.some((v) => v.tryOnEligible),
     sizeChart: [{ size: g.fitType, measurements: sizeChartMeasurements }],
-    variants: [
-      {
-        publicVariantId: g.sizeId,
-        colorName: "Default",
-        colorSwatch: "#c7c7cc",
-        size: g.fitType,
-        price: 0,
-        currency: "INR",
-        inStock: true,
-        tryOnEligible: true,
-        garmentAssetUrl: null,
-        assetStatus: "missing",
-      },
-    ],
+    variants,
   };
 }
 

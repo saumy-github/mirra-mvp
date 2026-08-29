@@ -1,7 +1,8 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { FabricBrandBadge, FabricPanel } from "@/components/ui/fabric-panel";
-import { MirraLogo } from "@/components/ui/logo";
+import { MirraMark } from "@/components/ui/logo";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import "./auth.css";
 
@@ -45,7 +46,9 @@ export function AuthShell({
 
         <div className="auth-shell__content-inner relative mx-auto flex min-h-dvh w-full max-w-170 flex-col px-5 pt-24 pb-5 sm:px-8 lg:min-h-full lg:max-w-none lg:px-12 lg:pt-24 lg:pb-6">
           <div className="auth-shell__brand absolute inset-x-0 top-7 flex items-center justify-center lg:top-9">
-            <MirraLogo height={36} />
+            <Link to="/" aria-label="Mirra home" className="inline-flex transition-opacity hover:opacity-80">
+              <MirraMark size={38} alt="Mirra" />
+            </Link>
           </div>
 
           {topRightAction && (

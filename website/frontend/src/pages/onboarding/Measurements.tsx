@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "motion/react";
@@ -191,7 +191,7 @@ export default function OnboardingMeasurements() {
                 )}
               </motion.div>
 
-              <div className="glass absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-5 rounded-[18px] px-4 py-3.5 text-xs text-muted">
+              <div className="glass absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-5 rounded-card px-4 py-3.5 text-xs text-muted">
                 <div>
                   <p className="font-medium text-ink">
                     {hasAvatarPreview ? `Avatar ${avatar.avatarLabel}` : "Fit profile"}
@@ -232,7 +232,9 @@ export default function OnboardingMeasurements() {
 
         <div className="relative mx-auto flex min-h-dvh w-full max-w-180 flex-col px-5 pt-24 pb-6 sm:px-8 lg:min-h-full lg:max-w-none lg:px-12 lg:pt-18 lg:pb-5 xl:px-15">
           <div className="absolute inset-x-0 top-7 flex items-center justify-center lg:top-6">
-            <MirraLogo height={36} />
+            <Link to="/" aria-label="Mirra home" className="inline-flex transition-opacity hover:opacity-80">
+              <MirraMark size={38} alt="Mirra" />
+            </Link>
           </div>
 
           <div className="my-auto w-full max-w-145 self-center">
@@ -249,7 +251,7 @@ export default function OnboardingMeasurements() {
               </p>
             </div>
 
-            <div className="mt-7 flex items-center gap-3 rounded-[18px] border border-line bg-paper p-3.5 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] lg:hidden">
+            <div className="mt-7 flex items-center gap-3 rounded-card border border-line bg-paper p-3.5 shadow-[0_1px_0_rgba(255,255,255,0.8)_inset] lg:hidden">
               <span className="grid size-9 shrink-0 place-items-center rounded-full bg-mist text-ink">
                 <Check aria-hidden size={16} strokeWidth={2.2} />
               </span>

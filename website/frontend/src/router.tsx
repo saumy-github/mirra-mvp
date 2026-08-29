@@ -38,6 +38,10 @@ const ProfileMeasurements = lazy(() => import("@/pages/profile/ProfileMeasuremen
 const SignatureLooks = lazy(() => import("@/pages/profile/SignatureLooks"));
 const Privacy = lazy(() => import("@/pages/profile/Privacy"));
 
+// Merchant dashboard — the ported prototype. Self-contained leaf module: it
+// owns its own routes, styling, and (for now) its own seeded demo data.
+const DashboardRoutes = lazy(() => import("@/features/dashboard/dashboard-routes"));
+
 // Errors
 const ProductUnavailable = lazy(() => import("@/pages/errors/ProductUnavailable"));
 const AccountInactive = lazy(() => import("@/pages/errors/AccountInactive"));
@@ -77,6 +81,8 @@ export function AppRoutes() {
           <Route path="/profile/signature-looks" element={<SignatureLooks />} />
           <Route path="/profile/privacy" element={<Privacy />} />
         </Route>
+
+        <Route path="/dashboard/*" element={<DashboardRoutes />} />
 
         <Route path="/error/product-unavailable" element={<ProductUnavailable />} />
         <Route path="/error/account-inactive" element={<AccountInactive />} />

@@ -5,9 +5,6 @@ import {
   Check,
   Clock3,
   Mail,
-  MailCheck,
-  Sparkles,
-  Store,
 } from "lucide-react";
 import {
   useEffect,
@@ -346,39 +343,47 @@ export default function Join() {
     }
   };
 
-  const motionProps = reducedMotion
-    ? {}
-    : {
-        initial: { opacity: 0, y: 24 },
-        animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
-      };
-
   return (
     <main className={styles.page} id="top" data-header="light" data-nav-label="JOIN MIRRA">
       <div className={styles.grid} aria-hidden="true" />
-      <section className={styles.hero} aria-labelledby="join-title">
+      <div className={styles.hero}>
         <motion.div
-          className={styles.formColumn}
+          className={styles.container}
           {...(reducedMotion
             ? {}
             : {
-                initial: { opacity: 0, y: 30 },
+                initial: { opacity: 0, y: 24 },
                 animate: { opacity: 1, y: 0 },
-                transition: { duration: 0.76, delay: 0.08, ease: [0.22, 1, 0.36, 1] },
+                transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
               })}
         >
+          <div className={styles.topline}>
+            <Link to="/" className={styles.backLink}>
+              <ArrowLeft size={15} strokeWidth={1.7} />
+              Back to Mirra
+            </Link>
+            <p className={styles.eyebrow}>
+              <span aria-hidden="true" />
+              Early access
+            </p>
+          </div>
+
           {result ? (
             <SuccessPanel email={successEmail.current} response={result} />
           ) : (
-            <form className={styles.formCard} onSubmit={onSubmit} aria-busy={submitting} noValidate>
+            <form className={styles.form} onSubmit={onSubmit} aria-busy={submitting} noValidate>
               <div className={styles.formHeading}>
-                <p className={styles.formPill}>Join Mirra</p>
-                <h2>Apply to test the fit experience.</h2>
-                <span className={styles.formTime}>
-                  <Clock3 size={15} strokeWidth={1.7} aria-hidden="true" />
-                  About 2 min
-                </span>
+                <h1 id="join-title">Apply to test the fit experience.</h1>
+                <div className={styles.formMeta}>
+                  <span className={styles.formTime}>
+                    <Clock3 size={15} strokeWidth={1.7} aria-hidden="true" />
+                    About 2 min
+                  </span>
+                  <span className={styles.formDot} aria-hidden="true" />
+                  <span className={styles.formSubtext}>
+                    We review every application and respond by email
+                  </span>
+                </div>
               </div>
 
               <div className={styles.formBody}>
@@ -590,73 +595,7 @@ export default function Join() {
             </form>
           )}
         </motion.div>
-
-        <motion.div className={styles.intro} {...motionProps}>
-          <div className={styles.introTopline}>
-            <Link to="/" className={styles.backLink}>
-              <ArrowLeft size={15} strokeWidth={1.7} />
-              Back to Mirra
-            </Link>
-            <p className={styles.eyebrow}>
-              <span aria-hidden="true" />
-              Early access
-            </p>
-          </div>
-
-          <div className={styles.introHeader}>
-            <h1 id="join-title">
-              Make fit feel <span>obvious.</span>
-            </h1>
-            <p className={styles.lead}>
-              Tell us where fit gets in the way for your store. We’ll review your application and
-              follow up by email with the most useful next step.
-            </p>
-          </div>
-
-          <div className={styles.process} aria-label="How joining Mirra works">
-            <article>
-              <span className={styles.stepIcon} aria-hidden="true">
-                <Store size={17} strokeWidth={1.6} />
-              </span>
-              <div>
-                <span className={styles.stepNumber}>01</span>
-                <h2>Tell us about your store</h2>
-                <p>A focused two-minute application.</p>
-              </div>
-            </article>
-            <article>
-              <span className={styles.stepIcon} aria-hidden="true">
-                <MailCheck size={17} strokeWidth={1.6} />
-              </span>
-              <div>
-                <span className={styles.stepNumber}>02</span>
-                <h2>Hear from a real person</h2>
-                <p>Our team reviews every request and responds by email.</p>
-              </div>
-            </article>
-            <article>
-              <span className={styles.stepIcon} aria-hidden="true">
-                <Sparkles size={17} strokeWidth={1.6} />
-              </span>
-              <div>
-                <span className={styles.stepNumber}>03</span>
-                <h2>Test Mirra with intent</h2>
-                <p>If there’s a fit, we’ll shape a useful pilot around your store.</p>
-              </div>
-            </article>
-          </div>
-
-          <div className={styles.proof}>
-            <p>One focused use case. A real store. A useful answer before any rollout.</p>
-            <span>Our pilot principle</span>
-          </div>
-
-          <p className={styles.platformNote}>
-            <span aria-hidden="true" />
-            Built for Shopify · No replatforming
-          </p>
-        </motion.div>
-      </section>
+      </div>
     </main>
   );
 }
