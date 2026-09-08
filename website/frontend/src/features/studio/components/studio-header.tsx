@@ -23,22 +23,22 @@ const STUDIO_NAV = [
 export function StudioHeader({
   accountInitial,
   profileImageUrl,
-  cartCount,
-  onCartOpen,
+  shortlistCount,
+  onShortlistOpen,
 }: {
   accountInitial: string;
   profileImageUrl: string | null;
-  cartCount: number;
-  onCartOpen: () => void;
+  shortlistCount: number;
+  onShortlistOpen: () => void;
 }) {
   const reduceMotion = useReducedMotion();
   const press = reduceMotion ? undefined : { scale: 0.94 };
 
   return (
-    <header className="relative z-30 flex h-16 shrink-0 items-center gap-2 px-3 sm:gap-4 sm:px-5">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-line/70 bg-canvas/94 px-3 backdrop-blur-xl sm:gap-4 sm:px-5 lg:relative">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-canvas/80 shadow-[0_12px_32px_-25px_rgba(33,31,28,0.45)] backdrop-blur-2xl supports-backdrop-filter:bg-canvas/65"
+        className="pointer-events-none absolute inset-0 bg-canvas/68 supports-backdrop-filter:bg-canvas/55"
       />
 
       <Link
@@ -86,8 +86,8 @@ export function StudioHeader({
       <div className="relative ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
         <motion.button
           type="button"
-          onClick={onCartOpen}
-          aria-label={`Open cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}`}
+          onClick={onShortlistOpen}
+          aria-label={`Open shortlist, ${shortlistCount} ${shortlistCount === 1 ? "piece" : "pieces"}`}
           className="relative flex size-11 items-center justify-center rounded-(--radius-control) border border-white/80 bg-paper/76 text-ink-soft shadow-[0_1px_1px_rgba(33,31,28,0.05),0_8px_20px_-16px_rgba(33,31,28,0.55)] backdrop-blur-xl transition-colors hover:bg-paper hover:text-ink"
           whileTap={press}
           whileHover={reduceMotion ? undefined : { y: -1 }}
@@ -102,19 +102,18 @@ export function StudioHeader({
             strokeWidth="1.7"
             aria-hidden
           >
-            <path d="M6 8h12l-1 12H7L6 8Z" />
-            <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+            <path d="M6.5 4.5h11v15l-5.5-3.4-5.5 3.4v-15Z" />
           </svg>
-          {cartCount > 0 && (
+          {shortlistCount > 0 && (
             <motion.span
-              key={cartCount}
+              key={shortlistCount}
               aria-hidden
               className="absolute -top-1.5 -right-1.5 flex min-w-5 items-center justify-center rounded-full border-2 border-canvas bg-ink px-1 text-[9px] leading-4 font-semibold text-canvas"
               initial={reduceMotion ? false : { scale: 0.65, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={CONTROL_SPRING}
             >
-              {cartCount > 99 ? "99+" : cartCount}
+              {shortlistCount > 99 ? "99+" : shortlistCount}
             </motion.span>
           )}
         </motion.button>
@@ -142,10 +141,6 @@ export function StudioHeader({
             <span
               aria-hidden
               className="pointer-events-none absolute inset-0 rounded-full bg-linear-to-b from-white/24 via-transparent to-ink/6"
-            />
-            <span
-              aria-hidden
-              className="absolute right-0.5 bottom-0.5 size-2.5 rounded-full border-2 border-paper bg-ok"
             />
           </Link>
         </motion.div>

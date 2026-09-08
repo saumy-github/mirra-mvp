@@ -109,6 +109,34 @@ def join_applications_col() -> AsyncCollection:
     return get_db()["join_applications"]
 
 
+def merchant_tenants_col() -> AsyncCollection:
+    """One doc per brand workspace — the merchant side of the product."""
+    return get_db()["merchant_tenants"]
+
+
+def merchant_products_col() -> AsyncCollection:
+    """The Shopify listing. `link_state` says whether identity came from the
+    Admin API or was entered by hand against a pasted URL."""
+    return get_db()["merchant_products"]
+
+
+def merchant_garments_col() -> AsyncCollection:
+    """One colourway of a listing, digitised for try-on."""
+    return get_db()["merchant_garments"]
+
+
+def merchant_ingestion_runs_col() -> AsyncCollection:
+    """One product_ingestion (Step 2) execution for a (cloth, size) pair."""
+    return get_db()["merchant_ingestion_runs"]
+
+
+def merchant_previews_col() -> AsyncCollection:
+    """A QA/merchant preview render, on Mirra's reference avatar rather than
+    a shopper's — kept out of tryon_renders so it can never leak into a
+    shopper's try-on history."""
+    return get_db()["merchant_previews"]
+
+
 async def ensure_indexes() -> None:
     """Create all indexes once at startup (idempotent)."""
     # Parity with mirra_measurements/db.py:
@@ -136,6 +164,28 @@ async def ensure_indexes() -> None:
     await signature_looks_col().create_index([("user_id", ASCENDING)])
     await analytics_events_col().create_index([("event", ASCENDING), ("received_at", ASCENDING)])
     await join_applications_col().create_index([("email", ASCENDING), ("created_at", ASCENDING)])
+
+    # Merchant side. A handle is unique per tenant — it is the key a pasted
+    # storefront URL resolves through, and the key reconciliation matches on
+    # when a Shopify store is connected later.
+    await merchant_tenants_col().create_index([("slug", ASCENDING)], unique=True)
+    await merchant_products_col().create_index(
+        [("tenant_id", ASCENDING), ("handle", ASCENDING)],
+        unique=True,
+        name="tenant_handle_unique",
+    )
+    await merchant_products_col().create_index(
+        [("tenant_id", ASCENDING), ("shopify_gid", ASCENDING)], name="tenant_shopify_gid"
+    )
+    await merchant_garments_col().create_index([("tenant_id", ASCENDING)])
+    await merchant_garments_col().create_index(
+        [("tenant_id", ASCENDING), ("product_id", ASCENDING), ("option_value", ASCENDING)],
+        unique=True,
+        name="one_garment_per_colourway",
+    )
+    await merchant_ingestion_runs_col().create_index([("garment_id", ASCENDING)])
+    await merchant_previews_col().create_index([("garment_id", ASCENDING)])
+    await merchant_previews_col().create_index([("tenant_id", ASCENDING), ("state", ASCENDING)])
 
 
 async def ping() -> bool:

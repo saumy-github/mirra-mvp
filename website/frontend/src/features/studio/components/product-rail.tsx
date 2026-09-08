@@ -17,18 +17,32 @@ const RAIL_SPRING = {
 
 /**
  * A bounded, three-garment merchant rail. The centred garment is the current
- * selection; its two neighbours remain deliberately hazy until they snap in.
+ * selection while its neighbours remain visible as direct navigation targets.
  */
 export function ProductRail({
   activeProductId,
   onSelect,
+  onCollectionEmptyChange,
 }: {
   activeProductId: string | null;
   onSelect: (product: PublicProduct) => void;
+  onCollectionEmptyChange?: (empty: boolean) => void;
 }) {
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [desktopRail, setDesktopRail] = useState(() =>
+    typeof window === "undefined" ? true : window.matchMedia("(min-width: 1024px)").matches,
+  );
   const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const update = () => setDesktopRail(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["rail", category ?? "all", cursor ?? "0"],
@@ -42,6 +56,16 @@ export function ProductRail({
   });
 
   useEffect(() => {
+    if (!data?.categories.length) return;
+    setCategories((current) => [...new Set([...current, ...data.categories])]);
+  }, [data?.categories]);
+
+  useEffect(() => {
+    if (!data || isError) return;
+    onCollectionEmptyChange?.(data.items.length === 0);
+  }, [data, isError, onCollectionEmptyChange]);
+
+  useEffect(() => {
     if (!activeProductId || !data?.items[0]) return;
     const activeIsVisible = data.items.some(
       (product) => product.publicProductId === activeProductId,
@@ -52,61 +76,55 @@ export function ProductRail({
   return (
     <nav
       aria-label="Store garments"
-      className="flex h-full min-h-0 w-22 shrink-0 flex-col overflow-hidden rounded-(--radius-panel) border border-white/80 bg-paper/55 shadow-[0_1px_1px_rgba(33,31,28,0.04),0_18px_45px_-32px_rgba(33,31,28,0.45)] backdrop-blur-2xl sm:w-26 lg:w-28"
+      className="order-2 flex h-48 min-h-0 w-full shrink-0 flex-col overflow-hidden border border-line/80 bg-paper lg:order-1 lg:h-full lg:w-36"
     >
-      <div className="px-2.5 pt-3 pb-1">
-        <p className="truncate font-mono text-[8px] font-medium tracking-[0.16em] text-faint uppercase sm:text-[9px]">
+      <div className="flex min-h-10 items-center gap-3 border-b border-line/70 px-3 lg:block lg:min-h-0 lg:border-b-0 lg:px-3 lg:pt-3 lg:pb-1">
+        <p className="shrink-0 font-mono text-[10px] font-semibold tracking-[0.14em] text-muted uppercase">
           Collection
         </p>
-      </div>
-
-      <div className="rail-scroll flex max-h-28 flex-col gap-1 overflow-y-auto px-1.5 pb-1 sm:max-h-33">
-        {(data?.categories ?? []).map((cat) => {
-          const selected = category === cat;
-          return (
-            <motion.button
-              key={cat}
-              type="button"
-              onClick={() => {
-                setCategory(cat === category ? undefined : cat);
-                setCursor(undefined);
-              }}
-              aria-pressed={selected}
-              className={`relative min-h-8 overflow-hidden rounded-(--radius-compact) px-2 py-1.5 text-left font-mono text-[8px] font-medium tracking-widest uppercase sm:text-[9px] ${
-                selected ? "text-canvas" : "text-muted hover:text-ink"
-              }`}
-              whileTap={reduceMotion ? undefined : { scale: 0.96 }}
-              transition={RAIL_SPRING}
-            >
-              {selected && (
-                <motion.span
-                  layoutId="active-category"
-                  aria-hidden
-                  className="absolute inset-0 rounded-(--radius-compact) bg-ink"
-                  transition={RAIL_SPRING}
-                />
-              )}
-              <span className="relative z-10 block truncate">{cat}</span>
-            </motion.button>
-          );
-        })}
+        <div className="rail-scroll flex min-w-0 flex-1 gap-1 overflow-x-auto lg:mt-2 lg:max-h-32 lg:flex-col lg:overflow-y-auto lg:px-0 lg:pb-1">
+          {[undefined, ...categories].map((cat) => {
+            const selected = category === cat;
+            const label = cat ?? "All";
+            return (
+              <motion.button
+                key={label}
+                type="button"
+                onClick={() => {
+                  setCategory(cat);
+                  setCursor(undefined);
+                }}
+                aria-pressed={selected}
+                className={`relative min-h-8 shrink-0 overflow-hidden rounded-full px-2.5 py-1.5 text-left text-[10px] font-medium lg:w-full ${
+                  selected ? "text-canvas" : "text-muted hover:bg-surface hover:text-ink"
+                }`}
+                whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+                transition={RAIL_SPRING}
+              >
+                {selected && (
+                  <motion.span
+                    layoutId="active-category"
+                    aria-hidden
+                    className="absolute inset-0 rounded-full bg-ink"
+                    transition={RAIL_SPRING}
+                  />
+                )}
+                <span className="relative z-10 block truncate">{label}</span>
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="relative min-h-0 flex-1">
         {isLoading && (
           <div
             aria-label="Loading garments"
-            className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+            className="absolute inset-0 flex flex-row items-center justify-center gap-2 lg:flex-col"
           >
-            {[0.42, 1, 0.42].map((opacity, index) => (
-              <div
-                key={index}
-                style={{
-                  opacity,
-                  filter: index === 1 ? "none" : "blur(3px)",
-                }}
-              >
-                <Skeleton className="aspect-5/6 w-18 rounded-(--radius-compact) sm:w-20.5" />
+            {[0, 1, 2].map((index) => (
+              <div key={index}>
+                <Skeleton className="h-20 w-18 rounded-xl lg:h-27 lg:w-23" />
               </div>
             ))}
           </div>
@@ -127,92 +145,105 @@ export function ProductRail({
           </div>
         )}
 
-        {data && !isError && (
-          <PinchCarousel
-            items={data.items}
-            getKey={(product) => product.publicProductId}
-            getLabel={(product) => product.name}
-            axis="y"
-            activeKey={activeProductId ?? undefined}
-            onActiveChange={(product) => onSelect(product)}
-            ariaLabel="Garment collection"
-            stride={98}
-            debounceMs={250}
-            className="h-full outline-none focus-visible:ring-2 focus-visible:ring-ink/55 focus-visible:ring-inset"
-            viewportClassName="min-h-0!"
-            renderItem={(product, { active }) => {
-              const eligible = product.tryOnEligible;
-              const processing = product.variants.every(
-                (variant) => variant.assetStatus === "processing",
-              );
+        {data &&
+          !isError &&
+          (data.items.length === 0 ? (
+            <div className="absolute inset-0 flex items-center justify-center px-4 text-center">
+              <p className="max-w-36 text-xs leading-5 text-muted">
+                No pieces match this collection.
+              </p>
+            </div>
+          ) : (
+            <PinchCarousel
+              items={data.items}
+              getKey={(product) => product.publicProductId}
+              getLabel={(product) => product.name}
+              axis={desktopRail ? "y" : "x"}
+              activeKey={activeProductId ?? undefined}
+              onActiveChange={(product) => onSelect(product)}
+              ariaLabel="Garment collection"
+              stride={desktopRail ? 116 : 112}
+              debounceMs={250}
+              className="h-full outline-none focus-visible:ring-2 focus-visible:ring-ink/55 focus-visible:ring-inset"
+              viewportClassName="min-h-0!"
+              renderItem={(product, { active }) => {
+                const eligible = product.tryOnEligible;
+                const processing = product.variants.every(
+                  (variant) => variant.assetStatus === "processing",
+                );
 
-              return (
-                <button
-                  type="button"
-                  onClick={() => onSelect(product)}
-                  tabIndex={active ? 0 : -1}
-                  aria-label={`${product.name}${!eligible ? " (try-on unavailable)" : processing ? " (asset preparing)" : ""}`}
-                  aria-current={active ? "true" : undefined}
-                  title={product.name}
-                  className={`group relative block aspect-5/6 w-18 overflow-hidden rounded-(--radius-compact) border p-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ink sm:w-20.5 ${
-                    active
-                      ? "border-ink/85 bg-paper shadow-[0_14px_30px_-20px_rgba(33,31,28,0.62)]"
-                      : "border-white/75 bg-paper/64"
-                  }`}
-                >
-                  <StudioThumbnail
-                    src={product.thumbnailUrl}
-                    label={product.name}
-                    className={`size-full object-contain transition-transform duration-300 motion-reduce:transition-none ${
-                      active ? "group-hover:scale-[1.025]" : ""
-                    } ${!eligible ? "opacity-45" : ""}`}
-                  />
-                  {active && (
-                    <span
-                      aria-hidden
-                      className="absolute top-1.5 left-1.5 z-10 size-2 rounded-full border border-white/80 bg-ok shadow-sm"
+                return (
+                  <motion.button
+                    type="button"
+                    onClick={() => onSelect(product)}
+                    tabIndex={active ? 0 : -1}
+                    aria-label={`${product.name}${!eligible ? " (try-on unavailable)" : processing ? " (asset preparing)" : ""}`}
+                    aria-current={active ? "true" : undefined}
+                    title={product.name}
+                    className={`group relative flex h-20 w-18 flex-col overflow-hidden rounded-xl border bg-paper p-1.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-ink lg:h-27 lg:w-23 ${
+                      active ? "border-transparent" : "border-line/70"
+                    }`}
+                    whileTap={reduceMotion ? undefined : { scale: 0.95 }}
+                    transition={RAIL_SPRING}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="active-garment"
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 rounded-xl border-2 border-ink"
+                        transition={RAIL_SPRING}
+                      />
+                    )}
+                    <StudioThumbnail
+                      src={product.thumbnailUrl}
+                      label={product.name}
+                      className={`min-h-0 w-full flex-1 rounded-lg object-contain transition-transform duration-200 motion-reduce:transition-none ${
+                        active ? "group-hover:scale-[1.025]" : ""
+                      } ${!eligible ? "opacity-45" : ""}`}
                     />
-                  )}
-                  {!eligible && (
-                    <span className="absolute inset-x-1 bottom-1 z-10 rounded-b-[5px] bg-mist/90 py-1 text-center font-mono text-[7px] tracking-wider text-muted uppercase backdrop-blur-sm">
-                      view only
+                    <span className="relative z-10 mt-1 hidden w-full truncate px-0.5 text-[10px] font-semibold text-ink lg:block">
+                      {product.name}
                     </span>
-                  )}
-                  {eligible && processing && (
-                    <span className="absolute inset-x-1 bottom-1 z-10 rounded-b-[5px] bg-mist/90 py-1 text-center font-mono text-[7px] tracking-wider text-muted uppercase backdrop-blur-sm">
-                      preparing
-                    </span>
-                  )}
-                </button>
-              );
-            }}
-          />
-        )}
+                    {!eligible && (
+                      <span className="absolute inset-x-1.5 bottom-1.5 z-10 rounded-md bg-paper/95 py-0.5 text-center text-[8px] font-medium text-muted">
+                        View only
+                      </span>
+                    )}
+                    {eligible && processing && (
+                      <span className="absolute inset-x-1.5 bottom-1.5 z-10 rounded-md bg-paper/95 py-0.5 text-center text-[8px] font-medium text-muted">
+                        Preparing
+                      </span>
+                    )}
+                  </motion.button>
+                );
+              }}
+            />
+          ))}
       </div>
 
       {data && (data.nextCursor || cursor) && (
-        <div className="flex items-center justify-between border-t border-white/70 bg-paper/45 px-1.5 py-1.5 font-mono text-[8px] text-muted sm:text-[9px]">
+        <div className="flex items-center justify-between border-t border-line/70 bg-paper px-2 py-1 text-[9px] text-muted">
           <motion.button
             type="button"
             disabled={!cursor}
             onClick={() => setCursor(undefined)}
-            className="min-h-9 rounded-(--radius-compact) px-1.5 disabled:opacity-30"
+            className="min-h-11 rounded-(--radius-compact) px-2 disabled:opacity-30"
             aria-label="First garment page"
             whileTap={reduceMotion ? undefined : { scale: 0.94 }}
             transition={RAIL_SPRING}
           >
-            ↑ first
+            {desktopRail ? "↑ first" : "← first"}
           </motion.button>
           <motion.button
             type="button"
             disabled={!data.nextCursor}
             onClick={() => setCursor(data.nextCursor ?? undefined)}
-            className="min-h-9 rounded-(--radius-compact) px-1.5 disabled:opacity-30"
+            className="min-h-11 rounded-(--radius-compact) px-2 disabled:opacity-30"
             aria-label="More garments"
             whileTap={reduceMotion ? undefined : { scale: 0.94 }}
             transition={RAIL_SPRING}
           >
-            more ↓
+            {desktopRail ? "more ↓" : "more →"}
           </motion.button>
         </div>
       )}

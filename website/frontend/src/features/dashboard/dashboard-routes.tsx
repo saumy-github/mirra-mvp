@@ -16,6 +16,7 @@ const Products = lazy(() => import("./pages/portal/Products"));
 const Garments = lazy(() => import("./pages/portal/Garments"));
 const GarmentDetail = lazy(() => import("./pages/portal/GarmentDetail"));
 const GarmentFlow = lazy(() => import("./pages/portal/GarmentFlow"));
+const Digitise = lazy(() => import("./pages/portal/Digitise"));
 const Assets = lazy(() => import("./pages/portal/Assets"));
 const SizeFit = lazy(() => import("./pages/portal/SizeFit"));
 const Fabric = lazy(() => import("./pages/portal/Fabric"));
@@ -56,6 +57,10 @@ export default function DashboardRoutes() {
             <Route path="garments/new" element={<GarmentFlow />} />
             <Route path="garments/:id" element={<GarmentDetail />} />
             <Route path="garments/:id/setup" element={<GarmentFlow />} />
+            {/* The live, server-backed flow. Same journey as garments/:id/setup
+                but persisted and wired to the real pipeline. */}
+            <Route path="digitise" element={<Digitise />} />
+            <Route path="digitise/:id" element={<Digitise />} />
             <Route path="assets" element={<Assets />} />
             <Route path="size-fit" element={<SizeFit />} />
             <Route path="fabric" element={<Fabric />} />

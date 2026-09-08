@@ -17,6 +17,7 @@ import { getRuntimeProvider } from "@/integrations/mirra-api";
 import type {
   GarmentCategory,
   PublicProduct,
+  ProductVariant,
   SignatureLook,
   TryOnRender,
 } from "@/integrations/mirra-api/types";
@@ -27,9 +28,8 @@ import { useStudioStore } from "@/stores/studio-store";
 /**
  * The Mirra studio. Avatar left, garment panel right, Hanger + Signature
  * Looks below. All data flows through the runtime provider. Adapted from
- * user-side's tenant/Shopify-embedded version — cart handoff to a merchant
- * is replaced with a local preview cart because no real checkout backend
- * exists yet for this pilot.
+ * user-side's tenant/Shopify-embedded version; the local shortlist is for
+ * comparison only because this pilot has no checkout backend.
  */
 export default function Studio() {
   const navigate = useNavigate();
@@ -37,21 +37,40 @@ export default function Studio() {
   const qc = useQueryClient();
   const api = getRuntimeProvider();
 
-  const { data: account, isLoading: accountLoading } = useAccount();
-  const { data: avatar, isLoading: avatarLoading } = useAvatarProfile(!!account);
-  const { data: looks = [], isLoading: looksLoading } = useSignatureLooks(!!account);
+  const {
+    data: account,
+    isLoading: accountLoading,
+    isError: accountError,
+    refetch: refetchAccount,
+  } = useAccount();
+  const {
+    data: avatar,
+    isLoading: avatarLoading,
+    isError: avatarError,
+    refetch: refetchAvatar,
+  } = useAvatarProfile(!!account);
+  const {
+    data: looks = [],
+    isLoading: looksLoading,
+    isError: looksError,
+  } = useSignatureLooks(!!account);
   const { createLook, deleteLook } = useSignatureLookMutations();
 
   const store = useStudioStore();
 
-  const tryOn = useTryOn({ avatarProfileVersion: avatar?.version ?? null });
+  const { wear, restoreEntry } = useTryOn({ avatarProfileVersion: avatar?.version ?? null });
 
   const [lookDialogOpen, setLookDialogOpen] = useState(false);
   const [lookNotice, setLookNotice] = useState<string | null>(null);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [cartNotice, setCartNotice] = useState<string | null>(null);
+  const [shortlistOpen, setShortlistOpen] = useState(false);
+  const [shortlistNotice, setShortlistNotice] = useState<string | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [sessionRetrying, setSessionRetrying] = useState(false);
+  const [railCollectionEmpty, setRailCollectionEmpty] = useState(false);
+  const [avatarViewState, setAvatarViewState] = useState<"loading" | "ready" | "error">("loading");
+  const [historyState, setHistoryState] = useState<"idle" | "loading" | "ready" | "error">(
+    "loading",
+  );
   const requestedLookId =
     typeof (location.state as { signatureLookId?: unknown } | null)?.signatureLookId === "string"
       ? ((location.state as { signatureLookId: string }).signatureLookId ?? null)
@@ -60,18 +79,18 @@ export default function Studio() {
 
   // ── Guards ──
   useEffect(() => {
-    if (!accountLoading && !account) {
+    if (!accountLoading && !accountError && !account) {
       navigate(`/auth/login?next=${encodeURIComponent("/studio")}`, {
         replace: true,
       });
     }
-  }, [account, accountLoading, navigate]);
+  }, [account, accountError, accountLoading, navigate]);
 
   useEffect(() => {
-    if (!avatarLoading && account && !avatar) {
+    if (!avatarLoading && !avatarError && account && !avatar) {
       navigate("/profile/avatar", { replace: true });
     }
-  }, [avatar, avatarLoading, account, navigate]);
+  }, [avatar, avatarError, avatarLoading, account, navigate]);
 
   useEffect(() => {
     if (account) useStudioStore.getState().scopeToShopper(account.shopperId);
@@ -106,7 +125,11 @@ export default function Studio() {
   // ── Active product ──
   const activeProductId = store.activeProductId;
 
-  const { data: activeProduct } = useQuery({
+  const {
+    data: activeProduct,
+    isError: activeProductError,
+    refetch: refetchActiveProduct,
+  } = useQuery({
     queryKey: ["product", activeProductId],
     queryFn: () => getRuntimeProvider().getProduct(activeProductId!),
     enabled: !!activeProductId,
@@ -114,7 +137,11 @@ export default function Studio() {
   });
 
   // Fall back to the first rail product when nothing is selected yet.
-  const { data: firstPage } = useQuery({
+  const {
+    data: firstPage,
+    isError: catalogueError,
+    refetch: refetchCatalogue,
+  } = useQuery({
     queryKey: ["rail", "all", "0"],
     queryFn: () => getRuntimeProvider().listProducts({ limit: 10 }),
     staleTime: 60_000,
@@ -143,11 +170,16 @@ export default function Studio() {
   useEffect(() => {
     if (seeded.current || !account || !avatar) return;
     seeded.current = true;
+    let cancelled = false;
+    setHistoryState("loading");
     api
       .listRecentRenders()
       .then(async (renders) => {
         const s = useStudioStore.getState();
-        if (s.hanger.length > 0) return;
+        if (s.hanger.length > 0) {
+          if (!cancelled) setHistoryState("ready");
+          return;
+        }
         for (const render of renders.slice(0, 5).reverse()) {
           const outfit = await outfitFromRender(render, qc);
           const active = outfit[productCategoryOf(render, outfit)] ?? Object.values(outfit)[0];
@@ -175,8 +207,15 @@ export default function Studio() {
             outfit,
           });
         }
+        if (!cancelled) setHistoryState("ready");
       })
-      .catch(() => undefined); // history is a convenience, never a blocker
+      .catch(() => {
+        if (!cancelled) setHistoryState("error");
+      }); // history is a convenience, never a blocker
+
+    return () => {
+      cancelled = true;
+    };
   }, [account, avatar, api, qc]);
 
   // ── Try-on when selection settles ──
@@ -193,17 +232,33 @@ export default function Studio() {
   }, [activeProduct, store.activeColor, store.activeSize]);
 
   const lastWorn = useRef<string | null>(null);
+  const restoredVariantToSkip = useRef<string | null>(null);
+  useEffect(() => {
+    lastWorn.current = null;
+    restoredVariantToSkip.current = null;
+  }, [store.tryOnSessionId]);
+
   useEffect(() => {
     if (!activeProduct || !activeVariant || !store.tryOnSessionId || !avatar) return;
-    const sig = `${activeVariant.publicVariantId}::${activeVariant.size}`;
+    const sig = tryOnSelectionSignature(activeProduct, activeVariant, activeVariant.size);
+    if (restoredVariantToSkip.current === activeVariant.publicVariantId) {
+      restoredVariantToSkip.current = null;
+      lastWorn.current = sig;
+      return;
+    }
     if (lastWorn.current === sig) return;
-    lastWorn.current = sig;
-    void tryOn.wear(activeProduct, activeVariant, activeVariant.size);
-  }, [activeProduct, activeVariant, store.tryOnSessionId, avatar, tryOn]);
+
+    const settleTimer = window.setTimeout(() => {
+      lastWorn.current = sig;
+      void wear(activeProduct, activeVariant, activeVariant.size);
+    }, 220);
+
+    return () => window.clearTimeout(settleTimer);
+  }, [activeProduct, activeVariant, store.tryOnSessionId, avatar, wear]);
 
   // ── Handlers ──
   const onSelectProduct = useCallback((product: PublicProduct) => {
-    setCartNotice(null);
+    setShortlistNotice(null);
     const s = useStudioStore.getState();
     s.selectProduct(product.publicProductId);
     // Preserve size where compatible, otherwise fall to first in-stock.
@@ -252,9 +307,10 @@ export default function Studio() {
   const onRestoreEntry = useCallback(
     async (entry: HangerEntry) => {
       if (!entry.outfit) return;
-      const ok = await tryOn.restoreEntry(entry, entry.outfit);
+      const ok = await restoreEntry(entry, entry.outfit);
       if (ok) {
         const s = useStudioStore.getState();
+        restoredVariantToSkip.current = entry.variantPublicId;
         s.selectProduct(entry.productPublicId);
         try {
           const product = await qc.fetchQuery({
@@ -267,18 +323,24 @@ export default function Studio() {
             s.setColor(variant.colorName);
             s.setSize(entry.size ?? variant.size);
             // The restored look is already on the figure — don't re-request it.
-            lastWorn.current = `${variant.publicVariantId}::${entry.size ?? variant.size}`;
+            lastWorn.current = tryOnSelectionSignature(
+              product,
+              variant,
+              entry.size ?? variant.size,
+            );
+            restoredVariantToSkip.current = null;
           }
         } catch {
+          restoredVariantToSkip.current = null;
           // product gone — the figure still shows the cached render
         }
       } else if (activeProduct && activeVariant) {
         // Cached result invalid → deliberate re-render of the same look.
         lastWorn.current = null;
-        void tryOn.wear(activeProduct, activeVariant, activeVariant.size);
+        void wear(activeProduct, activeVariant, activeVariant.size);
       }
     },
-    [tryOn, activeProduct, activeVariant, qc],
+    [restoreEntry, activeProduct, activeVariant, qc, wear],
   );
 
   const onApplyLook = useCallback(
@@ -323,10 +385,10 @@ export default function Studio() {
       // Re-drape the active garment over the locked base.
       if (activeProduct && activeVariant) {
         lastWorn.current = null;
-        void tryOn.wear(activeProduct, activeVariant, activeVariant.size);
+        void wear(activeProduct, activeVariant, activeVariant.size);
       }
     },
-    [qc, activeProduct, activeVariant, tryOn],
+    [qc, activeProduct, activeVariant, wear],
   );
 
   const onCreateLook = useCallback(
@@ -430,9 +492,16 @@ export default function Studio() {
     }
   }, [looks, avatar, store.tryOnSessionId, onApplyLook, requestedLookId]);
 
-  // ── Cart (local only — no checkout backend exists yet for this pilot) ──
-  const onAddToCart = useCallback(() => {
+  // ── Local shortlist (comparison only; no checkout promise) ──
+  const onAddToShortlist = useCallback(() => {
     if (!activeProduct || !activeVariant) return;
+    const existing = useStudioStore
+      .getState()
+      .cart.some((line) => line.variantPublicId === activeVariant.publicVariantId);
+    if (existing) {
+      setShortlistNotice(`${activeProduct.name} is already in your shortlist.`);
+      return;
+    }
     useStudioStore.getState().addCartItem({
       productPublicId: activeProduct.publicProductId,
       variantPublicId: activeVariant.publicVariantId,
@@ -444,19 +513,27 @@ export default function Studio() {
       currency: activeVariant.currency,
       quantity: 1,
     });
-    setCartNotice(`${activeProduct.name} was added to your cart.`);
-    toast.success(`${activeProduct.name} added to your cart.`);
-    track("add_to_cart_clicked", {
-      productPublicId: activeProduct.publicProductId,
-      variantPublicId: activeVariant.publicVariantId,
-      authenticated: true,
-    });
+    setShortlistNotice(`${activeProduct.name} was added to your shortlist.`);
+    toast.success(`${activeProduct.name} added to your shortlist.`);
   }, [activeProduct, activeVariant]);
 
   // ── Derived ──
   const wornLayers = Object.values(store.layers).filter((l): l is OutfitLayer => !!l);
-  const cartCount = store.cart.reduce((sum, line) => sum + line.quantity, 0);
+  const shortlistCount = store.cart.length;
   const otherLayers = wornLayers.filter((l) => l.category !== activeProduct?.garmentCategory);
+
+  if (accountError || avatarError) {
+    return (
+      <StudioLoadFailure
+        title={accountError ? "We couldn't open your Studio" : "Your avatar couldn't be loaded"}
+        body="Your account is still safe. Check your connection and try loading this workspace again."
+        onRetry={() => {
+          if (accountError) void refetchAccount();
+          else void refetchAvatar();
+        }}
+      />
+    );
+  }
 
   if (accountLoading || avatarLoading || !avatar) {
     return (
@@ -470,12 +547,12 @@ export default function Studio() {
   }
 
   return (
-    <div className="flex h-dvh flex-col bg-canvas">
+    <div className="flex min-h-dvh flex-col bg-canvas lg:h-dvh lg:overflow-hidden">
       <StudioHeader
         accountInitial={(account?.displayName?.[0] ?? "M").toUpperCase()}
         profileImageUrl={avatar.previewAssetUrl}
-        cartCount={cartCount}
-        onCartOpen={() => setCartOpen(true)}
+        shortlistCount={shortlistCount}
+        onShortlistOpen={() => setShortlistOpen(true)}
       />
 
       {sessionError && (
@@ -501,51 +578,86 @@ export default function Studio() {
         </div>
       )}
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[1.6fr_1fr]">
+      <div className="grid flex-1 grid-cols-1 lg:min-h-0 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
         {/* Stage + rail */}
-        <section className="flex min-h-0 gap-3 border-b border-line bg-surface px-4 py-3 lg:border-r lg:border-b-0">
+        <section className="flex min-h-0 flex-col gap-3 border-b border-line bg-surface p-3 lg:flex-row lg:border-r lg:border-b-0 lg:p-4">
           <ProductRail
-            activeProductId={activeProduct?.publicProductId ?? null}
+            activeProductId={store.activeProductId}
             onSelect={onSelectProduct}
+            onCollectionEmptyChange={setRailCollectionEmpty}
           />
           <AvatarStage
             avatar={avatar}
             layers={store.layers}
             tryOnState={store.tryOn.state}
-            failureReason={store.tryOn.failureReason}
-            onRetry={() => {
-              if (activeProduct && activeVariant) {
-                lastWorn.current = null;
-                void tryOn.wear(activeProduct, activeVariant, activeVariant.size);
-              }
-            }}
             onMakeSignatureLook={() => setLookDialogOpen(true)}
-            canMakeLook={wornLayers.length > 0}
+            canMakeLook={
+              wornLayers.length > 0 &&
+              (store.tryOn.state === "ready" || store.tryOn.state === "cached")
+            }
             tryOnSessionId={store.tryOnSessionId}
+            renderSessionId={store.tryOn.renderSessionId}
             renderId={store.tryOn.renderId}
+            onAvatarViewStateChange={setAvatarViewState}
           />
         </section>
 
         {/* Product panel */}
-        {activeProduct ? (
+        {railCollectionEmpty ? (
+          <ProductPanelState
+            title="No pieces in this collection"
+            body="Choose another collection to keep browsing without changing the look on your avatar."
+          />
+        ) : activeProduct ? (
           <ProductPanel
             product={activeProduct}
             activeColor={store.activeColor}
             activeSize={activeVariant?.size ?? null}
-            tryOnState={store.tryOn.state}
             otherLayers={otherLayers}
             onColorChange={onColorChange}
             onSizeChange={onSizeChange}
-            onAddToCart={onAddToCart}
+            onAddToShortlist={onAddToShortlist}
             onUnlockLayer={(cat) => useStudioStore.getState().unlockLayer(cat)}
-            addToCartBusy={false}
-            cartNotice={cartNotice}
+            tryOnState={store.tryOn.state}
+            tryOnFailureReason={store.tryOn.failureReason}
+            showPreviewFeedback={avatarViewState === "ready"}
+            onRetryTryOn={() => {
+              if (activeVariant) {
+                lastWorn.current = null;
+                void wear(activeProduct, activeVariant, activeVariant.size);
+              }
+            }}
+            addToShortlistBusy={false}
+            shortlistNotice={shortlistNotice}
+          />
+        ) : activeProductError || catalogueError ? (
+          <ProductPanelState
+            tone="error"
+            title="The collection didn't load"
+            body="The Studio is still here. Retry the catalogue without losing your current look."
+            actionLabel="Try again"
+            onAction={() => {
+              void refetchCatalogue();
+              if (activeProductId) void refetchActiveProduct();
+            }}
+          />
+        ) : firstPage && firstPage.items.length === 0 ? (
+          <ProductPanelState
+            title="No pieces are published yet"
+            body="When garments are ready, they will appear in the collection beside your avatar."
           />
         ) : (
-          <div className="space-y-4 bg-paper p-9">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-5 w-1/3" />
-            <Skeleton className="h-24 w-full" />
+          <div className="space-y-5 bg-paper p-7 lg:p-9" aria-label="Loading selected piece">
+            <div className="grid grid-cols-[72px_1fr] gap-4">
+              <Skeleton className="h-22 w-18 rounded-xl" />
+              <div className="space-y-3 pt-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-7 w-full" />
+                <Skeleton className="h-4 w-2/5" />
+              </div>
+            </div>
+            <Skeleton className="h-px w-full" />
+            <Skeleton className="h-12 w-full rounded-xl" />
           </div>
         )}
       </div>
@@ -572,18 +684,18 @@ export default function Studio() {
         currentRenderId={store.tryOn.renderId}
         looks={looks}
         appliedLookId={store.appliedLookId}
+        historyState={historyState}
+        looksLoading={looksLoading}
+        looksError={looksError}
         onRestore={onRestoreEntry}
         onApplyLook={onApplyLook}
         onRemoveLook={onRemoveLook}
       />
 
       <CartDrawer
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
+        open={shortlistOpen}
+        onClose={() => setShortlistOpen(false)}
         items={store.cart}
-        onSetQuantity={(variantPublicId, quantity) =>
-          useStudioStore.getState().setCartQuantity(variantPublicId, quantity)
-        }
         onRemove={(variantPublicId) => useStudioStore.getState().removeCartItem(variantPublicId)}
       />
 
@@ -595,6 +707,69 @@ export default function Studio() {
         layerNames={wornLayers.map((l) => l.name)}
       />
     </div>
+  );
+}
+
+function StudioLoadFailure({
+  title,
+  body,
+  onRetry,
+}: {
+  title: string;
+  body: string;
+  onRetry: () => void;
+}) {
+  return (
+    <main className="grid min-h-dvh place-items-center bg-canvas px-5">
+      <div className="w-full max-w-md border-y border-line py-10 text-center">
+        <p className="font-mono text-[10px] tracking-[0.16em] text-muted uppercase">Mirra Studio</p>
+        <h1 className="mt-4 text-2xl font-semibold tracking-[-0.035em] text-ink">{title}</h1>
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted">{body}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-6 min-h-11 rounded-full bg-ink px-5 text-sm font-semibold text-canvas transition-opacity hover:opacity-85"
+        >
+          Try again
+        </button>
+      </div>
+    </main>
+  );
+}
+
+function ProductPanelState({
+  title,
+  body,
+  tone = "empty",
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  body: string;
+  tone?: "empty" | "error";
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <aside className="flex min-h-64 items-center bg-paper px-7 py-10 lg:h-full lg:px-9">
+      <div className="max-w-sm">
+        <span
+          aria-hidden
+          className={`block h-px w-12 ${tone === "error" ? "bg-error" : "bg-line-strong"}`}
+        />
+        <h2 className="mt-5 text-xl font-semibold tracking-[-0.03em] text-ink">{title}</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">{body}</p>
+        {actionLabel && onAction && (
+          <button
+            type="button"
+            onClick={onAction}
+            className="mt-5 min-h-11 rounded-full bg-ink px-5 text-sm font-semibold text-canvas transition-opacity hover:opacity-85"
+          >
+            {actionLabel}
+          </button>
+        )}
+      </div>
+    </aside>
   );
 }
 
@@ -642,4 +817,18 @@ function productCategoryOf(
     if (layer?.productPublicId === render.productPublicId) return cat as GarmentCategory;
   }
   return (Object.keys(outfit)[0] as GarmentCategory) ?? "top";
+}
+
+function tryOnSelectionSignature(
+  product: PublicProduct,
+  variant: ProductVariant,
+  size: string | null,
+) {
+  return [
+    variant.publicVariantId,
+    size ?? "",
+    product.tryOnEligible ? "eligible" : "unsupported",
+    variant.tryOnEligible ? "eligible" : "unsupported",
+    variant.assetStatus,
+  ].join("::");
 }

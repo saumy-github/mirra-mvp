@@ -7,49 +7,7 @@ import { formatPrice } from "@/lib/format";
 import type { OutfitLayer } from "@/stores/studio-store";
 import { PANEL_SPRING } from "@/lib/motion-presets";
 import { CuratedLookRail } from "./curated-look-rail";
-
-const TRY_ON_COPY: Record<TryOnState, { title: string; body: string; tone: string }> = {
-  idle: {
-    title: "Ready to preview",
-    body: "Choose a colour and size to see this piece on your avatar.",
-    tone: "bg-silver",
-  },
-  requesting: {
-    title: "Starting your preview",
-    body: "Mirra is preparing this exact colour and size.",
-    tone: "bg-silver",
-  },
-  processing: {
-    title: "Draping on your avatar",
-    body: "The fitting engine is shaping the garment around your profile.",
-    tone: "bg-silver",
-  },
-  restoring: {
-    title: "Restoring your preview",
-    body: "A recent fitting is being placed back on your avatar.",
-    tone: "bg-silver",
-  },
-  ready: {
-    title: "Preview ready",
-    body: "This selected piece is now shown on your avatar.",
-    tone: "bg-ok",
-  },
-  cached: {
-    title: "Preview ready",
-    body: "This fitting was restored from your recent try-ons.",
-    tone: "bg-ok",
-  },
-  unsupported: {
-    title: "Preview unavailable",
-    body: "This piece can still be reviewed, but it cannot be draped yet.",
-    tone: "bg-error",
-  },
-  failed: {
-    title: "Preview needs another try",
-    body: "The fitting did not complete. Use Try again beside the avatar.",
-    tone: "bg-error",
-  },
-};
+import { StudioThumbnail } from "./studio-thumbnail";
 
 /**
  * Right-hand product panel — the merchant's product, verbatim from the
@@ -60,26 +18,32 @@ export function ProductPanel({
   product,
   activeColor,
   activeSize,
-  tryOnState,
   otherLayers,
   onColorChange,
   onSizeChange,
-  onAddToCart,
+  onAddToShortlist,
   onUnlockLayer,
-  addToCartBusy,
-  cartNotice,
+  tryOnState,
+  tryOnFailureReason,
+  onRetryTryOn,
+  showPreviewFeedback,
+  addToShortlistBusy,
+  shortlistNotice,
 }: {
   product: PublicProduct;
   activeColor: string | null;
   activeSize: string | null;
-  tryOnState: TryOnState;
   otherLayers: OutfitLayer[];
   onColorChange: (color: string) => void;
   onSizeChange: (size: string) => void;
-  onAddToCart: () => void;
+  onAddToShortlist: () => void;
   onUnlockLayer: (category: OutfitLayer["category"]) => void;
-  addToCartBusy: boolean;
-  cartNotice: string | null;
+  tryOnState: TryOnState;
+  tryOnFailureReason: string | null;
+  onRetryTryOn: () => void;
+  showPreviewFeedback: boolean;
+  addToShortlistBusy: boolean;
+  shortlistNotice: string | null;
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [chartOpen, setChartOpen] = useState(false);
@@ -104,81 +68,59 @@ export function ProductPanel({
   const outOfStock = activeVariant ? !activeVariant.inStock : false;
   const sizeChart = product.sizeChart ?? [];
   const sizeChartColumns = sizeChart[0] ? Object.keys(sizeChart[0].measurements) : [];
-  const tryOnCopy = TRY_ON_COPY[tryOnState];
-  const tryOnBusy = ["requesting", "processing", "restoring"].includes(tryOnState);
 
   return (
     <LayoutGroup id={`product-panel-${product.publicProductId}`}>
-      <aside className="rail-scroll flex h-auto max-h-[52dvh] flex-col overflow-y-auto overscroll-contain rounded-t-[28px] border-t border-white/80 bg-paper/88 px-5 pt-7 pb-9 shadow-[0_-18px_50px_-42px_rgba(33,31,28,0.58)] backdrop-blur-2xl sm:px-7 lg:h-full lg:max-h-none lg:rounded-none lg:border-t-0 lg:px-10 lg:py-9 lg:shadow-none">
+      <aside className="rail-scroll flex h-auto flex-col bg-paper px-5 py-7 sm:px-7 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:px-8 lg:py-8">
         <motion.div
           key={product.publicProductId}
-          initial={reduceMotion ? false : { opacity: 0.45, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-[72px_minmax(0,1fr)] gap-4 border-b border-line/80 pb-6"
+          initial={reduceMotion ? false : { opacity: 0.45, x: 8 }}
+          animate={{ opacity: 1, x: 0 }}
           transition={reduceMotion ? { duration: 0.01 } : PANEL_SPRING}
         >
-          <p className="text-xs font-semibold tracking-[0.01em] text-muted">Selected piece</p>
-          <h1 className="mt-2 text-[clamp(1.75rem,3vw,2.25rem)] leading-[1.06] font-semibold tracking-[-0.035em] text-ink">
-            {product.name}
-          </h1>
-          {product.subtitle && (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted">{product.subtitle}</p>
+          <div className="h-24 overflow-hidden rounded-xl border border-line/70 bg-surface p-1.5">
+            <StudioThumbnail
+              src={product.thumbnailUrl}
+              label={product.name}
+              className="size-full rounded-lg"
+            />
+          </div>
+          <div className="min-w-0 pt-0.5">
+            <p className="text-[11px] font-medium text-muted">Selected piece</p>
+            <h1 className="mt-1 line-clamp-2 text-[clamp(1.3rem,2vw,1.65rem)] leading-[1.08] font-semibold tracking-[-0.035em] text-ink">
+              {product.name}
+            </h1>
+            {product.subtitle && (
+              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">
+                {product.subtitle}
+              </p>
+            )}
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="text-[15px] font-semibold tracking-[-0.02em]">
+                {priceAvailable ? formatPrice(price, product.currency) : "Price unavailable"}
+              </p>
+              <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
+                <span
+                  aria-hidden
+                  className={`size-1.5 rounded-full ${activeVariant?.inStock ? "bg-ok" : "bg-error"}`}
+                />
+                {activeVariant?.inStock ? "In stock" : "Out of stock"}
+              </span>
+            </div>
+          </div>
+          {(product.taxNote || !priceAvailable) && (
+            <p className="col-span-2 text-[11px] leading-relaxed text-muted">
+              {priceAvailable
+                ? product.taxNote
+                : "Commerce pricing has not been connected for this piece yet."}
+            </p>
           )}
         </motion.div>
 
-        <div className="mt-5 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xl font-semibold tracking-[-0.02em]">
-              {priceAvailable ? formatPrice(price, product.currency) : "Price unavailable"}
-            </p>
-            {product.taxNote && <p className="mt-1 text-xs text-muted">{product.taxNote}</p>}
-            {!priceAvailable && (
-              <p className="mt-1 text-xs leading-relaxed text-muted">
-                Commerce pricing has not been connected for this piece yet.
-              </p>
-            )}
-          </div>
-          <span className="flex items-center gap-2 text-xs font-medium text-muted">
-            <span
-              aria-hidden
-              className={`size-2 rounded-full ${activeVariant?.inStock ? "bg-ok" : "bg-error"}`}
-            />
-            {activeVariant?.inStock ? "In stock" : "Out of stock"}
-          </span>
-        </div>
-
-        <AnimatePresence initial={false} mode="wait">
-          <motion.div
-            key={tryOnState}
-            className="mt-6 flex items-start gap-3"
-            role="status"
-            aria-live="polite"
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -3 }}
-            transition={reduceMotion ? { duration: 0.12 } : PANEL_SPRING}
-          >
-            <motion.span
-              aria-hidden
-              className={`mt-1.5 size-2.5 shrink-0 rounded-full ${tryOnCopy.tone}`}
-              animate={
-                reduceMotion || !tryOnBusy
-                  ? undefined
-                  : { scale: [1, 1.35, 1], opacity: [0.6, 1, 0.6] }
-              }
-              transition={{ duration: 1.4, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
-            />
-            <span>
-              <span className="block text-sm font-semibold tracking-[-0.01em] text-ink">
-                {tryOnCopy.title}
-              </span>
-              <span className="mt-1 block text-xs leading-5 text-muted">{tryOnCopy.body}</span>
-            </span>
-          </motion.div>
-        </AnimatePresence>
-
         {/* Colour variants */}
         {colors.length > 0 && (
-          <fieldset className="mt-8">
+          <fieldset className="mt-6">
             <legend className="text-sm font-semibold tracking-[-0.01em] text-ink">Colour</legend>
             <div className="mt-3 flex flex-wrap gap-2.5">
               {colors.map((v) => {
@@ -191,7 +133,7 @@ export function ProductPanel({
                     aria-pressed={selected}
                     aria-label={`Colour ${v.colorName}`}
                     title={v.colorName}
-                    className="relative flex size-12 items-center justify-center rounded-full border border-line/80 bg-surface/70"
+                    className="relative flex size-11 items-center justify-center rounded-full border border-line/80 bg-surface/70"
                     whileTap={reduceMotion ? undefined : { scale: 0.91 }}
                     transition={PANEL_SPRING}
                   >
@@ -204,7 +146,7 @@ export function ProductPanel({
                       />
                     )}
                     <span
-                      className="size-9 rounded-full border border-black/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)]"
+                      className="size-8 rounded-full border border-black/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5)]"
                       style={{ background: v.colorSwatch }}
                     />
                   </motion.button>
@@ -228,7 +170,7 @@ export function ProductPanel({
 
         {/* Sizes */}
         {sizes.length > 0 && (
-          <fieldset className="mt-8">
+          <fieldset className="mt-6">
             <legend className="text-sm font-semibold tracking-[-0.01em] text-ink">Size</legend>
             <div className="mt-3 flex flex-wrap gap-2.5">
               {sizes.map((v) => {
@@ -320,12 +262,40 @@ export function ProductPanel({
           </fieldset>
         )}
 
-        {/* Add to cart */}
-        <div className="mt-7">
+        {showPreviewFeedback && (tryOnState === "unsupported" || tryOnState === "failed") && (
+          <div
+            role={tryOnState === "failed" ? "alert" : "status"}
+            className="mt-6 rounded-[14px] border border-line bg-surface/75 px-4 py-3"
+          >
+            <p className="text-xs font-semibold text-ink">
+              {tryOnState === "failed" ? "Preview couldn't update" : "Preview unavailable"}
+            </p>
+            <p className="mt-1 text-xs leading-5 text-muted">
+              {tryOnFailureReason ??
+                (tryOnState === "failed"
+                  ? "The fitting preview couldn't be completed."
+                  : "This piece can't be shown on your avatar yet.")}
+            </p>
+            {tryOnState === "failed" && (
+              <motion.button
+                type="button"
+                onClick={onRetryTryOn}
+                className="mt-2 min-h-10 rounded-full text-xs font-semibold text-ink underline decoration-line-strong underline-offset-4"
+                whileTap={reduceMotion ? undefined : { scale: 0.95 }}
+                transition={PANEL_SPRING}
+              >
+                Try preview again
+              </motion.button>
+            )}
+          </div>
+        )}
+
+        {/* Add to shortlist */}
+        <div className="mt-6">
           <motion.div
             className="rounded-(--radius-control)"
             whileTap={
-              reduceMotion || outOfStock || !activeVariant || addToCartBusy
+              reduceMotion || outOfStock || !activeVariant || addToShortlistBusy
                 ? undefined
                 : { scale: 0.975 }
             }
@@ -335,9 +305,9 @@ export function ProductPanel({
               variant="studio-dark"
               size="lg"
               className="h-13! w-full rounded-(--radius-control)! shadow-[0_12px_28px_-18px_rgba(33,31,28,0.7)]"
-              onClick={onAddToCart}
+              onClick={onAddToShortlist}
               disabled={outOfStock || !activeVariant}
-              loading={addToCartBusy}
+              loading={addToShortlistBusy}
             >
               <svg
                 width="15"
@@ -348,13 +318,12 @@ export function ProductPanel({
                 strokeWidth="1.7"
                 aria-hidden
               >
-                <path d="M6 8h12l-1 12H7L6 8Z" />
-                <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+                <path d="M6.5 4.5h11v15l-5.5-3.4-5.5 3.4v-15Z" />
               </svg>
-              Add to preview cart
+              Add to shortlist
             </Button>
           </motion.div>
-          {cartNotice && (
+          {shortlistNotice && (
             <motion.p
               role="status"
               className="mt-3 flex items-center gap-2 text-xs font-medium text-ok"
@@ -368,7 +337,7 @@ export function ProductPanel({
               >
                 ✓
               </span>
-              {cartNotice}
+              {shortlistNotice}
             </motion.p>
           )}
         </div>

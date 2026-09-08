@@ -4,7 +4,6 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { StudioThumbnail } from "./studio-thumbnail";
 import { formatPrice } from "@/lib/format";
 import type { StudioCartItem } from "@/stores/studio-store";
-import { Button } from "@/components/ui/button";
 import { CONTROL_SPRING } from "@/lib/motion-presets";
 
 const DRAWER_SPRING = {
@@ -27,20 +26,17 @@ export interface CartDrawerProps {
   open: boolean;
   onClose: () => void;
   items: StudioCartItem[];
-  onSetQuantity: (variantPublicId: string, quantity: number) => void;
   onRemove: (variantPublicId: string) => void;
 }
 
-/** Local multi-item preview bag. Checkout is intentionally unavailable. */
-export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: CartDrawerProps) {
+/** A local comparison shortlist. It deliberately makes no checkout promise. */
+export function CartDrawer({ open, onClose, items, onRemove }: CartDrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
 
-  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const subtotal = items.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
-  const hasCompletePricing = items.length > 0 && items.every((item) => item.unitPrice > 0);
+  const itemCount = items.length;
 
   useEffect(() => {
     if (!open) return;
@@ -128,8 +124,8 @@ export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: Ca
             ref={drawerRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="cart-drawer-title"
-            aria-describedby="cart-drawer-summary"
+            aria-labelledby="shortlist-drawer-title"
+            aria-describedby="shortlist-drawer-summary"
             tabIndex={-1}
             className="glass-heavy absolute inset-y-0 right-0 flex h-dvh w-full max-w-107.5 flex-col overflow-hidden border-y-0 border-r-0 text-ink sm:inset-y-3 sm:right-3 sm:h-[calc(100dvh-1.5rem)] sm:rounded-xl sm:border"
             style={{ transformOrigin: "top right" }}
@@ -144,10 +140,10 @@ export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: Ca
                   Mirra
                 </p>
                 <h2
-                  id="cart-drawer-title"
+                  id="shortlist-drawer-title"
                   className="mt-1 text-[22px] leading-none font-semibold tracking-tight"
                 >
-                  Your cart
+                  Your shortlist
                 </h2>
               </div>
 
@@ -155,7 +151,7 @@ export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: Ca
                 ref={closeButtonRef}
                 type="button"
                 onClick={onClose}
-                aria-label="Close shopping cart"
+                aria-label="Close shortlist"
                 className="flex size-11 shrink-0 items-center justify-center rounded-field border border-line/80 bg-paper/70 text-ink-soft shadow-[0_1px_1px_rgba(33,31,28,0.04)] transition-colors hover:bg-paper hover:text-ink"
                 whileHover={reduceMotion ? undefined : { y: -1 }}
                 whileTap={reduceMotion ? undefined : { scale: 0.92 }}
@@ -181,10 +177,10 @@ export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: Ca
               />
             </header>
 
-            <p id="cart-drawer-summary" className="sr-only">
+            <p id="shortlist-drawer-summary" className="sr-only">
               {itemCount === 0
-                ? "Your shopping cart is empty."
-                : `${itemCount} ${itemCount === 1 ? "item" : "items"} in your shopping cart.`}
+                ? "Your shortlist is empty."
+                : `${itemCount} ${itemCount === 1 ? "piece" : "pieces"} in your shortlist.`}
             </p>
 
             {items.length === 0 ? (
@@ -203,15 +199,14 @@ export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: Ca
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   >
-                    <path d="M5.5 8.5h13l-1 11h-11l-1-11Z" />
-                    <path d="M9 8.5V6.8a3 3 0 0 1 6 0v1.7" />
+                    <path d="M6.5 4.5h11v15l-5.5-3.4-5.5 3.4v-15Z" />
                   </svg>
                 </span>
                 <h3 className="mt-5 text-lg font-semibold tracking-[-0.02em]">
-                  Your styling cart is empty
+                  Your shortlist is empty
                 </h3>
                 <p className="mt-2 max-w-67.5 text-sm leading-relaxed text-muted">
-                  Add pieces as you style. They will stay here while you keep building the look.
+                  Keep pieces here while you compare colours, sizes, and try-on results.
                 </p>
               </div>
             ) : (
@@ -249,61 +244,19 @@ export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: Ca
                             </div>
                             <p className="shrink-0 text-[13px] font-semibold tracking-[-0.01em]">
                               {item.unitPrice > 0
-                                ? formatPrice(item.unitPrice * item.quantity, item.currency)
+                                ? formatPrice(item.unitPrice, item.currency)
                                 : "Price unavailable"}
                             </p>
                           </div>
 
-                          <div className="mt-auto flex items-end justify-between gap-3 pt-3">
-                            <div
-                              className="flex h-9 items-center rounded-field border border-line bg-paper/75 p-0.5"
-                              aria-label={`Quantity for ${item.productName}`}
-                            >
-                              <motion.button
-                                type="button"
-                                onClick={() =>
-                                  onSetQuantity(item.variantPublicId, item.quantity - 1)
-                                }
-                                disabled={item.quantity <= 1}
-                                aria-label={`Decrease ${item.productName} quantity`}
-                                className="flex size-8 items-center justify-center rounded-full text-base leading-none text-ink-soft transition-colors hover:bg-mist disabled:opacity-30"
-                                whileTap={
-                                  reduceMotion || item.quantity <= 1 ? undefined : { scale: 0.86 }
-                                }
-                                transition={CONTROL_SPRING}
-                              >
-                                −
-                              </motion.button>
-                              <output
-                                aria-live="polite"
-                                className="min-w-7 text-center font-mono text-[11px] font-semibold tabular-nums"
-                              >
-                                {item.quantity}
-                              </output>
-                              <motion.button
-                                type="button"
-                                onClick={() =>
-                                  onSetQuantity(item.variantPublicId, item.quantity + 1)
-                                }
-                                disabled={item.quantity >= 10}
-                                aria-label={`Increase ${item.productName} quantity`}
-                                className="flex size-8 items-center justify-center rounded-full text-base leading-none text-ink-soft transition-colors hover:bg-mist disabled:opacity-30"
-                                whileTap={
-                                  reduceMotion || item.quantity >= 10 ? undefined : { scale: 0.86 }
-                                }
-                                transition={CONTROL_SPRING}
-                              >
-                                +
-                              </motion.button>
-                            </div>
-
+                          <div className="mt-auto flex justify-end pt-3">
                             <motion.button
                               type="button"
                               onClick={() => onRemove(item.variantPublicId)}
                               className="min-h-9 rounded-lg px-2 text-[11px] font-medium text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-error"
                               whileTap={reduceMotion ? undefined : { scale: 0.94 }}
                               transition={CONTROL_SPRING}
-                              aria-label={`Remove ${item.productName} from cart`}
+                              aria-label={`Remove ${item.productName} from shortlist`}
                             >
                               Remove
                             </motion.button>
@@ -316,37 +269,15 @@ export function CartDrawer({ open, onClose, items, onSetQuantity, onRemove }: Ca
               </div>
             )}
 
-            <footer className="relative shrink-0 bg-paper/58 px-5 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] backdrop-blur-2xl">
+            <footer className="relative shrink-0 border-t border-line/80 bg-paper px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-0 h-8 -translate-y-full bg-linear-to-t from-paper/45 to-transparent"
               />
 
-              <div className="flex items-baseline justify-between gap-4">
-                <div>
-                  <p className="text-[13px] font-semibold">Subtotal</p>
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
-                    {hasCompletePricing
-                      ? "Shipping and taxes would be calculated at checkout"
-                      : "Pricing will appear when commerce data is connected"}
-                  </p>
-                </div>
-                <p className="text-xl font-semibold tracking-tight tabular-nums">
-                  {hasCompletePricing ? formatPrice(subtotal, items[0]?.currency ?? "INR") : "—"}
-                </p>
-              </div>
-
-              <Button
-                type="button"
-                variant="studio-dark"
-                size="lg"
-                disabled
-                className="mt-4 w-full rounded-field"
-              >
-                Checkout coming soon
-              </Button>
-              <p className="mt-2.5 text-center text-xs leading-relaxed text-muted">
-                Preview only. Your cart stays intact in this tab while you keep styling.
+              <p className="text-xs leading-5 text-muted">
+                This is a comparison list, not a shopping cart. Pieces remain here for this visit
+                while you keep styling.
               </p>
             </footer>
           </motion.div>

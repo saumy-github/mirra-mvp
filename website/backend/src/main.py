@@ -14,6 +14,7 @@ from .auth.routes import router as auth_router
 from .avatars.routes import router as avatars_router
 from .catalog.routes import router as catalog_router
 from .join.routes import router as join_router
+from .merchant.routes import router as merchant_router
 from .signature_looks.routes import router as signature_looks_router
 from .tryon.routes import router as tryon_router
 from .user_measurements.routes import router as user_measurements_router
@@ -65,6 +66,7 @@ def create_app() -> FastAPI:
     api.include_router(signature_looks_router)
     api.include_router(analytics_router)
     api.include_router(join_router)
+    api.include_router(merchant_router)
     app.include_router(api)
     return app
 

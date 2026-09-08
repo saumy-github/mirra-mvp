@@ -1,0 +1,34 @@
+{
+  "plugin_name": "CLO REST Automation",
+  "plugin_version": "1.3.3",
+  "api_version": "v1",
+  "release_date": "2026-08-31",
+  "status": "unstable",
+  "platforms": {
+    "windows": "in_sync",
+    "mac": "pending"
+  },
+  "changes": {
+    "added": [],
+    "changed": [
+      "Build infrastructure only — no change to RestPlugin_windows.cpp or RestPlugin_macOS.cpp in this version. Windows behavior is byte-for-byte identical to v1.3.2 and stays 'in_sync'; a Windows rebuild at 1.3.3 is a relabel, not a functional change.",
+      "build_plugin.py: the macOS configure step read a Qt5_DIR env key and passed -DQt5_DIR, but mac/CMakeLists.txt has required find_package(Qt6) since the Qt6 migration. The flag was therefore silently inert and only CMAKE_PREFIX_PATH was actually locating Qt. Renamed to Qt6_DIR / -DQt6_DIR so the key does what its name says. Listed as an open item in clo_workspace/mac_plugin_setup.md section 10.",
+      ".env.example: the macOS block still instructed 'brew install qt@5' and set Qt5_DIR, directly contradicting mac/CMakeLists.txt. Anyone following it would hit the section 3.1 failure — the plugin links cleanly against Qt5 headers, then dlopen fails at load time on QArrayData::shared_null / QArrayData::deallocate / QString::fromUtf8_helper, and CLO reports only the generic 'The plug-in has a problem.' Rewritten for Qt6, noting that an exact minor-version match is not required because QT_NO_VERSION_TAGGING is defined."
+    ],
+    "fixed": [],
+    "resolved": [],
+    "known_issues": [
+      "MAC IS NOT AT PARITY WITH WINDOWS, AND THIS VERSION DOES NOT CHANGE THAT. This version file exists so the stamped version stops lying about it. build_plugin.py's find_current_version_path() always builds the highest v_*.json, so before this file existed a macOS build would have stamped MIRRA_PLUGIN_VERSION '1.3.2' and emitted libRestPlugin_v1.3.2.dylib from source that predates both v1.3.1 and v1.3.2. /health would have reported 1.3.2. The three gaps are enumerated below; MIRRA_PLUGIN_PLATFORM_SYNC_STATE resolves to 'pending' on mac and is the machine-readable signal.",
+      "Mac lacks the v1.3.1 GLB export fix. RestPlugin_macOS.cpp still runs the pre-1.3.1 path: opts.bEmbedded = asGLB followed by EXPORT_API->ExportGLTF(path, opts, asGLB). Per v_1.3.1.json this reports success while writing JSON glTF with base64-embedded buffers — not a binary .glb — so POST /export?format=glb on Mac produces output that is invalid for any consumer expecting real GLB, with no error surfaced. Windows line 1832 calls the dedicated EXPORT_API->ExportGLB(path, options) instead.",
+      "Mac lacks the v1.3.1 export scale fix. opts.scale is still 1.0f (RestPlugin_macOS.cpp:822); Windows uses 0.001f because CLO's internal unit is millimeters while glTF/GLB expect meters. Mac exports are therefore 1000x the intended size.",
+      "Mac sets opts.bExportGarment unconditionally true (RestPlugin_macOS.cpp:823) where Windows derives it from the live scene as (g_patternsLoaded.load() > 0). Unverified whether this matters in practice; noted because it is an unexplained divergence in the same handler as the two issues above, not because it is known to be a defect.",
+      "Mac lacks the v1.3.2 clear-avatars work — no /clear-avatars route and no g_avatarsLoaded counter (Windows has 14 references). This gap is deliberate and should stay: v_1.3.2.json documents the route as dead code that the pipeline does not call, because GetAvatarProperties() crashes the CLO process on an absent index and DeleteAvatar() hangs CLO's main thread on one. Porting it to Mac would import a known-unsafe path for no caller. Do not close this gap without first solving how to safely learn how many avatars a scene holds.",
+      "Mac has no TraceLog. Carried forward unchanged from v1.3.0 and still deliberate — see .agent/clo-avatar-vto/merge-followup-clo-workspace.md section 5. A hard crash on Mac leaves no on-disk marker naming the CLO call that was in flight, so Windows remains the platform to reproduce a crash on.",
+      "The Marvelous/ExportAPI stubs in RestPlugin_macOS.cpp (the #if __has_include(\"CLOAPIInterface.h\") else branch, lines 20-70) have drifted from the real SDK. The stub declares ExportGLTF returning std::string, while the Windows source assigns the real SDK's return into a std::vector<std::string>, and the stub has no ExportGLB at all. The stubs exist only to silence editor diagnostics when the SDK is absent and are not used in a real build, so this does not affect the artifact — but the stub block must be updated alongside any Mac port of the v1.3.1 export fix or the file will stop resolving in an SDK-less checkout.",
+      "Carried over from v1.3.1 and still open: POST /export hangs indefinitely against a completely empty CLO scene (no avatar, no patterns). Recovery requires restarting CLO. Not a blocker — the real pipeline always loads an avatar first.",
+      "Carried over: set-fabric-graphic accepts u/v/scale per plugin_contract.json but never applies them, on both platforms — it calls the same dispatchTexture() used for plain textures, so a graphic always behaves as a full texture replacement. See .agent/clo-avatar-vto/known-issue-fabric-graphic-placement.md.",
+      "Carried over: native avatar measurement CSV import remains under investigation."
+    ]
+  },
+  "notes": "Bookkeeping release. No plugin source changed — this version exists to stop the macOS artifact inheriting a Windows version number that describes work the Mac source does not contain, and to record what that drift actually is. Mac stays 'pending': at time of writing it had not been built in this checkout, and the toolchain is only half present. Verified installed and matching the known-good config in mac_plugin_setup.md section 1: cmake 4.4.3, Homebrew qt 6.11.1 (no qt@5 conflict). Still required and NOT present on this machine: CLO.app itself and the macOS CLO SDK. Both are needed — the SDK ships an empty CLOAPIInterface/Lib, so libCLOAPIInterface.dylib has to be copied out of the installed CLO.app (section 3.2), which also makes the linked library exactly version-matched to the running app. Mac moves to 'in_sync' only after: SDK extracted and CLO_SDK_PATH set in clo_workspace/.env, the dylib copy done, a clean build, the section 8.1 dlopen probe printing 'PLUGIN : loaded OK', registration through Plug-in Manager (section 6 — a native dylib is NOT discovered by dropping it in the folder), and /health reporting a plugin_built_at matching the build. Note that the CLO version this must be built against has moved since section 1 was written: v_1.3.2.json records the Windows side pairing with CLO 2026.1.188 and CLO_SDK_v2026.0.356 after a Qt 6.10 migration that made the older 2025.2.368-built plugin hang CLO permanently on NewProject(). Re-check CLO's bundled Qt with the otool command in section 1 before trusting any of these version numbers."
+}

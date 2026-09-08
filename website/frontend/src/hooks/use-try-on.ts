@@ -18,7 +18,6 @@ import { useStudioStore, type OutfitLayer } from "@/stores/studio-store";
  */
 export function useTryOn(opts: { avatarProfileVersion: number | null }) {
   const engine = getTryOnEngine();
-  const store = useStudioStore();
   const requestSeq = useRef(0);
 
   const wear = useCallback(
@@ -62,6 +61,7 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
       if (!product.tryOnEligible || !variant.tryOnEligible) {
         setTryOnState("unsupported", {
           renderId: null,
+          renderSessionId: null,
           failureReason: "This garment type isn't supported by try-on yet.",
         });
         return;
@@ -69,6 +69,7 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
       if (variant.assetStatus !== "ready" || !variant.garmentAssetUrl) {
         setTryOnState("unsupported", {
           renderId: null,
+          renderSessionId: null,
           failureReason: "We're still preparing this garment for try-on.",
         });
         return;
@@ -88,13 +89,20 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
           engineVersion: engine.engineVersion,
         });
         if (restorable) {
-          setTryOnState("restoring", { renderId: cached.renderId, failureReason: null });
+          setTryOnState("restoring", {
+            renderId: cached.renderId,
+            renderSessionId: cached.tryOnSessionId,
+            failureReason: null,
+          });
           try {
             await engine.restoreTryOnResult(cached.tryOnSessionId, cached.renderId);
             if (seq !== requestSeq.current) return;
             wearLayer(layerFrom(product, variant, size, false));
             touchHanger(cached.id);
-            setTryOnState("cached", { renderId: cached.renderId });
+            setTryOnState("cached", {
+              renderId: cached.renderId,
+              renderSessionId: cached.tryOnSessionId,
+            });
             track("hanger_item_restored", {
               productPublicId: product.publicProductId,
               variantPublicId: variant.publicVariantId,
@@ -111,7 +119,11 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
       }
 
       // Fresh engine request.
-      setTryOnState("requesting", { renderId: null, failureReason: null });
+      setTryOnState("requesting", {
+        renderId: null,
+        renderSessionId: null,
+        failureReason: null,
+      });
       track("try_on_started", {
         productPublicId: product.publicProductId,
         variantPublicId: variant.publicVariantId,
@@ -137,7 +149,10 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
         if (seq !== requestSeq.current) return;
 
         if (render.state === "processing") {
-          setTryOnState("processing", { renderId: render.renderId });
+          setTryOnState("processing", {
+            renderId: render.renderId,
+            renderSessionId: tryOnSessionId,
+          });
           render = await pollRender(
             engine.getTryOnStatus,
             tryOnSessionId,
@@ -150,7 +165,10 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
         if (render.state === "ready") {
           const activeLayer = layerFrom(product, variant, size, false);
           wearLayer(activeLayer);
-          setTryOnState("ready", { renderId: render.renderId });
+          setTryOnState("ready", {
+            renderId: render.renderId,
+            renderSessionId: tryOnSessionId,
+          });
           const outfit = Object.fromEntries([
             ...baseLayers.map((l) => [l.category, l] as const),
             [activeLayer.category, activeLayer] as const,
@@ -179,14 +197,24 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
             engineVersion: engine.engineVersion,
           });
         } else if (render.state === "unsupported") {
-          setTryOnState("unsupported", { failureReason: render.failureReason });
+          setTryOnState("unsupported", {
+            renderId: null,
+            renderSessionId: null,
+            failureReason: render.failureReason,
+          });
         } else {
-          setTryOnState("failed", { failureReason: render.failureReason });
+          setTryOnState("failed", {
+            renderId: null,
+            renderSessionId: null,
+            failureReason: render.failureReason,
+          });
           track("try_on_failed", { productPublicId: product.publicProductId, authenticated: true });
         }
       } catch (e) {
         if (seq !== requestSeq.current) return;
         setTryOnState("failed", {
+          renderId: null,
+          renderSessionId: null,
           failureReason: e instanceof Error ? e.message : "The try-on engine is unavailable.",
         });
         track("try_on_failed", { productPublicId: product.publicProductId, authenticated: true });
@@ -210,13 +238,20 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
         return false;
       }
       const seq = ++requestSeq.current;
-      setTryOnState("restoring", { renderId: entry.renderId, failureReason: null });
+      setTryOnState("restoring", {
+        renderId: entry.renderId,
+        renderSessionId: entry.tryOnSessionId,
+        failureReason: null,
+      });
       try {
         await engine.restoreTryOnResult(entry.tryOnSessionId, entry.renderId);
         if (seq !== requestSeq.current) return false;
         setLayers(layersFromEntry);
         touchHanger(entry.id);
-        setTryOnState("cached", { renderId: entry.renderId });
+        setTryOnState("cached", {
+          renderId: entry.renderId,
+          renderSessionId: entry.tryOnSessionId,
+        });
         track("hanger_item_restored", {
           productPublicId: entry.productPublicId,
           variantPublicId: entry.variantPublicId,
@@ -227,6 +262,8 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
         if (seq === requestSeq.current) {
           markHangerStatus(entry.id, "expired");
           setTryOnState("failed", {
+            renderId: null,
+            renderSessionId: null,
             failureReason: "This saved look has expired — try it on again.",
           });
         }
@@ -236,7 +273,7 @@ export function useTryOn(opts: { avatarProfileVersion: number | null }) {
     [engine, opts.avatarProfileVersion],
   );
 
-  return { wear, restoreEntry, engineVersion: engine.engineVersion, store };
+  return { wear, restoreEntry };
 }
 
 function layerFrom(

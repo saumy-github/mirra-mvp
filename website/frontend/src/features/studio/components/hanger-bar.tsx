@@ -2,6 +2,7 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import type { SignatureLook } from "@/integrations/mirra-api/types";
 import type { HangerEntry } from "@/lib/hanger";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { Skeleton } from "@/components/ui/misc";
 import { StudioThumbnail } from "./studio-thumbnail";
 
 const HANGER_SPRING = {
@@ -21,6 +22,9 @@ export function HangerBar({
   currentRenderId,
   looks,
   appliedLookId,
+  historyState,
+  looksLoading,
+  looksError,
   onRestore,
   onApplyLook,
   onRemoveLook,
@@ -29,38 +33,80 @@ export function HangerBar({
   currentRenderId: string | null;
   looks: SignatureLook[];
   appliedLookId: string | null;
+  historyState: "idle" | "loading" | "ready" | "error";
+  looksLoading: boolean;
+  looksError: boolean;
   onRestore: (entry: HangerEntry) => void;
   onApplyLook: (look: SignatureLook) => void;
   onRemoveLook: (look: SignatureLook) => void;
 }) {
   const reduceMotion = useReducedMotion();
+  const quietEmpty =
+    entries.length === 0 &&
+    looks.length === 0 &&
+    (historyState === "ready" || historyState === "idle") &&
+    !looksLoading &&
+    !looksError;
+
+  if (quietEmpty) {
+    return (
+      <LayoutGroup id="studio-hanger">
+        <motion.footer
+          layout
+          className="relative z-20 grid shrink-0 grid-cols-1 gap-2 border-t border-line/80 bg-canvas px-5 py-3 text-xs lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-8"
+          transition={reduceMotion ? { duration: 0.01 } : HANGER_SPRING}
+        >
+          <div className="flex min-w-0 items-center justify-between gap-4">
+            <p className="shrink-0 font-semibold text-ink">Recent try-ons</p>
+            <p className="truncate text-muted">Starts after your first preview</p>
+          </div>
+          <div className="flex min-w-0 items-center justify-between gap-4">
+            <p className="shrink-0 font-semibold text-ink">Saved looks</p>
+            <p className="truncate text-muted">Save the outfit when it feels right</p>
+          </div>
+        </motion.footer>
+      </LayoutGroup>
+    );
+  }
 
   return (
     <LayoutGroup id="studio-hanger">
-      <footer className="relative z-20 flex h-40 shrink-0 flex-col gap-3 border-t border-white/70 bg-canvas/82 px-4 py-3 shadow-[0_-18px_44px_-40px_rgba(33,31,28,0.62)] backdrop-blur-2xl supports-backdrop-filter:bg-canvas/68 lg:h-28 lg:flex-row lg:items-center lg:gap-8 lg:px-5">
+      <footer className="relative z-20 grid shrink-0 grid-cols-1 gap-3 border-t border-line/80 bg-canvas px-4 py-3 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center lg:gap-8 lg:px-5">
         {/* Hanger entries */}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="mb-2 flex items-center justify-between gap-3 px-1">
             <p className="text-xs font-semibold tracking-[-0.01em] text-ink">Recent try-ons</p>
             <p className="text-xs text-muted">
-              {entries.length === 0 ? "Your history starts here" : `${entries.length} saved here`}
+              {historyState === "loading"
+                ? "Restoring…"
+                : historyState === "error"
+                  ? "Unavailable"
+                  : entries.length === 0
+                    ? "Starts after your first try-on"
+                    : `${entries.length} ${entries.length === 1 ? "piece" : "pieces"}`}
             </p>
           </div>
           <ul
             aria-label="The Hanger — looks you've tried this session"
-            className="rail-scroll flex min-h-18 items-center gap-2.5 overflow-x-auto px-1 pb-1"
+            aria-busy={historyState === "loading"}
+            className={`rail-scroll flex items-center gap-2.5 overflow-x-auto px-1 pb-1 ${
+              entries.length > 0 || historyState === "loading" ? "min-h-18" : "min-h-7"
+            }`}
           >
-            {entries.length === 0 && (
-              <li className="flex min-h-17 min-w-64 items-center gap-3 px-1">
-                <span
-                  aria-hidden
-                  className="flex size-9 items-center justify-center rounded-full bg-paper/80 text-base text-muted shadow-sm"
-                >
-                  +
-                </span>
-                <span className="max-w-48 text-xs leading-5 text-muted">
-                  Try on a piece and it will stay within reach here.
-                </span>
+            {historyState === "loading" && entries.length === 0 && (
+              <li className="flex gap-2" aria-hidden>
+                <Skeleton className="h-17.5 w-15.5 rounded-[14px]" />
+                <Skeleton className="h-17.5 w-15.5 rounded-[14px] opacity-65" />
+              </li>
+            )}
+            {historyState === "error" && entries.length === 0 && (
+              <li className="text-xs leading-5 text-muted">
+                Recent try-ons couldn&apos;t be restored. New previews will still appear here.
+              </li>
+            )}
+            {(historyState === "ready" || historyState === "idle") && entries.length === 0 && (
+              <li className="text-xs leading-5 text-muted">
+                Change a garment or size; successful previews stay within reach here.
               </li>
             )}
             <AnimatePresence initial={false} mode="popLayout">
@@ -138,16 +184,31 @@ export function HangerBar({
         </div>
 
         {/* Signature looks */}
-        <div className="flex min-w-0 items-center gap-3 lg:w-72 lg:flex-col lg:items-start lg:gap-2">
-          <p className="shrink-0 text-xs font-semibold tracking-[-0.01em] text-ink">Saved looks</p>
+        <div className="flex min-w-0 items-center gap-3 lg:flex-col lg:items-start lg:gap-2">
+          <div className="flex shrink-0 items-center gap-2 lg:w-full lg:justify-between">
+            <p className="text-xs font-semibold tracking-[-0.01em] text-ink">Saved looks</p>
+            {looksLoading && <span className="text-xs text-muted">Loading…</span>}
+          </div>
           <div className="min-w-0 flex-1 lg:w-full">
             <ul
               aria-label="Your Signature Looks"
+              aria-busy={looksLoading}
               className="rail-scroll flex min-w-0 items-center gap-2 overflow-x-auto px-1 pb-1"
             >
-              {looks.length === 0 && (
+              {looksLoading && looks.length === 0 && (
+                <li className="flex gap-2" aria-hidden>
+                  <Skeleton className="size-14 rounded-full" />
+                  <Skeleton className="size-14 rounded-full opacity-65" />
+                </li>
+              )}
+              {looksError && looks.length === 0 && (
+                <li className="flex h-7 items-center text-xs text-muted">
+                  Saved looks are temporarily unavailable.
+                </li>
+              )}
+              {!looksLoading && !looksError && looks.length === 0 && (
                 <li className="flex h-12 items-center text-xs text-muted">
-                  Save an outfit to reuse it.
+                  Save the outfit on the stage when it feels right.
                 </li>
               )}
               <AnimatePresence initial={false} mode="popLayout">

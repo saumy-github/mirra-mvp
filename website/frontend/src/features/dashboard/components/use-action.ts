@@ -19,7 +19,17 @@ export function useAction() {
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const alive = useRef(true);
-  useEffect(() => () => { alive.current = false; }, []);
+  // The cleanup must be paired with a re-arm in the effect body. StrictMode
+  // mounts, runs the cleanup against a simulated unmount, then mounts again on
+  // the same fiber — so the ref survives with `false` while the component is
+  // very much alive. Without this line every consumer of the hook wedges on its
+  // first click: the action still runs, but `run` bails before announcing the
+  // result and `finally` skips setPending(false), leaving the button disabled
+  // and reading "Working…" forever.
+  useEffect(() => {
+    alive.current = true;
+    return () => { alive.current = false; };
+  }, []);
 
   const run = (fn: () => ActionResult, onSuccess?: (message?: string) => void) => {
     if (pending) return; // guards the double-click that would submit twice

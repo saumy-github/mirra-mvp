@@ -31,6 +31,18 @@ export const dashPath = {
     step
       ? `${DASH}/portal/garments/${id}/setup?step=${step}`
       : `${DASH}/portal/garments/${id}/setup`,
+  /**
+   * The live, server-backed digitisation flow: Identify → Capture → Process
+   * → Product page → Review, persisted through /api/v1/merchant and driven
+   * by the real CLO pipeline. `garmentFlow` above is the older in-memory
+   * prototype of the same journey — see website/DASHBOARD_AUDIT for the
+   * migration status.
+   */
+  digitise: `${DASH}/portal/digitise`,
+  digitiseGarment: (id: string, step?: string) =>
+    step
+      ? `${DASH}/portal/digitise/${id}?step=${step}`
+      : `${DASH}/portal/digitise/${id}`,
   assets: `${DASH}/portal/assets`,
   sizeFit: `${DASH}/portal/size-fit`,
   fabric: `${DASH}/portal/fabric`,

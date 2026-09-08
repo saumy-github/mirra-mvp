@@ -153,7 +153,7 @@ def validate_config(env: dict[str, str], platform_name: str) -> dict[str, str]:
         "cmake_generator": env.get("CMAKE_GENERATOR", "").strip(),
         "cmake_arch": env.get("CMAKE_ARCH", "").strip(),
         "cmake_prefix_path": env.get("CMAKE_PREFIX_PATH", "").strip(),
-        "qt5_dir": env.get("Qt5_DIR", "").strip(),
+        "qt6_dir": env.get("Qt6_DIR", "").strip(),
         "cmake_osx_architectures": env.get("CMAKE_OSX_ARCHITECTURES", "").strip(),
         "build_config": env["BUILD_CONFIG"].strip() or "Release",
     }
@@ -228,8 +228,8 @@ def configure_and_build(dest_dir: Path, config: dict[str, str], env: dict[str, s
     if config["platform"] == "mac":
         if config["cmake_prefix_path"]:
             configure_cmd.append(f"-DCMAKE_PREFIX_PATH={config['cmake_prefix_path']}")
-        if config["qt5_dir"]:
-            configure_cmd.append(f"-DQt5_DIR={config['qt5_dir']}")
+        if config["qt6_dir"]:
+            configure_cmd.append(f"-DQt6_DIR={config['qt6_dir']}")
         if config["cmake_osx_architectures"]:
             configure_cmd.append(
                 f"-DCMAKE_OSX_ARCHITECTURES={config['cmake_osx_architectures']}"

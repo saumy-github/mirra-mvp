@@ -2,28 +2,55 @@
 
 **Original audit:** 28 August 2026
 **Remediation pass:** 28 August 2026
+**Backend and pipeline pass:** 29 August 2026
 **Scope of this document:** what the audit found, what has since been corrected, and — the part that matters for planning — **what is still outstanding**
-**Production-readiness verdict:** **Still not ready for client use.** The dashboard no longer misreports its own state, but it has no backend, no persistence, and no pipeline able to produce the assets it promises.
+**Production-readiness verdict:** **A single garment can now be taken end to end on the live path, but the client pilot is still gated.** The 29 August pass built the merchant backend, the Shopify identity mechanism, real capture intake and the Capture → Ingestion → VTO → QA → Publish loop, all persisted and all server-authorized. What blocks a pilot now is narrower and more concrete than "there is no backend": the older dashboard pages still read the in-memory store (**P0-01a**), the pipeline still only drafts tops (**P0-03**), and no Shopify store has ever been connected to verify the linked path against a real Admin API (**P0-04**).
 
 ---
 
 ## 1. Where this stands
 
-The original audit found 35 issues. A remediation pass has closed 28 of them.
+The original audit found 35 issues. A remediation pass closed 28. The 29 August
+backend pass closed 3 more and opened 4 new ones that only became visible once
+real infrastructure existed to expose them.
 
 | Priority | Total | Fixed | Outstanding |
 | --- | --- | --- | --- |
-| P0 — release blocker | 7 | 5 | **2** |
-| P1 — major | 15 | 8 | **7** |
-| P2 — moderate | 11 | 11 | 0 |
+| P0 — release blocker | 10 | 6 | **4** |
+| P1 — major | 16 | 10 | **6** |
+| P2 — moderate | 12 | 11 | **1** |
 | P3 — minor | 2 | 2 | 0 |
-| **Total** | **35** | **28** | **7** |
+| **Total** | **40** | **29** | **11** |
 
 **What changed in character.** The dashboard was previously a demonstration shell that reported successful business outcomes without performing the underlying work. That specific class of problem is gone: sizing no longer fabricates measurements, QA approval is now a frozen revision rather than a flag, publication resolves through one authoritative module that the shopper-facing mapper also honours, and internal staff can no longer escalate into a customer's workspace.
 
-**What has not changed.** The application still has no backend. Everything below the UI is an in-memory store reseeded on reload, authentication is a persona chooser, and the garment-processing pipeline still produces one untextured default T-shirt regardless of what was requested. Those two gaps (P0-01, P0-03) were deliberately out of scope for this pass and remain the reason a client pilot cannot happen.
+**What changed on 29 August.** The application now has a backend for the
+merchant surface. `website/backend/src/merchant/` owns tenants, Shopify product
+identity, garments, capture assets, ingestion runs, QA previews and publication,
+in Mongo, with membership and role checks enforced server-side on every call.
+The `Digitise` flow (`/dashboard/portal/digitise`) drives it end to end and
+persists across a reload. Capture uploads move real bytes. `POST
+…/garments/{id}/ingestion` writes the pipeline's own `cloths`/`sizes` documents,
+stages the photographs into `product_ingestion/input/<cloth_id>/` and queues a
+Step 2 run per size on the same Redis queue the avatar and try-on jobs use;
+`POST …/previews` then drapes the resulting panels on a reference avatar via
+Step 3 and stores the GLB for QA.
 
-Verification: TypeScript, ESLint, a production build, and a new 40-test suite covering lifecycle, validation, authorization, revisioning, the publication contract, and reporting windows all pass.
+**What has not changed.** The *older* dashboard pages — Garments, Products,
+Publication, Analytics, the original `GarmentFlow` — still read the in-memory
+store and still lose everything on reload. They now sit beside a persistent flow
+rather than being the only one, which is why P0-01 has been split: the
+foundation is built (P0-01, closed), the page-by-page migration is not
+(**P0-01a**). The pipeline still drafts a crew-neck t-shirt block and nothing
+else — but it now *refuses* anything else by name instead of silently returning
+a t-shirt (P0-03, narrowed).
+
+Verification: TypeScript, ESLint, a production build, the existing 40-test
+dashboard suite, and a new 66-test backend suite covering URL parsing, the
+pipeline mapping, the publication contract, readiness, the stage machine,
+authorization and the full HTTP surface — all pass. **Not verified:** anything
+requiring a live Mongo, Redis, CLO instance or Shopify store, none of which were
+reachable from this environment. See P0-04 and P0-05.
 
 ---
 
@@ -31,49 +58,79 @@ Verification: TypeScript, ESLint, a production build, and a new 40-test suite co
 
 ### P0-01 — Dashboard state and authentication are demo-only
 
-**Status:** Not started (out of scope for the remediation pass)
+**Status:** ✅ **Closed (29 August 2026)** for the foundation; the remaining page migration is tracked as P0-01a below.
 
-**Observed:** Application state lives in module memory (`data/store.ts`) and is reseeded on every reload. Login is a local persona chooser (`data/session.ts`), not authentication. A merchant can complete hours of ingestion work and lose all of it by refreshing.
+**What was built:** `website/backend/src/merchant/` — a tenant-scoped merchant service on the same FastAPI app and Mongo database as the shopper side. Five collections (`merchant_tenants`, `merchant_products`, `merchant_garments`, `merchant_ingestion_runs`, `merchant_previews`), 27 routes, and `ROLE_PERMISSIONS` / `ALLOWED_TRANSITIONS` in `service.py` mirroring `data/rbac.ts` and `data/lifecycle.ts` — enforced on the server this time. A caller who is not a member of a workspace receives a 404 rather than a 403, so membership is not something an outsider can probe for.
 
-**Why it now matters more, not less:** the remediation pass built real revision safety, real QA snapshots, real audit trails and real seat management on top of this store. All of that logic is correct and tested — and all of it evaporates on reload. The seam is deliberately narrow: `store.ts`, `session.ts` and the action functions in `data/actions.ts` are the only modules that would change.
+Optimistic-concurrency handling is in place in the form the audit asked for: `revision` bumps on every shopper-visible edit, and `ApprovedSnapshot.freeze()` deep-copies the garment so an approved revision cannot be mutated through the working draft. That last point was a real defect caught by its own test — the first implementation aliased the live objects, so appending a size to a draft silently added it to the approved revision.
 
-**Required outcome:** authenticated, tenant-scoped persistence; server-side authorization mirroring `data/rbac.ts`; durable drafts; optimistic-concurrency/version handling on `sourceRevision`; and mutation failure states (the UI contract for these already exists — see `components/use-action.ts`).
+---
+
+### P0-01a — The prototype dashboard pages have not been migrated to the backend
+
+**Status:** Not started — this is now the largest single item.
+
+**Observed:** the new `Digitise` flow (`pages/portal/Digitise.tsx`) is fully server-backed. Every other portal page — `Garments`, `GarmentDetail`, `GarmentFlow`, `Products`, `Publication`, `Analytics`, `Assets`, `SizeFit`, `Fabric`, `Team`, `Billing`, `Settings`, `Audit` — still reads `data/store.ts` and still reseeds on reload. `data/actions.ts` (1,826 lines) still mutates module memory.
+
+**Why this is a blocker rather than a tidy-up:** a merchant can now complete a garment on the live path and see it vanish from the Garments list, because the two surfaces have different data. That is more confusing than either one alone. The nav lists "Digitise" separately for exactly this reason, which is a stopgap, not a design.
+
+**Required outcome:** port `actions.ts` call sites to `data/merchant-api.ts` page by page, delete `store.ts`/`seed.ts`, and fold `GarmentFlow` into `Digitise`. `data/dashboard.test.ts` (40 tests) encodes the invariants and should be re-pointed at the API rather than rewritten. Login is still a persona chooser (`data/session.ts`) and needs to resolve a real session against `/auth`.
 
 ---
 
 ### P0-03 — Dashboard promises more garment capability than the engine implements
 
-**Status:** Not started (out of scope for the remediation pass)
+**Status:** Partially fixed — the dishonesty is gone and now enforced; the capability gap remains.
 
-**Observed:** The dashboard offers seven garment categories and four-view capture. The processing path is documented as T-shirt-only (`.claude/architecture/step_2_ingestion.md:299-309`), selects a single primary front image (`product_ingestion/view_selection.py:87-130`), and the worker produces the same default untextured T-shirt with no web asset (`worker/README.md:45-68`).
+**Fixed (29 August):** `pipeline_bridge.check_pipeline_capability()` is a real gate. `SUPPORTED_CATEGORIES = ("top",)`, and a submission for anything else is refused with a reason naming the category, before any document is written or any job queued. The same verdict is returned on every garment read as `pipeline.supported` / `pipeline.unsupportedReason`, so the UI can disable rather than fail. Capture without an accepted front view, and any size missing a load-bearing measurement, are refused the same way.
 
-**What the remediation pass did do:** it stopped the dashboard from *claiming* an asset exists. `publicCatalogue()` reports `assetStatus: "missing"` and `garmentAssetUrl: null`, the shopper mapper derives try-on eligibility from asset readiness instead of hardcoding `true`, and the merchant preview says plainly that rendering comes from the VTO side and is not connected. The dishonesty is fixed; the capability gap is not.
+**Outstanding:** the pipeline still only drafts a crew-neck set-in-sleeve t-shirt block (`product_ingestion/clo_block/`). Six of the seven categories the dashboard offers cannot be served. The category selector in `identify-shopify.tsx` marks them "(not yet supported)" and warns, but they are still selectable, because refusing to record a garment the merchant owns is worse than recording one Mirra cannot yet process.
 
-**Required outcome:** a versioned capability contract shared by dashboard and pipeline. Either disable the categories and input sources the pipeline cannot serve, or implement and test category-specific processing and web-asset delivery before exposing them.
+**Required outcome:** fitted shape constants for at least raglan, V-neck and drop-shoulder blocks, plus a bottom block; or remove the categories from the product entirely.
+
+---
+
+### P0-04 — The linked Shopify path has never run against a real store
+
+**Status:** Not started — blocked on the client, not on us.
+
+**Observed:** `ShopifyAdminSource` (`product_source.py`) issues a pinned Admin GraphQL query (`2025-01`) for `productByHandle` / `product(id:)`, maps options to Mirra's colour/size axes by reading the shop's own option names, and returns a `linked` product. Every line of it is unexercised: no Shopify store, dev store or API token was available in this environment, so there is no test that has seen a real Shopify response.
+
+**What *is* verified:** URL/handle/GID parsing across eight real-world link shapes; the unlinked path end to end; and `reconcile_unlinked_products()`'s logic. What is not: the GraphQL response shape, pagination beyond 100 variants, rate limiting, the `onlineStoreUrl` null case for unpublished products, and OAuth entirely — `connect_shopify` currently takes a token as an argument rather than obtaining one.
+
+**Required outcome:** a Shopify Partner dev store, an embedded app with `read_products` scope, the OAuth install/callback flow, `products/update` and `inventory_levels/update` webhooks, and a first reconciliation run against real data.
+
+---
+
+### P0-05 — The pipeline hand-off has not been executed end to end
+
+**Status:** Not started — blocked on infrastructure.
+
+**Observed:** `submit_for_ingestion` → `worker.tasks.run_merchant_ingestion` → Step 2 → `run_merchant_preview` → Step 3 → GLB is complete in code and unit-tested at every seam, including that the size documents it writes satisfy `mirra_measurements.size_model.validate_size_doc` and that its ids match `product_ingestion/run_manifest.py`'s own regexes. But no Mongo, Redis or CLO instance was reachable from this environment, so **no ingestion run and no preview render has ever actually executed.**
+
+**Specific risks that only a real run will surface:** `run_product_ingestion` is invoked through `build_parser().parse_args([...])` and returns an exit code — a non-zero return is handled, an interactive prompt is not, and the runner prompts when `--cloth-id`/`--size-id` are absent (they are always passed, but that is the assumption to check first). The reference avatar defaults to `clo_avatar_generation/input/base-1.avt`, which must have been exported from the installed CLO version. CLO concurrency is 1 and merchant jobs now share the queue with shopper try-ons, so a long ingestion run will delay a shopper's render.
+
+**Required outcome:** one full run on the CLO machine — submit a garment, watch Step 2 produce panels, render a preview, view the GLB in QA. That single run is the highest-value next action in this document.
 
 ---
 
 ### P1-01 — Capture, phone, upload and CAD intake are still simulations
 
-**Status:** Not started
+**Status:** Mostly fixed (29 August) — upload and CAD are real; phone capture is not.
 
-**Observed:** No `<input type="file">` exists on the capture step. Clicking a view tile calls `recordCaptureAction` with `accepted: true` and stores the constant filename `front.jpg`. The CAD button hardcodes `<colourway>-sample.zprj`. The QR panel is a static placeholder — no capture session, no transfer, no quality check.
+**Fixed:** `POST /merchant/{t}/garments/{g}/capture` receives an actual file. `storage.store_capture_file` validates the content type against what the segmentation stage can decode, rejects HEIC with the fix rather than a format list, enforces a 640px short edge (below which segmentation quality metrics stop meaning anything), caps size, writes the bytes under the upload root, and records the SHA-256, byte count and pixel dimensions on the asset. `capture-upload.tsx` posts real files, shows real thumbnails fetched through the authed client, and re-uploading a view supersedes the old file rather than accumulating a second "front". CAD goes through the same path with its own type and size limits.
 
-**Partially addressed:** capture is now blocked until a reference sample size is chosen, CAD is a genuinely separate branch that skips the four photographic views rather than being forced into the photo checklist, per-view rejection reasons are stored and shown, every capture mutation is audited, and each one bumps the garment's revision.
-
-**Required outcome:** real source-specific intake — upload progress, thumbnails, replace/reject, stored artifacts with checksum and provenance, security validation, retry, and a resumable QR capture session. CAD needs format validation (scale, watertightness, UVs) as its own contract.
+**Outstanding:** the QR phone-capture panel is still a static placeholder — no capture session, no pairing, no transfer, no resumability. CAD format validation (scale, watertightness, UVs) is still only a type and size check; a `.zprj` that CLO cannot open is accepted here and fails later.
 
 ---
 
 ### P1-02 — Reference-sample identity is not fully protected
 
-**Status:** Partially fixed
+**Status:** Fixed (29 August).
 
-**Fixed:** capture cannot begin before a reference size is chosen (the tiles are disabled and a banner says why), and the construction block's reference size is kept in sync.
+**Fixed:** `CaptureAsset.sample_size` pins the sample each frame was shot against, at upload time. `set_reference_size` no longer relabels anything: it changes the garment's reference size and then *reports the mismatch* — `capture.issues` gains an explicit "N image(s) were shot on size X, not Y" entry, which surfaces in the capture step and in `readiness.advisory`. Photos of a size S can no longer end up silently labelled M.
 
-**Outstanding:** changing the reference size afterwards still leaves existing captures and auto-measurements attached to the newly selected size. It bumps the revision — so the change cannot reach shoppers without re-approval — but photos of size S can still end up labelled M in the working record.
-
-**Required outcome:** persist sample identity on the capture set itself; changing it must trigger an explicit migration or a new capture revision rather than silent relabelling.
+**Note:** the mismatch is advisory, not blocking. A merchant who genuinely reshot the sample and is correcting the label should not be stopped; one who changed it by accident is told.
 
 ---
 
@@ -139,6 +196,52 @@ Verification: TypeScript, ESLint, a production build, and a new 40-test suite co
 
 ---
 
+## 2b. New issues found while building the backend
+
+These did not exist on 28 August. Three are defects the new code introduced and
+fixed under test; the fourth is a gap the new architecture exposed.
+
+### P1-09 — QA preview and shopper try-on share one single-threaded CLO queue
+
+**Status:** Known, unmitigated.
+
+Merchant previews are enqueued on the same `clo` Redis queue as shopper try-on
+renders, because CLO's plugin is single-threaded and one queue is what
+serialises against it. A 25-minute ingestion plus preview therefore sits in
+front of a shopper waiting for a try-on. Acceptable at pilot volume; not
+acceptable once both are real. Needs either a second CLO instance with a
+separate queue, or priority scheduling that lets shopper work pre-empt merchant
+work between jobs.
+
+### P2-12 — The default preview avatar is an unversioned file on disk
+
+**Status:** Known.
+
+`MIRRA_REFERENCE_AVATAR` defaults to `clo_avatar_generation/input/base-1.avt`.
+Nothing records which avatar a given preview was rendered against, so two
+previews compared across a CLO upgrade may differ because the body changed. The
+preview document should record the reference avatar's identity and checksum.
+
+### Fixed under test during this pass
+
+- **Approval aliased the working draft.** `ApprovedSnapshot` held references to
+  the garment's own `sizing`/`capture`/`material`, so appending a size to a
+  draft added it to the approved revision too. Now `ApprovedSnapshot.freeze()`
+  deep-copies, and that is the only supported way to construct one.
+- **Material composition was stored as raw dicts.** Pydantic does not validate
+  on assignment by default, so `list[FabricComponent]` quietly held dicts and
+  every subsequent garment read raised `AttributeError` while shaping the
+  response — a 500 on the next page load after saving a material. Fixed at the
+  call site, and `MaterialSpec` now sets `validate_assignment=True` so the same
+  mistake cannot recur silently.
+- **The publication contract returned no variants for anything not live.** That
+  made the QA preview an empty product panel — the one thing it exists to show.
+  Variant resolution and the visibility decision are now separate.
+- **Dashboard query keys were not tenant-scoped.** Cached garment, run and
+  preview data would have been shared across workspaces on a tenant switch.
+
+---
+
 ## 3. What was fixed in this pass
 
 Recorded briefly, since the detail now lives in the code and its tests.
@@ -166,6 +269,16 @@ Recorded briefly, since the detail now lives in the code and its tests.
 | **P1-14** | One window definition drives the headline, the series, the table and the export, with a 7/30/90-day selector and the window stated on the page. |
 | **P1-15** | Every action returns a typed `ActionResult`; `useAction` supplies pending state, double-submit guarding and result announcement; `ActionButton`, `NoticeBar`, `SubmitButton` and `ConfirmAction` render it consistently. |
 
+### 29 August backend pass
+
+- **Merchant backend** — `src/merchant/`: 5 collections, 27 routes, server-side membership/role/transition enforcement, 66 tests.
+- **Shopify identity mechanism** — a pasted URL now always advances. `resolved` (live Admin API), `matched` (already in Mirra), or `draft` (provisional identity from the URL, completed by hand and reconciled later by handle).
+- **CSV import** — Shopify's own product export is accepted with its native headers.
+- **Real capture intake** — validated, hashed, dimension-checked, stored, served back through an authed route.
+- **Capture → Ingestion → VTO** — `pipeline_bridge` writes the pipeline's `cloths`/`sizes` documents and stages images into `input/<cloth_id>/`; worker tasks run Step 2 per size and Step 3 on a reference avatar.
+- **QA preview** — a real GLB in an orbitable viewer when one exists, the pipeline's own failure reason when the render failed, and an explicit "nothing rendered yet" otherwise. No fallback to the default t-shirt.
+- **Product page data** — per-field resolution with the winning source recorded, editable at colourway or listing scope; title and price stay Shopify's.
+
 ### P2 and P3 — all closed
 
 Requirement evaluation centralized and shared across Fabric, Size & fit, Assets and Garments (P2-01). Bulk actions preflight every item, report what was skipped and why, and never act on rows hidden by a filter (P2-02). Scheduled go-live implemented with cancel, status, a due-sweep and audit (P2-03). Team seat management and versioned brand size charts implemented (P2-04). Analytics+ CSV export implemented; overpromising copy removed (P2-05). Six real knowledge-base guides, an operational support queue with assign/reply/status, and per-run sync diagnostics (P2-06). Audit log sorted newest-first with filters, search, CSV export and pagination, and ingestion mutations now emit entries (P2-07). Onboarding steps reopenable (P2-08). Structured QA findings with area, severity, affected view or measurement, and merchant-facing instructions — a rejection with no finding is refused (P2-09). Live regions on state changes, a text equivalent for the top-garments chart, and focus management (P2-10). Navigation filtered by capability, purpose-specific read-only wording, and teammate emails hidden from Viewer (P2-11). Pagination on catalogue, product and audit tables with real empty states (P3-01). The React key warning fixed, Vitest added, and 40 tests covering the invariants above (P3-02).
@@ -176,33 +289,41 @@ Requirement evaluation centralized and shared across Fabric, Size & fit, Assets 
 
 | Gate | Status |
 | --- | --- |
-| Durable account | ❌ **P0-01** — in-memory store, persona login |
-| Authorization | ⚠️ Client-side enforcement is correct and tested; server-side enforcement awaits P0-01 |
-| Catalogue identity | ✅ Garments trace to tenant, product, colourway, variant and sync state |
-| Reference sample | ⚠️ Capture is gated on sample identity; changing it does not yet migrate dependent data (**P1-02**) |
-| Real capture | ❌ **P1-01** — no artifacts, no transfer, no quality checks |
+| Durable account | ⚠️ Backend built and persistent on the `Digitise` path; the other pages still reseed on reload (**P0-01a**), login is still a persona chooser |
+| Authorization | ✅ Enforced server-side — membership, roles and stage transitions, with a 404 (not 403) for non-members |
+| Product identity | ✅ URL → (store domain, handle) → product, linked or provisional, with reconciliation. Verified against eight real link shapes |
+| Shopify connection | ❌ **P0-04** — adapter written, never run against a real store; no OAuth |
+| Catalogue identity | ✅ Garments trace to tenant, product, colourway, variant, cloth id and size ids |
+| Reference sample | ✅ Pinned per capture asset; a changed reference reports a mismatch instead of relabelling (**P1-02** closed) |
+| Real capture | ⚠️ Upload and CAD are real, validated, hashed and stored; QR phone capture is still a placeholder (**P1-01**) |
 | Construction blocks | ⚠️ Modelled and explained; not yet independently captured or tracked (**P1-03**) |
-| Real sizing | ✅ No synthetic rows; schemas validate fields, units, chart kind, reference row and SKU coverage |
+| Real sizing | ✅ No synthetic rows; rows map one-to-one onto pipeline size documents and pass the pipeline's own validator |
 | Material | ⚠️ Composition and behaviour are real and validated; advanced engine properties absent (**P1-06**) |
-| Pipeline contract | ❌ **P0-03** — no capability contract, no request-specific web asset |
-| Lifecycle | ✅ `draft → needs data → merchant review → QA → ready → live` works; invalid transitions are not offered |
-| Revision safety | ✅ Upstream edits create a draft and cannot reuse an older approval or asset |
-| Preview / public | ⚠️ Exact preview works in-app; the public tenant host needs the backend |
-| Inventory | ⚠️ Policy precedence is correct and tested; live Shopify inventory is not connected (**P1-08**) |
-| Operations | ✅ Sync, generation and QA failures have diagnostics, retry, ownership and audit events |
+| Pipeline contract | ⚠️ Capability gate enforced and surfaced; still tops-only (**P0-03**) |
+| Pipeline execution | ❌ **P0-05** — Capture → Ingestion → VTO is wired and unit-tested but has never actually run |
+| Lifecycle | ✅ Enforced server-side; illegal transitions are refused with the allowed set named |
+| Revision safety | ✅ Approval deep-copies the revision; a later edit sets `draftAhead` and cannot reach shoppers |
+| Preview / public | ⚠️ QA preview renders a real GLB when one exists and says why when it doesn't; the public tenant host still needs DNS and a live storefront link |
+| Product page data | ✅ Per-field resolution (garment → product → omitted) with the winning source recorded and shown |
+| Inventory | ⚠️ Policy precedence is correct and tested; live Shopify inventory is not connected (**P1-08**, **P0-04**) |
+| Operations | ⚠️ Ingestion and preview failures carry the pipeline's own reason; no retry UI, no alerting |
 | Mobile / accessibility | ✅ Full ingestion and support path usable by keyboard, screen reader and phone viewport |
 
 ---
 
 ## 5. Suggested order for the remaining work
 
-**Phase 1 — make it durable.** P0-01. Persist the store behind an authenticated, tenant-scoped API and enforce `rbac.ts` server-side. Nothing else on this list is worth doing first: every property built in the remediation pass currently survives only until reload.
+**Phase 0 — run it once.** P0-05. Everything below assumes the pipeline hand-off works, and nobody has watched it work. One garment, on the CLO machine, from capture to a GLB in the QA preview. Expect to find something; the code has never met a real CLO instance.
 
-**Phase 2 — make capture real.** P1-01, then P1-02 and P1-03. Real artifacts with provenance; then sample identity that cannot be silently relabelled; then per-block capture. These are ordered because each needs the one before it to be meaningful.
+**Phase 1 — connect a store.** P0-04. A Partner dev store, the OAuth flow, and one `reconcile` run. This is what turns the provisional-identity path from a workaround into the fallback it was designed to be, and it is the only way to test the linked path at all. It is also client-dependent, so start the conversation early.
 
-**Phase 3 — close the pipeline contract.** P0-03. Publish the capability matrix, gate the categories and sources the pipeline cannot serve, and deliver a request-specific web asset. `publicCatalogue()` already reports `assetStatus` honestly, so the storefront starts serving try-on the moment real assets exist — no dashboard change required.
+**Phase 2 — finish the migration.** P0-01a. Port the remaining pages off `data/store.ts` and fold `GarmentFlow` into `Digitise`. Until this lands the dashboard has two sources of truth, which is worse than having one bad one.
 
-**Phase 4 — connect commerce.** P1-08 inventory webhooks and reconciliation; then P1-04 and P1-05 schema refinements and ease handling; then P1-06 tech-pack parsing and advanced material properties.
+**Phase 3 — real capture, the rest of it.** The QR phone session (P1-01), then per-block capture (P1-03).
+
+**Phase 4 — close the pipeline contract.** P0-03. Either fit the remaining blocks or remove the categories.
+
+**Phase 5 — connect commerce.** P1-08 inventory webhooks; then P1-04 and P1-05 schema refinements; then P1-06 tech-pack parsing.
 
 ---
 
@@ -214,7 +335,11 @@ Requirement evaluation centralized and shared across Fabric, Size & fit, Assets 
 - `data/rbac.ts` — brand and console capabilities are separate systems with separate blast radii.
 - `components/use-action.ts` — the mutation contract the backend migration should preserve verbatim.
 - `data/dashboard.test.ts` — the invariants above, as tests. Extend it rather than replacing it when the backend arrives.
+- `src/merchant/publication.py` — the server-side twin of `data/publication.ts`. Variant resolution and the visibility decision are separate on purpose: a QA reviewer previewing an unpublished garment still needs to see its sizes and prices. Keep it the only answer to "can a shopper see this?" on the server.
+- `src/merchant/product_source.py` — the reason a workspace with no Shopify store is not a dead end. The `linked`/`unlinked` split, and `reconcile_unlinked_products()` matching on handle, are what let the client work today and lose nothing when the store arrives.
+- `src/merchant/pipeline_bridge.py` — the only place that knows how a dashboard garment becomes `cloths`/`sizes` documents and an `input/<cloth_id>/` folder. Derived, dash-free ids are load-bearing: `product_ingestion/run_manifest.py` parses `<cloth>-<size>-<run>`, so a dash in either id makes a run folder ambiguous.
+- `ApprovedSnapshot.freeze()` — approval is a deep copy, not a flag. The first implementation aliased the working draft and its own test caught it.
 
 ---
 
-*Original audit 28 August 2026. Remediation and status update, same date.*
+*Original audit 28 August 2026. Remediation and status update, same date. Backend, Shopify identity and pipeline hand-off pass, 29 August 2026.*

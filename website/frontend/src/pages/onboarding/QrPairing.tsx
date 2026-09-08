@@ -45,7 +45,7 @@ export default function QrPairing() {
   return (
     <main className="min-h-dvh bg-[#eceae6] p-1.5 sm:p-2.5">
       <div className="mx-auto grid min-h-[calc(100dvh-0.75rem)] max-w-480 overflow-hidden rounded-[1.35rem] border border-white/90 bg-[#faf9f7] shadow-[0_28px_80px_-50px_rgba(49,44,38,0.48)] lg:min-h-[calc(100dvh-1.25rem)] lg:grid-cols-[minmax(35rem,1.46fr)_minmax(28rem,1fr)]">
-        <section className="relative min-h-[46rem] overflow-hidden lg:min-h-0">
+        <section className="relative min-h-184 overflow-hidden lg:min-h-0">
           <FabricPanel className="h-full min-h-full">
             <motion.div
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 18 }}
@@ -145,7 +145,7 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 
 function StatusPanel({ reduceMotion, targetUrl }: { reduceMotion: boolean; targetUrl: string }) {
   return (
-    <section className="relative flex min-h-[42rem] flex-col bg-[radial-gradient(circle_at_55%_25%,rgba(255,255,255,.98),rgba(249,248,246,.88)_44%,rgba(245,244,242,.96)_100%)] px-7 py-10 sm:px-12 lg:min-h-0 lg:px-[clamp(2.5rem,5vw,5.75rem)] lg:py-[clamp(3rem,7vh,6rem)]">
+    <section className="relative flex min-h-168 flex-col bg-[radial-gradient(circle_at_55%_25%,rgba(255,255,255,.98),rgba(249,248,246,.88)_44%,rgba(245,244,242,.96)_100%)] px-7 py-10 sm:px-12 lg:min-h-0 lg:px-[clamp(2.5rem,5vw,5.75rem)] lg:py-[clamp(3rem,7vh,6rem)]">
       <motion.div
         initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: 18 }}
         animate={{ opacity: 1, x: 0 }}

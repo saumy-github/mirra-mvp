@@ -302,3 +302,25 @@ async def _fail_render(render_id: str, reason: str) -> None:
         {"_id": render_id}, {"$set": {"state": "failed", "failure_reason": reason, "completed_at": _now()}}
     )
     logger.warning("run_tryon_render %s: failed — %s", render_id, reason)
+
+
+# --- Merchant pipeline: Capture → Product Ingestion → VTO -------------------
+#
+# Enqueued by website/backend/src/merchant/engine.py. The bodies live in
+# worker/merchant_tasks.py; these thin entrypoints exist so every job the
+# backend enqueues resolves under one module path, and so both share the
+# process-lifetime event loop above rather than opening their own.
+
+
+def run_merchant_ingestion(run_id: str) -> None:
+    """Step 2 for one (cloth, size) pair of a merchant garment."""
+    from .merchant_tasks import _run_ingestion
+
+    _get_loop().run_until_complete(_run_ingestion(run_id))
+
+
+def run_merchant_preview(preview_id: str) -> None:
+    """Step 3 against the reference avatar, for QA and merchant preview."""
+    from .merchant_tasks import _run_preview
+
+    _get_loop().run_until_complete(_run_preview(preview_id))

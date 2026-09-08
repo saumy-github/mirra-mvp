@@ -4,7 +4,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
@@ -52,12 +51,6 @@ const RETURN_SPRING = {
   power: 0.18,
   timeConstant: 170,
 };
-
-const VERTICAL_PINCH =
-  "polygon(0 0,100% 0,100% 38%,98% 42%,94% 46%,91% 50%,94% 54%,98% 58%,100% 62%,100% 100%,0 100%,0 62%,2% 58%,6% 54%,9% 50%,6% 46%,2% 42%,0 38%)";
-
-const HORIZONTAL_PINCH =
-  "polygon(0 0,38% 0,42% 2%,46% 6%,50% 9%,54% 6%,58% 2%,62% 0,100% 0,100% 100%,62% 100%,58% 98%,54% 94%,50% 91%,46% 94%,42% 98%,38% 100%,0 100%)";
 
 const WHEEL_THRESHOLD = 12;
 const DRAG_THRESHOLD_RATIO = 0.22;
@@ -166,14 +159,10 @@ export function PinchCarousel<T>({
     const first = items[0];
     return first === undefined ? undefined : getKey(first);
   });
-  const [speedBlur, setSpeedBlur] = useState(0);
-
   const wheelAccumulatorRef = useRef(0);
   const lastWheelStepRef = useRef(-Infinity);
   const wheelResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const blurResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suppressClickRef = useRef(false);
-  const lastBlurRef = useRef(0);
   const viewportRef = useRef<HTMLDivElement>(null);
 
   const selectedKey = isControlled ? activeKey : internalKey;
@@ -181,33 +170,9 @@ export function PinchCarousel<T>({
   const activeIndex = matchedIndex >= 0 ? matchedIndex : 0;
   const activeItem = items[activeIndex];
   const visibleSlots = useMemo(() => getVisibleSlots(items, activeIndex), [activeIndex, items]);
-  const clipPath = axis === "y" ? VERTICAL_PINCH : HORIZONTAL_PINCH;
-
-  const settleBlur = useCallback((delay = 110) => {
-    if (blurResetTimerRef.current !== null) {
-      clearTimeout(blurResetTimerRef.current);
-    }
-    blurResetTimerRef.current = setTimeout(() => {
-      lastBlurRef.current = 0;
-      setSpeedBlur(0);
-    }, delay);
-  }, []);
-
-  const showSpeedBlur = useCallback(
-    (velocity: number) => {
-      if (reduceMotion) return;
-      const nextBlur = Math.min(2.2, Math.max(0.42, Math.abs(velocity) / 850));
-      if (Math.abs(nextBlur - lastBlurRef.current) > 0.24) {
-        lastBlurRef.current = nextBlur;
-        setSpeedBlur(nextBlur);
-      }
-      settleBlur();
-    },
-    [reduceMotion, settleBlur],
-  );
 
   const selectIndex = useCallback(
-    (requestedIndex: number, velocity = 0) => {
+    (requestedIndex: number) => {
       const length = items.length;
       if (length < 2) return;
 
@@ -220,23 +185,22 @@ export function PinchCarousel<T>({
 
       const nextKey = getKey(nextItem);
       if (!isControlled) setInternalKey(nextKey);
-      showSpeedBlur(velocity || resolvedStride * 5.5);
       onActiveChange?.(nextItem, nextKey, nextIndex);
     },
-    [activeIndex, getKey, isControlled, items, onActiveChange, resolvedStride, showSpeedBlur],
+    [activeIndex, getKey, isControlled, items, onActiveChange],
   );
 
   const selectRelative = useCallback(
-    (direction: -1 | 1, velocity = 0) => {
+    (direction: -1 | 1) => {
       const length = items.length;
       if (length < 2) return;
 
       if (length === 2) {
-        selectIndex(activeIndex === 0 ? 1 : 0, velocity);
+        selectIndex(activeIndex === 0 ? 1 : 0);
         return;
       }
 
-      selectIndex(activeIndex + direction, velocity);
+      selectIndex(activeIndex + direction);
     },
     [activeIndex, items.length, selectIndex],
   );
@@ -245,15 +209,17 @@ export function PinchCarousel<T>({
     (event: globalThis.WheelEvent) => {
       if (items.length < 2 || event.ctrlKey) return;
 
-      const rawDelta =
-        Math.abs(event.deltaY) >= Math.abs(event.deltaX) ? event.deltaY : event.deltaX;
+      // A horizontal Studio rail must never swallow the vertical gesture used
+      // to move through the mobile page.
+      if (axis === "x" && Math.abs(event.deltaY) > Math.abs(event.deltaX)) return;
+
+      const rawDelta = axis === "x" ? event.deltaX : event.deltaY;
       if (rawDelta === 0) return;
 
       event.preventDefault();
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? resolvedStride : 1;
       const delta = rawDelta * unit;
       wheelAccumulatorRef.current += delta;
-      showSpeedBlur(delta * 22);
 
       if (wheelResetTimerRef.current !== null) {
         clearTimeout(wheelResetTimerRef.current);
@@ -274,20 +240,11 @@ export function PinchCarousel<T>({
       }
 
       const direction = wheelAccumulatorRef.current > 0 ? 1 : -1;
-      const velocity = wheelAccumulatorRef.current * 24;
       wheelAccumulatorRef.current = 0;
       lastWheelStepRef.current = now;
-      selectRelative(direction, velocity);
+      selectRelative(direction);
     },
-    [debounceMs, items.length, resolvedStride, selectRelative, showSpeedBlur],
-  );
-
-  const handleDrag = useCallback(
-    (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      const velocity = axis === "x" ? info.velocity.x : info.velocity.y;
-      showSpeedBlur(velocity);
-    },
-    [axis, showSpeedBlur],
+    [axis, debounceMs, items.length, resolvedStride, selectRelative],
   );
 
   const handleDragEnd = useCallback(
@@ -305,12 +262,10 @@ export function PinchCarousel<T>({
       }
 
       if (Math.abs(projectedOffset) >= threshold) {
-        selectRelative(projectedOffset < 0 ? 1 : -1, velocity);
-      } else {
-        settleBlur(70);
+        selectRelative(projectedOffset < 0 ? 1 : -1);
       }
     },
-    [axis, resolvedStride, selectRelative, settleBlur],
+    [axis, resolvedStride, selectRelative],
   );
 
   const handleKeyDown = useCallback(
@@ -348,9 +303,6 @@ export function PinchCarousel<T>({
       if (wheelResetTimerRef.current !== null) {
         clearTimeout(wheelResetTimerRef.current);
       }
-      if (blurResetTimerRef.current !== null) {
-        clearTimeout(blurResetTimerRef.current);
-      }
     },
     [],
   );
@@ -367,19 +319,13 @@ export function PinchCarousel<T>({
     activeItem === undefined
       ? "No garments"
       : `${activeIndex + 1} of ${items.length}: ${getLabel(activeItem)}`;
-  const viewportStyle: CSSProperties = {
-    clipPath,
-    WebkitClipPath: clipPath,
-    touchAction: axis === "x" ? "pan-y" : "pan-x",
-  };
+  const viewportStyle = { touchAction: axis === "x" ? "pan-y" : "pan-x" } as const;
   const transition = reduceMotion
     ? { duration: 0.12, ease: "linear" as const }
     : {
         x: SNAP_SPRING,
         y: SNAP_SPRING,
-        scale: SNAP_SPRING,
         opacity: { duration: 0.2, ease: [0.2, 0.8, 0.2, 1] as const },
-        filter: { duration: 0.18, ease: "easeOut" as const },
       };
 
   return (
@@ -408,7 +354,6 @@ export function PinchCarousel<T>({
           dragElastic={1}
           dragMomentum={false}
           dragTransition={RETURN_SPRING}
-          onDrag={handleDrag}
           onDragEnd={handleDragEnd}
           className={cx(
             "absolute inset-0 select-none",
@@ -418,7 +363,6 @@ export function PinchCarousel<T>({
           {visibleSlots.map(({ item, index, slot }) => {
             const active = slot === 0;
             const offset = slot * resolvedStride;
-            const neighborBlur = active ? 0 : 4.2;
             const itemKey = getKey(item);
 
             return (
@@ -443,29 +387,21 @@ export function PinchCarousel<T>({
                     if (active) return;
                     event.preventDefault();
                     event.stopPropagation();
-                    selectIndex(index, slot * resolvedStride * 5);
+                    selectIndex(index);
                   }}
                   initial={
                     reduceMotion
                       ? false
                       : {
                           opacity: 0,
-                          scale: 0.74,
                           x: axis === "x" ? offset * 1.08 : 0,
                           y: axis === "y" ? offset * 1.08 : 0,
-                          filter: `blur(${neighborBlur + 1.6}px) saturate(0.72)`,
                         }
                   }
                   animate={{
                     x: axis === "x" ? offset : 0,
                     y: axis === "y" ? offset : 0,
-                    opacity: active ? 1 : 0.42,
-                    scale: active ? 1 : 0.84,
-                    filter: reduceMotion
-                      ? active
-                        ? "none"
-                        : "blur(2px) saturate(0.82)"
-                      : `blur(${neighborBlur + speedBlur}px) saturate(${active ? 1 : 0.78})`,
+                    opacity: 1,
                   }}
                   transition={transition}
                   className={cx(
@@ -474,12 +410,6 @@ export function PinchCarousel<T>({
                   )}
                 >
                   {renderItem(item, { active, slot })}
-                  {!active && (
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute inset-0 rounded-[inherit] bg-white/12 backdrop-blur-[1.5px]"
-                    />
-                  )}
                 </motion.div>
               </div>
             );
@@ -499,7 +429,7 @@ export function PinchCarousel<T>({
                 axis === "y" ? "inset-x-0 top-0 h-[24%]" : "inset-y-0 left-0 w-[24%]",
               )}
             >
-              <span className="flex size-9 items-center justify-center rounded-full border border-white/75 bg-paper/72 opacity-85 shadow-[0_8px_24px_-14px_rgba(29,29,31,0.48)] backdrop-blur-xl transition-transform duration-200 motion-reduce:transition-none">
+              <span className="flex size-9 items-center justify-center rounded-full border border-line bg-paper transition-transform duration-200 motion-reduce:transition-none">
                 <Arrow axis={axis} direction={-1} />
               </span>
             </motion.button>
@@ -515,7 +445,7 @@ export function PinchCarousel<T>({
                 axis === "y" ? "inset-x-0 bottom-0 h-[24%]" : "inset-y-0 right-0 w-[24%]",
               )}
             >
-              <span className="flex size-9 items-center justify-center rounded-full border border-white/75 bg-paper/72 opacity-85 shadow-[0_8px_24px_-14px_rgba(29,29,31,0.48)] backdrop-blur-xl transition-transform duration-200 motion-reduce:transition-none">
+              <span className="flex size-9 items-center justify-center rounded-full border border-line bg-paper transition-transform duration-200 motion-reduce:transition-none">
                 <Arrow axis={axis} direction={1} />
               </span>
             </motion.button>

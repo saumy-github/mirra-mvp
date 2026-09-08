@@ -172,3 +172,59 @@ def save_render_version(
         glb_path=saved_glb,
         glb_relative_path=glb_relative,
     )
+
+
+def _previews_root() -> Path:
+    return _upload_root() / "previews"
+
+
+@dataclass
+class SavedPreviewVersion:
+    preview_dir: Path
+    glb_path: Path | None
+    # Relative to the upload root — what merchant_previews.glb_path stores,
+    # since the serving route resolves against that same root.
+    glb_relative_path: str | None
+
+
+def save_preview_version(
+    tenant_id: str,
+    garment_id: str,
+    preview_id: str,
+    *,
+    run_id: str,
+    run_dir: Path,
+    glb_path: Path | None,
+) -> SavedPreviewVersion:
+    """Copy a finished QA/merchant preview into
+    <dev_upload|live_upload>/previews/<tenant_id>/<garment_id>/<preview_id>/.
+
+    Kept out of renders/ deliberately: a preview belongs to a workspace, a
+    render belongs to a shopper, and the two must not share a namespace where
+    a path traversal or an id collision could cross between them.
+    """
+    preview_dir = _previews_root() / tenant_id / garment_id / preview_id
+    preview_dir.mkdir(parents=True, exist_ok=True)
+
+    saved_glb = _copy(glb_path, preview_dir / "preview.glb")
+    _copy(run_dir / "run.log", preview_dir / "run.log")
+    _copy(run_dir / "run_report.json", preview_dir / "run_report.json")
+
+    manifest = {
+        "tenant_id": tenant_id,
+        "garment_id": garment_id,
+        "preview_id": preview_id,
+        "source_run_id": run_id,
+        "source_run_dir": str(run_dir),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    (preview_dir / "run_manifest.json").write_text(
+        json.dumps(manifest, indent=2), encoding="utf-8"
+    )
+
+    glb_relative = (
+        f"previews/{tenant_id}/{garment_id}/{preview_id}/preview.glb" if saved_glb else None
+    )
+    return SavedPreviewVersion(
+        preview_dir=preview_dir, glb_path=saved_glb, glb_relative_path=glb_relative
+    )

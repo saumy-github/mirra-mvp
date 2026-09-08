@@ -20,6 +20,10 @@ export const PORTAL_NAV: NavItem[] = [
   { href: dashPath.portal, label: "Overview", icon: "◈", end: true },
   { href: dashPath.products, label: "Products & SKUs", icon: "▤", needs: "catalogue.view" },
   { href: dashPath.garments, label: "Garments", icon: "👗", needs: "catalogue.view" },
+  // The server-backed flow. Listed separately from "Garments" while the
+  // prototype pages are still being migrated, so it is never ambiguous
+  // which of the two you are looking at.
+  { href: dashPath.digitise, label: "Digitise", icon: "🪡", needs: "catalogue.edit" },
   { href: dashPath.assets, label: "Assets", icon: "🖼", needs: "catalogue.view" },
   { href: dashPath.sizeFit, label: "Size & fit", icon: "📐", needs: "catalogue.view" },
   { href: dashPath.fabric, label: "Fabric & material", icon: "🧵", needs: "catalogue.view" },

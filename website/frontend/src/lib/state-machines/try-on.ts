@@ -5,11 +5,11 @@ export const tryOnTransitions: TransitionTable<TryOnState> = {
   idle: ["requesting", "restoring", "unsupported"],
   requesting: ["processing", "ready", "failed", "unsupported"],
   processing: ["ready", "failed", "unsupported"],
-  ready: ["idle", "requesting", "restoring", "cached"],
-  cached: ["idle", "requesting", "restoring"],
-  restoring: ["cached", "requesting", "failed"],
+  ready: ["idle", "requesting", "restoring", "cached", "unsupported"],
+  cached: ["idle", "requesting", "restoring", "unsupported"],
+  restoring: ["cached", "requesting", "failed", "unsupported"],
   unsupported: ["idle", "requesting"],
-  failed: ["idle", "requesting", "restoring"],
+  failed: ["idle", "requesting", "restoring", "unsupported"],
 };
 
 export const canTransitionTryOn = (from: TryOnState, to: TryOnState) =>

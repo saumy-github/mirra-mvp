@@ -26,6 +26,7 @@ export interface StudioCartItem {
 interface TryOnStatus {
   state: TryOnState;
   renderId: string | null;
+  renderSessionId: string | null;
   failureReason: string | null;
 }
 
@@ -64,7 +65,12 @@ export interface StudioState {
   reset: () => void;
 }
 
-const initialTryOn: TryOnStatus = { state: "idle", renderId: null, failureReason: null };
+const initialTryOn: TryOnStatus = {
+  state: "idle",
+  renderId: null,
+  renderSessionId: null,
+  failureReason: null,
+};
 
 export const useStudioStore = create<StudioState>((set) => ({
   ownerShopperId: null,
@@ -96,7 +102,7 @@ export const useStudioStore = create<StudioState>((set) => ({
         cart: [],
       };
     }),
-  setTryOnSessionId: (id) => set({ tryOnSessionId: id }),
+  setTryOnSessionId: (id) => set({ tryOnSessionId: id, tryOn: initialTryOn }),
   selectProduct: (productId) => set({ activeProductId: productId }),
   setColor: (color) => set({ activeColor: color }),
   setSize: (size) => set({ activeSize: size }),
