@@ -22,6 +22,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -53,17 +54,40 @@ except ImportError:
 # Max texture dimension (power of 2).  Larger textures are downscaled.
 _MAX_TEX_DIM = 1024
 
-# Panel name -> substrings to match against GLB material names (case-insensitive).
-# Checked in order; first match wins.  Falls back to index order if no match.
-_PANEL_KEYWORDS: dict[str, list[str]] = {
-    "front_panel":  ["front", "f_panel", "body_f"],
-    "back_panel":   ["back",  "b_panel", "body_b"],
-    "sleeve_left":  ["left",  "sleeve_l", "sl", "arm_l"],
-    "sleeve_right": ["right", "sleeve_r", "sr", "arm_r"],
+# Exact material-name-prefix -> panel this material should be textured as.
+# CLO exports the entire merged garment (front+back+both sleeves) as ONE
+# material named "FABRIC 1_<run-specific-number>" — confirmed against two
+# independent real exports (only the trailing number differed). There are
+# no separate per-panel materials to match against. Since we cannot tell
+# which visual panel a pixel belongs to from this single merged material,
+# it is textured with the front-panel image as the best available choice
+# (matches prior de facto behavior) — assigning true per-panel textures
+# would require a different CLO export/UV setup, not a matching-logic
+# change. See .agent/saumy/plans/04-fix-panel-material-matching-plan.md.
+_GARMENT_MATERIAL_PREFIX = "fabric 1"
+_GARMENT_MATERIAL_PANEL = "front_panel"
+
+# Exact material-name-prefix -> always skip, never texture. Confirmed
+# avatar-body material names (stable prefix; a trailing "_<number>" that
+# varies per run is stripped before comparison). Anything not in this list
+# and not the garment material above is also skipped, never defaulted.
+_AVATAR_MATERIAL_PREFIXES = {
+    "material_rightshoe",
+    "material_leftshoe",
+    "material_hair",
+    "face",
+    "body2",
+    "arm",
+    "leg",
+    "eye",
+    "eyelash",
+    "toothsg1",
 }
 
-# Index-order fallback when name-matching fails (CLO default export order).
-_INDEX_TO_PANEL = ["front_panel", "back_panel", "sleeve_left", "sleeve_right"]
+# Panel texture files to preload from textures_dir (front_panel is the only
+# one currently used — see _GARMENT_MATERIAL_PANEL above — the rest are
+# loaded in case a future export gives us separate per-panel materials).
+_PANEL_NAMES = ["front_panel", "back_panel", "sleeve_left", "sleeve_right"]
 
 
 # ── Private helpers ──────────────────────────────────────────────────────────
@@ -193,21 +217,29 @@ def _apply_color(material, r: int, g: int, b: int) -> None:
     pbr.baseColorTexture = None
 
 
-def _match_panel(material_name: str, index: int) -> str:
-    """Map a GLB material name to a pipeline panel key.
+def _material_prefix(material_name: str) -> str:
+    """Strip a trailing '_<digits>' CLO run-id suffix and lowercase.
 
-    Strategy:
-      1. Substring match against _PANEL_KEYWORDS (case-insensitive).
-      2. Index-order fallback for numeric / opaque material names.
-      3. Ultimate fallback: front_panel.
+    "FABRIC 1_437309" -> "fabric 1"; "face_437590" -> "face".
     """
-    name_lower = (material_name or "").lower()
-    for panel, keywords in _PANEL_KEYWORDS.items():
-        if any(kw in name_lower for kw in keywords):
-            return panel
-    if 0 <= index < len(_INDEX_TO_PANEL):
-        return _INDEX_TO_PANEL[index]
-    return "front_panel"
+    name = (material_name or "").strip().lower()
+    return re.sub(r"_\d+$", "", name)
+
+
+def _match_panel(material_name: str) -> Optional[str]:
+    """Map a GLB material name to a pipeline panel key, by exact name only.
+
+    No substring/"contains" matching anywhere, and no default fallback:
+    a material that is not an exact match to a known name is not a
+    garment material and must be left untouched (return None).
+    """
+    prefix = _material_prefix(material_name)
+    if prefix == _GARMENT_MATERIAL_PREFIX:
+        return _GARMENT_MATERIAL_PANEL
+    if prefix in _AVATAR_MATERIAL_PREFIXES:
+        return None
+    # Unknown material name — not on either list. Do not guess: skip.
+    return None
 
 
 # ── Public step entry point ──────────────────────────────────────────────────
@@ -264,7 +296,7 @@ def run(ctx) -> bool:
     # Pre-load per-panel PNG bytes (None if file missing or unreadable).
     panel_png: dict[str, Optional[bytes]] = {}
     if textures_dir and textures_dir.exists():
-        for panel in _PANEL_KEYWORDS:
+        for panel in _PANEL_NAMES:
             tex_file = textures_dir / f"{panel}_texture.png"
             if tex_file.exists():
                 png_bytes = _png_to_bytes(tex_file)
@@ -289,7 +321,12 @@ def run(ctx) -> bool:
     # ── Per-material injection ─────────────────────────────────────────────────
     for i, material in enumerate(gltf.materials):
         mat_name = getattr(material, "name", None) or f"Material_{i}"
-        panel = _match_panel(mat_name, i)
+        panel = _match_panel(mat_name)
+
+        if panel is None:
+            print(f"  [{i}] {mat_name!r:30s} -> skipped: not a garment material")
+            continue
+
         png_bytes = panel_png.get(panel)
 
         if png_bytes:

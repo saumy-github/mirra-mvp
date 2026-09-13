@@ -11,6 +11,7 @@ Usage (from the repo root, inside the repo .venv):
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -22,16 +23,20 @@ for _p in (REPO_ROOT, BACKEND_ROOT):
 
 from dotenv import load_dotenv  # noqa: E402
 
-# Must run before `from src.config import get_settings` below — Settings()
-# reads MONGODB_URI/REDIS_URL from the process environment, which this
-# populates from worker/.env (gitignored; see worker/.env.example).
+# Populates the process environment from worker/.env (gitignored; see
+# worker/.env.example). REDIS_URL is read straight out of os.environ below
+# rather than through the backend's Settings: that class validates every
+# field it declares, so importing it here would make the worker depend on
+# backend-only config (token secrets, OAuth, SMTP) it never uses.
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 from redis import Redis  # noqa: E402
 from rq import Queue  # noqa: E402
 from rq.worker import SimpleWorker  # noqa: E402
 
-from src.config import get_settings  # noqa: E402
+# QUEUE_NAME only — importing this module does not construct Settings
+# (src/core/queue.py calls get_settings() inside functions, not at import),
+# and sharing the constant keeps the queue name from drifting.
 from src.core.queue import QUEUE_NAME  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -39,14 +44,21 @@ logger = logging.getLogger("mirra.worker")
 
 
 def main() -> int:
-    settings = get_settings()
-    conn = Redis.from_url(settings.redis_url)
+    redis_url = os.environ.get("REDIS_URL")
+    if not redis_url:
+        logger.error(
+            "REDIS_URL is not set. Add it to worker/.env (see worker/.env.example) "
+            "or export it before starting the worker."
+        )
+        return 2
+
+    conn = Redis.from_url(redis_url)
     queue = Queue(QUEUE_NAME, connection=conn)
 
     logger.info(
         "Starting CLO worker: redis=%s queue=%r (SimpleWorker, concurrency=1 — "
         "required on Windows, see worker/README.md)",
-        settings.redis_url,
+        redis_url,
         QUEUE_NAME,
     )
     # SimpleWorker: runs jobs in this same process/thread, no os.fork() —
