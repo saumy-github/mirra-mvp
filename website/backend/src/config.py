@@ -1,9 +1,28 @@
-"""All env configuration in one place (pydantic-settings)."""
+"""All env configuration in one place (pydantic-settings).
+
+Values come from the process environment only. The backend runs in Docker,
+where compose injects them from website/backend/.env.docker.dev (see
+docker-compose.yml). There is deliberately no env_file fallback: the old
+`BACKEND_DIR / ".env"` never existed in the image, so it silently did
+nothing while making it look as though a local file were being read.
+
+Fields below split into two groups:
+
+  * No default -> REQUIRED. Missing means Settings() raises at startup.
+    These are the ones where quietly falling back to a dev value is a
+    security or data-integrity bug (wrong database, a known token secret,
+    cookies without Secure).
+  * With a default -> genuinely optional, where the default is a real,
+    intended state rather than a placeholder. An empty SMTP host means
+    "email not configured" and an empty Google client id means "Google
+    sign-in not configured"; both are supported ways to run.
+"""
 
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
@@ -13,22 +32,24 @@ REPO_ROOT = BACKEND_DIR.parent.parent
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=BACKEND_DIR / ".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
-    mongodb_uri: str = "mongodb://localhost:27017"
-    database_name: str = "mirratest"
+    mongodb_uri: str
+    database_name: str
 
-    # ≥32 bytes so HS256 HMAC meets RFC 7518's minimum key length even in dev
-    access_token_secret: str = "dev-only-secret-change-me-before-going-live-0000"
-    access_token_expire_minutes: int = 15
-    refresh_token_expire_days: int = 30
-    cookie_secure: bool = False
+    # min_length=32 so HS256 HMAC meets RFC 7518's minimum key length. This
+    # used to carry a committed dev default, which meant a missing env var
+    # booted a working-looking backend signing tokens with a public secret.
+    access_token_secret: str = Field(min_length=32)
+    access_token_expire_minutes: int
+    refresh_token_expire_days: int
+    cookie_secure: bool
 
-    # The frontend dev server runs on 3000 (vite --port=3000, package.json)
-    cors_origins: str = "http://localhost:3000"
+    # Comma-separated. The frontend dev server runs on 3000
+    # (vite --port=3000, package.json).
+    cors_origins: str
 
     # Mirrors the frontend's VITE_APP_ENV. Read directly by the worker
     # process (os.environ, via worker/.env — see worker/live_upload.py) to
@@ -36,10 +57,11 @@ class Settings(BaseSettings):
     app_env: Literal["development", "production"] = "development"
 
     # Redis/RQ hand-off to the native CLO worker (worker/, repo root) — see
-    # .agent/website-launch/07-step0-worker-queue.md. Native/local default;
-    # the Dockerized backend overrides this to redis://redis:6379/0 via
-    # website/backend/.env.docker.dev (compose service name, not localhost).
-    redis_url: str = "redis://localhost:6379/0"
+    # .agent/website-launch/07-step0-worker-queue.md. In Docker this is
+    # redis://redis:6379/0 (compose service name, not localhost) via
+    # website/backend/.env.docker.dev. The worker reads its own REDIS_URL
+    # straight from worker/.env and does not use this class.
+    redis_url: str
 
     # Google OAuth (03-backend-behavior-plan.md, "Google OAuth plan"). Empty
     # client id/secret means Google sign-in is treated as unconfigured.

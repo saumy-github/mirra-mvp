@@ -662,9 +662,11 @@ static void RunCapabilityProbesOnce()
 // HTTP Server Implementation
 void StartRESTServer()
 {
+    TraceLog("StartRESTServer: thread entered");
     try {
         Server svr;
         g_server = &svr;
+        TraceLog("StartRESTServer: Server object constructed");
 
         // Health check endpoint
         svr.Get("/health", [](const Request&, Response& res) {
@@ -1518,8 +1520,14 @@ void StartRESTServer()
     svr.set_read_timeout(5, 0);  // 5 seconds
     svr.set_write_timeout(5, 0); // 5 seconds
     
+    TraceLog("StartRESTServer: about to call svr.listen(127.0.0.1, 50505)");
     while (g_serverRunning) {
         bool success = svr.listen("127.0.0.1", 50505);
+        if (!success) {
+            TraceLog("StartRESTServer: svr.listen() returned false, WSAGetLastError()=" + std::to_string(WSAGetLastError()));
+        } else {
+            TraceLog("StartRESTServer: svr.listen() returned true");
+        }
         if (!success && g_serverRunning) {
             // Server failed - wait and retry
             std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -1528,12 +1536,14 @@ void StartRESTServer()
             break; // Server stopped cleanly or we're shutting down
         }
     }
-    
+
     } // end try
     catch (const std::exception& e) {
+        TraceLog(std::string("StartRESTServer: caught std::exception - ") + e.what());
         g_serverRunning = false;
     }
     catch (...) {
+        TraceLog("StartRESTServer: caught unknown exception (...)");
         g_serverRunning = false;
     }
     g_server = nullptr;
@@ -2352,7 +2362,9 @@ static void EnsureServerStarted(bool showMessageBox)
     // Phase 3: probe SEH-crash-prone CLO APIs once, on the main
     // thread, before the server starts taking requests, so
     // /capabilities reflects what actually works this session.
+    TraceLog("EnsureServerStarted: about to call RunCapabilityProbesOnce()");
     RunCapabilityProbesOnce();
+    TraceLog("EnsureServerStarted: RunCapabilityProbesOnce() returned, spawning server thread");
 
     g_serverRunning = true;
     g_serverThread = std::thread(StartRESTServer);
