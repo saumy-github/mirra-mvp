@@ -1,0 +1,598 @@
+/* The four Mirra outcome scenes use the same independent image, copy, and
+   fixed-guide layers as the measured Floema collection sequence. */
+.mirra-landing .cards-story {
+  background: #151117;
+  height: 730svh;
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+  scroll-margin-top: 0;
+}
+
+.mirra-landing .cards-story-inner {
+  background: #151117;
+  height: 100svh;
+  overflow: hidden;
+  padding: 0;
+  position: sticky;
+  top: 0;
+}
+
+.mirra-landing .cards-story .outcome-panel {
+  --outcome-edge: clamp(20px, 2.2vw, 46px);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: #fff;
+  inset: 0;
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+  position: absolute;
+  will-change: auto;
+  z-index: auto;
+}
+
+.mirra-landing .outcome-panel-media {
+  clip-path: inset(100% 0 0 0);
+  inset: 0;
+  overflow: hidden;
+  position: absolute;
+  will-change: clip-path;
+}
+
+.mirra-landing .outcome-panel:first-child .outcome-panel-media {
+  clip-path: inset(0 0 0 0);
+}
+
+.mirra-landing .outcome-panel:nth-child(1) .outcome-panel-media {
+  z-index: 1;
+}
+
+.mirra-landing .outcome-panel:nth-child(2) .outcome-panel-media {
+  z-index: 2;
+}
+
+.mirra-landing .outcome-panel:nth-child(3) .outcome-panel-media {
+  z-index: 3;
+}
+
+.mirra-landing .outcome-panel:nth-child(4) .outcome-panel-media {
+  z-index: 4;
+}
+
+.mirra-landing .outcome-panel-media-inner {
+  height: 140%;
+  left: 0;
+  position: absolute;
+  top: -15%;
+  transform-origin: center center;
+  width: 100%;
+  will-change: transform;
+}
+
+.mirra-landing .outcome-panel:nth-child(4) .outcome-panel-media-inner {
+  top: 14%;
+}
+
+.mirra-landing .outcome-panel-media video,
+.mirra-landing .outcome-panel-media img {
+  display: block;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
+}
+
+@media (min-width: 901px) {
+  .mirra-landing .outcome-panel-media video {
+    filter: blur(2px);
+  }
+}
+
+.mirra-landing .outcome-panel:nth-child(4) .outcome-panel-media img {
+  object-position: center top;
+}
+
+.mirra-landing .outcome-panel:nth-child(1) .outcome-panel-media video {
+  object-position: center 45%;
+}
+
+.mirra-landing .outcome-panel:nth-child(2) .outcome-panel-media video {
+  object-position: center 50%;
+}
+
+.mirra-landing .outcome-panel:nth-child(3) .outcome-panel-media video {
+  object-position: center 55%;
+}
+
+.mirra-landing .outcome-panel-shade {
+  background:
+    radial-gradient(ellipse 58% 48% at 46% 68%, rgb(13 11 16 / 30%), transparent 100%),
+    linear-gradient(180deg, rgb(13 11 16 / 42%), rgb(13 11 16 / 55%) 50%, rgb(13 11 16 / 69%)),
+    linear-gradient(90deg, rgb(13 11 16 / 26%), transparent 78%);
+  inset: 0;
+  position: absolute;
+}
+
+.mirra-landing .outcome-panel-copy {
+  display: block;
+  inset: 0;
+  padding: 0;
+  position: absolute;
+  text-shadow: 0 1px 14px rgb(0 0 0 / 24%);
+  z-index: 6;
+}
+
+.mirra-landing .outcome-panel-copy[aria-hidden="true"] {
+  pointer-events: none;
+}
+
+.mirra-landing .outcome-panel-meta {
+  align-items: center;
+  display: grid;
+  grid-template-columns: calc(25.6vw - var(--outcome-edge)) max-content;
+  left: var(--outcome-edge);
+  padding: 0;
+  position: absolute;
+  right: var(--outcome-edge);
+  top: calc(50% - 56px);
+}
+
+.mirra-landing .outcome-panel-meta > .label {
+  font-family: "LayGrotesk", Arial, sans-serif;
+  font-size: clamp(14px, 1.12vw, 19px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.mirra-landing .outcome-chip {
+  --chip-bg: #f76c46;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: #241b29;
+  font-family: "LayGrotesk", Arial, sans-serif;
+  font-size: clamp(12px, 1vw, 16px);
+  font-weight: 500;
+  line-height: 1;
+  padding: 9px 13px;
+  position: relative;
+  text-shadow: none;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.mirra-landing .outcome-panel--lime .outcome-chip {
+  --chip-bg: #c6af88;
+}
+
+.mirra-landing .outcome-panel--blue .outcome-chip {
+  --chip-bg: #85a1c5;
+}
+
+.mirra-landing .outcome-panel--paper .outcome-chip {
+  --chip-bg: #bacfa3;
+}
+
+.mirra-landing .outcome-chip-bg {
+  background: var(--chip-bg);
+  border-radius: inherit;
+  inset: 0;
+  position: absolute;
+  transform-origin: left center;
+}
+
+.mirra-landing .outcome-chip-text {
+  display: inline-block;
+  position: relative;
+}
+
+.mirra-landing .outcome-panel-content {
+  display: block;
+  left: 25.6vw;
+  max-width: min(62vw, 740px);
+  padding: 0;
+  position: absolute;
+  right: var(--outcome-edge);
+  top: calc(50% + 28px);
+}
+
+.mirra-landing .outcome-panel-content::before {
+  -webkit-backdrop-filter: blur(12px);
+  -webkit-mask-image: radial-gradient(ellipse 76% 72% at center, #000 34%, transparent 100%);
+  backdrop-filter: blur(12px);
+  background: rgb(13 11 16 / 30%);
+  content: "";
+  inset: -30px -50px -24px -34px;
+  mask-image: radial-gradient(ellipse 76% 72% at center, #000 34%, transparent 100%);
+  pointer-events: none;
+  position: absolute;
+}
+
+.mirra-landing .outcome-panel-content-inner {
+  padding: 0;
+  position: relative;
+}
+
+.mirra-landing .outcome-panel-content h3 {
+  display: block;
+  font-size: clamp(38px, 3.05vw, 50px);
+  font-weight: 500;
+  letter-spacing: -0.048em;
+  line-height: 0.99;
+  margin: 0;
+  max-width: 740px;
+  text-wrap: balance;
+}
+
+.mirra-landing .outcome-title-line {
+  display: block;
+  white-space: nowrap;
+}
+
+.mirra-landing .outcome-title-word {
+  display: inline-block;
+  white-space: pre;
+}
+
+.mirra-landing .outcome-title-word:not(:last-child) {
+  margin-right: 0.25em;
+}
+
+.mirra-landing .outcome-panel-body {
+  font-size: clamp(15px, 1.1vw, 18px);
+  line-height: 1.28;
+  margin: 10px 0 12px;
+  max-width: 575px;
+  text-wrap: pretty;
+}
+
+.mirra-landing .outcome-panel .liquid-cta {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #211923;
+  font: 500 12px/1 "PPNeueMontrealMono", monospace;
+  gap: 4px;
+  height: 48px;
+  min-height: 48px;
+  overflow: visible;
+  padding: 0;
+  text-shadow: none;
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mirra-landing .outcome-panel .liquid-cta__label {
+  align-items: center;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 8px 25px rgb(10 8 14 / 16%);
+  display: inline-flex;
+  height: 48px;
+  padding: 0 20px;
+}
+
+.mirra-landing .outcome-panel .liquid-cta__row {
+  height: 1.05em;
+  overflow: hidden;
+}
+
+.mirra-landing .outcome-panel .liquid-cta__row--next {
+  align-items: center;
+  display: flex;
+  inset: auto 20px;
+  justify-content: center;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mirra-landing .outcome-panel .liquid-cta__arrow {
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 8px 25px rgb(10 8 14 / 16%);
+  color: #211923;
+  flex-basis: 48px;
+  height: 48px;
+  width: 48px;
+  transition:
+    background-color 280ms ease,
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mirra-landing .outcome-panel .liquid-cta__arrow > span {
+  height: 48px;
+  width: 48px;
+}
+
+.mirra-landing .outcome-panel .liquid-cta__arrow [data-ui-icon] {
+  transform: scale(1.25);
+}
+
+.mirra-landing .outcome-panel .liquid-cta:hover,
+.mirra-landing .outcome-panel .liquid-cta:focus-visible {
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+
+.mirra-landing .outcome-panel .liquid-cta:hover .liquid-cta__arrow,
+.mirra-landing .outcome-panel .liquid-cta:focus-visible .liquid-cta__arrow {
+  background: #211923;
+  color: #fff;
+}
+
+.mirra-landing .outcome-panel .liquid-cta:focus-visible,
+.mirra-landing .outcome-proof-card:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+.mirra-landing .outcome-proof-card {
+  align-items: stretch;
+  background: #fff;
+  border-radius: 15px;
+  bottom: 26px;
+  box-shadow: 0 8px 32px rgb(10 8 14 / 13%);
+  color: #211923;
+  display: grid;
+  grid-template-columns: 1fr 88px;
+  height: 132px;
+  overflow: hidden;
+  padding: 14px;
+  position: absolute;
+  right: var(--outcome-edge);
+  text-decoration: none;
+  text-shadow: none;
+  transition:
+    box-shadow 300ms ease,
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: 264px;
+}
+
+.mirra-landing .outcome-proof-card:hover,
+.mirra-landing .outcome-proof-card:focus-visible {
+  box-shadow: 0 15px 38px rgb(10 8 14 / 25%);
+  transform: translateY(-4px);
+}
+
+.mirra-landing .outcome-proof-copy {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  justify-content: space-between;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  padding: 4px 6px 2px 0;
+}
+
+.mirra-landing .outcome-proof-copy > span:last-child {
+  font-size: 12px;
+}
+
+.mirra-landing .outcome-proof-card img {
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: 100%;
+}
+
+.mirra-landing .outcome-proof-card:hover img,
+.mirra-landing .outcome-proof-card:focus-visible img {
+  transform: scale(1.07);
+}
+
+.mirra-landing .outcome-frame {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 8;
+}
+
+.mirra-landing .outcome-frame-rule {
+  background: rgb(255 255 255 / 22%);
+  height: 1px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 50%;
+}
+
+.mirra-landing .outcome-frame-rule-fill {
+  background: #ffffff;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  height: 2px;
+  left: 0;
+  position: absolute;
+  top: -0.5px;
+  transform: scaleX(0);
+  transform-origin: left center;
+  width: 100%;
+  will-change: transform;
+}
+
+.mirra-landing .outcome-frame-label {
+  font-family: "LayGrotesk", Arial, sans-serif;
+  font-size: clamp(14px, 1.12vw, 19px);
+  left: clamp(20px, 2.2vw, 46px);
+  letter-spacing: -0.02em;
+  position: absolute;
+  top: calc(50% + 20px);
+}
+
+.mirra-landing .outcome-frame-scroll {
+  bottom: clamp(35px, 8svh, 72px);
+  font-size: clamp(13px, 1vw, 17px);
+  left: 25.6vw;
+  letter-spacing: -0.02em;
+  position: absolute;
+}
+
+.mirra-landing .outcome-scroll-arrow {
+  display: inline-block;
+  margin-left: 3px;
+  animation: outcomeArrowBounce 1.6s ease-in-out infinite;
+}
+
+@keyframes outcomeArrowBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+@media (max-width: 900px) {
+  .mirra-landing .cards-story,
+  .mirra-landing .cards-story-inner {
+    overflow: visible;
+  }
+
+  .mirra-landing .cards-story-inner {
+    overflow: hidden;
+    position: sticky;
+  }
+
+  .mirra-landing .outcome-panel {
+    min-height: 0;
+    position: absolute;
+  }
+
+  .mirra-landing .outcome-panel + .outcome-panel {
+    border: 0;
+  }
+
+  .mirra-landing .outcome-panel-media-inner {
+    filter: blur(3px) brightness(0.82);
+  }
+
+  .mirra-landing .outcome-panel:nth-child(1) .outcome-panel-media video {
+    object-position: 35% 45%;
+  }
+
+  .mirra-landing .outcome-panel-meta {
+    display: grid;
+    grid-template-columns: 38px max-content;
+    left: 16px;
+    right: 16px;
+    top: calc(41% - 46px);
+  }
+
+  .mirra-landing .outcome-panel-meta > .label {
+    font-size: 14px;
+  }
+
+  .mirra-landing .outcome-chip {
+    font-size: 12px;
+    padding: 8px 11px;
+  }
+
+  .mirra-landing .outcome-frame-rule {
+    top: 41%;
+  }
+
+  .mirra-landing .outcome-frame-label,
+  .mirra-landing .outcome-frame-scroll {
+    display: none;
+  }
+
+  .mirra-landing .outcome-panel-content {
+    left: 48px;
+    max-width: none;
+    right: 18px;
+    top: calc(41% + 28px);
+  }
+
+  .mirra-landing .outcome-panel-content h3 {
+    font-size: clamp(29px, 7.7vw, 43px);
+    letter-spacing: -0.045em;
+    line-height: 1.04;
+  }
+
+  .mirra-landing .outcome-panel-body {
+    font-size: clamp(15px, 3.8vw, 17px);
+    line-height: 1.28;
+    margin: 14px 0 19px;
+    max-width: 34ch;
+  }
+
+  .mirra-landing .outcome-panel .liquid-cta {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .mirra-landing .outcome-panel .liquid-cta__label {
+    height: 44px;
+    padding: 0 15px;
+  }
+
+  .mirra-landing .outcome-panel .liquid-cta__arrow,
+  .mirra-landing .outcome-panel .liquid-cta__arrow > span {
+    height: 44px;
+    width: 44px;
+  }
+
+  .mirra-landing .outcome-panel .liquid-cta__arrow {
+    flex-basis: 44px;
+  }
+
+  .mirra-landing .outcome-proof-card {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 800px) {
+  .mirra-landing .outcome-proof-card {
+    display: none;
+  }
+}
+
+@media (max-width: 365px) {
+  .mirra-landing .outcome-panel-content {
+    left: 32px;
+    right: 12px;
+  }
+
+  .mirra-landing .outcome-panel-content h3 {
+    font-size: 28px;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mirra-landing .cards-story,
+  .mirra-landing .cards-story-inner {
+    height: auto;
+  }
+
+  .mirra-landing .cards-story-inner {
+    overflow: visible;
+    position: relative;
+  }
+
+  .mirra-landing .outcome-panel {
+    min-height: 100svh;
+    position: relative;
+  }
+
+  .mirra-landing .outcome-panel-media {
+    clip-path: none !important;
+  }
+
+  .mirra-landing .outcome-frame {
+    display: none;
+  }
+
+  .mirra-landing .outcome-panel + .outcome-panel {
+    border-top: 1px solid rgb(255 255 255 / 42%);
+  }
+
+  .mirra-landing .outcome-panel .liquid-cta,
+  .mirra-landing .outcome-proof-card,
+  .mirra-landing .outcome-proof-card img,
+  .mirra-landing .outcome-scroll-arrow {
+    animation: none;
+    transition: none;
+  }
+}

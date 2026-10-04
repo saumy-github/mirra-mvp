@@ -22,7 +22,9 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
   constructor(private http: MirraHttpClient) {}
 
   // ── Session helper ──
-  private async storeSession(envelope: z.infer<typeof live.sessionEnvelope>): Promise<ShopperAccount> {
+  private async storeSession(
+    envelope: z.infer<typeof live.sessionEnvelope>,
+  ): Promise<ShopperAccount> {
     setAccessToken(envelope.accessToken);
     return live.mapAccount(envelope.account);
   }
@@ -143,7 +145,17 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
   }
   async getAvatarProfile() {
     const envelope = await this.http.get("/avatars/profile", live.profileEnvelope);
-    return envelope.profile ? live.mapProfile(envelope.profile) : null;
+    if (envelope.profile) return live.mapProfile(envelope.profile);
+
+    // Measurements can exist before the first avatar job, or after its deletion.
+    // Read the existing measurement record so a page reload keeps that work visible.
+    try {
+      const saved = await this.http.get("/user-measurements/me", live.measurementsEnvelope);
+      return live.profileFromMeasurements(saved.measurements);
+    } catch (error) {
+      if (error instanceof MirraApiError && error.status === 404) return null;
+      throw error;
+    }
   }
   async getAvatarGlb() {
     const { blob, headers } = await this.http.getBlobWithHeaders("/avatars/profile/glb");
@@ -192,12 +204,10 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
 
   // ── Try-on ──
   createTryOnSession() {
-    return this.http
-      .post("/tryon/sessions", live.tryonSessionEnvelope, {})
-      .then((envelope) => ({
-        tryOnSessionId: envelope.session.sessionId,
-        createdAt: envelope.session.createdAt,
-      }));
+    return this.http.post("/tryon/sessions", live.tryonSessionEnvelope, {}).then((envelope) => ({
+      tryOnSessionId: envelope.session.sessionId,
+      createdAt: envelope.session.createdAt,
+    }));
   }
   requestTryOn(input: {
     tryOnSessionId: string;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Plus, X } from "lucide-react";
+import { ArrowRight, MoreHorizontal, Plus, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAccount } from "@/hooks/use-shopper";
 import { useSignatureLookMutations, useSignatureLooks } from "@/hooks/use-signature-looks";
@@ -46,6 +46,7 @@ export default function ProfileSignatureLooks() {
   const [editing, setEditing] = useState<SignatureLook | null>(null);
   const [editName, setEditName] = useState("");
   const [editDefault, setEditDefault] = useState(false);
+  const [filter, setFilter] = useState<"all" | "default" | "other">("all");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const editTriggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -75,6 +76,12 @@ export default function ProfileSignatureLooks() {
         isDefault: false,
         isTemplate: true,
       }));
+  const visibleCards = cards.filter(
+    (card) =>
+      filter === "all" ||
+      card.isTemplate ||
+      (filter === "default" ? card.isDefault : !card.isDefault),
+  );
 
   function openEditor(look: SignatureLook, trigger: HTMLButtonElement) {
     updateLook.reset();
@@ -110,79 +117,99 @@ export default function ProfileSignatureLooks() {
 
   return (
     <div className="profile-looks-page">
-      <div className="profile-looks-layout">
-        <section className="profile-looks-intro" aria-labelledby="signature-looks-title">
-          <h1 id="signature-looks-title">
-            Signature
-            <br />
-            looks
-          </h1>
-          <p>
-            Create and curate your default foundations. These looks show up in the studio when
-            building outfits.
-          </p>
-          <Link to="/studio" className="profile-dark-button profile-looks-create">
-            <Plus aria-hidden size={20} strokeWidth={1.8} />
-            Create signature look
-          </Link>
-        </section>
+      <header className="profile-looks-heading">
+        <div>
+          <h1 id="signature-looks-title">My looks</h1>
+          <p>Looks you save while trying things on will appear here.</p>
+        </div>
+        <Link to="/studio" className="profile-dark-button profile-looks-create">
+          <Plus aria-hidden size={20} strokeWidth={1.8} />
+          New look
+        </Link>
+      </header>
 
-        <div
-          className="profile-looks-cards"
-          role="list"
-          aria-label={looks.length ? "Saved signature looks" : "Signature look templates"}
-        >
-          {cards.map((card) => {
-            const look = card.look;
+      {looks.length > 0 && (
+        <div className="profile-looks-filters" role="group" aria-label="Filter saved looks">
+          {(
+            [
+              ["all", "All"],
+              ["default", "Default"],
+              ["other", "Other looks"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={filter === value}
+              onClick={() => setFilter(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
-            return (
-              <article
-                className="profile-look-card"
-                key={look?.lookId ?? card.name}
-                role="listitem"
-              >
-                <div className="profile-look-card__image">
-                  {card.image ? (
-                    <img
-                      src={card.image}
-                      alt={
-                        card.isTemplate
-                          ? `${card.name} editorial template preview`
-                          : `${card.name} signature outfit`
-                      }
-                    />
-                  ) : (
-                    <div
-                      className="profile-look-card__placeholder"
-                      role="img"
-                      aria-label={`${card.name} has no preview image`}
-                    >
-                      <span className="profile-look-card__placeholder-mark" aria-hidden>
-                        {card.name.slice(0, 2)}
-                      </span>
-                      <span className="profile-look-card__placeholder-copy">
-                        Preview not available
-                      </span>
-                    </div>
-                  )}
-                  {(card.isTemplate || card.isDefault) && (
-                    <span className="profile-look-card__badge">
-                      {card.isTemplate ? "Template preview" : "Default"}
+      <div
+        className="profile-looks-cards"
+        role="list"
+        aria-label={looks.length ? "Saved signature looks" : "Signature look templates"}
+      >
+        {visibleCards.map((card) => {
+          const look = card.look;
+
+          return (
+            <article className="profile-look-card" key={look?.lookId ?? card.name} role="listitem">
+              <div className="profile-look-card__image">
+                {card.image ? (
+                  <img
+                    src={card.image}
+                    alt={
+                      card.isTemplate
+                        ? `${card.name} editorial template preview`
+                        : `${card.name} signature outfit`
+                    }
+                  />
+                ) : (
+                  <div
+                    className="profile-look-card__placeholder"
+                    role="img"
+                    aria-label={`${card.name} has no preview image`}
+                  >
+                    <span className="profile-look-card__placeholder-mark" aria-hidden>
+                      {card.name.slice(0, 2)}
                     </span>
-                  )}
-                </div>
-                <div className="profile-look-card__body">
-                  <div>
-                    <h2>{card.name}</h2>
-                    <p>{card.description}</p>
+                    <span className="profile-look-card__placeholder-copy">
+                      Preview not available
+                    </span>
                   </div>
-                  {look ? (
-                    <div className="profile-look-card__actions">
+                )}
+                {(card.isTemplate || card.isDefault) && (
+                  <span className="profile-look-card__badge">
+                    {card.isTemplate ? "Template preview" : "Default"}
+                  </span>
+                )}
+              </div>
+              <div className="profile-look-card__body">
+                <div>
+                  <h2>{card.name}</h2>
+                  <p>
+                    {look
+                      ? `${look.layers.length} ${look.layers.length === 1 ? "item" : "items"}`
+                      : "Inspiration"}
+                  </p>
+                  <small className="profile-look-card__description">{card.description}</small>
+                </div>
+                {look ? (
+                  <details className="profile-look-card__menu">
+                    <summary aria-label={`Actions for ${card.name}`}>
+                      <MoreHorizontal aria-hidden size={21} />
+                    </summary>
+                    <div>
                       <button
                         type="button"
                         onClick={(event) => openEditor(look, event.currentTarget)}
                       >
-                        Edit
+                        Edit look
                       </button>
                       <button
                         type="button"
@@ -193,31 +220,31 @@ export default function ProfileSignatureLooks() {
                       </button>
                       <button
                         type="button"
-                        className="profile-look-card__studio"
                         onClick={() =>
                           navigate("/studio", { state: { signatureLookId: look.lookId } })
                         }
                       >
-                        Open studio <ArrowRight aria-hidden size={16} strokeWidth={1.7} />
+                        Open in Studio <ArrowRight aria-hidden size={15} />
                       </button>
                     </div>
-                  ) : (
-                    <div className="profile-look-card__actions profile-look-card__actions--template">
-                      <span className="profile-look-card__template-label">Inspiration only</span>
-                      <button
-                        type="button"
-                        className="profile-look-card__studio"
-                        onClick={() => navigate("/studio")}
-                      >
-                        Build in studio <ArrowRight aria-hidden size={16} strokeWidth={1.7} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                  </details>
+                ) : (
+                  <button
+                    type="button"
+                    className="profile-look-card__build"
+                    onClick={() => navigate("/studio")}
+                  >
+                    <ArrowRight aria-hidden size={20} />
+                    <span className="sr-only">Build a look in Studio</span>
+                  </button>
+                )}
+              </div>
+            </article>
+          );
+        })}
+        {visibleCards.length === 0 && (
+          <div className="profile-looks-filter-empty">No looks in this group yet.</div>
+        )}
       </div>
 
       <p className="profile-looks-note">

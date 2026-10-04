@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
 import {
-  GoogleIconButton,
-  GithubIconButton,
-  SocialButtonRow,
+  GoogleButton,
+  GithubButton,
 } from "@/features/auth/components/oauth-buttons";
 import { useAuthMutations } from "@/hooks/use-shopper";
 import { MirraApiError, userMessage } from "@/integrations/mirra-api";
@@ -71,66 +70,77 @@ export default function Login() {
   return (
     <AuthShell>
       <AuthHeading
-        pill="Welcome back"
-        title="Log in account"
-        subtitle="Enter your personal data to access your account"
+        title="Welcome back"
+        subtitle="Continue to your account"
       />
 
-      {/* Social Login Buttons */}
-      <SocialButtonRow>
-        <GoogleIconButton onClick={onGoogle} loading={google.isPending} />
-        <GithubIconButton onClick={onGoogle} />
-      </SocialButtonRow>
+      {/* Social Login Buttons matching screenshot */}
+      <div className="flex flex-col gap-2.5 w-full">
+        <GoogleButton onClick={onGoogle} loading={google.isPending} />
+        <GithubButton onClick={onGoogle} />
+      </div>
 
       {/* Divider */}
-      <div className="my-5 flex items-center gap-3">
+      <div className="my-5 flex w-full items-center gap-3">
         <div className="h-px flex-1 bg-black/8" />
-        <span className="text-xs text-neutral-400">or</span>
+        <span className="text-xs text-neutral-400 font-normal">or</span>
         <div className="h-px flex-1 bg-black/8" />
       </div>
 
       {/* Inputs Form */}
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="coreai@gmail.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-          required
-          className="h-11.5 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-neutral-900 placeholder:text-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-colors focus:border-black focus:outline-none"
-        />
-
-        <div className="relative">
+      <form onSubmit={onSubmit} className="flex flex-col gap-3.5 w-full">
+        <div className="flex flex-col gap-1 text-left">
+          <label htmlFor="email" className="text-xs font-medium text-neutral-600">
+            Email address
+          </label>
           <input
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
+            id="email"
+            type="email"
+            placeholder="you@domain.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             required
-            className="h-11.5 w-full rounded-xl border border-black/10 bg-white px-4 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-colors focus:border-black focus:outline-none"
+            className="h-11 w-full rounded-xl border border-black/10 bg-white px-3.5 text-sm text-neutral-900 placeholder:text-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors focus:border-black focus:outline-none"
           />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors"
-          >
-            {showPassword ? (
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
-                <circle cx="12" cy="12" r="2.5" />
-              </svg>
-            ) : (
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
-                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                <line x1="2" y1="2" x2="22" y2="22" />
-              </svg>
-            )}
-          </button>
+        </div>
+
+        <div className="flex flex-col gap-1 text-left">
+          <label htmlFor="password" className="text-xs font-medium text-neutral-600">
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+              className="h-11 w-full rounded-xl border border-black/10 bg-white px-3.5 pr-11 text-sm text-neutral-900 placeholder:text-neutral-400 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors focus:border-black focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors"
+            >
+              {showPassword ? (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="2.5" />
+                </svg>
+              ) : (
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                  <line x1="2" y1="2" x2="22" y2="22" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -143,9 +153,9 @@ export default function Login() {
         <button
           type="submit"
           disabled={login.isPending}
-          className="mt-2 flex h-11.5 w-full items-center justify-center gap-2 rounded-xl bg-black text-sm font-medium text-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all hover:bg-neutral-800 active:scale-[0.99] disabled:opacity-50"
+          className="mt-1 flex h-11.5 w-full items-center justify-center gap-2 rounded-xl bg-[#141414] text-sm font-medium text-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition-all hover:bg-black active:scale-[0.99] disabled:opacity-50"
         >
-          <span>{login.isPending ? "Logging in…" : "Log in"}</span>
+          <span>{login.isPending ? "Signing in…" : "Sign in"}</span>
           <span className="text-base leading-none">→</span>
         </button>
       </form>
@@ -155,15 +165,15 @@ export default function Login() {
         type="button"
         onClick={onGuest}
         disabled={continueAsGuest.isPending}
-        className="mt-4 w-full text-center text-xs text-neutral-500 hover:text-neutral-900 transition-colors disabled:opacity-50"
+        className="mt-3.5 w-full text-center text-xs text-neutral-500 hover:text-neutral-900 transition-colors disabled:opacity-50"
       >
         {continueAsGuest.isPending
           ? "Entering guest session…"
-          : "Continue as guest →"}
+          : "Continue as guest"}
       </button>
 
       {/* Footer */}
-      <p className="mt-6 text-center text-xs text-neutral-500">
+      <p className="mt-5 text-center text-xs text-neutral-500">
         Don&apos;t have an account?{" "}
         <Link
           to={`/auth/sign-up${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}

@@ -1,485 +1,647 @@
 .site {
-  background: #161419;
-  color: #fff;
+  --faq-bg: #fcfbf8;
+  --faq-text: #181817;
+  --faq-muted: #77736d;
+  --faq-answer: #696661;
+  --faq-surface: #f4f1ec;
+  --faq-hover: #efebe5;
+  --faq-open: #f1eee8;
+  --faq-chip: #f2efea;
+  --faq-chip-hover: #eae6df;
+  --faq-chip-text: #55524d;
+  --faq-accent-bg: #f5ebf1;
+  --faq-accent-text: #612942;
+  --faq-accent-dot: #b45f83;
+  --faq-cta-black: #181817;
+  --faq-cta-plum: #612942;
+  --faq-cta-plum-hover: #502136;
+  --faq-search-bg: #f5f2ed;
+
+  background-color: var(--faq-bg);
+  color: var(--faq-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100svh;
-  overflow: clip;
+  overflow-x: clip;
+  padding-bottom: 84px;
+  position: relative;
+  width: 100%;
 }
 
-.header {
-  align-items: center;
-  display: flex;
-  height: 50px;
-  left: 25px;
-  position: fixed;
-  right: 25px;
-  top: 25px;
-  z-index: 20;
-}
-
-.brand {
-  color: #fff;
-  text-decoration: none;
-}
-
-.brand :global(.mirra-brand) {
-  color: #fff;
-}
-
-.desktopNav {
-  align-items: center;
-  background: #fff;
-  border-radius: 999px;
-  display: flex;
-  gap: clamp(22px, 2.5vw, 36px);
-  height: 50px;
-  margin-left: auto;
-  padding: 0 25px;
-}
-
-.desktopNav a {
-  color: #0a0a0b;
-  font-family: var(--font-mono), "PPNeueMontrealMono", monospace;
-  font-size: 13px;
-  line-height: 1;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.desktopNav a[aria-current="page"] {
-  color: #666;
-}
-
-.desktopActions {
-  align-items: center;
-  display: flex;
-  gap: 5px;
-  margin-left: 5px;
-}
-
-.login {
-  align-items: center;
-  background: #fff;
-  border-radius: 999px;
-  color: #0a0a0b;
-  display: flex;
-  height: 50px;
-  justify-content: center;
-  transition: transform 0.2s ease;
-  width: 50px;
-}
-
-.login:hover {
-  transform: translateY(-1px);
-}
-
-.glassCta {
-  font-family: var(--font-mono), "PPNeueMontrealMono", monospace;
-  font-size: 13px;
-  letter-spacing: 0;
-  min-height: 50px;
-  padding: 0 22px;
-}
-
-.menuButton,
-.mobileActions,
-.mobileNav {
-  display: none;
-}
-
-.menuScrim {
-  background: rgb(10 10 11 / 66%);
-  inset: 0;
-  position: fixed;
-  z-index: 18;
-}
+/* =========================================================================
+   FAQ HERO
+   ========================================================================= */
 
 .hero {
   align-items: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  min-height: 620px;
-  padding: 190px 25px 86px;
-  text-align: center;
-}
-
-.hero h1 {
-  font-size: clamp(66px, 8.2vw, 116px);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  line-height: 0.95;
-  margin: 0;
-  max-width: 980px;
-}
-
-.subheading {
-  color: rgb(255 255 255 / 76%);
-  font-size: 18px;
-  line-height: 1.4;
-  margin: 28px auto 0;
-  max-width: 700px;
-}
-
-.categoryBar {
   margin: 0 auto;
-  max-width: calc(100% - 30px);
-  position: relative;
-  width: max-content;
-  z-index: 18;
+  max-width: 900px;
+  padding: 110px 24px 44px;
+  text-align: center;
+  width: 100%;
 }
 
-.categoryNav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.categoryNav a {
-  background: #fff;
+.eyebrowPill {
+  align-items: center;
+  background-color: var(--faq-accent-bg);
+  border: none;
   border-radius: 999px;
-  color: #0a0a0b;
-  font: 500 13px/35px var(--font-mono), "PPNeueMontrealMono", monospace;
-  height: 35px;
-  overflow: hidden;
-  padding: 0 18px;
+  color: var(--faq-accent-text);
+  display: inline-flex;
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  gap: 6px;
+  letter-spacing: 0.04em;
+  margin-bottom: 22px;
+  padding: 5px 13px;
   text-transform: uppercase;
 }
 
-.categoryLabel {
-  display: block;
-  height: 1em;
-  line-height: 1;
-  overflow: hidden;
+.eyebrowDot {
+  background-color: var(--faq-accent-dot);
+  border-radius: 50%;
+  display: inline-block;
+  height: 5px;
+  width: 5px;
 }
 
-.categoryLabel > span {
-  display: block;
-  transition: transform 0.34s cubic-bezier(0.16, 0.03, 0.08, 1.2);
-}
-
-.categoryLabel > span:last-child {
-  transform: translateY(100%);
-}
-
-.categoryNav a:focus-visible {
-  outline: 3px solid #8b7cf4;
-  outline-offset: 3px;
-}
-
-@media (hover: hover) {
-  .categoryNav a:hover .categoryLabel > span:first-child {
-    transform: translateY(-100%);
-  }
-
-  .categoryNav a:hover .categoryLabel > span:last-child {
-    transform: translateY(-100%);
-  }
-}
-
-.faqSection {
-  margin: 0 auto;
-  max-width: 700px;
-  padding: 70px 0 150px;
-}
-
-.faqGroup {
-  scroll-margin-top: 92px;
-}
-
-.faqGroup + .faqGroup {
-  margin-top: 70px;
-}
-
-.groupTitle {
-  font-size: 30px;
+.heroTitle {
+  color: var(--faq-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(40px, 5.6vw, 68px);
   font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.02;
+  letter-spacing: -0.038em;
+  line-height: 1.04;
   margin: 0 0 20px;
 }
 
-.accordion {
-  display: grid;
+.heroSub {
+  color: var(--faq-muted);
+  font-family: "Inter", sans-serif;
+  font-size: clamp(15px, 1.8vw, 17px);
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0 auto;
+  max-width: 560px;
+}
+
+/* =========================================================================
+   CATEGORY PILLS (Section 4)
+   ========================================================================= */
+
+.categoriesWrap {
+  margin: 32px auto 22px;
+  max-width: 900px;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.categories {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
   gap: 8px;
+  justify-content: center;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.categories::-webkit-scrollbar {
+  display: none;
+}
+
+.site .categoryPill,
+.categoryPill {
+  align-items: center;
+  appearance: none;
+  background-color: #f2eee8;
+  border: none;
+  border-radius: 999px;
+  box-shadow: none;
+  color: #4a4744;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 12.5px !important;
+  font-weight: 450 !important;
+  justify-content: center;
+  letter-spacing: -0.01em !important;
+  line-height: 1 !important;
+  min-height: 34px;
+  outline: none;
+  padding: 8px 16px;
+  text-transform: none !important;
+  transition: background-color 160ms ease, color 160ms ease;
+  white-space: nowrap;
+}
+
+.site .categoryPill:hover,
+.categoryPill:hover {
+  background-color: #ebe5dd;
+  color: #181817;
+}
+
+.site .categoryPill:focus-visible,
+.categoryPill:focus-visible {
+  box-shadow: 0 0 0 2px rgba(20, 20, 20, 0.14);
+}
+
+.site .categoryPill.activeCategoryPill,
+.site .activeCategoryPill,
+.categoryPill.activeCategoryPill,
+.activeCategoryPill,
+.activeCategoryPill:hover,
+.activeCategoryPill:focus {
+  background-color: #181817 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14);
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+/* =========================================================================
+   SEARCH BAR (Section 8)
+   ========================================================================= */
+
+.searchWrap {
+  margin: 0 auto 30px;
+  max-width: 880px;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.searchBar {
+  align-items: center;
+  background-color: var(--faq-search-bg);
+  border: none;
+  border-radius: 999px;
+  box-shadow: none;
+  display: flex;
+  gap: 8px;
+  margin: 0 auto;
+  max-width: 380px;
+  min-height: 36px;
+  padding: 7px 16px;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+  width: 100%;
+}
+
+.searchBar:focus-within {
+  background-color: #eeeae4;
+  box-shadow: inset 0 0 0 1px rgba(20, 20, 20, 0.1);
+}
+
+.searchIcon {
+  color: var(--faq-muted);
+  flex-shrink: 0;
+}
+
+.site .searchInput,
+.searchInput {
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--faq-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  outline: none;
+  padding: 0;
+  width: 100%;
+}
+
+.site .searchInput::placeholder,
+.searchInput::placeholder {
+  color: #9a9690;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+}
+
+.site .searchClear,
+.searchClear {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: none;
+  color: var(--faq-muted);
+  cursor: pointer;
+  display: flex;
+  font-family: "Inter", sans-serif !important;
+  font-size: 16px !important;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 20px;
+}
+
+.searchClear:hover {
+  color: var(--faq-text);
+}
+
+/* =========================================================================
+   FAQ ACCORDION (Section 5)
+   ========================================================================= */
+
+.faqSection {
+  margin: 0 auto;
+  max-width: 880px;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
 .item {
-  background: transparent;
-  border: 1px solid #323232;
-  border-radius: 6px;
+  background-color: var(--faq-surface);
+  border: none;
+  border-radius: 14px;
+  box-shadow: none;
   overflow: hidden;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transition: background-color 160ms ease;
+  width: 100%;
 }
 
-.itemOpen {
-  background: #232323;
-  border-color: #232323;
+.item:hover {
+  background-color: var(--faq-hover);
 }
 
-@media (hover: hover) {
-  .item:not(.itemOpen):hover {
-    background: rgb(35 35 35 / 55%);
-    border-color: #454545;
-  }
+.itemOpen,
+.itemOpen:hover {
+  background-color: var(--faq-open);
 }
 
 .item h3 {
-  font-size: inherit;
-  font-weight: inherit;
   margin: 0;
 }
 
 .question {
   align-items: center;
+  appearance: none;
   background: transparent;
-  color: #fff;
-  display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1fr) 14px;
-  min-height: 82px;
-  padding: 24px 30px;
+  border: none;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  min-height: 64px;
+  outline: none;
+  padding: 22px 28px;
   text-align: left;
   width: 100%;
 }
 
 .question:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: -4px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(20, 20, 20, 0.12), 0 0 0 2px rgba(20, 20, 20, 0.12);
 }
 
 .questionText {
-  font-size: 18px;
+  color: var(--faq-text);
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(16px, 1.8vw, 17.5px);
   font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  margin: 0;
 }
 
-.toggle {
-  height: 14px;
-  position: relative;
-  transition: transform 0.3s ease;
-  width: 14px;
+.chevron {
+  color: var(--faq-muted);
+  flex-shrink: 0;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.toggle i {
-  background: #fff;
-  height: 1px;
-  left: 0;
-  position: absolute;
-  top: 6.5px;
-  width: 14px;
-}
-
-.toggle i:last-child {
-  transform: rotate(90deg);
-}
-
-.itemOpen .toggle {
-  transform: rotate(-45deg);
+.chevronOpen {
+  transform: rotate(180deg);
 }
 
 .answerWrap {
   overflow: hidden;
 }
 
-.answerWrap p {
-  color: rgb(255 255 255 / 82%);
-  font-size: 18px;
-  line-height: 1.4;
-  margin: 0;
-  max-width: 80%;
-  padding: 15px 30px 35px;
+.answerContent {
+  padding: 0 28px 24px;
 }
 
-.demo {
+.answerContent p {
+  color: var(--faq-answer);
+  font-family: "Inter", sans-serif;
+  font-size: 15.5px;
+  font-weight: 400;
+  line-height: 1.62;
+  margin: 0;
+  max-width: 680px;
+}
+
+/* Empty State */
+.emptyState {
   align-items: center;
-  border-top: 1px solid #323232;
+  background-color: var(--faq-surface);
+  border-radius: 14px;
+  color: var(--faq-muted);
   display: flex;
   flex-direction: column;
-  min-height: 500px;
-  padding: 120px 25px;
+  gap: 12px;
+  padding: 48px 24px;
   text-align: center;
 }
 
-.demo > p {
-  color: rgb(255 255 255 / 62%);
-  font: 500 13px/1 var(--font-mono), "PPNeueMontrealMono", monospace;
-  margin: 0 0 26px;
+.emptyState p {
+  font-size: 15px;
+  margin: 0;
+}
+
+.emptyState button {
+  appearance: none;
+  background-color: var(--faq-cta-black);
+  border: none;
+  border-radius: 999px;
+  color: #ffffff;
+  cursor: pointer;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 18px;
+}
+
+/* =========================================================================
+   CLOSING CTA BLOCK (Section 9 - Refined Post-FAQ Conversion Bridge)
+   ========================================================================= */
+
+.ctaSection {
+  box-sizing: border-box;
+  margin: 104px auto 0;
+  max-width: 1220px;
+  padding: 0 24px;
+  width: 100%;
+}
+
+.ctaCard {
+  background-color: #f4f0ea;
+  border: none;
+  border-radius: 26px;
+  box-shadow: none;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: clamp(52px, 5.2vw, 68px) clamp(44px, 5vw, 68px);
+  position: relative;
+  width: 100%;
+}
+
+.ctaContour {
+  height: 100%;
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 0;
+}
+
+.ctaLayout {
+  align-items: center;
+  display: grid;
+  gap: clamp(32px, 4vw, 56px);
+  grid-template-columns: minmax(0, 1.6fr) minmax(220px, 0.9fr);
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+.ctaLeft {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.ctaEyebrow {
+  color: #99938c;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  margin: 0 0 12px;
   text-transform: uppercase;
 }
 
-.demo h2 {
-  font-size: clamp(48px, 6vw, 86px);
-  font-weight: 500;
-  letter-spacing: -0.035em;
-  line-height: 0.98;
-  margin: 0 0 45px;
-  max-width: 820px;
+.ctaHeading {
+  color: #191918;
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 4.4vw, 54px);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  margin: 0 0 14px;
 }
 
-@media (max-width: 900px) {
-  .header {
-    height: 50px;
-    left: 15px;
-    right: 15px;
-    top: 15px;
+.ctaSub {
+  color: #716d67;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0 0 18px;
+  max-width: 560px;
+}
+
+.ctaMeta {
+  color: #8b8781;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ctaRight {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+}
+
+.site .ctaPrimaryBtn,
+.ctaPrimaryBtn {
+  align-items: center;
+  background-color: #7b315d !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
+  color: #ffffff !important;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 14.5px !important;
+  font-weight: 500 !important;
+  gap: 8px;
+  min-height: 48px;
+  padding: 15px 24px;
+  text-decoration: none !important;
+  transition: background-color 160ms ease;
+  white-space: nowrap;
+}
+
+.site .ctaPrimaryBtn:hover,
+.ctaPrimaryBtn:hover {
+  background-color: #6d294f !important;
+  color: #ffffff !important;
+}
+
+.ctaPrimaryIcon {
+  flex-shrink: 0;
+  transition: transform 160ms ease;
+}
+
+.ctaPrimaryBtn:hover .ctaPrimaryIcon {
+  transform: translate(2px, -2px);
+}
+
+.site .ctaSecondaryLink,
+.ctaSecondaryLink {
+  align-items: center;
+  background: transparent !important;
+  border: none !important;
+  color: #716d67 !important;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 450 !important;
+  gap: 6px;
+  padding: 4px 2px;
+  text-decoration: none !important;
+  transition: color 160ms ease;
+  white-space: nowrap;
+}
+
+.site .ctaSecondaryLink:hover,
+.ctaSecondaryLink:hover {
+  color: #191918 !important;
+}
+
+.ctaSecondaryIcon {
+  flex-shrink: 0;
+  transition: transform 160ms ease;
+}
+
+.ctaSecondaryLink:hover .ctaSecondaryIcon {
+  transform: translateX(3px);
+}
+
+/* =========================================================================
+   RESPONSIVE DESIGN (Section 13)
+   ========================================================================= */
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 96px 20px 36px;
   }
 
-  .desktopNav,
-  .desktopActions {
+  .heroTitle {
+    font-size: clamp(38px, 9vw, 56px);
+  }
+
+  .heroSub {
+    font-size: 15px;
+  }
+
+  .categoriesWrap {
+    margin: 24px auto 18px;
+    padding: 0 16px;
+  }
+
+  .categories {
+    gap: 6px;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .categories::-webkit-scrollbar {
     display: none;
   }
 
-  .menuButton {
-    align-items: center;
-    background: #fff;
-    border-radius: 999px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    height: 50px;
-    justify-content: center;
-    position: relative;
-    width: 50px;
-    z-index: 23;
-  }
-
-  .mobileActions {
-    align-items: center;
-    display: flex;
-    gap: 5px;
-    margin-left: auto;
-    position: relative;
-    z-index: 23;
-  }
-
-  .mobileActions .glassCta {
-    min-width: 98px;
-  }
-
-  .menuButton span {
-    background: #0a0a0b;
-    display: block;
-    height: 1.5px;
-    transition: transform 0.25s ease;
-    width: 17px;
-  }
-
-  .menuButtonOpen span:first-child {
-    transform: translateY(3.25px) rotate(45deg);
-  }
-
-  .menuButtonOpen span:last-child {
-    transform: translateY(-3.25px) rotate(-45deg);
-  }
-
-  .mobileNav {
-    background: #232323;
-    border-radius: 20px;
-    bottom: 15px;
-    display: grid;
-    gap: 2px;
-    left: 15px;
-    max-height: calc(100svh - 30px);
-    overflow-y: auto;
-    padding: 26px 20px 20px;
-    position: fixed;
-    right: 15px;
-    z-index: 19;
-  }
-
-  .mobileNav > a:not(.glassCta) {
-    border-bottom: 1px solid rgb(255 255 255 / 12%);
-    color: #fff;
-    font-size: 30px;
-    letter-spacing: -0.03em;
-    padding: 15px 4px;
-    text-decoration: none;
-  }
-
-  .mobileNav .glassCta {
-    margin-top: 18px;
-  }
-
-  .hero {
-    align-items: flex-start;
-    min-height: auto;
-    padding: 180px 15px 62px;
-    text-align: left;
-  }
-
-  .hero h1 {
-    font-size: clamp(44px, 13vw, 72px);
-    letter-spacing: -0.02em;
-    line-height: 0.95;
-    max-width: 680px;
-  }
-
-  .subheading {
-    font-size: 18px;
-    margin: 15px 0 0;
-    max-width: 560px;
-  }
-
-  .categoryBar {
-    background: #0a0a0b;
-    max-width: none;
-    padding: 10px 15px;
-    width: 100%;
-  }
-
-  .faqSection {
-    max-width: none;
-    padding: 50px 15px 100px;
-  }
-
-  .faqGroup {
-    scroll-margin-top: 122px;
-  }
-
-  .faqGroup + .faqGroup {
-    margin-top: 60px;
+  .categoryPill {
+    font-size: 11px;
+    min-height: 28px;
+    padding: 5px 12px;
   }
 
   .question {
-    gap: 18px;
-    min-height: 72px;
-    padding: 24px 15px;
+    padding: 18px 20px;
   }
 
-  .answerWrap p {
-    max-width: 90%;
-    padding: 15px 15px 30px;
+  .answerContent {
+    padding: 0 20px 20px;
   }
 
-  .demo {
-    min-height: 430px;
-    padding: 96px 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero h1 {
-    font-size: 44px;
+  .ctaSection {
+    margin: 80px auto 0;
+    padding: 0 16px;
   }
 
-  .categoryNav {
-    max-width: 360px;
+  .ctaCard {
+    border-radius: 22px;
+    padding: 38px 24px;
   }
 
-  .categoryNav a {
-    padding-inline: 15px;
+  .ctaLayout {
+    gap: 28px;
+    grid-template-columns: 1fr;
   }
 
-  .groupTitle {
-    font-size: 30px;
+  .ctaHeading {
+    font-size: clamp(34px, 8vw, 42px);
+  }
+
+  .ctaSub {
+    font-size: 14.5px;
+    margin-bottom: 14px;
+  }
+
+  .ctaRight {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .site .ctaPrimaryBtn,
+  .ctaPrimaryBtn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .site .ctaSecondaryLink,
+  .ctaSecondaryLink {
+    padding-left: 2px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .categoryLabel > span,
+  .categoryPill,
   .item,
-  .toggle {
-    transition-duration: 0.01ms !important;
+  .chevron,
+  .ctaPrimaryBtn,
+  .ctaPrimaryIcon,
+  .ctaSecondaryLink,
+  .ctaSecondaryIcon {
+    transition: none !important;
   }
 }

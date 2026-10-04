@@ -518,21 +518,30 @@ export default function Join() {
                   </div>
                 </fieldset>
 
-                <label className={styles.field}>
-                  <span id="goals-label">What would you like to test?</span>
-                  <textarea
-                    name="goals"
-                    value={form.goals}
-                    onChange={updateField}
-                    onBlur={finishField}
-                    aria-labelledby="goals-label"
-                    aria-invalid={Boolean(errors.goals)}
-                    aria-describedby={errors.goals ? "goals-hint goals-error" : "goals-hint"}
-                    placeholder="Tell us about your catalogue, shoppers, or the fit problem you want Mirra to help solve."
-                    rows={4}
-                    maxLength={1200}
-                    required
-                  />
+                <div className={styles.field}>
+                  <label
+                    className={`${styles.controlShell} ${styles.textareaShell}`}
+                    data-state={errors.goals ? "error" : undefined}
+                    htmlFor="join-goals"
+                  >
+                    <span className={styles.insetLabel} id="goals-label">
+                      What would you like to test?
+                    </span>
+                    <textarea
+                      id="join-goals"
+                      name="goals"
+                      value={form.goals}
+                      onChange={updateField}
+                      onBlur={finishField}
+                      aria-labelledby="goals-label"
+                      aria-invalid={Boolean(errors.goals)}
+                      aria-describedby={errors.goals ? "goals-hint goals-error" : "goals-hint"}
+                      placeholder="Tell us about your catalogue, shoppers, or the fit problem you want Mirra to help solve."
+                      rows={4}
+                      maxLength={1200}
+                      required
+                    />
+                  </label>
                   <span className={styles.textareaMeta} id="goals-hint">
                     <small>Keep it brief—specifics help.</small>
                     <small>{form.goals.length}/1200</small>
@@ -542,7 +551,8 @@ export default function Join() {
                       {errors.goals}
                     </small>
                   )}
-                </label>
+                </div>
+
 
                 <div className={styles.consentBlock}>
                   <label className={styles.consentControl}>
@@ -558,14 +568,16 @@ export default function Join() {
                       }
                       required
                     />
-                    <span>
-                      Mirra may contact me by email about early access and a possible pilot.
+                    <span className={styles.consentCopy}>
+                      <span className={styles.consentLead}>
+                        Mirra may contact me by email about early access and a possible pilot.
+                      </span>
+                      <span className={styles.consentNote} id="consent-note">
+                        By continuing, you acknowledge our <Link to="/terms">Terms</Link> and{" "}
+                        <Link to="/privacy">Privacy overview</Link>.
+                      </span>
                     </span>
                   </label>
-                  <p id="consent-note">
-                    By continuing, you acknowledge our <Link to="/terms">Terms</Link> and{" "}
-                    <Link to="/privacy">Privacy overview</Link>.
-                  </p>
                   {errors.consent && (
                     <small className={styles.fieldError} id="consent-error">
                       {errors.consent}
@@ -595,8 +607,8 @@ export default function Join() {
               </span>
 
               <p className={styles.emailPromise}>
-                <Mail size={15} strokeWidth={1.6} aria-hidden="true" />
-                Follow-up happens by email, never through a surprise sales call.
+                <Mail size={14} strokeWidth={1.6} aria-hidden="true" />
+                <span>Follow-up happens by email, never through a surprise sales call.</span>
               </p>
             </form>
           )}

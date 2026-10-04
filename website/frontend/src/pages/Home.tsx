@@ -3,7 +3,7 @@
  * jsx-a11y/no-noninteractive-tabindex here; this repo does not run jsx-a11y,
  * so the directive is kept as a note rather than a disable comment. */
 
-import { MotionConfig, motion } from "motion/react";
+import { MotionConfig, motion, type Variants } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { Draggable } from "gsap/Draggable";
@@ -180,6 +180,64 @@ const LATEST = [
   },
 ] as const;
 
+const outcomeCopyVariants: Variants = {
+  hidden: { opacity: 0, transition: { duration: 0.22 } },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.42, staggerChildren: 0.075, delayChildren: 0.025 },
+  },
+};
+
+const outcomeDetailVariants: Variants = {
+  hidden: { opacity: 0, y: 15, transition: { duration: 0.2 } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const outcomeMetaVariants: Variants = {
+  hidden: { opacity: 0, y: -16, transition: { duration: 0.25 } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const outcomeWordVariants: Variants = {
+  hidden: { opacity: 0, y: 9 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const outcomeIndexVariants: Variants = {
+  hidden: { opacity: 0, y: -20, scaleY: 1.5 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scaleY: 1,
+    transition: { duration: 0.48, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const outcomeChipBackgroundVariants: Variants = {
+  hidden: { scaleX: 0.2 },
+  visible: {
+    scaleX: 1,
+    transition: { duration: 0.52, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const outcomeChipLabelVariants: Variants = {
+  hidden: { opacity: 0, x: -6 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.3, delay: 0.14 } },
+};
+
 function RichCopy({ content }: { content: RichText }) {
   return (
     <>
@@ -225,9 +283,12 @@ export default function Home() {
   const testimonialViewportRef = useRef<HTMLDivElement>(null);
   const testimonialTrackRef = useRef<HTMLDivElement>(null);
   const outcomesRef = useRef<HTMLElement>(null);
+  const outcomeProgressRef = useRef<HTMLSpanElement>(null);
   const featuresRef = useRef<HTMLElement>(null);
   const [heroIndex, setHeroIndex] = useState(6);
   const [latestIndex, setLatestIndex] = useState(0);
+  const [activeOutcome, setActiveOutcome] = useState(0);
+  const [outcomesEntered, setOutcomesEntered] = useState(false);
   const reduceMotion = useReducedMotion();
 
   useLayoutEffect(() => {
@@ -279,65 +340,69 @@ export default function Home() {
           ease: "none",
         });
 
-        const outcomePanels = gsap.utils.toArray<HTMLElement>(".outcome-panel");
-        const outcomeCopies = gsap.utils.toArray<HTMLElement>(".outcome-panel-copy");
-        const outcomeImages = gsap.utils.toArray<HTMLElement>(
-          ".outcome-panel-media video, .outcome-panel-media img",
-        );
-        if (desktop && outcomesRef.current && outcomePanels.length && outcomeImages.length) {
-          gsap.set(outcomePanels.slice(1), { clipPath: "inset(100% 0 0 0)" });
-          gsap.set(outcomeCopies.slice(1), { autoAlpha: 0, y: 28 });
-          gsap.set(outcomeImages, { scale: 1.055, yPercent: 3 });
-
-          const outcomesTimeline = gsap.timeline({
-            defaults: { ease: "none" },
-            scrollTrigger: {
-              trigger: outcomesRef.current,
-              start: "top top",
-              end: "bottom bottom",
-              scrub: 0.65,
-            },
-          });
-
-          // Give the first outcome a short moving breath before the normal
-          // one-card-per-beat cadence begins. The image keeps drifting, so the
-          // scroll never feels paused or locked.
-          const openingBreath = 0.22;
-          outcomesTimeline.to(
-            outcomeImages[0],
-            {
-              scale: 1.045,
-              yPercent: 2,
-              duration: openingBreath,
-            },
-            0,
+        if (outcomesRef.current) {
+          const outcomeMedia = Array.from(
+            outcomesRef.current.querySelectorAll<HTMLElement>(".outcome-panel-media"),
           );
+          const outcomeMediaInner = Array.from(
+            outcomesRef.current.querySelectorAll<HTMLElement>(".outcome-panel-media-inner"),
+          );
+          // Floema's photography wipes up over more than two viewport heights.
+          // Its headings change at the midpoint, independently of that mask.
+          const revealStarts = [0, 0, 1.7, 3.7];
+          const revealSpans = [0, 2.3, 2.6, 2.6];
+          const activeAt = [1.15, 3.0, 5.0];
+          const clamp = gsap.utils.clamp(0, 1);
 
-          outcomePanels.slice(1).forEach((panel, index) => {
-            const transitionStart = index + 0.1 + openingBreath;
-            outcomesTimeline
-              .to(panel, { clipPath: "inset(0% 0 0 0)", duration: 0.72 }, transitionStart)
-              .to(
-                outcomeCopies[index],
-                { autoAlpha: 0, y: -22, duration: 0.18 },
-                transitionStart + 0.03,
-              )
-              .to(
-                outcomeImages[index],
-                { scale: 1.015, yPercent: -2, duration: 0.72 },
-                transitionStart,
-              )
-              .to(
-                outcomeCopies[index + 1],
-                { autoAlpha: 1, y: 0, duration: 0.22 },
-                transitionStart + 0.43,
-              );
+          const renderOutcomes = (trigger: ScrollTrigger) => {
+            const travel = (trigger.end - trigger.start) / window.innerHeight;
+            const viewportProgress = trigger.progress * travel;
+
+            outcomeMedia.forEach((media, index) => {
+              const reveal =
+                index === 0
+                  ? 1
+                  : clamp((viewportProgress - revealStarts[index]) / revealSpans[index]);
+              media.style.clipPath = `inset(${(1 - reveal) * 100}% 0 0 0)`;
+
+              const drift =
+                index === 0
+                  ? clamp(viewportProgress / 2)
+                  : clamp((viewportProgress - revealStarts[index]) / 4);
+              const inner = outcomeMediaInner[index];
+              if (inner) {
+                inner.style.transform = `translate3d(0, ${-window.innerHeight * 0.25 * drift}px, 0) scale(${1 + 0.03 * drift})`;
+              }
+            });
+
+            const nextIndex = activeAt.reduce(
+              (index, threshold) => index + Number(viewportProgress >= threshold),
+              0,
+            );
+            setActiveOutcome((current) => (current === nextIndex ? current : nextIndex));
+
+            if (outcomeProgressRef.current) {
+              const progress = Math.min(Math.max(trigger.progress, 0), 1);
+              outcomeProgressRef.current.style.transform = `scaleX(${progress})`;
+            }
+          };
+
+          const outcomeTrigger = ScrollTrigger.create({
+            trigger: outcomesRef.current,
+            start: "top top",
+            end: "bottom bottom",
+            onUpdate: renderOutcomes,
+            onRefresh: renderOutcomes,
           });
+          renderOutcomes(outcomeTrigger);
 
-          outcomesTimeline.to(outcomeImages.at(-1) ?? outcomeImages[0], {
-            scale: 1,
-            yPercent: -3,
-            duration: 0.4,
+          ScrollTrigger.create({
+            trigger: outcomesRef.current,
+            start: "top 80%",
+            end: "bottom top",
+            onEnter: () => setOutcomesEntered(true),
+            onEnterBack: () => setOutcomesEntered(true),
+            onLeaveBack: () => setOutcomesEntered(false),
           });
         }
 
@@ -921,47 +986,112 @@ export default function Home() {
             <div className="cards-story-inner">
               {MIRRA_STORY_CARDS.map((card, index) => (
                 <article className={`outcome-panel outcome-panel--${card.color}`} key={card.number}>
-                  <div className="outcome-panel-media" aria-hidden={card.media ? undefined : true}>
-                    {card.media ? (
-                      <img src={card.media.src} alt={card.media.alt} />
-                    ) : OUTCOME_VIDEOS[index] ? (
-                      <video
-                        data-ambient-video
-                        src={OUTCOME_VIDEOS[index].src}
-                        poster={OUTCOME_VIDEOS[index].poster}
-                        muted
-                        loop
-                        playsInline
-                        preload="none"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="outcome-panel-shade" aria-hidden="true" />
-                  <div className="outcome-panel-copy">
-                    <div className="outcome-panel-meta">
-                      <span className="label">0{card.number}</span>
-                      <span className="outcome-chip label">Mirra outcome</span>
+                  <div className="outcome-panel-media" aria-hidden="true">
+                    <div className="outcome-panel-media-inner">
+                      {card.media ? (
+                        <img src={card.media.src} alt="" />
+                      ) : OUTCOME_VIDEOS[index] ? (
+                        <video
+                          data-ambient-video
+                          src={OUTCOME_VIDEOS[index].src}
+                          poster={OUTCOME_VIDEOS[index].poster}
+                          muted
+                          loop
+                          playsInline
+                          preload="none"
+                        />
+                      ) : null}
                     </div>
-                    <span className="outcome-rule" aria-hidden="true" />
+                    <div className="outcome-panel-shade" />
+                  </div>
+                  <motion.div
+                    className="outcome-panel-copy"
+                    initial="hidden"
+                    animate={
+                      reduceMotion || (outcomesEntered && activeOutcome === index)
+                        ? "visible"
+                        : "hidden"
+                    }
+                    variants={outcomeCopyVariants}
+                    inert={!reduceMotion && (!outcomesEntered || activeOutcome !== index)}
+                    aria-hidden={!reduceMotion && (!outcomesEntered || activeOutcome !== index)}
+                  >
+                    <motion.div className="outcome-panel-meta" variants={outcomeMetaVariants}>
+                      <motion.span className="label" variants={outcomeIndexVariants}>
+                        0{card.number}
+                      </motion.span>
+                      <span className="outcome-chip label">
+                        <motion.span
+                          className="outcome-chip-bg"
+                          aria-hidden="true"
+                          variants={outcomeChipBackgroundVariants}
+                        />
+                        <motion.span
+                          className="outcome-chip-text"
+                          variants={outcomeChipLabelVariants}
+                        >
+                          Mirra outcome
+                        </motion.span>
+                      </span>
+                    </motion.div>
                     <div className="outcome-panel-content">
-                      <p className="label">Fit confidence</p>
-                      <div>
-                        <h3>
+                      <motion.div
+                        className="outcome-panel-content-inner"
+                        variants={outcomeDetailVariants}
+                      >
+                        <motion.h3
+                          aria-label={card.titleLines.join(" ")}
+                          variants={{ visible: { transition: { staggerChildren: 0.025 } } }}
+                        >
                           {card.titleLines.map((line) => (
-                            <span key={line}>{line}</span>
+                            <span className="outcome-title-line" key={line} aria-hidden="true">
+                              {line.split(" ").map((word, wordIndex) => (
+                                <motion.span
+                                  className="outcome-title-word"
+                                  key={`${word}-${wordIndex}`}
+                                  variants={outcomeWordVariants}
+                                >
+                                  {word}
+                                </motion.span>
+                              ))}
+                            </span>
                           ))}
-                        </h3>
-                        <p className="outcome-panel-body">
+                        </motion.h3>
+                        <motion.p className="outcome-panel-body" variants={outcomeDetailVariants}>
                           <RichCopy content={card.body} />
-                        </p>
-                        <PillLink href="#product" tone="white">
-                          See how it works
-                        </PillLink>
-                      </div>
+                        </motion.p>
+                        <motion.div className="outcome-panel-cta" variants={outcomeDetailVariants}>
+                          <PillLink href="#product" tone="white">
+                            See how it works
+                          </PillLink>
+                        </motion.div>
+                      </motion.div>
                     </div>
-                  </div>
+                    <motion.a
+                      className="outcome-proof-card"
+                      href={`#${MIRRA_LATEST_METADATA.sectionId}`}
+                      variants={outcomeDetailVariants}
+                    >
+                      <span className="outcome-proof-copy">
+                        <span>Mirra in action</span>
+                        <span>
+                          Explore try-on <span aria-hidden="true">↗</span>
+                        </span>
+                      </span>
+                      <img src={LATEST[index].poster} alt="" />
+                    </motion.a>
+                  </motion.div>
                 </article>
               ))}
+              <div className="outcome-frame" aria-hidden="true">
+                <span className="outcome-frame-rule">
+                  <span className="outcome-frame-rule-fill" ref={outcomeProgressRef} />
+                </span>
+                <span className="outcome-frame-label">Fit confidence</span>
+                <span className="outcome-frame-scroll">
+                  Scroll to explore <span className="outcome-scroll-arrow">↓</span>
+                </span>
+              </div>
             </div>
           </section>
 

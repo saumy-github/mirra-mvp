@@ -1,82 +1,61 @@
-.page {
-  --pricing-aqua: #dcd8ff;
-  --pricing-ink: #161419;
-  background: #161419;
-  color: var(--pricing-ink);
+/* =========================================================================
+   MIRRA PRICING — PURE COLOR-DIFFERENTIATED DESIGN SYSTEM
+   Borders: ZERO borders anywhere. Only colour-dependent differentiation.
+   Card Dividers: ZERO horizontal box-type lines inside cards.
+   Card Tones:
+     1. Startup: Warm Sand / Linen (#F3ECE2)
+     2. Business: Signature Soft Mirra Plum Wash (#F5EBF2)
+     3. Enterprise: Grounded Warm Stone (#EBE4DB)
+   Strictly Inter typography throughout.
+   ========================================================================= */
+
+.site {
+  --p-bg: #fcfbf8;
+  --p-text: #181817;
+  --p-muted: #716d67;
+  --p-answer: #696661;
+  --p-subtle: #99938c;
+  --p-surface-muted: #f4f0ea;
+  --p-surface-hover: #efebe5;
+  --p-surface-open: #f1eee8;
+  --p-chip: #f2eee8;
+  --p-chip-hover: #eae6df;
+
+  /* Signature MIRRA Plum */
+  --p-plum: #7b315d;
+  --p-plum-hover: #6d294f;
+  --p-accent-bg: #ead4e3;
+  --p-accent-text: #7b315d;
+  --p-accent-dot: #9b4b6e;
+
+  --p-ink: #181817;
+  --p-nav-height: 64px;
+  --p-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  background-color: var(--p-bg);
+  box-sizing: border-box;
+  color: var(--p-text);
+  font-family: var(--p-font) !important;
   min-height: 100svh;
-  overflow: clip;
+  overflow-x: clip;
+  padding: 110px 24px 84px;
+  width: 100%;
 }
 
-.pricingSection {
-  position: relative;
+.site *,
+.site *::before,
+.site *::after {
+  box-sizing: border-box;
+  border-color: transparent !important;
 }
 
-.intro {
-  align-items: center;
-  background: #f3f0ea;
-  display: flex;
-  flex-direction: column;
-  min-height: 760px;
-  overflow: hidden;
-  padding: 190px 25px 255px;
-  position: relative;
-  text-align: center;
-  z-index: 1;
+.main {
+  margin: 0 auto;
+  max-width: 1160px;
 }
 
-.intro::after {
-  background: #161419;
-  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  bottom: -1px;
-  content: "";
-  height: 88px;
-  left: -5%;
-  position: absolute;
-  width: 110%;
-}
-
-.intro > * {
-  position: relative;
-  z-index: 1;
-}
-
-.eyebrow {
-  align-items: center;
-  display: flex;
-  font: 500 13px/1 "PPNeueMontrealMono", monospace;
-  gap: 9px;
-  letter-spacing: 0.03em;
-  margin-bottom: 30px;
-  text-transform: uppercase;
-}
-
-.eyebrow::before {
-  background: #6f345f;
-  border-radius: 50%;
-  content: "";
-  height: 7px;
-  width: 7px;
-}
-
-.intro h1 {
-  font-size: clamp(64px, 8vw, 112px);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  line-height: 0.95;
-  margin: 0;
-  max-width: 1120px;
-}
-
-.intro h1 .visualLine {
-  display: block;
-}
-
-.intro h1 .visualLine:last-child {
-  color: #999;
-}
-
-.intro h1 .srOnly {
-  clip: rect(0, 0, 0, 0);
+.srOnly {
+  clip: rect(0 0 0 0);
   clip-path: inset(50%);
   height: 1px;
   overflow: hidden;
@@ -85,367 +64,913 @@
   width: 1px;
 }
 
-.subheading {
-  color: #4a4a4a;
-  font-size: clamp(20px, 1.8vw, 26px);
-  letter-spacing: -0.015em;
-  line-height: 1.25;
-  margin-top: 28px;
+/* =========================================================================
+   COLOR DIFFERENTIATION TOKENS FOR THE 3 PRICING BOXES
+   ========================================================================= */
+
+/* Box 1: Startup (Warm Sand / Linen) */
+.toneStartup,
+.toneSand {
+  --box-bg: #f3ece2;
+  --box-bg-hover: #efe6da;
+  --box-dot: #a89f93;
+  --box-tagline: #66615b;
+  --box-btn-bg: #ffffff;
+  --box-btn-hover: #faf7f2;
+  --box-btn-text: #181817;
+  --tone-check: #7b315d;
+  --table-col-bg: rgba(243, 236, 226, 0.45);
+  --table-col-hover: rgba(243, 236, 226, 0.7);
+  --table-head-bg: #f3ece2;
 }
 
-.note {
-  color: #666;
-  font: 500 12px/1.4 "PPNeueMontrealMono", monospace;
-  letter-spacing: 0.02em;
-  margin-top: 14px;
+/* Box 2: Business (Signature Soft Plum Wash - Most Popular) */
+.toneBusiness,
+.tonePlum {
+  --box-bg: #f5ebf2;
+  --box-bg-hover: #f0e3ec;
+  --box-dot: #7b315d;
+  --box-tagline: #6b5665;
+  --box-btn-bg: #7b315d;
+  --box-btn-hover: #6d294f;
+  --box-btn-text: #ffffff;
+  --tone-check: #7b315d;
+  --table-col-bg: #f5ebf2;
+  --table-col-hover: #efe2ec;
+  --table-head-bg: #f5ebf2;
 }
+
+/* Box 3: Enterprise (Grounded Warm Stone) */
+.toneEnterprise,
+.toneInk {
+  --box-bg: #ebe4db;
+  --box-bg-hover: #e4ddd3;
+  --box-dot: #5c5852;
+  --box-tagline: #5c5852;
+  --box-btn-bg: #ffffff;
+  --box-btn-hover: #faf7f2;
+  --box-btn-text: #181817;
+  --tone-check: #7b315d;
+  --table-col-bg: rgba(235, 228, 219, 0.45);
+  --table-col-hover: rgba(235, 228, 219, 0.7);
+  --table-head-bg: #ebe4db;
+}
+
+/* =========================================================================
+   HERO
+   ========================================================================= */
+
+.hero {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto 48px;
+  max-width: 900px;
+  text-align: center;
+}
+
+.eyebrow {
+  align-items: center;
+  background-color: var(--p-accent-bg);
+  border: none !important;
+  border-radius: 999px;
+  color: var(--p-accent-text);
+  display: inline-flex;
+  font-family: var(--p-font) !important;
+  font-size: 11px;
+  font-weight: 500;
+  gap: 6px;
+  letter-spacing: 0.04em;
+  margin: 0 0 22px;
+  padding: 5px 13px;
+  text-transform: uppercase;
+}
+
+.eyebrowDot {
+  background-color: var(--p-accent-dot);
+  border: none !important;
+  border-radius: 50%;
+  display: inline-block;
+  height: 5px;
+  width: 5px;
+}
+
+.heroTitle {
+  color: var(--p-text);
+  font-family: var(--p-font) !important;
+  font-size: clamp(40px, 5.6vw, 68px);
+  font-weight: 500;
+  letter-spacing: -0.038em;
+  line-height: 1.04;
+  margin: 0 0 20px;
+}
+
+.heroSub {
+  color: var(--p-muted);
+  font-family: var(--p-font) !important;
+  font-size: clamp(15px, 1.8vw, 17px);
+  line-height: 1.5;
+  margin: 0 auto 32px;
+  max-width: 600px;
+  text-wrap: balance;
+}
+
+/* =========================================================================
+   BILLING SWITCH TOGGLE (Animated Monthly / Yearly Button)
+   ========================================================================= */
 
 .billingToggle {
   align-items: center;
-  background: transparent;
-  display: flex;
+  border: none !important;
+  display: inline-flex;
   gap: 12px;
-  margin-top: 38px;
-  padding: 0;
-  width: auto;
-}
-
-.billingToggle button {
-  color: #999;
-  font: 500 13px/24px "PPNeueMontrealMono", monospace;
-  height: 24px;
+  justify-content: center;
+  margin: 0 auto;
   position: relative;
-  transition: color 0.25s ease;
+  user-select: none;
 }
 
-.billingToggle button:focus-visible,
-.liquidButton:focus-visible,
-.faqButton:focus-visible,
-.glassNav a:focus-visible,
-.glassIcon:focus-visible {
-  outline: 3px solid #0a0a0b;
-  outline-offset: 3px;
+.toggleLabel {
+  appearance: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--p-muted) !important;
+  cursor: pointer;
+  font-family: var(--p-font) !important;
+  font-size: 14px !important;
+  font-weight: 450 !important;
+  padding: 4px 6px;
+  transition: color 160ms ease;
 }
 
-.billingToggle button.activeToggle {
-  color: #0a0a0b;
+.toggleLabel:hover {
+  color: var(--p-text) !important;
 }
 
-.billingToggle button.cycleSwitch {
-  background: #0a0a0b;
-  border-radius: 999px;
-  flex: 0 0 44px;
+.toggleLabel.activeLabel {
+  color: var(--p-text) !important;
+  font-weight: 600 !important;
+}
+
+.switchTrack {
+  align-items: center;
+  appearance: none;
+  background-color: var(--p-ink) !important;
+  border: none !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-flex;
   height: 24px;
   padding: 3px;
+  position: relative;
+  transition: background-color 160ms ease;
   width: 44px;
 }
 
-.cycleSwitch span {
-  background: #fff;
+.switchTrack:focus-visible {
+  outline: 2px solid var(--p-plum);
+  outline-offset: 2px;
+}
+
+.switchThumb {
+  background-color: #ffffff;
+  border: none !important;
   border-radius: 50%;
   display: block;
   height: 18px;
   width: 18px;
 }
 
-.tierGrid {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  margin: -215px auto 0;
-  max-width: 1320px;
-  padding: 0 30px;
-  position: relative;
-  z-index: 2;
-}
-
-.tierCard {
-  background: #fff;
-  border-radius: 20px;
-  display: flex;
-  flex: 0 0 min(400px, 31vw);
-  flex-direction: column;
-  min-height: 625px;
-  overflow: hidden;
-  padding: 32px;
-  position: relative;
-  transform: translateY(38px) rotate(-2.25deg);
-  transform-origin: 50% 100%;
-  z-index: 1;
-}
-
-.tierCard:nth-child(2) {
-  margin: 0 -18px;
-  transform: rotate(0.75deg);
-  z-index: 3;
-}
-
-.tierCard:nth-child(3) {
-  transform: translateY(38px) rotate(2.25deg);
-  z-index: 2;
-}
-
-.featuredCard {
-  background: var(--pricing-aqua);
-}
-
-.cardTopline {
-  align-items: center;
-  color: #595959;
-  display: flex;
-  font: 500 12px/1 "PPNeueMontrealMono", monospace;
-  justify-content: space-between;
-  min-height: 28px;
-  text-transform: uppercase;
-}
-
-.partnerBadge {
-  background: #e7dce6;
+.discountBadge {
+  background-color: var(--p-accent-bg);
+  border: none !important;
   border-radius: 999px;
-  color: #0a0a0b;
-  padding: 8px 11px;
+  color: var(--p-accent-text);
+  font-family: var(--p-font) !important;
+  font-size: 11.5px;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  padding: 4px 9px;
 }
 
-.tierCard h2 {
-  font-size: clamp(38px, 3.2vw, 52px);
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  margin-top: 28px;
+.mobilePlanPicker {
+  display: none;
+  gap: 8px;
 }
 
-.price {
-  height: 90px;
-  margin-top: 24px;
-  position: relative;
+.mobilePlanPicker .toggleOption {
+  align-items: center;
+  appearance: none;
+  background-color: var(--p-chip) !important;
+  border: none !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  color: #4a4744 !important;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--p-font) !important;
+  font-size: 12.5px !important;
+  font-weight: 450 !important;
+  gap: 8px;
+  letter-spacing: -0.01em !important;
+  min-height: 34px;
+  padding: 0 16px;
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
-.price > div {
-  align-items: flex-end;
-  display: flex;
-  inset: 0;
-  position: absolute;
+.mobilePlanPicker .toggleOption:hover {
+  background-color: var(--p-chip-hover) !important;
 }
 
-.price strong {
-  font-size: clamp(64px, 5.4vw, 82px);
-  font-weight: 500;
-  letter-spacing: -0.045em;
-  line-height: 0.9;
+.mobilePlanPicker .toggleOption.toggleActive {
+  background-color: var(--p-plum) !important;
+  color: #ffffff !important;
 }
 
-.price span {
-  color: #555;
-  font: 500 12px/1 "PPNeueMontrealMono", monospace;
-  margin: 0 0 9px 8px;
-  text-transform: uppercase;
+.mobilePlanPicker .toggleOption:focus-visible {
+  outline: 2px solid var(--p-plum);
+  outline-offset: 2px;
 }
 
-.customPrice strong {
-  font-size: clamp(52px, 4.4vw, 68px);
-  letter-spacing: -0.025em;
-}
+/* =========================================================================
+   3 PRICING BOXES (COLOR-DIFFERENTIATED, NO BORDERS, NO BOX-DIVIDERS)
+   ========================================================================= */
 
-.billingDetail {
-  color: #5c5c5c;
-  font: 500 11px/1.3 "PPNeueMontrealMono", monospace;
-  margin-top: 8px;
-  text-transform: uppercase;
-}
-
-.idealFor {
-  border-top: 1px dashed rgb(10 10 11 / 32%);
-  color: #4c4c4c;
-  font-size: 16px;
-  line-height: 1.4;
-  margin-top: 27px;
-  padding-top: 22px;
-}
-
-.idealFor span {
-  color: #0a0a0b;
-  font-weight: 600;
-}
-
-.featureList {
+.planGrid {
+  align-items: stretch;
   display: grid;
-  gap: 13px;
-  list-style: none;
-  margin: 25px 0 30px;
+  gap: 16px;
+  grid-template-columns: repeat(3, 1fr);
 }
 
-.featureList li {
-  align-items: flex-start;
-  color: #333;
+.planCard {
+  background-color: var(--box-bg);
+  border: none !important;
+  border-radius: 24px;
+  box-shadow: none !important;
   display: flex;
-  font-size: 16px;
-  gap: 10px;
-  line-height: 1.25;
+  flex-direction: column;
+  padding: 36px 32px 38px;
+  position: relative;
+  transition:
+    background-color 200ms ease,
+    transform 200ms ease;
 }
 
-.featureList li > span {
-  color: #0a0a0b;
-  flex: 0 0 16px;
-  font: 500 12px/1.25 "PPNeueMontrealMono", monospace;
-  height: 16px;
-  width: 16px;
+.planCard:hover {
+  background-color: var(--box-bg-hover);
+  transform: translateY(-2px);
 }
 
-.liquidButton {
+.planRecommended {
+  /* Retains color-dependent styling from .toneBusiness with zero borders */
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.planHeader {
+  align-items: center;
   display: flex;
-  font: 500 13px/1 "PPNeueMontrealMono", monospace;
-  height: 54px;
+  gap: 8px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  min-height: 24px;
+}
+
+.planName {
+  align-items: center;
+  color: var(--p-text);
+  display: inline-flex;
+  font-family: var(--p-font) !important;
+  font-size: 17.5px;
+  font-weight: 550;
+  gap: 9px;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.planSwatch {
+  background-color: var(--box-dot);
+  border: none !important;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  height: 8px;
+  width: 8px;
+}
+
+.recommendedTag {
+  background-color: var(--p-accent-bg);
+  border: none !important;
+  border-radius: 999px;
+  color: var(--p-accent-text);
+  font-family: var(--p-font) !important;
+  font-size: 11px;
+  font-weight: 550;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  text-transform: uppercase;
+}
+
+.planTagline {
+  color: var(--box-tagline);
+  font-family: var(--p-font) !important;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 28px;
+  min-height: 42px;
+}
+
+.priceBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 26px;
+}
+
+.priceFigure {
+  align-items: center;
+  display: flex;
+  height: 52px;
+}
+
+.priceAmount {
+  color: var(--p-text);
+  font-family: var(--p-font) !important;
+  font-size: 48px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.priceSuffix {
+  color: var(--p-subtle);
+  font-family: var(--p-font) !important;
+  font-size: 13px;
+}
+
+/* =========================================================================
+   BUTTONS (COLOR DIFFERENTIATED, ZERO BORDERS)
+   ========================================================================= */
+
+.button {
+  align-items: center;
+  border: none !important;
+  border-radius: 13px !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: var(--p-font) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  gap: 8px;
+  height: 46px;
   justify-content: center;
-  margin-top: auto;
-  padding: 0 21px;
+  padding: 0 22px;
+  text-decoration: none !important;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+  white-space: nowrap;
+}
+
+.button svg {
+  transition: transform 160ms ease;
+}
+
+.button:hover svg {
+  transform: translateX(2px);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--p-plum);
+  outline-offset: 2px;
+}
+
+.buttonSmall {
+  border-radius: 10px !important;
+  font-size: 12.5px !important;
+  height: 32px;
+  padding: 0 14px;
+}
+
+/* Plan Button within cards: colored by card tone token with no border */
+.planCard .planButton {
+  background-color: var(--box-btn-bg) !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--box-btn-text) !important;
   width: 100%;
 }
 
-.compactButton {
-  height: 50px;
-  margin: 0;
-  min-width: 122px;
-  width: auto;
+.planCard .planButton:hover {
+  background-color: var(--box-btn-hover) !important;
+  color: var(--box-btn-text) !important;
 }
 
-.faqPrompt {
-  align-items: center;
-  color: #fff;
+.buttonPlum {
+  background-color: var(--p-plum) !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #ffffff !important;
+}
+
+.buttonPlum:hover {
+  background-color: var(--p-plum-hover) !important;
+  color: #ffffff !important;
+}
+
+.buttonPlum:hover svg {
+  transform: translate(2px, -2px);
+}
+
+/* =========================================================================
+   CARD FEATURES (NO BOX-TYPE DIVIDER LINE)
+   ========================================================================= */
+
+.planFeatures {
+  border: none !important;
+  border-top: none !important;
+  margin-top: 32px;
+  padding-top: 0;
+}
+
+.inherits {
+  color: var(--p-text);
+  font-family: var(--p-font) !important;
+  font-size: 13px;
+  font-weight: 550;
+  margin: 0 0 16px;
+}
+
+.featureList {
   display: flex;
-  justify-content: space-between;
-  margin: 115px auto 0;
-  max-width: 394px;
-  padding: 28px 0 120px;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.faqPrompt p {
-  font: 500 13px/1.4 "PPNeueMontrealMono", monospace;
+.featureItem {
+  align-items: center;
+  color: #3b3936;
+  display: flex;
+  font-family: var(--p-font) !important;
+  font-size: 14px;
+  gap: 10px;
+  line-height: 1.4;
+}
+
+.featureCheck,
+.cellCheck {
+  color: var(--tone-check);
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.gridFootnote {
+  color: var(--p-subtle);
+  font-family: var(--p-font) !important;
+  font-size: 13px;
+  margin: 24px 0 0;
+  text-align: center;
+}
+
+/* =========================================================================
+   COMPARISON TABLE (COLOR-DIFFERENTIATED COLUMNS, ZERO BORDERS)
+   ========================================================================= */
+
+.compare {
+  margin-top: 120px;
+}
+
+.sectionTitle {
+  color: var(--p-text);
+  font-family: var(--p-font) !important;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  margin: 0 0 28px;
+}
+
+.compare .sectionTitle {
+  margin-bottom: calc(-1 * (var(--p-nav-height) + 16px) - 22px);
+  max-width: 30%;
+  position: relative;
+  z-index: 3;
+}
+
+.compareTable {
+  border: none !important;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.compareTable th,
+.compareTable td {
+  border: none !important;
+  box-shadow: none !important;
+  font-family: var(--p-font) !important;
+  text-align: left;
+}
+
+.compareCorner,
+.comparePlanHead {
+  background: var(--p-bg);
+  border: none !important;
+  box-shadow: none !important;
+  padding: calc(var(--p-nav-height) + 16px) 0 0;
+  position: sticky;
+  top: 0;
+  vertical-align: bottom;
+  z-index: 2;
+}
+
+.compareCorner {
+  width: 34%;
+}
+
+.comparePlanInner {
+  align-items: flex-start;
+  background-color: var(--table-head-bg);
+  border: none !important;
+  border-radius: 16px 16px 0 0;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 20px;
+}
+
+.comparePlanName {
+  align-items: center;
+  color: var(--p-text);
+  display: inline-flex;
+  font-size: 15px;
+  font-weight: 500;
+  gap: 8px;
+  letter-spacing: -0.012em;
+}
+
+.comparePlanPrice {
+  color: var(--p-subtle);
+  font-size: 13px;
+  font-weight: 400;
+  margin: 3px 0 14px;
+}
+
+.comparePlanInner .planButton {
+  background-color: var(--box-btn-bg) !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--box-btn-text) !important;
+}
+
+.comparePlanInner .planButton:hover {
+  background-color: var(--box-btn-hover) !important;
+}
+
+.compareTable td {
+  background-color: var(--table-col-bg);
+  border: none !important;
+  transition: background-color 160ms ease;
+}
+
+.compareSectionRow th {
+  color: var(--p-subtle);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  padding: 36px 0 12px;
   text-transform: uppercase;
 }
 
-.faqButton {
-  height: 50px;
-  min-width: 155px;
+.compareRow th,
+.compareRow td {
+  border: none !important;
+  font-size: 14px;
+  padding: 14px 20px;
+  vertical-align: middle;
 }
 
-.brand {
-  color: #fff;
-  mix-blend-mode: difference;
-  width: auto;
+.compareRow:hover td {
+  background-color: var(--table-col-hover);
 }
 
-.glassHeader :global(.mirra-brand) {
-  color: #fff;
+.compareLabel {
+  color: #4a4744;
+  font-weight: 400;
+  padding-left: 0 !important;
 }
 
-.glassNav,
-.glassIcon {
-  background: #f3f0ea;
-  border: 0;
-  box-shadow: none;
+.compareTable tbody tr:last-child td {
+  border-radius: 0 0 16px 16px;
+  padding-bottom: 22px;
 }
 
-.glassNav a[aria-current="page"] {
-  color: #666;
-}
-
-.glassIcon {
-  color: #0a0a0b;
-}
-
-.menuButton {
-  flex-direction: column;
-  gap: 5px;
-}
-
-.menuButton > span {
-  background: #0a0a0b;
+.cellDash {
+  color: #c4beb4;
   display: block;
-  height: 1.5px;
-  transition: transform 0.2s ease;
-  width: 18px;
 }
 
-.glassMenu {
-  background: #232323;
-  border: 0;
-  box-shadow: none;
+.cellText {
+  color: var(--p-text);
 }
 
-@media (max-width: 900px) {
-  .tierGrid {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: -132px;
-    overflow: visible;
-    padding: 0 15px;
+/* =========================================================================
+   FAQ (COLOR DIFFERENTIATION, ZERO BORDERS)
+   ========================================================================= */
+
+.faq {
+  display: grid;
+  gap: 56px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr);
+  margin-top: 128px;
+}
+
+.faqIntroText {
+  color: var(--p-muted);
+  font-family: var(--p-font) !important;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: -12px 0 0;
+}
+
+.inlineLink {
+  color: var(--p-plum) !important;
+  font-weight: 500;
+  text-decoration: underline !important;
+  text-decoration-color: rgba(123, 49, 93, 0.3) !important;
+  text-underline-offset: 3px;
+  transition: color 160ms ease;
+}
+
+.inlineLink:hover {
+  color: var(--p-plum-hover) !important;
+  text-decoration-color: var(--p-plum-hover) !important;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.faqItem {
+  background-color: var(--p-surface-muted);
+  border: none !important;
+  border-radius: 16px;
+  box-shadow: none !important;
+  transition: background-color 160ms ease;
+}
+
+.faqItem:hover {
+  background-color: var(--p-surface-hover);
+}
+
+.faqItem[open],
+.faqItem[open]:hover {
+  background-color: var(--p-surface-open);
+}
+
+.faqQuestion {
+  align-items: center;
+  border: none !important;
+  border-radius: 16px;
+  box-shadow: none !important;
+  color: var(--p-text);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--p-font) !important;
+  font-size: 15px;
+  font-weight: 500;
+  gap: 20px;
+  justify-content: space-between;
+  letter-spacing: -0.01em;
+  list-style: none;
+  min-height: 64px;
+  padding: 0 22px;
+}
+
+.faqQuestion::-webkit-details-marker {
+  display: none;
+}
+
+.faqQuestion:focus-visible {
+  outline: 2px solid var(--p-plum);
+  outline-offset: 2px;
+}
+
+.faqIcon {
+  color: var(--p-muted);
+  flex-shrink: 0;
+  transition: transform 200ms ease;
+}
+
+.faqItem[open] .faqIcon {
+  transform: rotate(180deg);
+}
+
+.faqAnswer {
+  color: var(--p-answer);
+  font-family: var(--p-font) !important;
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin: -4px 0 0;
+  padding: 0 56px 22px 22px;
+}
+
+/* =========================================================================
+   CLOSING CTA (ZERO BORDERS, CLEAN SURFACE)
+   ========================================================================= */
+
+.closing {
+  align-items: center;
+  background-color: #f4f0ea;
+  border: none !important;
+  border-radius: 26px;
+  box-shadow: none !important;
+  display: grid;
+  gap: clamp(32px, 4vw, 56px);
+  grid-template-columns: minmax(0, 1.6fr) minmax(220px, 0.9fr);
+  margin-top: 104px;
+  padding: clamp(52px, 5.2vw, 68px) clamp(44px, 5vw, 68px);
+}
+
+.closingEyebrow {
+  color: var(--p-subtle);
+  font-family: var(--p-font) !important;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  margin: 0 0 12px;
+  text-transform: uppercase;
+}
+
+.closingTitle {
+  color: var(--p-text);
+  font-family: var(--p-font) !important;
+  font-size: clamp(36px, 4.4vw, 50px);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin: 0 0 14px;
+}
+
+.closingSub {
+  color: #716d67;
+  font-family: var(--p-font) !important;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0 0 18px;
+  max-width: 520px;
+}
+
+.closingMeta {
+  color: #8b8781;
+  font-family: var(--p-font) !important;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.closingActions {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.closingActions .button {
+  height: 48px;
+}
+
+.textLink {
+  align-items: center;
+  border: none !important;
+  color: #716d67 !important;
+  display: inline-flex;
+  font-family: var(--p-font) !important;
+  font-size: 13.5px;
+  font-weight: 500;
+  gap: 6px;
+  text-decoration: none !important;
+  transition: color 160ms ease;
+}
+
+.textLink:hover {
+  color: var(--p-text) !important;
+}
+
+.textLink svg {
+  transition: transform 160ms ease;
+}
+
+.textLink:hover svg {
+  transform: translateX(2px);
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 1000px) {
+  .planGrid {
+    grid-template-columns: 1fr;
+    margin: 0 auto;
+    max-width: 520px;
   }
 
-  .tierCard,
-  .tierCard:nth-child(2),
-  .tierCard:nth-child(3) {
-    flex: 0 0 auto;
-    margin: 0 auto;
-    max-width: 400px;
-    min-height: 570px;
-    padding: 26px;
-    transform: none;
-    width: 100%;
+  .planTagline {
+    min-height: 0;
   }
 }
 
 @media (max-width: 760px) {
-  .intro {
-    align-items: flex-start;
-    min-height: 650px;
-    padding: 150px 15px 190px;
-    text-align: left;
+  .site {
+    padding: 100px 16px 64px;
   }
 
-  .intro::after {
-    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-    height: 54px;
-    left: -30%;
-    width: 160%;
+  .compare,
+  .faq {
+    margin-top: 88px;
   }
 
-  .eyebrow {
-    margin-bottom: 22px;
-  }
-
-  .intro h1 {
-    font-size: clamp(50px, 14vw, 72px);
-    line-height: 0.95;
-  }
-
-  .subheading {
-    font-size: 20px;
-    max-width: 340px;
-  }
-
-  .note {
-    font-size: 10px;
-    max-width: 340px;
-  }
-
-  .billingToggle {
-    margin-top: 30px;
-  }
-
-  .faqPrompt {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 24px;
-    margin: 58px 15px 0;
+  .compare .sectionTitle {
+    margin-bottom: 20px;
     max-width: none;
-    padding: 34px 0 80px;
+  }
+
+  .mobilePlanPicker {
+    display: flex;
+    margin-bottom: 8px;
+    width: 100%;
+  }
+
+  .mobilePlanPicker .toggleOption {
+    flex: 1;
+    justify-content: center;
+    padding: 0 6px;
+  }
+
+  .compareCorner,
+  .comparePlanHead {
+    padding-top: 12px;
+    position: static;
+  }
+
+  .compareCorner {
+    width: 52%;
+  }
+
+  .comparePlanInner {
+    padding: 14px 14px 16px;
+  }
+
+  .compareRow td {
+    padding: 14px;
+  }
+
+  .compareTable[data-mobile-plan="startup"] [data-plan]:not([data-plan="startup"]),
+  .compareTable[data-mobile-plan="business"] [data-plan]:not([data-plan="business"]),
+  .compareTable[data-mobile-plan="enterprise"] [data-plan]:not([data-plan="enterprise"]) {
+    display: none;
+  }
+
+  .faq {
+    gap: 24px;
+    grid-template-columns: 1fr;
+  }
+
+  .faqAnswer {
+    padding-right: 22px;
+  }
+
+  .closing {
+    border-radius: 22px;
+    grid-template-columns: 1fr;
+    margin-top: 72px;
+    padding: 44px 24px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .billingToggle button,
-  .menuButton > span {
-    transition: none;
+  .toggleOption,
+  .button,
+  .button svg,
+  .textLink,
+  .textLink svg,
+  .faqItem,
+  .faqIcon,
+  .switchThumb {
+    transition: none !important;
   }
 }

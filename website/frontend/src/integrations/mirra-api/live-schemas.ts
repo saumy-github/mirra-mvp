@@ -307,11 +307,11 @@ export function profileFromMeasurements(raw: Record<string, unknown>): AvatarPro
     avatarLabel: "NEW",
     version: 0,
     engineVersion: AVATAR_ENGINE_VERSION,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: typeof raw.createdAt === "string" ? raw.createdAt : now,
+    updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : now,
     previewAssetUrl: "",
     measurements: buildMeasurementFields(raw),
-    unitsPreference: "metric",
+    unitsPreference: raw.units_preference === "imperial" ? "imperial" : "metric",
   };
 }
 

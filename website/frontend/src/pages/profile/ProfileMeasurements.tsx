@@ -157,17 +157,33 @@ export default function ProfileMeasurements() {
   if (!avatar) {
     return (
       <div className="profile-measurements-page profile-measurements-empty">
-        <section className="profile-panel profile-measurements-empty__card">
-          <p className="profile-meta">Measurements &amp; preferences</p>
-          <h1>Fit profile</h1>
-          <p>
-            Add your measurements below. Once they&apos;re saved you can generate your avatar from
-            the Avatar tab.
-          </p>
-          {/* The old standalone /measurements page is gone — this page is now
-              the only measurement entry point (doc 13, D7). */}
-          <MeasurementForm onSaved={() => navigate("/profile/avatar")} />
-        </section>
+        <header className="profile-page-heading profile-measurements-intake-heading">
+          <h1>Create your profile</h1>
+          <p>Add what you know. You can adjust your numbers at any time.</p>
+        </header>
+        <div className="profile-avatar-steps" aria-label="Profile setup progress">
+          <span className="profile-avatar-steps__active">
+            1 <small>Measurements</small>
+          </span>
+          <span>
+            2 <small>Avatar</small>
+          </span>
+          <span>
+            3 <small>Studio</small>
+          </span>
+        </div>
+        <div className="profile-measurements-intake">
+          <div className="profile-measurements-intake__visual">
+            <img src="/mirra/plates/garment-rail.png" alt="Clothing ready for a Mirra try-on" />
+          </div>
+          <section className="profile-panel profile-measurements-empty__card">
+            <p className="profile-meta">Step 1 of 3</p>
+            <h2>Tell us about your fit</h2>
+            <p>This helps us create a more accurate avatar and make better size recommendations.</p>
+            {/* This remains the only measurement entry point and saves to the existing backend. */}
+            <MeasurementForm onSaved={() => navigate("/profile/avatar")} />
+          </section>
+        </div>
       </div>
     );
   }
@@ -319,7 +335,7 @@ export default function ProfileMeasurements() {
             </span>
             <span>
               <strong>More fit preferences</strong>
-              <small>Trouser rise, break, top length, sleeve feel and more.</small>
+              <small>Display units and weight details.</small>
             </span>
             <ChevronDown aria-hidden size={20} strokeWidth={1.6} />
           </summary>
@@ -462,8 +478,12 @@ export default function ProfileMeasurements() {
         >
           {save.isPending ? "Saving…" : save.isSuccess && !hasChanges ? "Saved" : "Save changes"}
         </button>
-        <Link to="/studio" className="profile-fit-summary__studio">
-          Review in studio <span aria-hidden>→</span>
+        <Link
+          to={avatar.version > 0 ? "/studio" : "/profile/avatar"}
+          className="profile-fit-summary__studio"
+        >
+          {avatar.version > 0 ? "Review in studio" : "Create your avatar"}{" "}
+          <span aria-hidden>→</span>
         </Link>
       </aside>
     </div>
@@ -507,6 +527,11 @@ function FitRow({
       <span className="profile-fit-icon">{icon}</span>
       <span className="profile-fit-row__label">{label}</span>
       <div className="profile-fit-segments" role="group" aria-label={`${label} fit`}>
+        <span
+          className="profile-fit-segments__indicator"
+          aria-hidden="true"
+          style={{ transform: `translateX(${FIT_OPTIONS.indexOf(value) * 100}%)` }}
+        />
         {FIT_OPTIONS.map((option) => (
           <button
             key={option}

@@ -1,8 +1,10 @@
-import type { ReactNode } from "react";
-import { ArrowRight, Ruler, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, CircleUserRound, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAvatarProfile, useAccount } from "@/hooks/use-shopper";
 import { useSignatureLooks } from "@/hooks/use-signature-looks";
+import type { MeasurementKey } from "@/integrations/mirra-api/types";
+
+const SUMMARY_KEYS: MeasurementKey[] = ["height", "chest", "waist", "hips", "inseam"];
 
 export default function Profile() {
   const { data: account } = useAccount();
@@ -11,111 +13,131 @@ export default function Profile() {
 
   if (!account) return null;
 
+  const fields = avatar?.measurements.filter((field) => field.supported) ?? [];
+  const measurement = (key: MeasurementKey) => fields.find((field) => field.key === key);
+  const displayField = (key: MeasurementKey) => {
+    const field = measurement(key);
+    return field ? `${Number(field.value.toFixed(1))} ${field.unit}` : "—";
+  };
+  const firstName = account.displayName.trim().split(/\s+/)[0] || account.displayName;
+  const hasMeasurements = fields.length > 0;
+  const heroImage = avatar?.previewAssetUrl || "/profile/signature-everyday.jpg";
+
   return (
     <div className="profile-overview-page">
       <header className="profile-page-heading profile-overview-heading">
-        <p className="profile-meta">Profile overview</p>
-        <h1>Hi, {account.displayName}</h1>
-        <p>{account.email}</p>
-        {!account.emailVerified && !account.isGuest && (
-          <p className="profile-overview-verification">
-            Email not yet verified — <Link to="/auth/verify-email">verify now</Link>
-          </p>
-        )}
-        <div className="profile-overview-heading__actions">
-          <Link
-            to={avatar ? "/studio" : "/profile/measurements"}
-            className="profile-dark-button"
-          >
-            {avatar ? "Open Studio" : "Set up fit profile"}
-            <ArrowRight aria-hidden size={17} strokeWidth={1.7} />
-          </Link>
-          <Link to="/profile/measurements" className="profile-text-link">
-            Review Fit Profile
-          </Link>
-        </div>
+        <h1>Your profile</h1>
+        <p>A more accurate you makes every try-on better.</p>
       </header>
 
-      <ul className="profile-overview-grid" aria-label="Profile summary">
-        <SummaryCard
-          icon={<UserRound aria-hidden size={21} strokeWidth={1.55} />}
-          label="Avatar"
-          value={avatarLoading ? "Checking…" : avatar ? avatar.avatarLabel : "Not created"}
-          detail={
-            avatarLoading
-              ? "Loading avatar status"
-              : avatar
-                ? `Updated ${new Date(avatar.updatedAt).toLocaleDateString()}`
-                : "Add measurements, then create one"
-          }
-          href="/profile/avatar"
-        />
-        <SummaryCard
-          icon={<Ruler aria-hidden size={21} strokeWidth={1.55} />}
-          label="Fit Profile"
-          value={avatarLoading ? "Checking…" : avatar ? "Ready to review" : "Not set up"}
-          detail={avatar ? "Measurements and fit preferences" : "Start with your measurements"}
-          href="/profile/measurements"
-        />
-        <SummaryCard
-          icon={<Sparkles aria-hidden size={21} strokeWidth={1.55} />}
-          label="Saved Looks"
-          value={looksLoading ? "Checking…" : `${looks.length} saved`}
-          detail={
-            looksLoading
-              ? "Loading your Studio library"
-              : (looks.find((look) => look.isDefault)?.name ?? "Build your first look in Studio")
-          }
-          href="/profile/signature-looks"
-        />
-      </ul>
-
-      <section className="profile-panel profile-overview-trust">
-        <span className="profile-overview-trust__icon">
-          <Ruler aria-hidden size={20} strokeWidth={1.55} />
-        </span>
-        <div>
-          <h2>Your fitting profile, ready when you are</h2>
-          <p>
-            Your fit profile stays under your control. Review what Mirra stores and remove it when
-            you choose.
-          </p>
+      <div className="profile-overview-layout">
+        <div className="profile-overview-visual">
+          <img
+            src={heroImage}
+            alt={
+              avatar?.previewAssetUrl
+                ? "Your saved avatar preview"
+                : "Editorial styling inspiration"
+            }
+          />
+          <span className="profile-overview-visual__caption">
+            {avatar?.previewAssetUrl ? "Your avatar" : "Style inspiration"}
+          </span>
         </div>
-        <Link to="/profile/privacy">
-          Review privacy <ArrowRight aria-hidden size={16} strokeWidth={1.6} />
-        </Link>
-      </section>
-    </div>
-  );
-}
 
-function SummaryCard({
-  icon,
-  label,
-  value,
-  detail,
-  href,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-  detail: string;
-  href: string;
-}) {
-  return (
-    <li>
-      <Link to={href} className="profile-panel profile-overview-card">
-        <span className="profile-overview-card__icon">{icon}</span>
-        <span className="profile-meta">{label}</span>
-        <span className="profile-overview-card__value">{value}</span>
-        <span className="profile-overview-card__detail">{detail}</span>
-        <ArrowRight
-          className="profile-overview-card__arrow"
-          aria-hidden
-          size={17}
-          strokeWidth={1.55}
-        />
-      </Link>
-    </li>
+        <div className="profile-overview-details">
+          <section className="profile-panel profile-overview-identity">
+            <div className="profile-overview-card-heading">
+              <div>
+                <p className="profile-meta">Your details</p>
+                <h2>{firstName}</h2>
+              </div>
+              <Link to="/profile/measurements" className="profile-outline-button">
+                {hasMeasurements ? "Edit" : "Set up"}
+              </Link>
+            </div>
+            <span
+              className={hasMeasurements ? "profile-ready" : "profile-ready profile-ready--pending"}
+            >
+              <span aria-hidden />
+              {avatarLoading
+                ? "Checking profile…"
+                : hasMeasurements
+                  ? "Fit profile ready"
+                  : "Set up your fit profile"}
+            </span>
+            <div className="profile-overview-stats">
+              <div>
+                <strong>{displayField("height")}</strong>
+                <span>Height</span>
+              </div>
+              <div>
+                <strong>{displayField("weight")}</strong>
+                <span>Weight</span>
+              </div>
+              <div>
+                <strong>{looksLoading ? "—" : looks.length}</strong>
+                <span>Saved looks</span>
+              </div>
+            </div>
+            <p className="profile-overview-updated">
+              {avatar
+                ? `Last updated ${new Date(avatar.updatedAt).toLocaleDateString()}`
+                : "Add measurements to start creating your fit profile."}
+            </p>
+            {!account.emailVerified && !account.isGuest && (
+              <p className="profile-overview-verification">
+                Email not yet verified — <Link to="/auth/verify-email">verify now</Link>
+              </p>
+            )}
+          </section>
+
+          <section className="profile-panel profile-overview-measurements">
+            <div className="profile-overview-card-heading">
+              <h2>Measurements</h2>
+              <Link to="/profile/measurements" className="profile-outline-button">
+                {hasMeasurements ? "Edit" : "Add"}
+              </Link>
+            </div>
+            <dl>
+              {SUMMARY_KEYS.map((key) => (
+                <div key={key}>
+                  <dt>
+                    {measurement(key)?.label ??
+                      (key === "hips" ? "Hip" : key[0].toUpperCase() + key.slice(1))}
+                  </dt>
+                  <dd>{displayField(key)}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </div>
+      </div>
+
+      <div className="profile-overview-footer">
+        <Link to="/profile/avatar">
+          <CircleUserRound aria-hidden size={20} strokeWidth={1.6} />
+          <span>
+            <strong>
+              {avatar && avatar.version > 0 ? "View your avatar" : "Create your avatar"}
+            </strong>
+            <small>
+              {avatar && avatar.version > 0
+                ? "Explore your 3D model"
+                : "Built from your measurements"}
+            </small>
+          </span>
+          <ArrowRight aria-hidden size={18} />
+        </Link>
+        <Link to="/profile/signature-looks">
+          <ShoppingBag aria-hidden size={20} strokeWidth={1.6} />
+          <span>
+            <strong>My Looks</strong>
+            <small>{looksLoading ? "Loading looks" : `${looks.length} saved in your studio`}</small>
+          </span>
+          <ArrowRight aria-hidden size={18} />
+        </Link>
+      </div>
+    </div>
   );
 }

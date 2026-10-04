@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -58,7 +58,9 @@ export default function Studio() {
 
   const store = useStudioStore();
 
-  const { wear, restoreEntry } = useTryOn({ avatarProfileVersion: avatar?.version ?? null });
+  const { wear, restoreEntry } = useTryOn({
+    avatarProfileVersion: avatar && avatar.version > 0 ? avatar.version : null,
+  });
 
   const [lookDialogOpen, setLookDialogOpen] = useState(false);
   const [lookNotice, setLookNotice] = useState<string | null>(null);
@@ -87,19 +89,13 @@ export default function Studio() {
   }, [account, accountError, accountLoading, navigate]);
 
   useEffect(() => {
-    if (!avatarLoading && !avatarError && account && !avatar) {
-      navigate("/profile/avatar", { replace: true });
-    }
-  }, [avatar, avatarError, avatarLoading, account, navigate]);
-
-  useEffect(() => {
     if (account) useStudioStore.getState().scopeToShopper(account.shopperId);
   }, [account]);
 
   // ── Try-on session + telemetry ──
   const opened = useRef(false);
   const startTryOnSession = useCallback(async () => {
-    if (!account || !avatar) return;
+    if (!account || !avatar || avatar.version === 0) return;
 
     setSessionRetrying(true);
     setSessionError(null);
@@ -116,7 +112,7 @@ export default function Studio() {
   }, [account, avatar, api]);
 
   useEffect(() => {
-    if (!account || !avatar || opened.current) return;
+    if (!account || !avatar || avatar.version === 0 || opened.current) return;
     opened.current = true;
     track("studio_opened", { authenticated: true });
     void startTryOnSession();
@@ -168,7 +164,7 @@ export default function Studio() {
   // ── Seed the Hanger from prior session history ──
   const seeded = useRef(false);
   useEffect(() => {
-    if (seeded.current || !account || !avatar) return;
+    if (seeded.current || !account || !avatar || avatar.version === 0) return;
     seeded.current = true;
     let cancelled = false;
     setHistoryState("loading");
@@ -239,7 +235,14 @@ export default function Studio() {
   }, [store.tryOnSessionId]);
 
   useEffect(() => {
-    if (!activeProduct || !activeVariant || !store.tryOnSessionId || !avatar) return;
+    if (
+      !activeProduct ||
+      !activeVariant ||
+      !store.tryOnSessionId ||
+      !avatar ||
+      avatar.version === 0
+    )
+      return;
     const sig = tryOnSelectionSignature(activeProduct, activeVariant, activeVariant.size);
     if (restoredVariantToSkip.current === activeVariant.publicVariantId) {
       restoredVariantToSkip.current = null;
@@ -393,7 +396,7 @@ export default function Studio() {
 
   const onCreateLook = useCallback(
     (name: string, setAsDefault: boolean) => {
-      if (!avatar) return;
+      if (!avatar || avatar.version === 0) return;
       const layers = Object.values(store.layers).filter((l): l is OutfitLayer => !!l);
       createLook.mutate(
         {
@@ -443,6 +446,7 @@ export default function Studio() {
       !requestedLookId ||
       requestedLookApplied.current === requestedLookId ||
       !avatar ||
+      avatar.version === 0 ||
       !store.tryOnSessionId ||
       looksLoading
     ) {
@@ -479,7 +483,14 @@ export default function Studio() {
   // ── Default Signature Look: applied once, on entering the studio ──
   const defaultLookApplied = useRef(false);
   useEffect(() => {
-    if (defaultLookApplied.current || requestedLookId || !avatar || !store.tryOnSessionId) return;
+    if (
+      defaultLookApplied.current ||
+      requestedLookId ||
+      !avatar ||
+      avatar.version === 0 ||
+      !store.tryOnSessionId
+    )
+      return;
     const s = useStudioStore.getState();
     if (s.appliedLookId || Object.keys(s.layers).length > 0) {
       defaultLookApplied.current = true;
@@ -535,7 +546,7 @@ export default function Studio() {
     );
   }
 
-  if (accountLoading || avatarLoading || !avatar) {
+  if (accountLoading || avatarLoading || !account) {
     return (
       <main className="grid min-h-dvh place-items-center bg-canvas">
         <div className="flex flex-col items-center gap-4">
@@ -543,6 +554,45 @@ export default function Studio() {
           <p className="mono-tag">[ PREPARING STUDIO ]</p>
         </div>
       </main>
+    );
+  }
+
+  if (!avatar || avatar.version === 0) {
+    return (
+      <div className="flex min-h-dvh flex-col bg-canvas">
+        <StudioHeader
+          accountInitial={(account.displayName?.[0] ?? "M").toUpperCase()}
+          profileImageUrl={null}
+          shortlistCount={shortlistCount}
+          onShortlistOpen={() => setShortlistOpen(true)}
+        />
+        <main className="grid flex-1 place-items-center px-5 py-12">
+          <div className="w-full max-w-md text-center">
+            <p className="font-mono text-[10px] tracking-[0.16em] text-muted uppercase">
+              Mirra Studio
+            </p>
+            <h1 className="mt-4 text-2xl font-semibold tracking-[-0.035em] text-ink">
+              Create your avatar to begin
+            </h1>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted">
+              Add an avatar to preview pieces on you. Your profile is always available from the
+              Studio header.
+            </p>
+            <Link
+              to="/profile/avatar"
+              className="mt-6 inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-semibold text-canvas transition-opacity hover:opacity-85"
+            >
+              Create your avatar
+            </Link>
+          </div>
+        </main>
+        <CartDrawer
+          open={shortlistOpen}
+          onClose={() => setShortlistOpen(false)}
+          items={store.cart}
+          onRemove={(variantPublicId) => useStudioStore.getState().removeCartItem(variantPublicId)}
+        />
+      </div>
     );
   }
 

@@ -114,18 +114,14 @@ export function FabricPanel({
         {/* Bottom Center - Hero Glass Emblem Card */}
         <div className="relative flex flex-col items-center justify-center overflow-hidden rounded-[20px] border border-white/70 bg-white/15 p-6 text-center shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.8)] backdrop-blur-[2px]">
           {/* Official Mirra Logo Asset */}
-          <div className="relative mb-4 flex size-20 items-center justify-center rounded-2xl border border-white/80 bg-linear-to-b from-white/70 via-white/30 to-white/10 p-2.5 shadow-[0_12px_28px_rgba(0,0,0,0.06),inset_0_1px_2px_rgba(255,255,255,0.9)] backdrop-blur-md">
+          <div className="relative mb-2 flex items-center justify-center rounded-2xl border border-white/80 bg-linear-to-b from-white/70 via-white/30 to-white/10 px-5 py-3 shadow-[0_12px_28px_rgba(0,0,0,0.06),inset_0_1px_2px_rgba(255,255,255,0.9)] backdrop-blur-md">
             <img
-              src="/brand/Mirra-logo-light.png"
+              src="/brand/mirra-logo-dark-long.png"
               alt="Mirra"
-              className="size-full object-contain drop-shadow-[0_2px_6px_rgba(255,255,255,0.7)]"
+              className="h-8 w-auto object-contain drop-shadow-xs"
             />
           </div>
-
-          <span className="font-sans text-sm font-semibold tracking-[0.42em] text-white uppercase drop-shadow-sm">
-            M I R R A
-          </span>
-          <p className="mt-1 text-[11px] font-normal tracking-wide text-white/90 drop-shadow-xs">
+          <p className="mt-2 text-[11px] font-normal tracking-wide text-white/90 drop-shadow-xs">
             Design without limits.
           </p>
         </div>

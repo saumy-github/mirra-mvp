@@ -158,6 +158,8 @@ export function SiteNavbar() {
         className={[
           "site-header home-header coast-header",
           pathname === "/join" && "is-join-surface",
+          pathname === "/faq" && "is-faq-surface",
+          pathname === "/pricing" && "is-pricing-surface",
           collapsed && "is-collapsed",
         ]
           .filter(Boolean)

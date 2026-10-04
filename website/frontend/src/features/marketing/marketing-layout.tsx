@@ -8,6 +8,7 @@ import { SmoothNavigation } from "./components/SmoothNavigation";
 // reach the app routes, which are light-themed and share styles/globals.css.
 // Imported here rather than in main.tsx so it ships in the marketing chunk.
 import "./marketing.css";
+import "./outcomes.css";
 
 /**
  * Chrome for the marketing site — navbar, footer, smooth scroll and route
