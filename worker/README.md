@@ -1,8 +1,7 @@
 # CLO worker
 
 Native Windows Python process that drives the real CLO3D avatar/VTO
-pipelines for the website backend's `AVATAR_ENGINE_MODE=live` /
-`TRYON_ENGINE_MODE=live` paths. Design doc:
+pipelines for the website backend. Design doc:
 [`.agent/website-launch/07-step0-worker-queue.md`](../.agent/website-launch/07-step0-worker-queue.md).
 
 Runs **outside Docker** — it needs to reach the CLO3D REST plugin at
@@ -13,9 +12,16 @@ against the local filesystem the same way the existing dev CLI scripts
 ## Setup
 
 1. `cp worker/.env.example worker/.env` and fill in `MONGODB_URI` (same
-   Atlas URI as `website/backend/.env.dev`) and `REDIS_URL` (defaults to
-   `redis://localhost:6379/0`, matching the port `docker-compose.yml`
-   publishes).
+   Atlas URI as `website/backend/.env.docker.dev`), `DATABASE_NAME`, and
+   `REDIS_URL` (defaults to `redis://localhost:6379/0`, matching the port
+   `docker-compose.yml` publishes). The remaining fields
+   (`ACCESS_TOKEN_SECRET`, `ACCESS_TOKEN_EXPIRE_MINUTES`,
+   `REFRESH_TOKEN_EXPIRE_DAYS`, `COOKIE_SECURE`, `CORS_ORIGINS`) only exist
+   because `worker/tasks.py` imports the backend's full `Settings` object —
+   the worker never actually uses them, so safe placeholder values are fine
+   (see `.agent/saumy/02-remaining-build-list.md`, item AR1, for the
+   real fix — splitting the backend's `Settings` class so the worker only
+   needs a narrow Mongo-only subset).
 2. `docker compose up -d redis` (or `backend`, which brings up `redis` too
    via `depends_on`) — Redis must be reachable before starting the worker.
 3. Make sure CLO3D is running locally with the REST plugin loaded

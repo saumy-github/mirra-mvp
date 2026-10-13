@@ -1,7 +1,7 @@
 """Prune the pipelines' debug output trees.
 
-    python scripts/prune_output.py --dry-run
-    python scripts/prune_output.py --apply
+    python utils/prune_output.py --dry-run
+    python utils/prune_output.py --apply
 
 What this touches, and what it must never touch
 -----------------------------------------------

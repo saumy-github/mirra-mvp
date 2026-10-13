@@ -288,6 +288,8 @@ matters* and TPAMI for *what the state of the art is* looks properly grounded.
 
 ## 7. Recommendation
 
+*Superseded 2026-10-06 — see `02-project-proposal.md`. **Topic 3 (clothes → 3D / garment panel reconstruction) was decided**, not the Topic 2 recommendation below. Kept here as a record of the original reasoning, not as current direction.*
+
 **Choose Topic 2 — body dimensions from images.** Supporting structure:
 
 | Role | Paper |

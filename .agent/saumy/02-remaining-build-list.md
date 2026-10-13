@@ -93,7 +93,7 @@ Google OAuth removed from this list — **added and tested working, *2026-08-30*
 
 | # | Issue | Decision |
 |---|---|---|
-| O1 | **`output/` retention** — `scripts/prune_output.py` exists, never run. Policy: keep last 3 runs per key, never the newest, nothing under 7 days, tiered deletion (drop `.zprj`/`.avt`, keep `run.log`/`run_summary.json`/`.glb`). Applies to `clo_*/output/` only — **never** `dev_upload/` | **Keep, don't use.** Deletion stays manual during development; implement properly later |
+| O1 | **`output/` retention** — `utils/prune_output.py` exists, never run. Policy: keep last 3 runs per key, never the newest, nothing under 7 days, tiered deletion (drop `.zprj`/`.avt`, keep `run.log`/`run_summary.json`/`.glb`). Applies to `clo_*/output/` only — **never** `dev_upload/` | **Keep, don't use.** Deletion stays manual during development; implement properly later |
 | O2 | **Guest flow** — no guest→Google merge, no TTL, no cross-device continuity | **Later** |
 | O3 | **No migration** for real-user data in the old `measurements` collection | **Later** |
 | O4 | **No object storage bridge** — `dev_upload`/`live_upload` are local-disk only, unreachable from a Render-hosted backend | **Later** |

@@ -1,0 +1,1470 @@
+4734  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+Deep LeArning for 3D FAshion Design. Survey
+    From A Sewing PAttern"Driven Perspective
+
+      Jinbo Luo : Hong Qu : Yujie ZhAo : Jie ZhAng : Member: IEEE: And YAdie YAng
+
+     bstoUct�Sewing pAtterns form the structurAl foundAtion of              Fig1 gm1 Overview of the process from 2D sewing pAtterns to 3D gArments1
+the fAshion industry. trAnslAting 2D conceptuAl designs into                �A( drAfting pAtterns with seAm AllowAnces And notches, �b( stitching corre"
+3D mAnufActurAble gArments5 With the rise of deep leArn,                    sponding pAnel edges, �c( Assembling stitched pAnels into the anAl 3D gArment1
+ing. 3D fAshion design hAs seen trAnsformAtive AdvAncements.
+AutomAting trAditionAlly lAbor,intensive processes And enAbling             to both industriAl And AcAdemic AreA: As the precise geometry
+intelligent. dAtA,driven workgjows5 Recent studies hAve demon,              of these pAnels directly determines the anAl shApe: at: And
+strAted promising progress in AreAs such As sewing pAttern                  mAnufActurAbility of A gArment )5[: )6[: )7[: )8[1 s illustrAted
+generAtion. reconstruction. And 3D gArment modeling5 However.               in Figure gm: sewing pAtterns consist of essentiAl components
+to dAte. no systemAtic review hAs speciacAlly exAmined the                  thAt form the foundAtion for trAnsforming 2D designs into
+integrAtion of deep leArning with sewing pAttern-driven 3D                  3D gArments1 However: Achieving the desired 3D outcome
+fAshion design5 This survey Addresses thAt gAp by providing the             often requires designers to iterAtively reane the pAttern#s shApe
+arst comprehensive overview of the aeld5 We propose A novel                 And size: mAking this process both lAbor"intensive And time"
+four,stAge pipeline. including representAtion. generAtion. recon,           consuming )9[: )gm0[: )gmgm[1
+struction. And editing. to cAtegorize And AnAlyze current reseArch5
+Within this pipeline. we review core methodologies. including                  The Advent of digitAl 3D fAshion design hAs further
+geometric encoding for pAttern representAtion. dAtA,driven pAt,             enhAnced the signiacAnce of sewing pAtterns1 Unlike purely 2D
+tern generAtion. reconstruction from multimodAl inputs --e5g5.              fAshion design or mesh"bAsed 3D fAshion design ApproAches
+imAges. sketches. or text(. And intuitive 3D gArment editing                thAt primArily emphAsize visuAl Aesthetics: A sewing pAttern"
+techniques5 We Also consolidAte existing benchmArks. covering               driven methodology: As implemented in industry"stAndArd
+both dAtAsets And evAluAtion metrics. And contextuAlize the                 softwAre like CLO3D And Style3D: ensures thAt digitAl gAr"
+pAttern,driven pArAdigm through compArison with AlternAtive                 ments Align with the requirements of physicAl mAnufActuring
+ApproAches in 2D And pAttern,free 3D design5 FinAlly. we identify           )gm2[: )gm3[1 This ApproAch ensures not only their physicAl reAl"
+key chAllenges. such As limited dAtA AvAilAbility And the di culty          izAbility And mAnufActurAbility but Also forms the link between
+of incorporAting domAin,speciac design constrAints. And outline             virtuAl design And physicAl production1 Recent AdvAncements
+future reseArch directions to Address these issues5 By synthesizing         in deep leArning hAve unlocked trAnsformAtive potentiAl for
+current developments And structuring the reseArch lAndscApe.                this pAttern"driven workgjow )gm4[: )gm5[: )gm6[1 With its powerful
+this survey serves As A foundAtionAl resource to support And                cApAbilities in pAttern recognition: geometric informAtion pro"
+AccelerAte innovAtion in mAnufActurAble sewing pAttern,driven               cessing: And generAtive modeling: these technologies ogger new
+3D fAshion design5                                                          opportunities to AutomAte: intelligently Assist: And optimize the
+                                                                            complex lifecycle of sewing pAtterns within the 3D fAshion
+   Bndeu Jeofs�Sewing pAtterns. deep leArning. 3D gArment. 3D               design pipeline )gm7[: )gm8[: )gm9[: )20[: )2gm[: )22[1 By integrAt"
+fAshion design5                                                             ing deep leArning into this process: the fAshion industry is
+                                                                            poised to drive innovAtions in personAlized customizAtion And
+                          I1 INTRODUCTION                                   virtuAl fAshion experiences: while simultAneously estAblishing
+                                                                            A criticAl technicAl foundAtion for trAnsitioning towArd A more
+S EWING pAtterns Are technicAl blueprints for gArment                       eggjcient And sustAinAble digitAl future1
+     construction: consisting of 2D geometric shApes thAt Are
+                                                                               Despite the greAt potentiAl of deep leArning: its systemAtic
+cut from fAbric And sewn together to Assemble A 3D gArment                  ApplicAtion within A sewing pAttern"driven pipeline fAces sev"
+                                                                            erAl criticAl gAps in the existing literAture: underscoring the
+)gm[: )2[: )3[: )4[1 This structurAl foundAtion mAkes them vitAl
+
+   Received 5 ugust 2025, revised gm2 October 2025, Accepted 20 November
+20251 DAte of publicAtion 26 November 2025, dAte of current version 7 pril
+20261 This work wAs supported in pArt by GuAngdong Province Philosophy
+And SociAl Science PlAnning Project under GrAnt GD24YYS04: in pArt by
+the StArt"Up Fund for New Recruits of Hong Kong Polytechnic University
+under GrAnt P0049603: And in pArt by MAcAo Polytechnic University under
+GrAnt RP/FC "03/20241 This Article wAs recommended by ssociAte Editor
+R1 Ionescu1 -Corresponding Authors. YAdie YAng, Jie ZhAng1(
+
+   Jinbo Luo: Hong Qu: And YAdie YAng Are with the School of FAshion And
+Textiles: The Hong Kong Polytechnic University: Hong Kong: S R: ChinA
+�e"mAil. jinbo1luo]connect1polyu1hk, hong1qu]connect1polyu1hk, yd1yAng]
+polyu1edu1hk(1
+
+   Yujie ZhAo is with the School of rts And Design: University of SAnyA:
+SAnyA 572022: ChinA �e"mAil. yujie1zhAo995gmgm3]gmAil1com(1
+
+   Jie ZhAng is with the FAculty of pplied Sciences: MAcAo Polytechnic
+University: MAcAu: S R: ChinA �e"mAil. jpeter1zhAng]mpu1edu1mo(1
+
+   DigitAl Object Identiaer gm01gmgm09/TCSVT1202513637565
+
+                      gm05gm"82gm5 2025 IEEE1 ll rights reserved: including rights for text And dAtA mining: And trAining of ArtiaciAl intelligence And
+                                     similAr technologies1 PersonAl use is permitted: but republicAtion/redistribution requires IEEE permission1
+                                                       See https.//www1ieee1org/publicAtions/rights/index1html for more informAtion1
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                      4735
+
+urgent need for A comprehensive review1 First: while existing        gArment;: And "deep leArning;1 This initiAl seArch yielded
+reviews hAve explored the intersection of deep leArning And 3D       252 cAndidAte Articles1 Our selection criteriA strictly prioritized
+fAshion design: they generAlly provide A broAder overview )gm5[:     reseArch thAt directly links deep leArning with mAnufActurAble
+)37[: )38[1 These studies review A wide rAnge of generAtive          sewing pAtterns for 3D gArment design: while excluding stud"
+                                                                     ies on pure 2D imAge synthesis or pAttern"free 3D modeling1
+  I ApplicAtions in fAshion: covering imAges: 3D: And dynAmic        Following this screening process: 204 highly relevAnt Articles
+synthesis: but sewing pAtterns Are often treAted As one of mAny      were selected for in"depth AnAlysis And inclusion in this survey:
+subtopics rAther thAn As A fundAmentAl element thAt connects         forming the foundAtion of our work1
+digitAl design to physicAl production1 Therefore: A systemAtic
+review from A speciac sewing pAttern"driven perspective is                                       II1 OVERVIEW
+notAbly missing: which prevents us from understAnding how
+deep leArning cAn comprehensively Address this criticAl issue1          This survey systemAticAlly explores the ApplicAtion of deep
+Second: the existing reseArch on this topic is frAgmented1           leArning in sewing pAttern"driven 3D fAshion design1 To pro"
+These studies typicAlly focus on isolAted tAsks such As generA"      vide A structured understAnding of this domAin: we orgAnize
+tion or reconstruction: without providing A holistic view of the     our review Around A comprehensive four"stAge pipeline thAt
+entire pipeline )39[1 s A result: the aeld lAcks A uniaed And        serves As the bAckbone for this pAper1 s illustrAted in Figure 2:
+cohesive pipeline thAt connects these dispArAte stAges1 Third:       this pipeline mAps the entire digitAl gArment lifecycle: with its
+this aeld still lAcks A comprehensive collection of high"quAlity     core stAges being.
+dAtAsets And stAndArdized evAluAtion metrics )8[: )30[: )35[:
+)36[1 The frAgmentAtion of these importAnt resources mAkes              --gm( RepresentAtion focuses on trAnsforming the intricAte
+it diggjcult for reseArchers to benchmArk new methods And for        geometric And stitching detAils of sewing pAtterns into struc"
+the AcAdemic AreA to objectively evAluAte progress1                  tured formAts thAt cAn be fed into deep leArning models1
+                                                                     This section covers vArious representing schemes: from fun"
+   To Address these gAps: this review presents the arst com"         dAmentAl geometric descriptors to AdvAnced tokenizAtion And
+prehensive overview of deep leArning in sewing pAttern"driven        rAsterizAtion techniques: And exAmines their impAct on model
+3D fAshion design1 Our core goAl is to help reseArchers              performAnce1
+gAin A cleAr And systemAtic understAnding of this aeld by
+proposing A novel multi"stAge design pipeline �representAtion:          --2( GenerAtion focuses on the computAtionAl creAtion of
+generAtion: reconstruction: And editing(1 Within this pipeline:      2D sewing pAtterns to AutomAte the initiAl design phAse1 This
+we integrAte vArious reseArch results And AnAlyze the key            section covers both trAditionAl rule"bAsed methods And modern
+methods And benchmArks in eAch stAge1 By structuring the             leArning"bAsed ApproAches: detAiling the speciac cAlculAtion
+existing knowledge: we Aim to clArify the technicAl pipeline         formulAs for the shApe pArAmeters of sewing pAtterns: As well
+And highlight the interdependencies between reseArch: thereby        As deep leArning Architectures like MLPs And TrAnsformers1
+AccelerAting the development of more eggjcient digitAl fAshion
+workgjows1                                                              --3( Reconstruction focuses on recovering 2D sewing
+                                                                     pAtterns from vArious high"level inputs: including textuAl
+   The mAin contributions of this review Are.                        descriptions: 2D imAges: or sketches1 This section reviews
+                                                                     methodologies tAilored to eAch input modAlity And discusses
+   gm( We comprehensively review the aeld from A sewing              the chAllenges AssociAted with multimodAl informAtion fusion1
+       pAttern"driven perspective: estAblishing A foundAtionAl
+       reference thAt systemAticAlly connects deep leArning             --4( Editing focuses on modifying sewing pAtterns to
+       techniques to the core principles of gArment mAn"             optimize 3D gArments And interActive techniques to support
+       ufActurAbility1 This provides the community with A            iterAtive design1 This section covers two mAin ApproAches.
+       cleAr roAdmAp to grAsp the lAndscApe of this criticAl         precise editing for ane"grAined control And fuzzy editing thAt
+       sub"domAin1                                                   uses intuitive inputs like nAturAl lAnguAge1 We Also high"
+                                                                     light how deep leArning fAcilitAtes these more intelligent And
+   2( We structure the existing literAture into A novel four"        user"friendly design interActions1
+       stAge pipeline. representAtion: generAtion: reconstruc"
+       tion: And editing1 For eAch stAge: we provide An in"depth        To provide A systemAtic overview of how existing reseArch
+       AnAlysis of key methodologies And their interdependen"        ats within our proposed frAmework: we synthesize the
+       cies: trAnsforming previously isolAted studies into An        stAte"of"the"Art ApproAches in TAble I1 The tAble cAtegorizes
+       integrAted And understAndAble workgjow1                       representAtive studies into distinct pipelines: where eAch row
+                                                                     represents A unique workgjow deaned by its chosen methods
+   3( We conduct A thorough consolidAtion of the aeld#s              for representAtion: generAtion: reconstruction: And editing1 This
+       benchmArks1 This includes A systemAtic summAry of             clAssiacAtion not only orgAnizes the current lAndscApe but
+       AvAilAble dAtAsets And A detAiled cAtegorizAtion of evAlu"    Also serves As A roAdmAp for the detAiled discussions in the
+       Ation metrics: creAting A centrAlized resource to fAcilitAte  subsequent sections1
+       stAndArdized: reproducible reseArch And AccelerAte future
+       progress1                                                        The remAinder of this pAper is orgAnized As follows1
+                                                                     Section III discusses sewing pAttern representAtion tech"
+   This review is bAsed on A systemAtic seArch of literAture         niques1 Section IV detAils sewing pAttern generAtion methods1
+from mAjor AcAdemic dAtAbAses: including IEEE Xplore: CM             Section V explores sewing pAttern reconstruction ApproAches1
+DigitAl LibrAry: SpringerLink: ScienceDirect �Elsevier(: And         Section VI covers pAttern editing methods1 Section VII sum"
+ArXiv: focusing on publicAtions from 20gm8 to 20251 We use           mArizes core dAtAsets And evAluAtion metrics in this aeld1
+A combinAtion of keywords such As "sewing pAttern;: "3D              Section VIII presents common ApplicAtions of deep leArning in
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4736  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+Fig1 21 GenerAl four"stAge pipeline for sewing pAttern"driven 3D fAshion design. �gm( RepresentAtion cAptures pAnel geometry �vertices: edges( And stitching
+informAtion, �2( GenerAtion mAps high"level style feAtures to structured vArious 2D pAtterns viA generAtive models �rule"bAsed or leArning"bAsed(, �3(
+Reconstruction recovers pAtterns from multimodAl inputs �text: imAges: sketches(, �4( Editing interActively reanes pAtterns viA fuzzy or precise operAtions1
+
+                                                                                            T BLE I
+                                        SUMM RIZ TION OF PIPELINES BOUT SEWING P TTERN"DRIVEN 3D F SHION DESIGN
+
+sewing pAttern"driven 3D fAshion design1 FinAlly: Section IX        Geometric informAtion is expressed through the coordinAtes of
+discusses limitAtions And future reseArch directions: while         vertices And the boundAry edges: including strAight segments:
+Section X concludes the survey1                                     Be�zier curves: And B"splines: thAt enclose eAch pAnel )2[: )8[:
+                                                                    )gm4[1 Stitching informAtion records sewing relAtionships thAt
+                       III1 REPRESENT TION                          specify pAnel AdjAcency And Alignment: such As the AttAchment
+                                                                    of A sleeve cAp to An Armhole or notch"bAsed seAm"mAtching
+   RepresentAtion is the process of converting the rAw informA"     rules )5[: )42[: )43[1 robust sewing"pAttern representAtion
+tion embedded in A sewing pAttern: speciacAlly its geometric        therefore represents shApe And structure in tAndem: lAying the
+outlines And stitching informAtion: into A structured dAtA formAt   foundAtion for downstreAm tAsks such As generAtion: recon"
+suitAble for Algorithmic mAnipulAtion )3[: )33[: )40[: )4gm[1 This  struction: And interActive editing1
+representAtion underpins All digitAl workgjows in 3D fAshion
+design becAuse it must cApture both the 2D geometry of eAch            Geometric representAtion relies on pArAmetric models: gov"
+pAnel And the relAtionships thAt govern how pAnels Are joined1      erned by mAthemAticAl formulAs And AdjustAble pArAmeters: to
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                                                                                              4737
+
+Fig1 31 The structurAl component representAtion for digitAl sewing pAtterns1 �A( Geometric components, �b( Edge types, �c( Stitching types1
+
+deane sewing pAtterns And their stitching relAtionships1 This      )2[: )27[: )3gm[1 The precise locAtion of these vertices ensures
+structured representAtion underpins computAtionAl operAtions       An AccurAte geometric representAtion of the pAnel1 Moreover:
+rAnging from 2D pAttern editing to 3D gArment Assembly )2[:        Adjusting these coordinAtes provides the primAry mechAnism
+)8[1 Such A representAtion deanes the precise shApe of curved      for intuitive shApe editing1
+edges using control points And mAthemAticAl equAtions: while
+it employs relAtionAl equAtions: such As linking shoulder slope       �3( Edges. Edges Are the segments or curves thAt form
+to Armhole depth: to enforce criticAl design constrAints And       the boundAry of A pAnel by connecting pAirs of vertices1
+ensure mAnufActurAbility )44[: )45[1                               The complete boundAry is An ordered set of edges: denoted
+                                                                   Edges / {E0.gm. Egm.2. . . . . Em.n{: where m. n Are vertices# indices
+   This section summArizes sewing pAttern representAtion           in the pAnel )2[: )23[: )27[1 The representAtion of An edge
+from two key perspectives1 The arst concerns the structurAl        is determined by its geometric type1 Common types include
+components thAt deane A pAttern#s geometry And stitching           strAight lines As well As curves such As quAdrAtic or cubic
+informAtion1 The second Addresses the representing meth"           Be�zier curves And circulAr Arcs: As illustrAted in Figure 3�b(1
+ods used to trAnslAte these components into computAtionAlly        For instAnce: A quAdrAtic Be�zier curve is expressed by the
+AmenAble formAts1 EAch of these Aspects is detAiled in the         pArAmetric equAtion B�t( / �gm t(2c0 2t�gm t(cgm t2c2: where
+following sub"sections1                                            c0: cgm: And c2 Are the coordinAtes of its three control points
+                                                                   And t is the pArAmeter1
+ 1 StructurAl Component QepresentAtion
+                                                                      �4( Stitches. Stitches deane the 3D Assembly rules for
+   The structurAl component representAtion of A sewing pAttern     A gArment by specifying the connections between pAnels1
+consists of four primAry components. pAnels: vertices: edges:      These connections Are represented As A set of pAired edges:
+And stitches )2[: )8[: )32[: )33[: As shown in Figure 3�A(1 This   e1g1: S titches / {�E4.5. E6.gm4(. �E7.8. E8.0(. . . . . �Em.n. Em.n ({1
+structured ApproAch is criticAl for digitAl fAshion workgjows As
+it enAbles the systemAtic representAtion of both geometric And        criticAl constrAint for A vAlid stitch is thAt the lengths of the
+stitching informAtion1                                             pAired edges must be equAl: i1e1: Len�Em.n( / Len�Em.n ( )2[:
+                                                                   )27[: )35[1 Stitches primArily connect edges between diggerent
+   �gm( NAnels. PAnels Are the fundAmentAl components of A         pAnels: but they cAn Also deane internAl seAms within A single
+gArment: representing 2D fAbric shApes: such As the front And      pAnel: such As A dArt �Figure 3�c(�bottom((1
+bAck pieces: sleeves: etc1 EAch pAnel is deaned As A closed
+2D contour. PAnels / {P0. Pgm. . . . . Pn{�n / number of pAnels(1     It is cruciAl to note thAt this ideAlized four"component
+EAch pAnel Pi is An independent closed polygon whose perime"       model simpliaes the complexity of reAl"world gArments1 It
+ter is formed by A cyclicAlly ordered sequence of edges )gm4[:     often overlooks essentiAl non"pAnel components like pockets:
+)27[: )46[: )47[: )48[1 The shApe of the pAnel is not A rAndom     plAckets: collArs: And cuggs: mAnufActuring detAils like seAm
+polygon: but follows A priori rules of reAl pAttern mAking1        AllowAnces: And hArdwAre plAcements like zippers: And buttons1
+For exAmple: pAnels mAy contAin gArment components such As
+dArts: pleAts or notches: which Are AssociAted with the pAnel        ddressing this gAp between simpliaed digitAl representAtions
+border through the coordinAte system or relAtive position1         And mAnufActurAble pAtterns is A key chAllenge for the aeld
+                                                                   )gm[: )3[1
+   �2( Vertices. Vertices Are the Atomic units of pAnel geome"
+try: with their coordinAtes deaning the pAnel#s outline1 The       B1 DAtA QepresentAtion
+set of All vertices in A pAnel is represented As Vertices /
+{V0. Vgm. . . . . Vk{�k / number of vertices(: where eAch vertex      While A simple set of geometric primitives cAn cApture
+Vm corresponds to A point �xm. ym( in A 2D coordinAte system       the bAsic shApe of A sewing pAttern: this formAt is subopti"
+                                                                   mAl for computAtionAl processing1 s shown in Figure 4: to
+                                                                   overcome this limitAtion: reseArchers hAve developed AdvAnced
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4738  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+Fig1 41 Three dAtA representAtion ApproAches for sewing pAtterns �left(1 �A( DictionAry representAtion )2[: )8[: )23[: )29[, �b( Tokenized representAtion )30[:
+)3gm[: )34[, �c( RAster representAtion )35[: )36[1
+
+representAtion methods thAt fAcilitAte more eggjcient mAchine        spAce: which is subsequently mApped to physicAl dimensions
+interpretAtion And mAnipulAtion of pAttern dAtA1                     during the decoding process1 s shown in Figure 4�c(: this
+                                                                     method preserves the plAnAr geometric informAtion of the
+   --gm( DictionAry RepresentAtion. The dictionAry represen"         sewing pAtterns while mAintAining the continuity of the lAtent
+tAtion is A prevAlent method for cApturing sewing pAttern            spAce1
+dAtA1 This ApproAch utilizes A hierArchicAl key"vAlue dAtA
+structure to precisely cApture both the geometry And metAdAtA           In summAry: the AdvAncement of sewing pAttern represen"
+of sewing pAtterns: As illustrAted in Figure 4�A(1 It is commonly    tAtions hAs yielded signiacAnt beneats1 It hAs led to more
+implemented using JSON �JAvAScript Object NotAtion(: A               AccurAte 3D simulAtions by enAbling high"adelity geometric
+formAt known for its excellent reAdAbility: scAlAbility: And         models thAt better regject physicAl reAlity )3[: )4[: )50[1 Further"
+cross"plAtform compAtibility )2[: )8[: )23[: )29[1 In this formAt:   more: these robust frAmeworks Are instrumentAl in empowering
+geometric pArAmeters Are typicAlly deaned using AbstrAct units       A new generAtion of I"driven tools )28[: )30[: )3gm[: )4gm[1
+or relAtive rAtios to represent 3D spAtiAl relAtionships between     HAving estAblished how sewing pAtterns cAn be eggectively
+elements1 These AbstrAct vAlues Are decoded into physicAl units      represented: we now turn our Attention to how they cAn be
+�e1g1: cm or mm( only during the reconstruction phAse: where         AutomAticAlly generAted1
+they Are computed bAsed on the tArget body meAsurements )8[1
+                                                                                               IV1 GENER TION
+   --2( Tokenized RepresentAtion. Tokenized representAtion
+involves quAntizing sewing pAtterns into sequences of discrete          GenerAtion of sewing pAttern is the process of using compu"
+tokens: A formAt highly AmenAble to modern I models1 s               tAtionAl technologies to trAnslAte high"level design intent And
+shown in Figure 4�b(: this ApproAch fAcilitAtes eggective model      weArer"speciac body dimensions into 2D pAtterns suitAble for
+trAining And decoding by trAnsforming complex geometric              3D simulAtion or physicAl fAbricAtion )gm[: )2[: )4gm[1 Current
+dAtA into A sequentiAl formAt1 Methods such As DressCode:            ApproAches Are broAdly divided into two cAtegories1 Rule"
+                                                                     bAsed generAtion )2[: )8[: )23[: )5gm[: )52[: )53[: employs
+  IppArel: And GArmentDiggusion employ vArious tokenizAtion          explicit mAthemAticAl formulAtions to deane the geometry of
+schemes to enAble I systems to interpret And process sewing          2D pAnels, leArning"bAsed generAtion )gm4[: )24[: )25[: )27[:
+pAttern dAtA more eggectively )30[: )3gm[: )34[1 To fAcilitAte       )28[: )29[: )30[: )32[: )33[: )35[: )36[: )40[: )54[: )55[: leverAges
+model processing: continuous geometric vAlues Are arst nor"          dAtA"driven methods to generAte sewing pAtterns in An end"to"
+mAlized �e1g1: to A )0. gm[ rAnge( And then quAntized into integers  end mAnner1 TAble III provides A summAry And compArison of
+using A scAling constAnt �e1g1: multiplying by gm000 to creAte A     these key generAtion technologies1
+vocAbulAry of discrete bins(: As implemented in methods like
+DressCode )30[1                                                       1 Qule;BAsed GenerAtion
+
+   --3( RAster RepresentAtion. The rAster representAtion mod"           Rule"bAsed methods generAte sewing pAtterns by Apply"
+els sewing pAtterns As 2D grid"bAsed bitmAp dAtA1 Recent             ing explicit geometric rules: such As the pArAmeterizAtion
+works: such As GArmentImAge And GArmAgeNet )35[: )36[:               of 2D elements under mAthemAticAlly deaned constrAints1
+hAve proposed this ApproAch: which trAnsforms sewing pAtterns        BecAuse designers cAn Adjust geometric Attributes directly:
+into rAsterized imAges comprising multiple concepts: includ"         this pArAdigm provides strong controllAbility And cleAr inter"
+ing lAyers: internAl/externAl mArkers: edge types: And locAl         pretAbility1 It is Also independent of trAining dAtA: mAking it
+deformAtion mAtrices )49[1 StAndArdized grid settings: such          well suited to situAtions where no prior exAmples Are AvAil"
+As gm6 gm6 pixel resolution: Are typicAlly used to encode the        Able1 Within this frAmework: pArAmetric techniques represent
+topology And geometry of pAtterns in A scAle"invAriAnt lAtent
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                                                                                                                           4739
+
+                                                                                           T BLE II
+                                                         COMP RISON OF SEWING P TTERN TOKENIZ TION METHODS
+
+                                              T BLE III
+SUMM RY ND COMP RISON OF SEWING P TTERN GENER TION TECHNOLOGIES
+
+A sewing pAttern As A vector of geometric pArAmeters: And        weArAbility And physicAl reAlism1 The process is driven by
+modifying these pArAmeters immediAtely Alters the pAttern#s
+style And dimensions )2[: )8[: )53[: )57[: )58[: )59[: )60[1 In  An objective function thAt typicAlly minimizes the ChAmfer
+3D fAshion design: this pArAmeterizAtion is implemented either
+through reusAble templAte pAtterns or through pArAmeter sets     distAnce between the simulAted gArment �S sim( And the tArget
+Assigned to individuAl gArment pAnels1
+                                                                 gArment �S tAr(: deaned As.
+   SeverAl studies recover sewing"pAttern pArAmeters for A tAr"
+get 3D gArment by iterAtively optimizing A pArAmetric templAte   MCD�S sim. S tAr(  /                       }S gms}iSmgmt}ArpY }SqY simS tqAmrSpimtnASrisn|imp|q  q|22
+through physics"bAsed simulAtion And geometric compArison                                                                                                           p|22
+)53[: )59[: )60[1 In A typicAl workgjow: A 3D scAn of A person                                                                                                            �gm(
+weAring the tArget gArment is used As the reference geometry1
+                                                                    Recent AdvAnces in pAttern mAking hAve produced tech"
+   pArAmetric sewing"pAttern templAte is arst drAped over this   niques thAt Adjust sewing"pAttern pArAmeters without the
+body model in A physics"bAsed simulAtor1 diggerentiAble          intermediAte step of building A 3D humAn body model )2[:
+solver or A simulAted"AnneAling Algorithm then iterAtively       )8[: )23[: )53[: )57[1 notAble recent development is GArment"
+reanes the templAte pArAmeters so thAt the simulAted gArment     Code: which AccommodAtes A broAd rAnge of pAnel geometries
+progressively mAtches the shApe of the observed gArment on       And Accepts high"level inputs such As body meAsurements And
+the body: thereby minimizing their geometric discrepAncy )6gm[:  style Attributes )8[: )23[1 Its primAry contribution is A domAin
+)62[: )63[1 This inverse"design strAtegy is eggective becAuse    speciac lAnguAge �DSL( for gArment modelling thAt drAws
+the optimizAtion not only Aligns the shApes but Also preserves   on object"oriented progrAmming concepts )64[1 This DSL
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4740  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+Fig1 51 ProcedurAl skirt pAttern pArAmeterizAtion1 �A( PAttern geometry      body scAn dAtA And user inputs )65[1 Within the deep leArning
+speciaed by top Arc length lgm: bottom Arc length l2: top rAdius r2: bottom  pArAdigm: MLPs often serve As the mAin or An AuxiliAry
+rAdius rgm: skirt length h: And expAnsion Angle 1 �b( Corresponding body     module1 BecAuse MLPs cAn leArn non"lineAr functions thAt
+input. wAist circumference CwAist1                                           mAp structured inputs to pArAmeter vectors: they suit problems
+                                                                             in which A gArment is described by A axed set of vAlues:
+supports modulAr: fully pArAmeterized pAttern construction And               for exAmple pAnel dimensions: seAm plAcements: or curvAture
+Allows designers to Adjust gArment chArActeristics with greAter              vAlues )gm4[: )24[: )25[: )66[1 Consequently: MLPs Are typicAlly
+gjexibility1                                                                 employed to process structured inputs like body meAsurements
+                                                                             or lAtent design vectors: leArning A direct mApping to the
+   To illustrAte the computAtionAl logic underlying such rule"               corresponding sewing pAttern pArAmeters which: in turn: Are
+bAsed systems: we cAn exAmine the procedurAl generAtion of                   used to construct the anAl gArment shApe1
+A skirt pAttern: As depicted in Figure 51 The process stArts
+with numericAl inputs. A key body meAsurement: the weArer#s                     EArly works employed MLPs to encode An input And
+wAist circumference �CwAist(: And two style pArAmeters: A skirt              subsequently decode it into A axed"length vector of pAttern
+length fActor �PLength( And A hem expAnsion pArAmeters fActor                pArAmeters: thereby generAting the anAl pAttern shApe )24[:
+�PSuns(1 These inputs Are systemAticAlly trAnsformed into the                )25[: )56[1 This process is frAmed As A regression tAsk: where
+anAl geometric Attributes of the 2D pAttern through A cAscAde                the model is optimized by minimizing A loss function thAt
+of cAlculAtions. h / PLength � CwAist:  / PSuns � : lgm / CwAist:            quAntiaes the discrepAncy between the predicted And ground"
+r2 / lgm<: rgm / r2 h: And l2 / rgm � 1                                      truth pArAmeters1 The most common loss function for this
+                                                                             purpose is the MeAn SquAred Error �MSE( )gm4[: deaned As.
+   This sequence of equAtions demonstrAtes how AbstrAct
+inputs Are trAnslAted into A complete set of concrete geometric              MMSE  /  gm  YN             pt�riu( e|22  �2(
+vAlues for the 2D pAttern: ensuring it is tAilored to both the                        N       |pp�ir(ed
+weArer#s body And the designer#s speciac stylistic intent1 Due
+to its robust frAmework And cleAr procedurAl rules: GArment"                              i/gm
+Code And its AssociAted dAtAsets hAve been widely Adopted in
+subsequent reseArch )23[: )27[: )28[: )29[: )34[: )54[: )63[1                where: ppred is the pArAmeter vector predicted by the MLPs:
+                                                                             And ptrue is the ground"truth vector1 The loss penAlizes the
+B1 LeArning;BAsed GenerAtion                                                 squAred EuclideAn distAnce between these vectors: AverAged
+                                                                             over A bAtch of N sAmples1 While computAtionAlly inexpensive
+   LeArning"bAsed methods use deep neurAl networks to gen"                   And eggective for gArments with A axed pArAmeter spAce: this
+erAte sewing pAtterns AutomAticAlly by extrActing implicit                   ApproAch cAnnot hAndle vAriAble topologies: such As gArments
+design rules from lArge"scAle dAtAsets )23[: )43[1 Unlike rule"              with A diggerent number of pAnels or vertices: And struggles
+bAsed techniques: which rely on hAnd"crAfted geometry: these                 to cApture the sequentiAl nAture of pAnel boundAries )24[:
+ApproAches encode complex shApe relAtionships And stylistic                  )25[: )56[1 This limitAtion provides An improvement wAy for
+cues directly from dAtA1 Their common goAl is to leArn A                     recurrent Architectures thAt Are more suitAble for sequence
+probAbilistic mApping from high"level design intent to concrete              modeling1
+pAttern geometry )25[: )30[: )40[: )47[1 ccording to network
+Architecture: current work cAn be grouped into four cAtegories.                 2( LSTM;BAsed Models. ddressing the inAbility of MLPs
+multi"lAyer perceptrons �MLPs( bAsed models: long short"term                 to model vAriAble"length sequences: LSTM networks Are
+memory �LSTM( bAsed models: TrAnsformer bAsed models:                        pArticulArly suitAble for sewing pAttern generAtion becAuse pAt"
+And diggusion bAsed models1                                                  terns nAturAlly consist of sequentiAl structures: such As ordered
+                                                                             sets of vertices or edges )69[1 Unlike MLPs: which process
+   gj( MLP;BAsed Models. PArAmeter estimAtion is the primAry                 input feAtures independently: LSTMs mAintAin An internAl
+core tAsk in sewing pAttern generAtion1 The tAsk of mApping                  memory stAte thAt cAptures dependencies Across sequence
+high"level inputs �e1g1: body meAsurements or style vectors(                 elements1 This cApAbility mAkes them eggective for modeling
+to A axed"size sewing pAttern pArAmeter vector is essentiAlly                gArment pAnel boundAries: which inherently form ordered
+A regression problem1 vAriety of mAchine leArning tech"                      sequences of vertices or control points1 By processing these
+niques: such As Support Vector Regression �SVR( hAve been                    sequences Autoregressively: LSTMs leverAge preceding steps
+eggectively employed to predict gArment pArAmeters from 3D                   to inform subsequent predictions: thus fAcilitAting the creAtion
+                                                                             of sewing pAtterns with intricAte boundAries or detAiled pAnel
+                                                                             geometries1
+
+                                                                                  pproAches such As PAnelformer And NeurAlTAilor hAve
+                                                                             successfully employed LSTMs to improve the pAttern gener"
+                                                                             Ation process )gm4[: )33[1 In these methods: An LSTM module
+                                                                             decodes A lAtent representAtion of the gArment into A sequence
+                                                                             of vertices representing pAnel boundAries1 During trAining:
+                                                                             the model is optimized to produce vertex sequences closely
+                                                                             mAtching the ground"truth dAtA1 The loss function typicAlly
+                                                                             AggregAtes the L2 distAnce between predicted vertex coordi"
+                                                                             nAtes And corresponding ground"truth coordinAtes At eAch time
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                                                                   474gm
+
+step )33[: )36[.                                                  The trAining objective Aims to minimize the diggerence
+
+                                 YT                               between the predicted And the ActuAl noise: typicAlly employ"
+                                     |vpred.t
+                  Mseq  /  gm                  vtrue.t |22  �3(   ing A simpliaed loss function expressed As follows )27[:
+                           T
+                                 t/gm                             )73[: )75[.                                   
+
+where T is the sequence length: vpred.t represents the predicted               MDM / x0.� �0.I(.t | �xt. t(|22    �5(
+vertex coordinAtes: And vtrue.t denotes the ground"truth vertex
+coordinAtes At time step t1 This sequentiAl ApproAch enAbles      where the expectAtion is computed over cleAn dAtA sAmples
+more gjexible pAnel designs thAn axed"pArAmeter MLP models1       x0: GAussiAn noise sAmples : And time steps t1
+However: A limitAtion of LSTMs is their diggjculty in cApturing
+long"rAnge dependencies due to their sequentiAl nAture: mAking          notAble innovAtion within diggusion models is the Diggu"
+it chAllenging to enforce globAl properties like pAnel symmetry   sion TrAnsformer �DiT( )76[: which utilizes A TrAnsformer"
+)70[1 Furthermore: their Autoregressive process cAn be slow And   bAsed denoising network in plAce of the trAditionAl U"Net
+prone to error propAgAtion in complex pAtterns1                   Architecture1
+
+   3( TrAnsformer;BAsed Models. To overcome the sequentiAl           Methods such As SewingLDM employ DiT"bAsed lAtent
+processing And long"rAnge dependency limitAtions of LSTMs:        diggusion techniques to generAte sewing pAtterns thAt vAry
+TrAnsformer"bAsed models hAve emerged As A powerful Alter"        in size And complexity )27[: )77[1 SewingLDM typicAlly
+nAtive )70[1 Their Ability to process sequence elements in        follows A two"stAge trAining procedure. initiAlly: A bAse model
+pArAllel viA self"Attention mAkes them highly eggective At        is trAined solely using text prompts, subsequently: it is
+modeling globAl dependencies within sewing pAtterns1 This         ane"tuned by incorporAting knowledge of body shApes And
+ArchitecturAl AdvAntAge mAkes them superior for generAting        gArment sketches: thereby enhAncing its Ability to generAte
+complex: multi"pAnel gArments where understAnding the globAl      pAtterns tAilored to diverse body types And detAiled gArment
+lAyout is criticAl )30[: )3gm[: )32[1                             structures )27[1
+
+      widely Adopted ApproAch in this domAin is TrAnsformer"           nother relevAnt ApproAch is GArmAgeNet: which introduces
+bAsed Autoregressive generAtion: which is especiAlly suitAble     A diggusion"bAsed frAmework for trAnslAting nAturAl lAnguAge
+for predicting sequences of discrete tokens1 Methods such As      descriptions or unstructured sewing pAtterns into structured:
+DressCode And IppArel utilize this strAtegy by initiAlly con"     high"adelity GArmAge representAtions )35[: )73[1 GArmA"
+verting sewing pAttern components: including pAnels: edges:       geNet employs two distinct TrAnsformer"bAsed denoisers. T
+And control points: into token sequences )30[: )3gm[: )67[:       focuses on the topologicAl denoising stAge to reconstruct
+)68[1 These tokenized sequences serve As inputs to the model1     globAl structurAl informAtion such As 3D bounding boxes
+During trAining: the model leArns to predict the next token       And pAnel scAling: while L is dedicAted to the geometric
+bAsed on preceding tokens by optimizing A cross"entropy loss      denoising stAge: utilizing the previously inferred topologi"
+)3gm[: )35[: )36[: )7gm[.                                         cAl dAtA to AccurAtely reconstruct detAiled 3D geometry for
+                                                                  eAch pAnel1 The key trAde"ogg for this stAte"of"the"Art output
+                        YT       log P�t / true.t},t, (           quAlity is A substAntiAl increAse in computAtionAl cost1 The
+                                                                  iterAtive sAmpling process mAkes inference orders of mAgni"
+MCE /                                                       �4(   tude slower thAn single"pAss Architectures like TrAnsformers:
+                                                                  posing A signiacAnt chAllenge for reAl"time And interActive
+                           t/gm                                   ApplicAtions )78[1
+
+where true.t represents the true token At position t: ,t denotes                          V1 RECONSTRUCTION
+the tokens preceding it: And  Are the model pArAmeters1 During
+inference: the TrAnsformer employs Autoregressive sAmpling           Reconstruction refers to the process of recovering 2D
+to generAte token sequences: which Are subsequently decoded       sewing pAtterns from high"level gArment representAtions: such
+into the anAl sewing pAttern geometry1 While providing high       As textuAl descriptions: imAges: or sketches1 This tAsk Aims
+structurAl adelity: this cApAbility comes At A signiacAnt compu"  to infer the underlying mAnufActurAble pAnels corresponding
+tAtionAl cost: As the self"Attention mechAnism hAs A complexity   to An AbstrAct visuAl or descriptive gArment concept )30[:
+quAdrAtic to the sequence length1 TrAnsformers need more dAtA     )32[: )79[: )80[1 This cApAbility is pArticulArly vAluAble to
+thAn their recurrent models to Achieve strong performAnce )72[1   fAshion designers: whose design processes often begin with
+                                                                  conceptuAl representAtions And who require eggective tech"
+   4( Di usion;BAsed Models. Owing to their superior these        niques to trAnslAte these AbstrAct ideAs into production"reAdy
+generAtive quAlity And diversity: Diggusion"bAsed models hAve     sewing pAtterns )79[: )8gm[: )82[1 core chAllenge stems from
+emerged As AdvAnced frAmeworks cApAble of producing high"         the inherent Ambiguity of these high"level inputs1 single
+adelity outputs through An iterAtive denoising process )73[:      sketch or description cAn correspond to multiple vAlid gArment
+)74[1 Recently: this pArAdigm hAs been eggectively AdApted to     designs: creAting A one"to"mAny mApping problem )25[: )28[1
+sewing pAttern generAtion tAsks: oggering both strong control     RAther thAn modeling this diversity: current deep leArning
+And high adelity in the resulting pAtterns1 t its core: A         ApproAches predominAntly hAndle this issue by frAming it As A
+diggusion model trAins A denoising network  to estimAte           deterministic: one"to"one prediction tAsk )30[: )32[1 This is A
+the noise  thAt wAs Added to An originAl cleAn dAtA sAm"          direct consequence of their trAining objectives1 By optimizing
+ple x0 At A pArticulAr timestep t1 SpeciacAlly: A noisy dAtA      regression"bAsed losses: such As L2 distAnce: models Are mAth"
+sAmple xt is obtAined through A forwArd noising process.          emAticAlly encourAged to predict the AverAge of All possible
+xt /  tx0 gm  t1
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4742                                  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+                                                               T BLE IV
+      SUMM RY ND COMP RISON OF RECONSTRUCTION TECHNOLOGIES B SED ON INPUT MOD LITY
+
+vAlid outputs for A given input1 Consequently: they implicitly    detAils in textuAl prompts And trAnslAtes them into structured
+leArn to generAte A single pAttern thAt represents the centrAl    sewing pAtterns1
+tendency within the trAining dAtA: rAther thAn the full spectrum
+of creAtive possibilities1                                             lternAtive methods hAve Adopted diggerent pre"trAined lAn"
+                                                                  guAge models for text encoding1 For exAmple: SewingLDM
+   The reconstruction tAsk encompAsses severAl speciAlized        )27[ leverAges the T5 model: which employs An encoder"
+sub"problems cAtegorized by their input modAlity. text"bAsed:     decoder Architecture to encode text into semAntic tokens:
+imAge"bAsed: And sketch"bAsed reconstruction1 EAch type of        such As words or subword units )70[: )87[1 More recently:
+input modAlity introduces distinct technicAl chAllenges thAt      ApproAches fAvoring the computAtionAl eggjciency of decoder"
+necessitAte dedicAted methodologicAl solutions1 This section      only Architectures hAve emerged1 Systems like ChAtGArment:
+systemAticAlly reviews stAte"of"the"Art ApproAches for eAch       Design2GArment: And IppArel exemplify this trend by build"
+input cAtegory And discusses the principAl innovAtions fAcil"     ing upon open"source models such As LLAM And LLAV
+itAting the AutomAted reconstruction of sewing pAtterns1          )28[: )29[: )3gm[: )88[: )89[1 These models typicAlly follow
+compArison of these reconstruction ApproAches bAsed on input      A consistent text"processing pipeline. they initiAlly tokenize
+modAlity is presented in TAble IV1                                input text into subword units using A SentencePiece tokenizer
+                                                                  bAsed on the Byte"PAir Encoding �BPE( Algorithm )90[: And
+ 1 Text;BAsed Qeconstruction                                      subsequently mAp these tokens to vector embeddings As inputs
+                                                                  to following TrAnsformer lAyers1
+   Reconstructing precise sewing pAtterns from textuAl descrip"
+tions is A chAllenging tAsk thAt sits At the intersection of      B1 ImAge;BAsed Qeconstruction
+nAturAl lAnguAge processing �NLP( And gArment engineering
+)83[: )84[1 While text descriptions eggectively ArticulAte high"     Reconstructing precise sewing pAtterns from imAges is A
+level design feAtures: such As "A sleeveless "line dress with     complex undertAking At the intersection of computer vision
+A scoop neck: knee"length:; they typicAlly lAck the quAnti"       �CV( And domAin"speciac gArment engineering )33[: )9gm[:
+tAtive geometric dAtA required for pAttern creAtion: including    )92[: )93[1 Unlike text: imAges from sources like runwAy pho"
+precise meAsurements And construction detAils1 Consequently:      tos or product cAtAlogs ogger rich visuAl informAtion: cApturing
+recent reseArch hAs focused on developing systems cApAble of      nuAnced Attributes such As silhouettes: texture detAils: And 3D
+inferring these technicAl speciacAtions from AbstrAct semAntic    drAping1 However: the computAtionAl complexity involved in
+inputs1                                                           processing visuAl dAtA is signiacAntly greAter thAn thAt of text"
+                                                                  bAsed dAtA )94[: )95[: )96[1 Therefore: recent reseArch focuses
+   SigniacAnt progress hAs been mAde in generAting sewing         on developing methods to creAte geometricAlly AccurAte And
+pAtterns from nAturAl lAnguAge by employing AdvAnced text"        production"reAdy sewing pAtterns from imAges: thereby fAcil"
+processing techniques1 prominent exAmple is DressCode             itAting the rApid digitizAtion of physicAl gArments1
+)30[: which introduced SewingGPT: An Autoregressive TrAns"
+former model explicitly tAilored for this purpose1 SewingGPT         SigniacAnt AdvAncements hAve been Achieved in imAge"
+arst utilizes A pre"trAined CLIP text encoder to convert gArment  to"pAttern reconstruction: with modern methods eggectively
+descriptions into semAntic feAture tokens )85[: )86[1 These       tAckling chAllenges such As complex humAn poses And
+tokens Are then projected into A conditionAl embedding vector     occlusions1 FoundAtionAl ApproAches hAve primArily relied
+h using An MLP before being input to A TrAnsformer decoder1       on ConvolutionAl NeurAl Networks �CNNs( And their vAri"
+By combining CLIP embeddings with cross"Attention mech"           Ants1 For instAnce: SPnet )24[ utilizes A multi"stAge CNN
+Anisms: SewingGPT successfully cAptures subtle semAntic           pipeline: arst normAlizing input imAges of dressed individuAls
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                      4743
+
+into A stAndArdized T"pose representAtion viA A convolu"             And sewing detAils by conditioning the generAted output on
+tionAl encoder"decoder1 Subsequently: this stAndArdized view         A lAtent vector extrActed from sketches using sketchRNN
+is pAssed to A second stAge consisting of A convolutionAl            )gmgm2[1 NotAbly: this lAtent vector encodes conceptuAl pAnel
+Autoencoder combined with An MLP to predict the correspond"          chArActeristics rAther thAn literAl sketch geometry1
+ing sewing pAttern pArAmeters )97[1 SimilArly: GArmentImAge
+)36[ employs A sequentiAl pipeline bAsed on multiple U"Net              Other ApproAches utilize multimodAl leArning techniques
+models: progressively inferring gArment lAbels: edge types: And      for more direct sketch"to"pAttern trAnslAtion1 SewingLDM )27[
+deformAtion mAtrices from the input imAge )98[1 More recent          processes sketches in A mAnner AnAlogous to imAges1 To over"
+work hAs shifted towArds hybrid Architectures thAt combine           come the common chAllenge of dAtA scArcity: it innovAtively
+the strengths of CNNs And TrAnsformers1 Methods such As              creAtes its trAining dAtA by leverAging the PiDiNet model
+Sewformer And PAnelformer Adopt A two"step pipeline: initiAlly       to synthesize sketches from the GArmentCodeDAtA imAge
+extrActing feAtures through A ResNet50 bAckbone: followed            collection: thereby enriching the diversity of its multimodAl
+by A TrAnsformer module designed to cApture globAl struc"            trAining set )23[: )gmgm3[1 However: these sketches digger from
+turAl dependencies )32[: )33[: )70[: )99[: )gm00[: )gm0gm[: )gm02[1  those in reAl"world sketches in terms of structurAl complexity1
+Extending this hybrid concept: Dress"gm"to"3 )55[ incorporAtes       Consequently: the model#s performAnce tends to decline when
+An AdditionAl TrAnsformer encoder stAge thAt reanes the visuAl       generAlizing to these reAl"world sketches1
+embeddings: thereby enhAncing pAttern"generAtion quAlity1
+                                                                                                  VI1 EDITING
+   Beyond trAditionAl CV methodologies: multimodAl lArge
+lAnguAge models �LLMs( Are emerging As A powerful Alter"                Editing refers to the modiacAtion of existing sewing pAtterns
+nAtive for imAge"bAsed reconstruction1 This ApproAch is              within computer"Aided 3D fAshion design systems1 It encom"
+exempliaed by systems like ChAtGArment And IppArel: which            pAsses A rAnge of operAtions thAt Alter gArment structure: shApe:
+leverAge LLAV for joint text And imAge understAnding )29[:           or dimensions bAsed on user input )gmgm4[1 centrAl chAllenge
+)3gm[: )88[1 LLAV typicAlly employs A vision trAnsformer:            in this stAge is not just enAbling modiacAtions: but ensuring
+such As CLIP"ViT or SigLIP: As its imAge encoder1 This               thAt these chAnges mAintAin the design#s overAll integrity And
+encoder processes An imAge by dividing it into pAtches �e1g1:        coherence1 For instAnce: A simple commAnd like "mAke the
+gm4 gm4( And trAnsforming them into A sequence of visuAl             sleeves longer; must be trAnslAted into A geometricAlly vAlid
+tokens: which Are then integrAted with textuAl embeddings            Adjustment thAt is Also AestheticAlly pleAsing And proportionAl
+to enAble comprehensive multimodAl reAsoning )85[: )gm03[1           to the rest of the gArment )50[: )gmgm5[1 This involves complex
+Other systems Adopt similAr but distinct multimodAl strAte"          considerAtions of constrAint sAtisfAction And style preservAtion:
+gies1 Design2GArment: for instAnce: utilizes the proprietAry         which Are criticAl for producing mAnufActurAble And well"
+GPT"4V model for its visuAl encoding cApAbilities )28[1              designed outcomes1 Depending on the interAction mode And
+In Another vAriAtion: GArmentX )54[ employs the DINOv2               required level of precision: editing techniques Are typicAlly
+ViT"B/gm4 model to extrAct conditionAl tokens from the imAge1        cAtegorized into two types1 s shown in Figure 8: precise
+These tokens subsequently guide A MAsked utoencoder                  editing Allows ane"grAined control through pArAmetric Adjust"
+�M E( And A diggusion"bAsed MLP to generAte the anAl output:         ments or direct mAnipulAtion of pAttern components )50[:
+demonstrAting A sophisticAted fusion of diggerent generAtive         )gmgm5[1 On the other hAnd: fuzzy editing interprets high"level:
+modeling pArAdigms )gm04[: )gm05[1                                   intent"driven commAnds from nAturAl lAnguAge or sketches into
+                                                                     speciac modiacAtions of sewing pAtterns )28[: )29[1 These
+C1 Sketch;BAsed Qeconstruction                                       two editing pArAdigms Are summArized And compAred in
+                                                                     TAble V1
+   Sketch"bAsed reconstruction is the tAsk of AutomAticAlly
+generAting sewing pAtterns from design sketches1 This cApA"           1 Precise Editing
+bility is highly vAluAble As sketches Are A primAry medium for
+fAshion designers to ArticulAte their initiAl concepts: cApturing       Precise editing refers to the Ability to modify speciac gAr"
+key feAtures like silhouette: style lines: And intended fAbric       ment components with high AccurAcy: typicAlly through direct
+drApe )82[: )gm06[: )gm07[: )gm08[: )gm09[1 The core chAllenge in    operAtions such As drAgging vertices or Adjusting pArAmeters
+this AreA Arises from the intrinsic chArActeristics of sketches.     )8[: )gm0[: )57[: )gmgm4[1 This process relies on A cleArly deaned
+while they eggectively convey semAntic intent: sketches Are          structurAl representAtion of sewing pAtterns: often expressed
+often AbstrAct And geometricAlly imprecise: lAcking the precise      in geometric or pArAmetric form: which enAbles AccurAte And
+dimensionAl informAtion necessAry for mAnufActuring )25[:            locAlized modiacAtions1 Two primAry methods Are commonly
+)gmgm0[: )gmgmgm[1 lthough less extensively explored thAn imAge"     used in precise editing. geometric control And pArAmetric
+bAsed reconstruction: severAl notAble ApproAches hAve emerged        control1
+to bridge the gAp between AbstrAct design concepts And precise:
+mAnufActurAble outputs1                                                 Geometric control: As shown in Figure 8�A(: Allows users to
+                                                                     directly mAnipulAte geometric elements: such As control points
+   Recent studies Are exploring the direct generAtion of sewing      or boundAry lines: on either the 2D pAtterns or the 3D model1
+pAtterns from sketches through diverse computAtionAl tech"           ChAnges mAde in one view Are AutomAticAlly synchronized
+niques1 For exAmple: PersonAlTAilor )26[ employs sketches            with the other in reAl time1 Sensitive Couture )gmgm4[ is A
+As high"level guidAnce for interpreting existing 3D gArment          representAtive exAmple of this ApproAch: pioneering A system
+point clouds1 SpeciacAlly: the method predicts 2D pAnel shApes       thAt mAintAins A consistent correspondence between 2D pAttern
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4744  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+Fig1 61 LeArning"bAsed pipeline for generAting sewing pAtterns1 lAtent code F �gm(: encoding gArment properties: is input to A decoder model �2( thAt
+generAtes the 2D sewing pAttern �3(1 Four primAry decoder models Are explored. �A( MLP"bAsed models )24[: )25[: )56[, �b( LSTM"bAsed models )gm4[: )33[,
+�c( TrAnsformer"bAsed models )30[: )3gm[: )67[: )68[, And �d( Diggusion"bAsed models )27[: )35[1
+
+Fig1 71 MultimodAl dAtA pArsing frAmework1 �A( Text input )27[: )28[: )29[: )3gm[: �b( ImAge input )24[: )27[: )29[: )3gm[: )32[: )33[: )36[: )55[: And �c( Sketch input
+)26[: )27[: )28[1 This frAmework consists of four mAin steps. multimodAl input: encoder model: shAred lAtent representAtion: And sewing pAtterns generAtion1
+
+edits And the resulting 3D drAped gArment )gm0[: )57[1 This     precise edge modiacAtion by Allowing users to drAw or erAse
+is Achieved through A combinAtion of sensitivity AnAlysis       lines directly on the 2D pAnel )48[1
+for 3D shApe prediction: dynAmic re"meshing for boundAry
+AdAptAtion: And AdvAnced physicAl simulAtion to ensure stAble      PArAmetric control enAbles users to Adjust preset pArAmeters:
+gArment deformAtion )gmgm6[1 Building on these cApAbilities:    such As sleeve length: wAist circumference: or tightness weight:
+other systems provide more speciAlized tools1 For instAnce:     through pArAmeter sliders or input boxes to control the overAll
+PerfectTAilor supports A vAriety of 3D editing operAtions such  or locAl shApe of the gArment1 GArmentCode exempliaes this
+As "cut;: "extend;: And "tighten; )gmgm5[: while ISP enAbles    ApproAch by modeling clothing design using An object"oriented
+                                                                pArAdigm )8[: )23[1 Users cAn modify key Attributes such As
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                                                              4745
+
+                                                                                           T BLE V
+                                               SUMM RY ND COMP RISON OF SEWING P TTERN EDITING TECHNOLOGIES
+
+Fig1 81 Pipeline of editing for sewing pAtterns1 �A( Precise editing )8[: )57[:  length remAins compAtible with the corresponding torso pAnel:
+)gmgm5[: And �b( Fuzzy editing )28[: )29[1 This pipeline consists of three mAin  And preserving the overAll style of the sleeve1
+steps. �gm( InitiAl gArment: �2( editing methods: And �3( edited gArments1
+                                                                                    Recent systems hAve begun to Address this chAllenge by
+trouser length or hip circumference: And the corresponding                       leverAging highly structured: pArAmetric pAttern representA"
+2D pAtterns And 3D models updAte immediAtely to regject                          tions1 criticAl requirement for eggective fuzzy editing is the
+the chAnges1 ExpAnding on this frAmework: GArmentX )54[                          use of structured And disentAngled pArAmeter representAtions:
+introduces the use of pArAmeter vectors for locAlized Adjust"                    which Allow for tArgeted modiacAtions to speciac gArment
+ment1 This enhAncement Allows users to Alter speciac gArment                     components without Aggecting unrelAted pArts1 This ApproAch
+regions independently: eliminAting the need to regenerAte the                    is demonstrAted in systems such As Design2GArmentCode
+entire pAttern And thereby improving the eggjciency of iterAtive                 )28[ And ChAtGArment )29[1 In Design2GArmentCode: A Mul"
+design1                                                                          timodAl UnderstAnding gent �MMU ( arst interprets the
+                                                                                 user instruction: which is then trAnslAted into A pArAmeterized
+B1 Fuzzy Editing                                                                 GArmentCode )8[ progrAm through A DSL GenerAtion gent
+                                                                                 �DSL"G (1 SimilArly: ChAtGArment employs the LLAV
+   Fuzzy editing refers to the use of high"level user interAc"                   model to determine which gArment pArts Are referenced in the
+tions: most commonly nAturAl lAnguAge instructions: to modify                    commAnd And utilizes the GArmentCode frAmework to Adjust
+gArment designs1 This method requires the system to interpret                    only the relevAnt pArAmeters: thereby preserving the integrity
+user intent And trAnslAte AbstrAct verbAl commAnds into speciac                  of the remAining design1 By modifying A high"level pArAmeter
+AlterAtions of the sewing pAtterns )28[: )29[1 s shown in                        like "sleeve length; insteAd of mAnipulAting rAw vertices:
+Figure 8�b(: by Aligning with intuitive humAn communicAtion:                     these systems ensure thAt All relAted geometric feAtures Adjust
+fuzzy editing lowers the bArrier to conceptuAl design And                        coherently According to predeaned design rules embedded
+fAcilitAtes rApid prototyping1                                                   within the GArmentCode structure )8[1 These methods success"
+                                                                                 fully preserve geometric vAlidity And proportion: but there is
+   MeAnwhile: this process presents signiacAnt chAllenges in                     still A lAck of reseArch on pleAsing Aesthetics: which represents
+mAintAining design integrity1 The core diggjculty lies in trAnslAt"              An AreA worth exploring1
+ing Ambiguous: quAlitAtive commAnds into precise: quAntitAtive
+edits while preserving gArment style And proportionAlity1 For                                             VII1 BENCHM RKS
+exAmple: the instruction "mAke the sleeves longer; is under"
+speciaed1 nAive geometric stretch would likely distort the                          This section presents the dAtAsets And evAluAtion metrics
+cugg shApe And disrupt the seAm connection At the Armhole1                       commonly used in sewing pAttern"driven 3D fAshion design1
+successful system must infer the designer#s intent And Apply                     These benchmArks serve As stAndArdized tools for trAin"
+A modiacAtion thAt respects the underlying design constrAints                    ing models: vAlidAting results: And compAring performAnce
+)28[: )29[1 This includes Adjusting the sleeve pAnel#s length                    Across studies1 The dAtAsets typicAlly consist of AnnotAted
+while potentiAlly scAling the cugg: ensuring the Armhole seAm                    gArment pAtterns: 3D drAped models: And AssociAted multi"
+                                                                                 modAl inputs: while the evAluAtion metrics Assess the AccurAcy:
+                                                                                 reAlism: And usAbility of generAted outputs1 Together: they sup"
+                                                                                 port consistent experimentAl protocols And fAcilitAte objective
+                                                                                 compArisons Among diggerent ApproAches1
+
+                                                                                  1 DAtAsets
+
+                                                                                    While benchmArks for pure 3D gArment reconstruction:
+                                                                                 such As CLOTH3D )gmgm7[ And MultiGArmentNet )gmgm8[: provide
+                                                                                 vAluAble context for the broAder aeld: this survey exclusively
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4746  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+                                   T BLE VI                       reconstruction: simulAtion: And personAlizAtion1 Its extension:
+      SUMM RIZ TION OF KEY SEWING P TTERNS D T SETS               GArmentCodeDAtA"MultiModAl �GCD"MM( )3gm[: Adds pAired
+                                                                  textuAl And imAge dAtA for gm20:000 gArments: As well As
+                                                                  AnnotAtions for gArment editing tAsks1 GArmentX )54[: one
+                                                                  of the most recent And extensive dAtAsets: further scAles this
+                                                                  eggort by oggering 378:682 gArment instAnces: eAch consisting
+                                                                  of pArAmeter"imAge pAirs1 It introduces A structured representA"
+                                                                  tion designed to support semAntic editing1 CriticAlly: however:
+                                                                  these lArge"scAle dAtAsets Are procedurAlly generAted from A
+                                                                  limited set of pArAmeterized templAtes )2[: )23[1 While their
+                                                                  styles Are scAlAble: this ApproAch limits design diversity to
+                                                                  vAriAtions within the underlying bAse pAtterns1 Consequently:
+                                                                  these dAtAsets often lAck complex: reAl"world styles: such As
+                                                                  intricAte necklines or cuggs )gm[: )3[1 This leAves models trAined
+                                                                  on this dAtA with A signiacAnt gAp in generAlizAtion to more
+                                                                  creAtive fAshion domAins1
+
+focuses on dAtAsets contAining the explicit sewing pAttern        B1 EvAluAtion Metrics
+dAtA essentiAl for our mAnufActurAbility"driven AnAlysis1 LArge"
+scAle: high"quAlity dAtAsets empower dAtA"driven methods for         EvAluAting sewing pAttern"driven systems requires A com"
+sewing pAttern generAtion And gArment design by enAbling          prehensive ApproAch: As it spAns multiple stAges of the design
+models to leArn the mApping between multimodAl inputs And         And generAtion pipeline1 Key evAluAtion components include
+sewing pAtterns1 Over the pAst few yeArs: severAl benchmArk       the AccurAcy of multimodAl input reconstruction: the geometric
+dAtAsets hAve been introduced: eAch tAilored to support dif"      precision of the generAted 2D sewing pAtterns: And the visuAl
+ferent tAsks And modAlities in the fAshion pipeline )2[: )23[:    And physicAl reAlism of the resulting 3D gArments )gm4[: )29[:
+)32[1 These dAtAsets provide pAired multimodAl dAtA: including    )30[: )32[1 EAch of these components presents unique chAl"
+2D sewing pAtterns: 3D gArment meshes: text descriptions:         lenges And cAlls for speciAlized metrics1 TAble VII outlines the
+imAges: And sketches: which Are essentiAl for trAining deep       primAry evAluAtion criteriA commonly Adopted in this reseArch
+leArning models Across A rAnge of ApplicAtions1 TAble VI          domAin1
+summArizes representAtive dAtAsets widely used in this
+aeld1                                                                gj( Metrics for Sewing PAtterns. The evAluAtion of sewing
+                                                                  pAtterns focuses on their fundAmentAl geometric And stitching
+     n eArly dAtAset developed by WAng et Al1 )25[ includes       informAtion1 These metrics Are designed to directly compAre
+8:000 sAmples for three gArment cAtegories. shirts: skirts:       the predicted 2D pAnels with ground"truth dAtA: Assessing the
+And kimonos1 EAch sAmple comprises A pArAmeterized 2D             AccurAcy of pAnel counts: shApes: And their criticAl sewing
+sewing pAttern: An imAge: And A sketch: encoded in A uniaed       relAtionships )gm4[: )32[1 SPnet directly deanes numericAl
+pArAmeter spAce thAt cAptures geometric properties such As        pArAmeters for sewing pAtterns And cAlculAtes the AverAge
+sleeve length And wAist size: As well As mAteriAl Attributes1     error between ground"truth vAlues And predicted pArAmeters to
+Building upon this: KorostelevA And Lee )2[ constructed A         estimAte the quAlity of the model )24[1 NeurAlTAilor introduced
+lArger dAtAset with 23:500 sewing pAtterns generAted from         severAl foundAtionAl metrics for this purpose1 To evAluAte
+gm9 bAse templAtes1 These templAtes cover A wider rAnge of        structurAl AccurAcy: it uses the number of pAnels �@PAnels( And
+gArment types: including pAnts And dresses: And Allow scAlAble    the number of edges �@Edges(1 To Assess geometric precision:
+pAttern generAtion through pArAmeter vAriAtion1                   it computes the AverAge L2 distAnce between predicted And
+                                                                  ground"truth pAnel vertices �PAnel L2(: As well As the L2
+   Subsequent dAtAsets hAve expAnded reconstruction cApAbil"      distAnces for pAnel rotAtion �Rot L2( And trAnslAtion �TrAns
+ities by focusing on diggerent input modAlities1 To Address       L2(1 To fAcilitAte direct L2 compArison: pAnel positions Are
+the chAllenge of imAge"bAsed reconstruction: SewFActory )32[      deaned in A reference frAme Anchored by consistent semAntic
+introduced A dAtAset contAining one million gArment imAges        points: which inherently Aligns the predicted And ground"truth
+pAired with gm9:gm00 sewing pAtterns1 This dAtAset cAptures       poses without the need for An explicit Alignment step )gm4[1
+diverse poses And body shApes: enAbling robust imAge"to"
+pAttern leArning1 For text"bAsed reconstruction: DressCodeDAtA      dditionAlly: Precision And RecAll Are employed to evAluAte
+)30[ includes gm9:300 sAmples Across gmgm gArment cAtegories:     the correctness of predicted stitch connections1 These metrics
+eAch AnnotAted with corresponding text descriptions And tex"      hAve been widely Adopted in subsequent studies )3gm[: )32[:
+ture mAps to support sewing pAttern generAtion from text          )34[: )35[1
+prompts1
+                                                                     Further reanements to pAttern quAlity evAluAtion hAve been
+   GArmentCodeDAtA �GCD( )23[ provides A comprehen"               introduced by recent reseArch1 GArmAgeNet )35[ utilizes the
+sive dAtAset of gmgm5:000 gArment instAnces: eAch contAining
+A complete set of AnnotAtions including 2D pAtterns: 3D            verAge MAtching DistAnce � MD(: which meAsures the Aver"
+meshes: UV mAps: body meAsurements: And pArAmetric design         Age EuclideAn distAnce between corresponding vertices Along
+informAtion1 This dAtAset fAcilitAtes reseArch on gArment         stitched edges After optimAl Alignment1 GArmentImAge )36[
+                                                                  Applies the Intersection"over"Union �IoU( metric: cAlculAted
+                                                                  by rAsterizing the predicted And ground"truth pAnels onto
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                                                                     4747
+
+                                                                                          T BLE VII
+                               SUMM RIZ TION OF KEY EV LU TION METRICS FOR SEWING P TTERN"DRIVEN 3D F SHION DESIGN
+
+A 2D grid And then computing the rAtio of the AreA of            semAntic Alignment between the generAted 3D gArment And
+their intersection to the AreA of their union on A pixel"wise    the originAl user input1 For text"guided generAtion: the CLIP
+bAsis1                                                           Score is A widely Adopted AutomAted metric thAt meAsures the
+                                                                 semAntic similArity between the rendered 3D gArment And the
+   2( Metrics for 3D GArments. In Addition to evAluAting         corresponding textuAl prompt1 higher CLIP Score indicAtes
+sewing pAtterns: Assessing the anAl 3D gArment is essentiAl:     A closer Alignment between the visuAl output And the intended
+As it constitutes the ultimAte output of the design pipeline1    textuAl description )29[: )30[: )35[1
+
+    core evAluAtion criterion is the geometric similArity to        In Addition to AutomAted evAluAtion: humAn Assessment
+the ground"truth gArment1 This is typicAlly quAntiaed using      provides vAluAble quAlitAtive insights1 The greement Score is
+metrics such As ChAmfer DistAnce �CD(: which cAlculAtes          one such metric: where expert evAluAtors rAte the consistency
+the AverAge distAnce between points on the predicted And         between the generAted gArment And the originAl design input:
+ground"truth meshes )29[: )54[1 relAted meAsure: the Point"      which mAy tAke the form of A text prompt: reference imAge:
+to"SurfAce �P2S( distAnce: is used in GArmentX to compute        or design sketch1 This evAluAtion is essentiAl for determining
+the shortest distAnce from points on the predicted surfAce to    how well A model interprets And trAnslAtes multimodAl design
+the ground"truth surfAce )54[1                                   intent into coherent gArment representAtions )28[1
+
+     nother key dimension is physicAl reAlism: pArticulArly                              VIII1 PPLIC TIONS
+since gArments generAted from sewing pAtterns Are intended
+for simulAtion And reAl"world weAr1 widely used metric in         1 PhysicAl GArment Production
+this context is the SimulAtion Success RAte: which evAluAtes
+whether the predicted sewing pAtterns cAn be Assembled And          gj( IndividuAl CustomizAtion. IndividuAl customizAtion gen"
+simulAted into physicAlly stAble 3D gArments without errors      erAtes sewing pAtterns tAilored to A user#s ergonomic needs or
+)28[: )29[: )54[1 To Assess gArment"body at: SewingLDM           Aesthetic pReferences: oggering An eggjcient AlternAtive to mAss
+proposes the Clothes"to"Body DistAnce: which meAsures the        production#s stAndArdized sizing1 This process uses AdvAnced
+AverAge distAnce between the gArment mesh And the underlying     technology to trAnslAte user dAtA into mAnufActurAble pAtterns1
+humAn body model1 Lower vAlues of this metric indicAte A
+better physicAl at )27[1                                            CustomizAtion cAn be guided by two mAin principles1
+                                                                 First: ergonomic customizAtion prioritizes at And comfort:
+   Beyond geometric And physicAl metrics: Aesthetic quAlity      employing technologies like 3D body scAnning for precise
+And subjective user perception Are Also importAnt: especiAlly    geometry cApture or AutomAted systems like Sewformer to
+for design"driven ApplicAtions1 These Aspects Are typicAlly      generAte pAtterns directly from meAsurements �Figure 9�A((
+evAluAted through user studies in which pArticipAnts rAte the    )6[: )23[: )32[: )46[1 Second: Aesthetic customizAtion focuses
+visuAl And structurAl quAlity of 3D gArments1 For instAnce: the  on design: using models trAined on fAshion dAtAsets to interpret
+                                                                 multimodAl inputs like imAges or text1 These models infer
+  esthetic Score introduced in Design2GArmentCode cAptures       style preferences And mAp them to design Attributes to creAte
+users# judgments regArding the overAll visuAl AppeAl And         pAtterns thAt mAtch the user#s desired look �Figure 9�b(( )gmgm9[:
+design coherence of the generAted gArment )28[1                  )gm20[: )gm2gm[: )gm22[1
+
+   3( Metrics for MultimodAl Qeconstruction. In multimodAl
+reconstruction tAsks: evAluAtion metrics Are used to Assess the
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4748  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+Fig1 91 pplicAtions of individuAl customizAtion1 �A( Ergonomic"Guided          gArments often encounter more complex chAllenges thAn those
+CustomizAtion: And �b( esthetic"Guided CustomizAtion1 The pipeline consists    in stAndArd simulAtions1 They must be AdApted to at stylized
+of three mAin steps. �gm( customizAtion method is used to �2( generAte sewing  or non"humAnoid chArActer morphologies: requiring gjexible
+pAtterns And �3( visuAlize them As 3D gArments1                                pAttern generAtion methods thAt AccommodAte unconventionAl
+                                                                               body shApes )gm37[1 dditionAlly: the gArments must behAve
+   2( MAss CustomizAtion. MAss customizAtion fAcilitAtes the                   reAlisticAlly under extreme conditions: such As exAggerAted
+lArge"scAle production of personAlized gArments by bAlAnc"                     chArActer movements involving rApid stretching And rotAtion:
+ing product diversity with mAnufActuring eggjciency1 Its key                   or simulAtions in unusuAl physicAl contexts such As zero
+mechAnism is size grAding: the process of systemAticAlly                       grAvity1 chieving these goAls depends on the integrAtion
+modifying A bAse sewing pAttern to generAte A rAnge of                         of robust physics"bAsed simulAtion models with AdvAnced
+stAndArd sizes �e1g1: S: M: L( )gm23[: )gm24[: )gm25[1 However:                sewing pAttern construction techniques: ensuring thAt the anAl
+trAditionAl grAding methods like uniform scAling cAn distort                   digitAl gArment exhibits both high visuAl adelity And physicAl
+gArment proportions: especiAlly in complex AreAs or At size                    plAusibility1
+extremes1
+                                                                                                         IX1 DISCUSSIONS
+   To Address this chAllenge: modern ApproAches use AdvAnced
+techniques1 First: scientiac grAding systems And digitAl tools                  1 CompArisons
+like Gerber And LectrA Apply rule"bAsed geometric operAtions
+And locAlized scAling to mAintAin design integrity Across sizes                   To provide A systemAtic overview of generAtive fAshion
+)gm26[: )gm27[: )gm28[1 Second: mAnufActurers incorporAte Anthro"              design: we compAre three mAjor pArAdigms. 2D fAshion design
+pometric dAtA from tArget populAtions to creAte region"speciac                 )22[: )gm38[: )gm39[: )gm40[: )gm4gm[: )gm42[: )gm43[: pAttern"free
+stAndArds: As exempliaed by UNIQLO#s use of siAn body                          3D fAshion design )2gm[: )gm30[: )gm34[: )gm44[: And pAttern"
+dAtA to ensure A better at )gm28[1 These dAtA"driven methods                   driven 3D fAshion design )2[: )8[: )gm4[: )27[: )29[: )30[: )3gm[:
+ensure proportionAl AccurAcy And enAble more responsive:                       )32[: )34[1 This compArison is pArticulArly relevAnt given the
+mArket"Aligned mAnufActuring1                                                  rApid AdvAnces in deep leArning And computer grAphics thAt
+                                                                               hAve trAnsformed the aeld1 Our AnAlysis focuses on their
+B1 VirtuAl GArment SimulAtion                                                  core pipelines And key chArActeristics: including underlying
+                                                                               technicAl ApproAches: design cApAbilities: And feAsibility for
+   gj( VirtuAl Try;on. In virtuAl try"on ApplicAtions: sewing                  physicAl production1 Figure gm0 shows pipelines of 2D fAshion
+pAtterns provide the structurAl foundAtion for simulAting gAr"                 design: pAttern"free 3D fAshion design: And pAttern"driven 3D
+ment at And movement on 3D humAn AvAtArs )30[: )gm29[:                         fAshion design1 Their mAin distinctions Are summArized in
+)gm30[1 These pAtterns enAble physics"bAsed simulAtions thAt                   TAble VIII1
+AccurAtely model complex gArment behAviors1 For instAnce:
+plAtforms such As lter"Ego: CLO3D And Style3D utilize                             gj( CompArison Between 2D FAshion Design And 3D FAsh;
+pAttern"bAsed models to simulAte sleeve stretching during Arm                  ion Design. The primAry distinction between 2D And 3D
+movements And fAbric compression At contAct points with                        fAshion design methods lies in their model Architectures: which
+the body )23[: )gm3gm[: )gm32[: )gm33[1 SimilArly: systems like                Are dictAted by their respective output formAts1 s summArized
+ISP hAndle multi"lAyer gArment interActions by simulAting                      in TAble VIII: 2D methods employ pixel"bAsed decoders: such
+compression between lAyers: such As between An overcoAt And                    As U"Nets And G Ns: to leArn mAppings for reconstructing
+A shirt )48[1 Beyond physicAl simulAtion: 2D sewing pAtterns                   2D gArment imAges viA imAge"to"imAge trAnslAtion )gm8[: )gm9[:
+Are essentiAl for Achieving high visuAl adelity1 They Are Applied              )20[: )gm43[: )gm47[: )gm48[: )gm50[: )gm72[: )gm73[: )gm74[: )gm75[:
+in UV mApping to AccurAtely project textures: prints: And seAm                 As shown in Figure gm0�A(1 In contrAst: 3D ApproAches utilize
+detAils onto the 3D gArment mesh: reducing distortion And                      geometry"bAsed decoders to generAte structured representA"
+enhAncing reAlism )47[: )gm34[1                                                tions like signed distAnce aelds �SDFs( or point clouds: which
+                                                                               explicitly deane 3D surfAce geometry )gm4[: )26[: )gm76[: )gm77[:
+   2( DigitAl GArments. Sewing pAtterns cAn Also be used                       )gm78[: illustrAted in Figure gm0�b(1
+in the creAtion of digitAl clothing for chArActers in gAmes
+And AnimAtions )gm35[: )gm36[1 In these virtuAl environments:                     The ArchitecturAl diggerences between 2D And 3D pipelines
+                                                                               deane their dAtA requirements And intermediAte representA"
+                                                                               tions1 2D ApproAches leverAge AbundAnt public imAge dAtAsets
+                                                                               for imAge"to"imAge synthesis: typicAlly using segmentAtion
+                                                                               mAsks As intermediAte representAtions )gm9[: )gm45[: )gm46[: )gm47[:
+                                                                               )gm50[: )gm5gm[: )gm52[: )gm53[: )gm79[1 Conversely: 3D ApproAches
+                                                                               rely on scArce And diggjcult"to"AnnotAte geometric dAtAsets:
+                                                                               employing lAtent codes As intermediAte representAtions to trAin
+                                                                               )9gm[: )92[: )gm30[: )gm34[: )gm62[: )gm63[: )gm64[1
+
+                                                                                  These diggerences in modeling ApproAches directly impAct
+                                                                               downstreAm ApplicAtions1 Since 2D models operAte solely
+                                                                               on imAge pixels: their outputs Are limited to surfAce"level
+                                                                               modiacAtions such As texture chAnges1 nd: the output 2D
+                                                                               imAges often only provide A single"viewing perspective: ogger"
+                                                                               ing limited reference vAlue for production )20[: )gm80[: )gm8gm[:
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                         4749
+
+Fig1 gm01 CompArison of generAtive pipelines for fAshion design: highlighting their core mechAnisms1 EAch pipeline employs An encoder �E( to mAp the reference
+imAge into A lAtent spAce And A decoder �D( to generAte the output1 I for 2D fAshion design: M for pAttern"free 3D fAshion design: And S for pAttern"driven
+3D fAshion design1 �A( 2D FAshion Design )gm8[: )gm9[: )gm45[: )gm46[: )gm47[: )gm48[: )gm49[: )gm50[: )gm5gm[: )gm52[: )gm53[: )gm54[: )gm55[: )gm56[: )gm57[: )gm58[: )gm59[:
+)gm60[: )gm6gm[: )gm72[, �b( PAttern"free 3D FAshion Design )9gm[: )92[: )gm30[: )gm34[: )gm62[: )gm63[: )gm64[: )gm65[: )gm66[: )gm67[: )gm68[: )gm69[, �c( PAttern"driven 3D
+FAshion Design )2[: )3[: )5[: )8[: )gm4[: )28[: )29[: )30[: )3gm[: )32[: )33[: )34[: )36[: )44[: )48[: )5gm[: )54[: )gm70[: )gm7gm[1
+
+                                                                                          T BLE VIII
+         COMP RISON OF 2D F SHION DESIGN: P TTERN"FREE 3D F SHION DESIGN: ND P TTERN"DRIVEN 3D F SHION DESIGN PPRO CHES
+
+)gm82[: )gm83[: )gm84[: )gm85[: )gm86[: )gm87[1 In contrAst: 3D models  them more vAluAble for prActicAl production )48[: )gm66[: )gm68[:
+produce structured geometric representAtions thAt Allow for             )gm69[: )gm88[: )gm89[: )gm90[: )gm9gm[: )gm92[1 However: whether 3D
+meAningful shApe modiacAtions1 Furthermore: 3D models cAn               models cAn be directly Applied to production will be further
+theoreticAlly provide renderings from Any viewpoint: mAking             discussed in the next pArt1
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4750  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+   2( CompArison Between PAttern;Free And PAttern;Driven             bottlenecks directly constrAin the performAnce of multimodAl
+3D FAshion Design. In 3D fAshion design: A criticAl distinction      leArning models1
+lies in whether the gArment structure is modeled implicitly
+or explicitly1 PAttern"free ApproAches Adopt An end"to"end              --2( Kimited RepresentAtion CApAcity. limitAtion stems
+geometry"bAsed decoder �see Figure gm0�b(( to directly predict       from the dAtA representAtions currently employed for sewing
+the anAl 3D shApe: such As A point cloud or mesh )92[:               pAtterns: which Are often too simplistic to cApture the
+)gm30[: )gm34[: )gm63[: )gm64[: )gm93[1 These models leArn A direct  full complexity of production"reAdy gArments1 Most existing
+mApping from the input �e1g1: sketches: imAges: or text( into        methodologies model A gArment As An ideAlized Assembly
+A complete 3D surfAce representAtion1 In contrAst: pAttern"          of 2D pAnels )2[: )25[1 This pArAdigm inherently lAcks the
+driven ApproAches employ structure"AwAre decoders: such As           cApAcity to describe cruciAl: non"pAnel components such
+LSTM or TrAnsformer Architectures: to generAte A set of 2D           As pockets: plAckets: collArs: cuggs: or the plAcement of
+sewing pAtterns As An intermediAte representAtion rAther thAn        hArdwAre like zippers And buttons1 Existing reseArch hAs
+the 3D shApe itself �see Figure gm0�c(( )gm[: )3[: )8[1 This         Addressed the chAllenge of enforcing geometric constrAints
+modeling choice leAds to A fundAmentAlly diggerent generAtion        on bAse pAnels: such As ensuring stitchAbility And pre"
+process1                                                             venting self"intersections )27[1 However: the output sewing
+                                                                     pAtterns still not A truly mAnufActurAble design since the
+   The pAttern"free pipeline typicAlly follows An end"to"end         lAck of the detAiled components )gm[: )3[: )30[1 This gAp
+pArAdigm: where A single neurAl model directly outputs the 3D        in representAtion is A mAjor bottleneck preventing the Auto"
+geometry from the input )gm76[: )gm94[: )gm95[: )gm96[: )gm97[1 By   mAtic generAtion of complete And industry"stAndArd sewing
+contrAst: the pAttern"driven pipeline is divided into two stAges     pAtterns1
+)28[: )29[: )30[: )32[1 In the arst stAge: A neurAl network gener"
+Ates pArAmetric 2D sewing pAtterns, in the second stAge: these          --3( mbiguous MultimodAl Inputs. Reconstructing sewing
+pAtterns Are Assembled into A 3D gArment through physics"            pAtterns from high"level inputs poses A big chAllenge due to
+bAsed simulAtion )55[: )60[: )62[: )gm98[: )gm99[1 The simulAtion    the Ambiguity And under"speciacAtion of source dAtA1 Inputs
+stAge relies on cAnonicAl principles from cloth simulAtion And       such As A single sketch: A product imAge: or A brief textuAl
+diggerentiAble physics reseArch: which form the foundAtion           description Are often under"speciaed: they lAck the detAiled
+for digitAlly drAping 2D pAnels into 3D forms )200[: )20gm[:         informAtion required to deane A single: unique 3D gArment
+)202[1 This two"stAge ApproAch explicitly incorporAtes physicAl      )28[1 Consequently: A single input cAn correspond to multiple
+constrAints And mAnufActuring logic into the design process1         plAusible pAttern designs: leAding to signiacAnt uncertAinty
+Consequently: the generAtive model produces not meshes: but          And vAriAbility in the reconstruction results1 The core tech"
+pArAmetric curves And pAnel structures thAt cAn be directly          nicAl diggjculty is to estAblish A robust mApping between
+interpreted And fAbricAted1                                          AbstrAct: quAlitAtive informAtion from the input modAlity And
+                                                                     the precise: quAntitAtive pArAmeters of the sewing pAtterns1
+   These ArchitecturAl diggerences leAd to notAble trAde"oggs1       For instAnce: the model must leArn how to trAnslAte A high"
+PAttern"free methods ogger high creAtive gjexibility And cAn         level concept like "loose sleeves; into speciac geometric
+produce highly novel gArment shApes1 However: their outputs          operAtions: such As widening the sleeve pAnel And Adjusting its
+Are often diggjcult to edit And lAck direct ApplicAbility to mAn"    boundAry curves )30[: )3gm[1 However: existing methods resolve
+ufActuring workgjows )gm35[: )gm36[1 In contrAst: pAttern"driven     this Ambiguity not by understAnding the AbstrAct principle
+methods emphAsize structured generAtion: yielding outputs            of "looseness;: but by leArning A stAtisticAl correlAtion from
+thAt Are inherently pArAmetric: editAble: And mAnufActurAble1        the dAtA1 They generAte A single pAttern thAt represents An
+By treAting sewing pAtterns As the primAry design repre"             AverAged version of All "loose sleeves; exAmples in their
+sentAtion: these ApproAches bridge the gAp between digitAl           trAining set1 Eggectively leArning this cross"modAl Alignment
+design And reAl"world gArment production: but the disAdvAn"          from AbstrAct concepts to concrete geometry remAins A primAry
+tAge is thAt their design freedom is relAtively limited )gm[:        open problem in the aeld1
+)203[: )204[1
+                                                                        --4( UnstAndArdized EvAluAtion Metrics. nother signia"
+B1 LimitAtions                                                       cAnt chAllenge is the lAck of A uniaed evAluAtion frAmework1
+                                                                     Most studies propose custom metrics tAilored to their own
+     lthough the remArkAble progress of deep leArning"bAsed          models: mAking it diggjcult to compAre results Across diggerent
+methods in sewing pAttern"driven 3D fAshion design: severAl          ApproAches )gm4[: )33[1 This Absence of stAndArdizAtion prevents
+inherent limitAtions hinder their widespreAd Adoption in prAc"       the aeld from estAblishing reliAble benchmArks for technicAl
+ticAl ApplicAtions: pArticulArly concerning dAtA AvAilAbility And    performAnce1 Furthermore: the evAluAtion of complex: quAlitA"
+quAlity1                                                             tive Attributes like design quAlity And Aesthetics remAins super"
+                                                                     aciAl1 Most studies rely on subjective user rAtings or expert
+   --gm( Deacient DAtAsets Size And QuAlity. mAjor limitA"           Assessments: which: while vAluAble: sugger from low scAlAbility
+tion is the lAck of lArge"scAle: high"quAlity: And stAndArdized      And potentiAl biAs: fAiling to provide deep insights into why
+dAtAsets for sewing pAtterns1 Most publicly AvAilAble dAtAsets       A design is considered successful )28[: )29[1 Consequently:
+Are relAtively smAll And lAck consistent: richly AnnotAted           there is An urgent need to develop both A stAndArdized suite of
+multimodAl informAtion )23[: )3gm[1 Moreover: Aligning sewing        metrics for core technicAl performAnce And more sophisticAted:
+pAtterns with corresponding 3D models: 2D sketches or                objective methods for Assessing the cruciAl Aspects of gArment
+imAges: And textuAl descriptions is A resource"intensive tAsk        design1
+thAt requires signiacAnt mAnuAl eggort And costs1 These dAtA
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                   475gm
+
+C1 Future Work                                                    like Aesthetic AppeAl And at: reseArch should Aim to creAte
+                                                                  objective: AutomAted metrics thAt cAn supplement subjective
+   We identify four key reseArch directions for future reseArch   user studies1 For exAmple: models could be trAined to predict
+thAt cAn AdvAnce the aeld of sewing pAttern"driven 3D fAshion     Aesthetic scores: while gArment at could be evAluAted using
+design1                                                           simulAtion"bAsed metrics like body"gArment distAnce or pres"
+                                                                  sure distribution mAps1
+   --gm( Building KArge,ScAle nnotAted DAtAsets. primAry
+focus should be on Addressing the current scArcity And quAlity                               X1 CONCLUSION
+issues of sewing pAttern dAtAsets1 Future eggorts must extend
+beyond simply increAsing dAtAset size to curAting lArge"scAle:       This survey hAs presented A systemAtic review of deep
+richly AnnotAted benchmArks1 These dAtAsets should include        leArning for sewing pAttern"driven 3D fAshion design1 We
+ane"grAined mAnufActuring detAils such As dArts: pleAts: seAm     introduced A novel four"stAge pipeline encompAssing Repre"
+AllowAnces: And corresponding fAbric properties: which Are        sentAtion: GenerAtion: Reconstruction: And Editing to structure
+often missing1 To fAcilitAte this: developing semi"AutomAted      the aeld And chArt its technologicAl progression1 Our AnAlysis
+AnnotAtion pipelines is cruciAl for eggjciently generAting pre"   trAced the evolution from foundAtionAl geometric encoding
+cisely Aligned dAtA tuples thAt link sewing pAtterns to their     techniques to sophisticAted deep leArning models cApAble of
+corresponding 3D models: 2D imAges: And textuAl descrip"          synthesizing And modifying complex gArment designs1 We
+tions1 Furthermore: exploring procedurAl generAtion techniques    speciacAlly highlighted the cruciAl tAsk of reconstructing mAn"
+And speciAlized dAtA AugmentAtion strAtegies tAilored for         ufActurAble pAtterns from multimodAl inputs like imAges And
+pAttern geometry could eggectively synthesize diverse: high"      text: And the emerging trend of intuitive: lAnguAge"driven
+quAlity sAmples: thereby mitigAting the dAtA bottleneck for       editing: which lowers the bArrier to digitAl design1
+trAining more cApAble models1
+                                                                     Despite these AdvAncements: our review identiaes severAl
+   --2( Developing Holistic And Structured RepresentA,            persistent chAllenges thAt hinder prActicAl ApplicAtion1 pri"
+tions. To trAnsition from ideAlized digitAl models to precise     mAry bottleneck is the scArcity of lArge"scAle: high"quAlity
+sewing pAtterns: future reseArch must prioritize the fundA"       dAtAsets feAturing stAndArdized: ane"grAined AnnotAtions for
+mentAl enhAncement of sewing pAttern representAtions1 The         production"reAdy pAtterns1 nother signiacAnt limitAtion lies
+pAnel"centric pArAdigm needs to evolve into A more holis"         in clothing representAtion: As existing methods struggle to
+tic: structured frAmework thAt cover the full complexity of       AccurAtely model complex gArments1 Furthermore: in multi"
+A gArment1 This requires estAblishing A richer descriptive        modAl pArsing: the fAshion"speciac semAntic understAnding of
+vocAbulAry thAt formAlizes not only bAse pAnels but Also          current models remAins insuggjcient1 FinAlly: the aeld lAcks
+AncillAry components such As pockets: collArs: And plAckets As    stAndArdized evAluAtion metrics, current Assessments often
+distinct pArAmetric entities1 Moreover: this representAtion must  prioritize geometric similArity while neglecting cruciAl Aspects
+integrAte speciacAtions for non"fAbric hArdwAre: detAiling the    such As Aesthetics: reconstruction adelity: And at1
+precise plAcement And type of zippers And buttons: while Also
+encoding the intricAte Assembly logic thAt dictAtes the inter"       Future reseArch should prioritize the development of
+connection of All components1 This would enAble leArning"         comprehensive dAtA ecosystems And the design of novel
+bAsed systems to directly generAte complete: mAnufActurAble       representAtion And deep leArning Architectures cApAble of
+pAtterns1                                                         reAsoning About geometric And physicAl constrAints1 Concur"
+                                                                  rently: AdvAncing multimodAl models And estAblishing robust
+   --3( Deepening MultimodAl UnderstAnding. ddressing             evAluAtion metrics is essentiAl for resolving input Ambiguity1
+the chAllenges in multimodAl reconstruction requires devel"       UltimAtely: these eggorts will enAble the creAtion of intelligent
+oping more robust models for hAndling Ambiguous: high"level       systems thAt cAn reliAbly construct generAtive sewing pAtterns
+inputs1 Future reseArch should investigAte probAbilistic generA"  suitAble for reAl"world mAnufActuring1
+tive frAmeworks: such As conditionAl vAriAtionAl Autoencoders
+�CV Es(: thAt cAn produce A distribution of plAusible pAttern                                  REFERENCES
+solutions from A single under"speciaed input like A sketch or
+text1 This ApproAch would better regject the inherent one"to"     )gm[ N1 Pietroni: C1 Dumery: R1 FAlque: M1 Liu: T1 VidAl"CAllejA: And
+mAny nAture of the design process1 Furthermore: An interActive            O1 Sorkine"Hornung: "ComputAtionAl pAttern mAking from 3D gArment
+pipeline where users cAn provide iterAtive feedbAck to dis"               models:; CM TrAns1 GrAph1: vol1 4gm: no1 4: pp1 gm-gm3: Jul1 20221
+AmbiguAte An initiAl prompt would be A vAluAble direction:
+Allowing for the progressive reanement of generAted pAtterns      )2[ M1 KorostelevA And S1 Lee: "GenerAting dAtAsets of 3D gArments with
+to more AccurAtely mAtch A designer#s speciac intent1                     sewing pAtterns:; in Proc1 NeurAl Inf1 Process1 Syst1 TrAck DAtAsets
+                                                                          BenchmArks: 202gm: pp1 gm-gm01
+   --4( FormulAting StAndArdized EvAluAtion Metrics. To
+foster systemAtic progress: the aeld requires A stAndArd"         )3[ F1 Berthouzoz: 1 GArg: D1 M1 KAufmAn: E1 Grinspun: And
+ized evAluAtion frAmework thAt Assesses the intrinsic quAlity             M1 grAwAlA: "PArsing sewing pAtterns into 3D gArments:; CM TrAns1
+And mAnufActurAbility of the sewing pAtterns1 For instAnce:               GrAph1: vol1 32: no1 4: pp1 gm-gm2: Jul1 20gm31
+new metrics should Assess A pAttern#s core mAnufActurAbil"
+ity by quAntifying its geometric vAlidity �e1g1: checking for     )4[ M1 JAnkoskA: " pplicAtion C D methods in 3D clothing design:;
+self"intersections(: stitchAbility �e1g1: meAsuring seAm length           TekstilnA IndustrijA: vol1 68: no1 4: pp1 3gm-37: 20201
+discrepAncies(: And stitching correctness �e1g1: verifying the
+AppropriAte pAnel set(1 For Assessing quAlitAtive Attributes      )5[ K1 Wolgg And O1 Sorkine"Hornung: "WAllpAper pAttern Alignment Along
+                                                                          gArment seAms:; CM TrAns1 GrAph1: vol1 38: no1 4: pp1 gm-gm2: 20gm91
+
+                                                                  )6[ H1 WAng: "Rule"free sewing pAttern Adjustment with precision And
+                                                                          eggjciency:; CM TrAns1 GrAph1: vol1 37: no1 4: pp1 gm-gm3: ug1 20gm81
+
+                                                                  )7[ E1 Scott And 1 S1 M1 SAyem: "LAndmArking And meAsuring for criticAl
+                                                                          body shApe AnAlysis tArgeting gArment at:; in Proc1 Int1 Conf1 Exhib1
+                                                                          3D Body ScAnning Process1 Technol1: 20gm8: pp1 222-2351
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4752  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+)8[ M1 KorostelevA And O1 Sorkine"Hornung: "GArmentCode. ProgrAm"                     )33[ C1"H1 Chen: J1"W1 Su: M1"C1 Hu: C1"Y1 YAo: And H1"K1 Chu:
+        ming pArAmetric sewing pAtterns:; CM TrAns1 GrAph1: vol1 42: no1 6:                   "PAnelformer. Sewing pAttern reconstruction from 2D gArment imAges:;
+        pp1 gm-gm5: Dec1 20231                                                                in Proc1 IEEE+CVF Winter Conf1 ppl1 Comput1 Vis1 -W CV(: JAn1 2024:
+                                                                                              pp1 443-4521
+)9[ K1 Liu et Al1: "3D interActive gArment pAttern"mAking technology:;
+        Comput1; ided Design: vol1 gm04: pp1 gmgm3-gm24: Nov1 20gm81                  )34[ X1 Li: Q1 YAo: And Y1 WAng: "GArmentDiggusion. 3D gArment sewing
+                                                                                              pAttern generAtion with multimodAl diggusion trAnsformers:; 2025:
+)gm0[ Y1 Meng: P1 Y1 Mok: And X1 Jin: "Computer Aided clothing pAttern                        ArXiv.250412gj4761
+        design with 3D editing And pAttern AlterAtion:; Comput1; ided Design:
+        vol1 44: no1 8: pp1 72gm-734: ug1 20gm21                                      )35[ S1 Li et Al1: "GArmAgeNet. multimodAl generAtive frAmework
+                                                                                              for sewing pAttern design And generic gArment modeling:; 2025:
+)gmgm[ M1 1 HAbib And M1 S1 lAm: " compArAtive study of 3D virtuAl                            ArXiv.250410gj4831
+        pAttern And trAditionAl pAttern mAking:; J1 Textile Sci1 Technol1: vol1 gm0:
+        no1 gm: pp1 gm-24: 20241                                                      )36[ Y1 TAtsukAwA: 1 Qi: I1"C1 Shen: And T1 IgArAshi: "GArmentImAge.
+                                                                                              RAster encoding of gArment sewing pAtterns with diverse topologies:;
+)gm2[ K1"H1 Choi: "3D dynAmic fAshion design development using digitAl                        2025: ArXiv.25051025921
+        technology And its potentiAl in online plAtforms:; FAshion Textiles:
+        vol1 9: no1 gm: p1 9: MAr1 20221                                              )37[ W1 Shi: W1 Wong: And X1 Zou: "GenerAtive I in fAshion. Overview:;
+                                                                                                CM TrAns1 Intell1 Syst1 Technol1: vol1 gm6: Feb1 2025: rt1 no1 37gm80981
+)gm3[ S1 Lu: P1 Y1 Mok: And X1 Jin: " new design concept. 3D to 2D
+        textile pAttern design for gArments:; Comput1; ided Design: vol1 89:          )38[ Y1 Xu: S1 ThomAssey: And X1 Zeng: " I for AppArel mAnufActuring in
+        pp1 35-49: ug1 20gm71                                                                 big dAtA erA. focus on cutting And sewing:; in rtiaciAl Intelligence
+                                                                                              for FAshion Industry in the Big DAtA ErA1 SingApore. Springer: 20gm8:
+)gm4[ M1 KorostelevA And S1"H1 Lee: "NeurAlTAilor. Reconstructing sewing                      pp1 gm25-gm5gm1
+        pAttern structures from 3D point clouds of gArments:; CM TrAns1
+        GrAph1: vol1 4gm: no1 4: pp1 gm-gm6: Jul1 20221                               )39[ Y1 Sun: Z1 HAo: Z1 WAng: J1 Jin: Q1 Ye: And Y1 Lyu: "Deep leArning for
+                                                                                              3D gArment generAtion. review:; Textile Qes1 J1: vol1 95: nos1 23-24:
+)gm5[ 1 ImtiAz: N1 PAthirAnA: S1 SAheel: K1 KArunAnAyAkA: And C1 TrenAdo:                     pp1 2882-2908: Dec1 20251
+        " review on the ingjuence of deep leArning And generAtive I in
+        the fAshion industry:; J1 Future rtif1 Intell1 Technol1: vol1 gm: no1 3:      )40[ X1 Chen: G1 WAng: D1 Zhu: X1 LiAng: P1 H1 S1 Torr: And L1 Lin:
+        pp1 20gm-2gm6: Oct1 20241                                                             "Structure"preserving 3D gArment modeling with neurAl sewing
+                                                                                              mAchines:; in Proc1 Int1 Conf1 NeurAl Inf1 Process1 Syst1: 2022:
+)gm6[ H1 SAdr et Al1: "Unveiling the potentiAl of ArtiaciAl intelligence in                   pp1 gm-gm31
+        revolutionizing diseAse diAgnosis And prediction. comprehensive
+        review of mAchine leArning And deep leArning ApproAches:; Eur1 J1 Med1        )4gm[ Y1 Shen: J1 LiAng: And M1 C1 Lin: "G N"bAsed gArment generAtion
+        Qes1: vol1 30: no1 gm: p1 4gm8: MAy 20251                                             using sewing pAttern imAges:; in Proc1 Eur1 Conf1 Comput1 Vis1: 2020:
+                                                                                              pp1 225-2471
+)gm7[ D1 SimiAn And F1 HusAc: "ChAllenges And opportunities in deep leArning
+        driven fAshion design And textiles pAtterns development:; in Modelling        )42[ K1 Wolgg: P1 Herholz: And O1 Sorkine"Hornung: "Regjection symmetry
+        And Development of Intelligent Systems1 ChAm: SwitzerlAnd. Springer:                  in textured sewing pAtterns:; in Proc1 Symp1 Vis1: Modeling VisuAlizAt1:
+        2023: pp1 gm73-gm871                                                                  20gm9: pp1 gm-81
+
+)gm8[ Y1 R1 Cui: Q1 Liu: C1 Y1 GAo: And Z1 Su: "FAshionG N. DisplAy your              )43[ C1 Liu: W1 Xu: Y1 YAng: And H1 WAng: " utomAtic digitAl gArment
+        fAshion design using conditionAl generAtive AdversAriAl nets:; Comput1                initiAlizAtion from sewing pAtterns:; CM TrAns1 GrAph1: vol1 43: no1 4:
+        GrAph1 Forum: vol1 37: no1 7: pp1 gm09-gmgm9: Oct1 20gm81                             pp1 gm-gm2: Jul1 20241
+
+)gm9[ X1 HAn: Z1 Wu: Z1 Wu: R1 Yu: And L1 S1 DAvis: "VITON. n imAge"                  )44[ Y1 ZhAng: L1 MA: Z1 Guo: T1 Li: And F1 Zou: "PersonAlized gArment
+        bAsed virtuAl try"on network:; in Proc1 IEEE+CVF Conf1 Comput1 Vis1                   pAttern generAtion bAsed on spAce vector And distAnce eAse:; Int1
+        PAttern Qecognit1: Jun1 20gm8: pp1 7543-75521                                         J1 Clothing Sci1 Technol1: vol1 35: no1 5: pp1 7gm5-737: Sep1 20231
+
+)20[ D1 Song: J1"H1 Zeng: M1 Liu: X1"Y1 Li: And 1" 1 Liu: "FAshion                    )45[ C1 Curtis: " document formAt for sewing pAtterns:; in Proc1 CM
+        customizAtion. ImAge generAtion bAsed on editing clue:; IEEE TrAns1                   Symp1 Document Eng1: ug1 2023: pp1 gm-41
+        Circuits Syst1 Video Technol1: vol1 34: no1 6: pp1 4434-4444: Jun1 20241
+                                                                                      )46[ H1"Y1 Chen et Al1: "Dress Anyone. utomAtic physicAlly"bAsed gArment
+)2gm[ N1 SArAaAnos: T1 Stuyck: X1 XiAng: Y1 Li: J1 Popovic: And R1 RAnjAn:                    pAttern reatting:; 2024: ArXiv.24051gj9gj481
+        "GArment3DGen. 3D gArment stylizAtion And texture generAtion:; in
+        Proc1 Int1 Conf1 3D Vis1 -3DV(: MAr1 2025: pp1 gm-gm81                        )47[ R1 Li: C1 CAo: C1 Dumery: Y1 You: H1 Li: And P1 FuA: "Single view gAr"
+                                                                                              ment reconstruction using diggusion mApping viA pAttern coordinAtes:;
+)22[ Y1 Xu: T1 Gu: W1 Chen: And C1 Chen: "OOTDiggusion. Outatting                             2025: ArXiv.25041083531
+        fusion bAsed lAtent diggusion for controllAble virtuAl try"on:; 2024:
+        ArXiv.240310gj7791                                                            )48[ R1 Li: B1 GuillArd: And P1 FuA: "ISP. Multi"lAyered gArment drAping
+                                                                                              with implicit sewing pAtterns:; in Proc1 dv1 NeurAl Inf1 Process1 Syst1:
+)23[ M1 KorostelevA et Al1: "GArmentCodeDAtA. dAtAset of 3D mAde"to"                          2023: pp1 gm-gm21
+        meAsure gArments with sewing pAtterns:; in Proc1 Eur1 Conf1 Comput1
+        Vis1: 2024: pp1 gmgm0-gm271                                                   )49[ T1 IgArAshi: T1 Moscovich: And J1 F1 Hughes: " s"rigid"As"
+                                                                                              possible shApe mAnipulAtion:; CM TrAns1 GrAph1: vol1 24: no1 3:
+)24[ S1 Lim: S1 Kim: And S1"H1 Lee: "SPnet. EstimAting gArment sewing                         pp1 gmgm34-gmgm4gm: Jul1 20051
+        pAtterns from A single imAge of A posed user:; in Proc1 EurogrAphics:
+        2024: pp1 gm-91                                                               )50[ 1 BArtle: 1 Shegger: V1 G1 Kim: D1 M1 KAufmAn: N1 Vining: And
+                                                                                              F1 Berthouzoz: "Physics"driven pAttern Adjustment for direct 3D gAr"
+)25[ T1 Y1 WAng: D1 CeylAn: J1 Popovic�: And N1 J1 MitrA: "LeArning A shAred                  ment editing:; CM TrAns1 GrAph1: vol1 35: no1 4: pp1 gm-gmgm: Jul1 20gm61
+        shApe spAce for multimodAl gArment design:; CM TrAns1 GrAph1:
+        vol1 37: no1 6: pp1 gm-gm3: Dec1 20gm81                                       )5gm[ P1 Jin et Al1: "Design And reseArch of AutomAtic GArment"PAttern"
+                                                                                              GenerAtion system bAsed on pArAmeterized design:; SustAinAbility:
+)26[ S1 NAg: 1 Qi: X1 Zhu: And 1 ShAmir: "PersonAlTAilor. Person"                             vol1 gm5: no1 2: p1 gm268: JAn1 20231
+        Alizing 2D pAttern design from 3D gArment point clouds:; 2023:
+        ArXiv.23031096951                                                             )52[ S1 Krzywinski And J1 Siegmund: "3D product development for loose"
+                                                                                              atting gArments bAsed on pArAmetric humAn models:; IOP Conf1 Ser1:
+)27[ S1 Liu et Al1: "MultimodAl lAtent diggusion model for complex sewing                     MAter1 Sci1 Eng1: vol1 254: Oct1 20gm7: rt1 no1 gm520061
+        pAttern generAtion:; 2024: ArXiv.24gj21gj44531
+                                                                                      )53[ S1 YAng et Al1: "Physics"inspired gArment recovery from A single"view
+)28[ F1 Zhou et Al1: "Design2GArmentCode. Turning design concepts to tAn"                     imAge:; CM TrAns1 GrAph1: vol1 37: no1 5: pp1 gm-gm4: Oct1 20gm81
+        gible gArments through progrAm synthesis:; in Proc1 IEEE+CVF Conf1
+        Comput1 Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2025: pp1 237gm2-237221           )54[ J1 Guo et Al1: "GArmentX. utoregressive pArAmetric representAtions
+                                                                                              for high"adelity 3D gArment generAtion:; 2025: ArXiv.25041204091
+)29[ S1 BiAn et Al1: "ChAtGArment. GArment estimAtion: generAtion And
+        editing viA lArge lAnguAge models:; in Proc1 IEEE+CVF Conf1 Comput1           )55[ X1 Li et Al1: "Dress"gm"to"3. Single imAge to simulAtion"reAdy
+        Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2025: pp1 2924-29341                              3D outat with diggusion prior And diggerentiAble physics:; 2025:
+                                                                                              ArXiv.25021034491
+)30[ K1 He: K1 YAo: Q1 ZhAng: J1 Yu: L1 Liu: And L1 Xu: "DressCode.
+          utoregressively sewing And generAting gArments from text guidAnce:;         )56[ M1 Shi: Y1 Wei: L1 Chen: D1 Zhu: T1 MAo: And Z1 WAng: "LeArning
+          CM TrAns1 GrAph1: vol1 43: no1 4: pp1 gm-gm3: Jul1 20241                            A shAred deformAtion spAce for eggjcient design"preserving gArment
+                                                                                              trAnsfer:; GrAph1 Models: vol1 gmgm5: MAy 202gm: rt1 no1 gm0gmgm061
+)3gm[ K1 NAkAyAmA et Al1: " IppArel. multimodAl foundAtion model for
+        digitAl gArments:; in Proc1 IEEE+CVF Conf1 Comput1 Vis1 PAttern               )57[ C1 BAo: Y1 MiAo: B1 Gu: K1 Liu: And Z1 Liu: "3D interActive
+        Qecognit1 -CVPQ(: Jun1 2025: pp1 8gm38-8gm491                                         gArment pArAmetric pAttern"mAking And linkAge editing bAsed on con"
+                                                                                              strAined contour lines:; Int1 J1 Clothing Sci1 Technol1: vol1 33: no1 5:
+)32[ L1 Liu: X1 Xu: Z1 Lin: J1 LiAng: And S1 YAn: "TowArds gArment sewing                     pp1 696-723: Nov1 202gm1
+        pAttern reconstruction from A single imAge:; CM TrAns1 GrAph1:
+        vol1 42: no1 6: pp1 gm-gm5: Dec1 20231                                        )58[ Z1 Su et Al1: "MulAyCAp. Multi"lAyer humAn performAnce cApture using
+                                                                                              A monoculAr video cAmerA:; IEEE TrAns1 Vis1 Comput1 GrAph1: vol1 28:
+                                                                                              no1 4: pp1 gm862-gm879: pr1 20221
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                                    4753
+
+)59[ N1 HAsler: B1 RosenhAhn: And H1"P1 Seidel: "Reverse engineering               )84[ M1 Pernus�: C1 Fookes: V1 S� truc: And S1 Dobris�ek: "FICE. Text"
+        gArments:; in Computer Vision+Computer GrAphics CollAborAtion Tech;                conditioned fAshion"imAge editing with guided G N inversion:;
+        niques1 Berlin: GermAny. Springer: 2007: pp1 200-2gmgm1                            PAttern Qecognit1: vol1 gm58: pp1 gm-gm8: Feb1 20251
+
+)60[ B1 Yu: F1 Cordier: And H1 Seo: "Inverse gArment And pAttern modeling          )85[ 1 RAdford et Al1: "LeArning trAnsferAble visuAl models from nAtu"
+        with A diggerentiAble simulAtor:; Comput1 GrAph1 Forum: vol1 43: no1 7:            rAl lAnguAge supervision:; in Proc1 Int1 Conf1 MAch1 LeArn1: 202gm:
+        p1 gm5249: Oct1 20241                                                              pp1 8748-87631
+
+)6gm[ W1 H1 Press: W1 T1 Vetterling: S1 1 Teukolsky: And B1 P1 FlAnnery:           )86[ M1 NAzAri: H1 SAdr: S1 RostAmi: And Z1 KhodAverdiAn: "EnhAncing
+        NumericAl Qecipes in C+. The rt of Scientiac Computing: 2nd ed1:                   web pAge clAssiacAtion through A semAntic"AwAre And eggjcient focused
+        CAmbridge: U1K1. CAmbridge Univ1 Press: 200gm: pp1 gm-gm0021                       crAwling methodology:; in Proc1 gjgjth Int1 Conf1 Web Qes1 -ICWQ(: pr1
+                                                                                           2025: pp1 gm69-gm741
+)62[ J1 LiAng: M1 C1 Lin: And V1 Koltun: "DiggerentiAble cloth simulAtion
+        for inverse problems:; in Proc1 dv1 NeurAl Inf1 Process1 Syst1: vol1 32:   )87[ C1 RAggel et Al1: "Exploring the limits of trAnsfer leArning with A
+        20gm9: pp1 77gm-7801                                                               uniaed text"to"text trAnsformer:; J1 MAch1 LeArn1 Qes1: vol1 2gm: no1 gm40:
+                                                                                           pp1 gm-67: 20gm91
+)63[ R1 NArAin: 1 SAmii: And J1 F1 O#Brien: " dAptive Anisotropic remesh"
+        ing for cloth simulAtion:; CM TrAns1 GrAph1: vol1 3gm: no1 6: pp1 gm-gm0:  )88[ H1 Liu: C1 Li: Q1 Wu: And Y1 J1 Lee: "VisuAl instruction tuning:; in
+        Nov1 20gm21                                                                        Proc1 Int1 Conf1 NeurAl Inf1 Process1 Syst1: 2023: pp1 34892-349gm61
+
+)64[ M1 Mernik: J1 Heering: And 1 M1 SloAne: "When And how to                      )89[ H1 Touvron et Al1: "LLAM . Open And eggjcient foundAtion lAnguAge
+        develop domAin"speciac lAnguAges:; CM Comput1 Surv1: vol1 37:                      models:; 2023: ArXiv.23021gj397gj1
+        no1 4: pp1 3gm6-344: Dec1 20051
+                                                                                   )90[ V1 ZouhAr et Al1: " formAl perspective on byte"pAir encoding:; in Proc1
+)65[ Z1 WAng: X1 TAo: X1 Zeng: Y1 Xing: Z1 Xu: And P1 BruniAux: "Design of                 Findings ssoc1 Comput1 Linguistics: CL: 2023: pp1 598-6gm41
+        customized gArments towArds sustAinAble fAshion using 3D digitAl sim"
+        ulAtion And mAchine leArning"supported humAn-product interActions:;        )9gm[ Z1 Qi et Al1: "TAilor3D. Customized 3D Assets editing And generAtion
+        Int1 J1 Comput1 Intell1 Syst1: vol1 gm6: no1 gm: p1 gm6: Feb1 20231                with duAl"side imAges:; 2024: ArXiv.2407106gj9gj1
+
+)66[ M1 NAzAri: H1 SAdr: H1 EmAmi: And R1 RAbiei: " telemonitoring                 )92[ C1 ZhAng et Al1: "FAbricDiggusion. High"adelity texture trAnsfer for 3D
+        system for high"risk pregnAncies. novel ApproAch to enhAncing                      gArments generAtion from in"the"wild imAges:; in Proc1 SIGGQ PH
+        prenAtAl cAre And reducing mAternAl And fetAl complicAtions:; in Proc1               siA Conf1 PApers: Dec1 2024: pp1 gm-gm31
+        gjgjth Int1 Conf1 Web Qes1 -ICWQ(: pr1 2025: pp1 43gm-4371
+                                                                                   )93[ X1 Li: J1 ZhAng: Y1"K1 LAi: J1 YAng: And K1 Li: "High"quAlity AnimAtAble
+)67[ C1 NAsh: Y1 GAnin: S1 M1 1 EslAmi: And P1 BAttAgliA: "PolyGen. n                      dynAmic gArment reconstruction from monoculAr videos:; IEEE TrAns1
+        Autoregressive generAtive model of 3D meshes:; in Proc1 Int1 Conf1                 Circuits Syst1 Video Technol1: vol1 34: no1 6: pp1 4243-4256: Jun1 20241
+        MAch1 LeArn1: 2020: pp1 7220-72291
+                                                                                   )94[ V1 PArekh: K1 ShAik: S1 BiswAs: And M1 ChelliAh: "Fine"grAined
+)68[ Y1 Siddiqui et Al1: "MeshGPT. GenerAting triAngle meshes with                         visuAl Attribute extrAction from fAshion weAr:; in Proc1 IEEE+CVF
+        decoder"only trAnsformers:; in Proc1 IEEE+CVF Conf1 Comput1 Vis1                   Conf1 Comput1 Vis1 PAttern Qecognit1 Workshops -CVPQW(: Jun1 202gm:
+        PAttern Qecognit1 -CVPQ(: Jun1 2024: pp1 gm96gm5-gm96251                           pp1 3968-39721
+
+)69[ S1 Hochreiter And J1 Schmidhuber: "Long short"term memory:; NeurAl            )95[ V1 PArekh: S1 MAthur: S1 BiswAs: And K1 ShAik: "VPER. VisuAl product
+        Comput1: vol1 9: no1 8: pp1 gm735-gm780: Nov1 gm9971                               entity recognition for fAshion"weAr:; in Proc1 5th Joint Int1 Conf1 DAtA
+                                                                                           Sci1 MAnAge1 DAtA -9th CM IKDD CODS 27th COM D(: JAn1 2022:
+)70[ 1 VAswAni et Al1: " ttention is All you need:; in Proc1 Int1 Conf1 NeurAl             pp1 270-2741
+        Inf1 Process1 Syst1: vol1 30: 2025: pp1 5998-60081
+                                                                                   )96[ U1 S1 MAlhi: J1 Zhou: C1 YAn: 1 RAsool: S1 Siddeeq: And M1 Du:
+)7gm[ 1 MAo: M1 Mohri: And Y1 Zhong: "Cross"entropy loss functions.                        "Unsupervised deep embedded clustering for high"dimensionAl visuAl
+        TheoreticAl AnAlysis And ApplicAtions:; in Proc1 Int1 Conf1 MAch1 LeArn1:          feAtures of fAshion imAges:; ppl1 Sci1: vol1 gm3: no1 5: p1 2828: Feb1
+        2023: pp1 gm-261                                                                   20231
+
+)72[ 1 Dosovitskiy et Al1: " n imAge is worth gm6 gm6 words. TrAnsformers          )97[ V1 BAdrinArAyAnAn: 1 KendAll: And R1 CipollA: "SegNet. deep convo"
+        for imAge recognition At scAle:; 2020: ArXiv.20gj01gjgj9291                        lutionAl encoder-decoder Architecture for imAge segmentAtion:; IEEE
+                                                                                           TrAns1 PAttern nAl1 MAch1 Intell1: vol1 39: no1 gm2: pp1 248gm-2495: Dec1
+)73[ R1 RombAch: 1 BlAttmAnn: D1 Lorenz: P1 Esser: And B1 Ommer:                           20gm71
+        "High"resolution imAge synthesis with lAtent diggusion models:; in
+        Proc1 IEEE+CVF Conf1 Comput1 Vis1 PAttern Qecognit1: Jun1 2022:            )98[ O1 Ronneberger: P1 Fischer: And T1 Brox: "U"Net. ConvolutionAl net"
+        pp1 gm0684-gm06951                                                                 works for biomedicAl imAge segmentAtion:; in Proc1 gj8th Int1 Conf1
+                                                                                           Med1 ImAge Comput1 Comput1; ssist1 Intervent1: 20gm5: pp1 234-24gm1
+)74[ C1 Du: J1 WAng: K1 Liu: And S1 Xiong: "GLV. Geometric correlAtion dis"
+        tillAtion for lAtent diggusion"enhAnced pArser"free virtuAl try"on:; IEEE  )99[ K1 He: X1 ZhAng: S1 Ren: And J1 Sun: "Deep residuAl leArning for
+        TrAns1 Circuits Syst1 Video Technol1: vol1 35: no1 9: pp1 9gm75-9gm89:             imAge recognition:; in Proc1 IEEE Conf1 Comput1 Vis1 PAttern Qecognit1
+        Sep1 20251                                                                         -CVPQ(: Jun1 20gm6: pp1 770-7781
+
+)75[ 1 Nichol And P1 DhAriwAl: "Improved denoising diggusion probAbilistic         )gm00[ H1 SAdr: M1 NAzAri: S1 YousefzAdeh"ChAbok: H1 EmAmi: R1 RAbiei:
+        models:; in Proc1 Int1 Conf1 MAch1 LeArn1: 202gm: pp1 8gm62-8gm7gm1                And 1 shrAf: "EnhAncing brAin tumor clAssiacAtion in MRI imAges.
+                                                                                               deep leArning"bAsed ApproAch for AccurAte diAgnosis:; ImAge Vis1
+)76[ W1 Peebles And S1 Xie: "ScAlAble diggusion models with trAnsformers:;                 Comput1: vol1 gm59: Jun1 2025: rt1 no1 gm055551
+        in Proc1 IEEE+CVF Int1 Conf1 Comput1 Vis1 -ICCV(: Oct1 2023:
+        pp1 4gm72-4gm821                                                           )gm0gm[ F1 MohAdes DeilAmi: H1 SAdr: And M1 NAzAri: "Using mAchine leArning"
+                                                                                           bAsed models for personAlity recognition:; Big DAtA Comput1 Vis1:
+)77[ J1 S1 Chen et Al1: "Pix rt" . FAst trAining of diggusion trAnsformer for              vol1 gm: no1 3: pp1 gm28-gm39: 202gm1
+        photoreAlistic text"to"imAge synthesis:; in Proc1 gj2th Int1 Conf1 LeArn1
+        Qepresent1: 2023: pp1 gm-3gm1                                              )gm02[ H1 SAdr: Z1 KhodAverdiAn: M1 NAzAri: And M1 YAmAghAni: " shAllow
+                                                                                           convolutionAl neurAl network for cerebrAl neoplAsm detection from
+)78[ J1 Song: C1 Meng: And S1 Ermon: "Denoising diggusion implicit                         mAgnetic resonAnce imAging:; Big DAtA Comput1 Vis1: vol1 4: no1 2:
+        models:; 2020: ArXiv.20gj01025021                                                  pp1 95-gm09: 20241
+
+)79[ Y1 DAng: T1 RuAn WAn: L1 Xi: And W1 TAng: " computer"vision bAsed             )gm03[ X1 ZhAi: B1 MustAfA: 1 Kolesnikov: And L1 Beyer: "Sigmoid loss for
+        frAmework for virtuAl 3D gArment reconstruction:; MultimediA Tools                 lAnguAge imAge pre"trAining:; in Proc1 IEEE+CVF Int1 Conf1 Comput1
+          ppl1: vol1 84: no1 24: pp1 27963-27985: Sep1 20241                               Vis1 -ICCV(: Oct1 2023: pp1 gmgm94gm-gmgm9521
+
+)80[ C1 C1 L1 WAng: Y1 WAng: And M1 M1 F1 Yuen: "FeAture bAsed 3D                  )gm04[ M1 OquAb et Al1: "DINOv2. LeArning robust visuAl feAtures without
+        gArment design through 2D sketches:; Comput1; ided Design: vol1 35:                supervision:; 2023: ArXiv.2304107gj931
+        no1 7: pp1 659-672: Jun1 20031
+                                                                                   )gm05[ K1 He: X1 Chen: S1 Xie: Y1 Li: P1 DollA�r: And R1 Girshick: "MAsked
+)8gm[ G1 TsAi And M1 C1 YAng: "How it is mAde mAtters. Distinguishing trAits               Autoencoders Are scAlAble vision leArners:; in Proc1 IEEE+CVF Conf1
+        of designs creAted by sketches: prototypes: And C D:; in Proc1 29th                Comput1 Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2022: pp1 gm5979-gm59881
+        Int1 Conf1 Design Theory Methodol1: ug1 20gm7: pp1 gm-gm21
+                                                                                   )gm06[ E1 Turquin: J1 Wither: L1 Boissieux: M1"P1 CAni: And J1 Hughes: "
+)82[ 1 FondevillA: D1 Rohmer: S1 HAhmAnn: 1 BousseAu: And M1"                              sketch"bAsed interfAce for clothing virtuAl chArActers:; IEEE Comput1
+        P1 CAni: "FAshion trAnsfer. Dressing 3D chArActers from stylized fAshion           GrAph1 ppl1: vol1 27: no1 gm: pp1 72-8gm: JAn1 20071
+        sketches:; Comput1 GrAph1 Forum: vol1 40: no1 6: pp1 466-483: Sep1
+        202gm1                                                                     )gm07[ P1 Y1 Mok: J1 Xu: X1 X1 WAng: J1 T1 FAn: Y1 L1 Kwok: And J1 H1 Xin:
+                                                                                           " n IG "bAsed design support system for reAlistic And prActicAl fAshion
+)83[ 1 JAin: D1 Modi: R1 JikAdrA: And S1 ChAchrA: "Text to imAge generAtion                designs:; Comput1; ided Design: vol1 45: no1 gmgm: pp1 gm442-gm458: Nov1
+        of fAshion clothing:; in Proc1 6th Int1 Conf1 Comput1 SustAin1 GlobAl              20gm31
+        Develop1 -INDI Com(: MAr1 20gm9: pp1 355-3581
+                                                                                   )gm08[ K1 Liu: X1 Zeng: X1 TAo: And P1 BruniAux: " ssociAte design of fAshion
+                                                                                           sketch And pAttern:; IEEE ccess: vol1 7: pp1 48830-48837: 20gm91
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4754  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+)gm09[ H1 YAn et Al1: "TowArd intelligent design. n I"bAsed fAshion designer          )gm35[ O1 Nyle�n: P1 PAll: Y1 IshiwAkA: K1 SudA: And M1 FrAtArcAngeli:
+        using generAtive AdversAriAl networks Aided by sketch And rendering                   "InterActive Assembly And AnimAtion of 3D digitAl gArments:; in Proc1
+        generAtors:; IEEE TrAns1 MultimediA: vol1 25: pp1 2323-2338: 20231                    EurogrAphics: 2020: pp1 73-761
+
+)gmgm0[ D1 ZhAng: Y1 Liu: J1 WAng: And J1 Li: " n integrAted method of 3D             )gm36[ J1 LeAf: D1 SebAstiAn Minor: G1 DAviet: N1 ChentAnez: G1 KlAr:
+        gArment design:; J1 Textile Inst1: vol1 gm09: no1 gm2: pp1 gm595-gm605: Dec1          And E1 Quigley: "Bolt. Clothing virtuAl chArActers At scAle:; 2025:
+        20gm81                                                                                ArXiv.25041gj76gj41
+
+)gmgmgm[ Y1 ZhAng: T1 ZhAng: And H1 Xie: "TexControl. Sketch"bAsed two"stAge          )gm37[ Z1 Sun et Al1: "TAilor. n integrAted text"driven CG"reAdy humAn And
+        fAshion imAge generAtion using diggusion model:; in Proc1 NicogrAph                   gArment generAtion system:; 2025: ArXiv.25031gj20521
+        Int1 -NicoInt(: Jun1 2024: pp1 64-681
+                                                                                      )gm38[ H1"J1 Chen: H1"H1 ShuAi: And W1"H1 Cheng: " survey of ArtiaciAl
+)gmgm2[ D1 HA And D1 Eck: " neurAl representAtion of sketch drAwings:; 20gm7:                 intelligence in fAshion:; IEEE SignAl Process1 MAg1: vol1 40: no1 3:
+        ArXiv.gj7041034771                                                                    pp1 64-73: MAy 20231
+
+)gmgm3[ Z1 Su et Al1: "Pixel diggerence networks for eggjcient edge detection:;       )gm39[ Y1 Choi: S1 KwAk: K1 Lee: H1 Choi: And J1 Shin: "Improving diggusion
+        in Proc1 IEEE+CVF Int1 Conf1 Comput1 Vis1 -ICCV(: Oct1 202gm:                         models for Authentic virtuAl try"on in the wild:; in Proc1 Eur1 Conf1
+        pp1 5097-5gm071                                                                       Comput1 Vis1: 2024: pp1 206-2351
+
+)gmgm4[ N1 UmetAni: D1 M1 KAufmAn: T1 IgArAshi: And E1 Grinspun: "Sensitive           )gm40[ J1 Gou: S1 Sun: J1 ZhAng: J1 Si: C1 QiAn: And L1 ZhAng: "TAming
+        couture for interActive gArment modeling And editing:; in Proc1 CM                    the power of diggusion models for high"quAlity virtuAl try"on with
+        SIGGQ PH PApers: Jul1 20gmgm: pp1 gm-gmgm1                                            AppeArAnce gjow:; in Proc1 3gjst CM Int1 Conf1 MultimediA: 2023:
+                                                                                              pp1 7599-76071
+)gmgm5[ 1 Qi And T1 IgArAshi: "PerfectTAilor. ScAle"preserving 2"D pAttern
+        Adjustment driven by 3"D gArment editing:; IEEE Comput1 GrAph1                )gm4gm[ R1 WAng et Al1: "StAbleGArment. GArment"centric generAtion viA stAble
+          ppl1: vol1 44: no1 4: pp1 gm26-gm32: Jul1 20241                                     diggusion:; 2024: ArXiv.24031gj07831
+
+)gmgm6[ P1 Volino: N1 MAgnenAt"ThAlmAnn: And F1 FAure: " simple ApproAch to           )gm42[ 1 LAmpe: J1 StopAr: D1 K1 JAin: S1 OmAchi: P1 Peer: And V1 S� truc:
+        nonlineAr tensile stiggness for AccurAte cloth simulAtion:; CM TrAns1                 "DiCTI. Diggusion"bAsed clothing designer viA text"guided input:; in
+        GrAph1: vol1 28: no1 4: pp1 gm-gm6: ug1 20091                                         Proc1 IEEE gj8th Int1 Conf1 utom1 FAce Gesture Qecognit1 -FG(: MAy
+                                                                                              2024: pp1 gm-91
+)gmgm7[ H1 Bertiche: M1 MAdAdi: And S1 EscAlerA: "CLOTH3D. Clothed 3D
+        humAns:; in Proc1 Eur1 Conf1 Comput1 Vis1: 2020: pp1 344-3591                 )gm43[ Z1 Guo: Z1 Zhu: Y1 Li: S1 CAo: H1 Chen: And G1 WAng: " I Assisted
+                                                                                              fAshion design. review:; IEEE ccess: vol1 gmgm: pp1 88403-884gm5:
+)gmgm8[ B1 BhAtnAgAr: G1 TiwAri: C1 TheobAlt: And G1 Pons"Moll: "Multi"                       20231
+        gArment Net. LeArning to dress 3D people from imAges:; in Proc1
+        IEEE+CVF Int1 Conf1 Comput1 Vis1 -ICCV(: Oct1 20gm9: pp1 54gm9-54291          )gm44[ X1 Sun: Z1 ZhAng: Y1 TAi: H1 TAng: Z1 Yi: And J1 YAng: "BArbie. Text
+                                                                                              to bArbie"style 3D AvAtArs:; 2024: ArXiv.2408109gj261
+)gmgm9[ W1 Yu: H1 ZhAng: X1 He: X1 Chen: L1 Xiong: And Z1 Qin: " esthetic"
+        bAsed clothing recommendAtion:; in Proc1 World Wide Web Conf1                 )gm45[ S1 CAo: W1 ChAi: S1 HAo: And G1 WAng: "ImAge reference"guided
+        -WWW(: 20gm8: pp1 649-6581                                                            fAshion design with structure"AwAre trAnsfer by diggusion models:;
+                                                                                              in Proc1 IEEE+CVF Conf1 Comput1 Vis1 PAttern Qecognit1 Workshops
+)gm20[ Y1 Ding: Y1 MA: W1 FAn: Y1 YAo: T1"S1 ChuA: And Q1 Li: "FAshionReGen.                  -CVPQW(: Jun1 2023: pp1 3525-35291
+        LLM"empowered fAshion report generAtion:; in Proc1 CM Web Conf1
+        CompAnion: MAy 2024: pp1 99gm-9941                                            )gm46[ G1 CAzenAvette: T1 WAng: 1 TorrAlbA: 1 1 Efros: And J1"
+                                                                                              Y1 Zhu: "WeArAble ImAgeNet. Synthesizing tileAble textures viA dAtAset
+)gm2gm[ P1 J1 ChiA et Al1: "ContrAstive lAnguAge And vision leArning of generAl               distillAtion:; in Proc1 IEEE+CVF Conf1 Comput1 Vis1 PAttern Qecognit1
+        fAshion concepts:; Sci1 Qep1: vol1 gm2: no1 gm: p1 gm8958: Nov1 20221                 Workshops -CVPQW(: Jun1 2022: pp1 2277-228gm1
+
+)gm22[ S1 MirchAndAni et Al1: "FAD"VLP. FAshion vision"And"lAnguAge pre"              )gm47[ B1 WAng: H1 Zheng: X1 LiAng: Y1 Chen: L1 Lin: And M1 YAng: "TowArd
+        trAining towArds uniaed retrievAl And cAptioning:; in Proc1 Conf1                     chArActeristic"preserving imAge"bAsed virtuAl try"on network:; in Proc1
+        EmpiricAl Methods NAturAl LAng1 Process1: 2022: pp1 gm0484-gm04971                    Eur1 Conf1 Comput1 Vis1: 20gm8: pp1 gm-gm61
+
+)gm23[ N1 1 Schoaeld And K1 L1 LABAt: "Exploring the relAtionships of                 )gm48[ R1 Yu: X1 WAng: And X1 Xie: "VTNFP. n imAge"bAsed vir"
+        grAding: sizing: And Anthropometric dAtA:; Clothing Textiles Qes1 J1:                 tuAl try"on network with body And clothing feAture preservAtion:;
+        vol1 23: no1 gm: pp1 gm3-27: JAn1 20051                                               in Proc1 IEEE+CVF Int1 Conf1 Comput1 Vis1 -ICCV(: Oct1 20gm9:
+                                                                                              pp1 gm05gm0-gm05gm91
+)gm24[ Y1 W1 Null And H1 HuAng: "Three dimensionAl pAttern grAding bAsed
+        on deformAble body feAtures And 3D developAble surfAce:; J1 Fiber             )gm49[ S1 JiAng: J1 Li: And Y1 Fu: "Deep leArning for fAshion style generAtion:;
+        Bioeng1 InformAt1: vol1 4: no1 2: pp1 gmgm5-gm28: Jun1 20gmgm1                        IEEE TrAns1 NeurAl Netw1 LeArn1 Syst1: vol1 33: no1 9: pp1 4538-4550:
+                                                                                              Sep1 20221
+)gm25[ T1 Peng: Y1 WAng: L1 Li: J1 Qin: J1 Liu: And X1 Hu: "VAriSize. dAtAset
+        And model for 3D gArment grAding And editing bAsed on lAtent spAce:;          )gm50[ S1 CAo: W1 ChAi: S1 HAo: Y1 ZhAng: H1 Chen: And G1 WAng:
+        in Proc1 IEEE Int1 Symp1 Product CompliAnce Eng1; siA -ISPCE; SI (:                   "DiggFAshion. Reference"bAsed fAshion design with structure"AwAre
+        Oct1 2024: pp1 gm-61                                                                  trAnsfer by diggusion models:; IEEE TrAns1 MultimediA: vol1 26:
+                                                                                              pp1 3962-3975: 20241
+)gm26[ E1 Bye: K1 LABAt: E1 McKinney: And D1"E1 Kim: "Optimized pAttern
+        grAding:; Int1 J1 Clothing Sci1 Technol1: vol1 20: no1 2: pp1 79-92: Feb1     )gm5gm[ F1 LiAo: X1 Zou: And W1 Wong: "Uni"DlLoR . Style ane"tuning for
+        20081                                                                                 fAshion imAge trAnslAtion:; in Proc1 32nd CM Int1 Conf1 MultimediA:
+                                                                                              Oct1 2024: pp1 6404-64gm31
+)gm27[ R1 Brouet: 1 Shegger: L1 Boissieux: And M1"P1 CAni: "Design preserving
+        gArment trAnsfer:; CM TrAns1 GrAph1: vol1 3gm: no1 4: pp1 gm-gmgm: Jul1       )gm52[ D1 Morelli: 1 BAldrAti: G1 CArtellA: M1 CorniA: M1 Bertini: And R1 Cuc"
+        20gm21                                                                                chiArA: "LADI"VTON. LAtent diggusion textuAl"inversion enhAnced
+                                                                                              virtuAl try"on:; in Proc1 3gjst CM Int1 Conf1 MultimediA: Oct1 2023:
+)gm28[ M1 RoscA: 1"D1 VAtrA: And M1 vAdAnei: "The digitAl trAnsformAtion                      pp1 8580-85891
+        of gArment product development:; IndustriA TextilA: vol1 74: no1 gm:
+        pp1 98-gm06: Feb1 20231                                                       )gm53[ J1 Shi: H1 ZhAng: D1 Zhou: And Z1 ZhAng: "TowArd intelligent interAc"
+                                                                                              tive design. generAtion frAmework bAsed on cross"domAin fAshion
+)gm29[ Y1 Kwon: S1 PetrAngeli: D1 Kim: H1 WAng: V1 SwAminAthAn: And                           elements:; in Proc1 3gjst CM Int1 Conf1 MultimediA: Oct1 2023:
+        H1 Fuchs: "TAilor me. n editing network for fAshion Attribute shApe                   pp1 7gm52-7gm631
+        mAnipulAtion:; in Proc1 IEEE+CVF Winter Conf1 ppl1 Comput1 Vis1
+        -W CV(: JAn1 2022: pp1 3gm42-3gm5gm1                                          )gm54[ Z1 Su: S1 ZhAo: H1 ZhAng: P1 Li: And Y1 Lu: "DigitAl printing imAge
+                                                                                              generAtion method bAsed on style trAnsfer:; Textile Qes1 J1: vol1 93:
+)gm30[ 1 SrivAstAvA: P1 MAnu: 1 RAj: V1 JAmpAni: And 1 ShArmA:                                nos1 23-24: pp1 52gmgm-5223: Dec1 20231
+        "WordRobe. Text"guided generAtion of textured 3D gArments:; in Proc1
+        Eur1 Conf1 Comput1 Vis1: 2025: pp1 458-4751                                   )gm55[ S1 ZhAng et Al1: "GArment ligner. Text"to"gArment generAtion viA
+                                                                                              retrievAl"Augmented multi"level corrections:; in Proc1 Eur1 Conf1 Com;
+)gm3gm[ S1"K1 Wong: "Modeling And simulAtion techniques for gArments:; in                     put1 Vis1: 2024: pp1 gm48-gm641
+        Computer Technology for Textiles And ppArel1 SAwston: C : US .
+        WoodheAd Publishing: 20gmgm: pp1 gm73-gm991                                   )gm56[ X1 ZhAng et Al1: " RM NI. PArt"level gArment"text Alignment for
+                                                                                              uniaed cross"modAl fAshion design:; in Proc1 30th CM Int1 Conf1
+)gm32[ K1 Wolgg: P1 Herholz: V1 Ziegler: F1 Link: N1 Bru'gel: And O1 Sorkine"                 MultimediA: Oct1 2022: pp1 4525-45351
+        Hornung: "Designing personAlized gArments with body movement:;
+        Comput1 GrAph1 Forum: vol1 42: no1 gm: pp1 gm80-gm94: Feb1 20231              )gm57[ Z1 ZhAng et Al1: "UFC"BERT. Unifying multi"modAl controls for
+                                                                                              conditionAl imAge synthesis:; in Proc1 dv1 NeurAl Inf1 Process1 Syst1:
+)gm33[ D1 Song et Al1: "Better at. ccommodAte vAriAtions in clothing types                    vol1 34: 202gm: pp1 27gm96-272081
+        for virtuAl try"on:; IEEE TrAns1 Circuits Syst1 Video Technol1: vol1 35:
+        no1 5: pp1 4287-4299: MAy 20251                                               )gm58[ S1 Zhu: S1 Fidler: R1 UrtAsun: D1 Lin: And C1 C1 Loy: "Be your own
+                                                                                              prAdA. FAshion synthesis with structurAl coherence:; in Proc1 IEEE Int1
+)gm34[ B1 Li et Al1: "GArmentDreAmer. 3DGS guided gArment synthesis with                      Conf1 Comput1 Vis1 -ICCV(: Oct1 20gm7: pp1 gm689-gm6971
+        diverse geometry And texture detAils:; 2024: ArXiv.24051gj24201
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+LUO et Al1. DEEP LE RNING FOR 3D F SHION DESIGN                                                                                           4755
+
+)gm59[ Z1 Chong: X1 ZhAng: F1 ZhAo: Z1 Xie: And X1 LiAng: "FAshion mAtrix.        )gm82[ C1 Kong: D1 Jeon: O1 Kwon: And N1 KwAk: "LeverAging ogg"the"shelf
+        Editing photos by just tAlking:; 2023: ArXiv.23071gj32401
+                                                                                  diggusion model for multi"Attribute fAshion imAge mAnipulAtion:; in
+)gm60[ T1 WAng And M1 Ye: "TexFit. Text"driven fAshion imAge editing with
+        diggusion models:; in Proc1 I Conf1 rtif1 Intell1: vol1 38: 2024:         Proc1 IEEE+CVF Winter Conf1 ppl1 Comput1 Vis1 -W CV(: JAn1 2023:
+        pp1 gm0gm98-gm02061
+                                                                                  pp1 848-8571
+)gm6gm[ X1 ZhAng et Al1: "DiggCloth. Diggusion bAsed gArment synthesis
+        And mAnipulAtion viA structurAl cross"modAl semAntic Alignment:;          )gm83[ K1 Sun: P1 ZhAng: J1 ZhAng: J1 TAo: And K1 YuAn: "PFNet.
+        in Proc1 IEEE+CVF Int1 Conf1 Comput1 Vis1 -ICCV(: Oct1 2023:
+        pp1 23097-23gm061                                                         ttribute"AwAre personAlized fAshion editing with explAinAble fAshion
+
+)gm62[ L1 Qiu et Al1: "RichDreAmer. generAlizAble normAl"depth diggusion          compAtibility AnAlysis:; Inf1 Process1 MAnAge1: vol1 6gm: no1 gm: JAn1
+        model for detAil richness in text"to"3D:; in Proc1 IEEE+CVF Conf1
+        Comput1 Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2024: pp1 99gm4-99251         2024: rt1 no1 gm035401
+
+)gm63[ Z1 Su: T1 Yu: Y1 WAng: And Y1 Liu: "DeepCloth. NeurAl gArment              )gm84[ 1 S1 M1 SAyem: "DigitAl fAshion innovAtions for the reAl world And
+        representAtion for shApe And style editing:; IEEE TrAns1 PAttern nAl1
+        MAch1 Intell1: vol1 45: no1 2: pp1 gm58gm-gm593: Feb1 20231               metAverse:; Int1 J1 FAshion Design: Technol1 Educ1: vol1 gm5: no1 2:
+
+)gm64[ L1 Qiu: G1 Chen: J1 Zhou: M1 Xu: J1 WAng: And X1 HAn: "REC"MV.             pp1 gm39-gm4gm: MAy 20221
+        REconstructing 3D dynAmic cloth from monoculAr videos:; in Proc1
+        IEEE+CVF Conf1 Comput1 Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2023:          )gm85[ J1"M1 Lu And M1"J1 WAng: " computer"Aided production system for
+        pp1 4637-46461
+                                                                                  mAss customizAtion in fAshion:; Sci1 J1 QigA Tech1 Univ1 Comput1 Sci1:
+)gm65[ M1 Sun et Al1: "IF"gArments. Reconstructing your intersection"free
+        multi"lAyered gArments from monoculAr videos:; in Proc1 32nd CM           vol1 43: no1 gm: pp1 gm04-gm09: JAn1 20gmgm1
+        Int1 Conf1 MultimediA: Oct1 2024: pp1 6588-65971
+                                                                                  )gm86[ R1 NAyAk And R1 PAdhye: GArment MAnufActuring Technology1 ms"
+)gm66[ R1 Li: C1 Dumery: B1 GuillArd: And P1 FuA: "GArment recovery with
+        shApe And deformAtion priors:; in Proc1 IEEE+CVF Conf1 Comput1 Vis1       terdAm: The NetherlAnds. Elsevier: 20gm5: pp1 gm-4981
+        PAttern Qecognit1 -CVPQ(: Jun1 2024: pp1 gm586-gm5951
+                                                                                  )gm87[ Z1 JiAng: J1 Guo: And X1 ZhAng: "FAst custom AppArel design
+)gm67[ Y1 Li: F1 Luo: And C1 XiAo: "Diggusion"FOF. Single"view clothed humAn
+        reconstruction viA diggusion"bAsed Fourier occupAncy aeld:; in Proc1      And simulAtion for future demAnd"driven mAnufActuring:;
+        IEEE+CVF Conf1 Comput1 Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2024:
+        pp1 9525-95341                                                            Int1 J1 Clothing Sci1 Technol1: vol1 32: no1 2: pp1 255-270:
+
+)gm68[ Z1 Luo et Al1: "GArVerseLOD. High"adelity 3D gArment reconstruction        Nov1 20gm91
+        from A single in"the"wild imAge using A dAtAset with levels of detAils:;
+        2024: ArXiv.24gjgj1030471                                                 )gm88[ L1 Liu: Z1 Su: X1 Fu: L1 Liu: R1 WAng: And X1 Luo:
+
+)gm69[ 1 SrivAstAvA: C1 PokhAriyA: S1 S1 JinkA: And 1 ShArmA: "XCloth.            " dAtA"driven editing frAmework for AutomAtic 3D gArment
+        ExtrActing templAte"free textured 3D clothes from A monoculAr imAge:;
+        in Proc1 30th CM Int1 Conf1 MultimediA: Oct1 2022: pp1 2504-25gm21        modeling:; MultimediA Tools ppl1: vol1 76: no1 gm0: pp1 gm2597-gm2626:
+
+)gm70[ S1 BAng: M1 KorostelevA: And S1"H1 Lee: "EstimAting gArment pAt"           MAy 20gm71
+        terns from stAtic scAn dAtA:; Comput1 GrAph1 Forum: vol1 40: no1 6:
+        pp1 273-287: Sep1 202gm1                                                  )gm89[ B1 JiAng: J1 ZhAng: H1 C1 YAng: J1 Luo: L1 Liu: And H1 BAo: "BCNet.
+
+)gm7gm[ Y1 Jeong: K1 Hong: And S1"J1 Kim: "3D pAttern construction And            LeArning body And cloth shApe from A single imAge:; in Proc1 Eur1
+        its ApplicAtion to tight"atting gArments for comfortAble pressure
+        sensAtion:; Fibers Polym1: vol1 7: no1 2: pp1 gm95-202: Jun1 20061        Conf1 Comput1 Vis1: 2020: pp1 gm8-351
+
+)gm72[ W1 Ji: X1 Li: F1 Wu: Z1 PAn: And Y1 ZhuAng: "HumAn"centric                 )gm90[ G1 Moon: H1 NAm: T1 ShirAtori: And K1 M1 Lee: "3D clothed humAn
+        clothing segmentAtion viA deformAble semAntic locAlity"preserving
+        network:; IEEE TrAns1 Circuits Syst1 Video Technol1: vol1 30: no1 gm2:    reconstruction in the wild:; in Proc1 Eur1 Conf1 Comput1 Vis1: 2022:
+        pp1 4837-4848: Dec1 20201
+                                                                                  pp1 gm-251
+)gm73[ J1 Jung: H1 Kim: And J1 PArk: "Deep fAshion designer. GenerAtive
+        AdversAriAl networks for fAshion item generAtion bAsed on mAny"to"        )gm9gm[ 1 jith et Al1: "Robotic AutomAtion in AppArel mAnufActuring.
+        one imAge trAnslAtion:; Electronics: vol1 gm4: no1 2: p1 220: JAn1 20251
+                                                                                  novel ApproAch to fAbric hAndling And sewing:; 2025: ArXiv.25031
+)gm74[ D1 Song et Al1: "ImAge"bAsed virtuAl try"on. survey:; Int1 J1 Comput1
+        Vis1: vol1 gm33: no1 5: pp1 2692-2720: MAy 20251                          002491
+
+)gm75[ M1 NAzAri: H1 EmAmi: R1 RAbiei: H1 R1 RAbiee: 1 SAlAri: And H1 SAdr:       )gm92[ Y1 JhAnji: "Computer"Aided design-gArment designing And
+        "EnhAncing cArdiAc function Assessment. Developing And vAlidAting
+        A domAin AdAptive frAmework for AutomAting the segmentAtion of            pAtternmAking:; in utomAtion in GArment MAnufActuring: R1 NAyAk
+        echocArdiogrAm videos:; Computerized Med1 ImAg1 GrAph1: vol1 gm24:
+        Sep1 2025: rt1 no1 gm026271                                               And R1 PAdhye: Eds1: SAwston: C : US . WoodheAd Publishing:
+
+)gm76[ Y1 JiAng: D1 Ji: Z1 HAn: And M1 Zwicker: "SDFDigg. DiggerentiAble          20gm8: pp1 253-2901
+        rendering of signed distAnce aelds for 3D shApe optimizAtion:; in Proc1
+        IEEE+CVF Conf1 Comput1 Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2020:          )gm93[ X1 Cong And W1 ZhAng: "The ApplicAtion of hierArchicAl perception
+        pp1 gm248-gm2581
+                                                                                  technology bAsed on deep leArning in 3D fAshion design:; Heliyon:
+)gm77[ M1 Feng: L1 ZhAng: X1 Lin: S1 Z1 GilAni: And 1 MiAn: "Point
+        Attention network for semAntic segmentAtion of 3D point clouds:;          vol1 gm0: no1 9: MAy 2024: rt1 no1 e299831
+        PAttern Qecognit1: vol1 gm07: Nov1 2020: rt1 no1 gm074461
+                                                                                  )gm94[ Z1 WAng: "3D representAtion methods.             survey:; 2024:
+)gm78[ D1 Liu et Al1: "Uni3D"LLM. Unifying point cloud perception: generA"
+        tion And editing with lArge lAnguAge models:; 2024: ArXiv.24021033271     ArXiv.24gj01064751
+
+)gm79[ H1 KeshAvArz: H1 SAdr: M1 NAzAri: And 1 SAlAri: "FAcilitAting timely       )gm95[ H1 Chen: Y1 YAo: And J1 ZhAng: "NeurAl" BC. NeurAl pArAmetric
+        decision"mAking in heAlthcAre. n object detection ApproAch for Auto"
+        mAted coronAry Artery stenosis detection:; Frontiers Biomed1 Technol1:    models for ArticulAted body with clothes:; IEEE TrAns1 Vis1 Comput1
+        vol1 gm4: pp1 gm-gm2: Jul1 20251
+                                                                                  GrAphics: vol1 3gm: no1 2: pp1 gm478-gm495: Feb1 20251
+)gm80[ H1 YAn: H1 ZhAng: J1 Shi: J1 MA: And X1 Xu: "TowArd intelligent
+        fAshion design. texture And shApe disentAngled generAtive AdversAriAl     )gm96[ B1 GuillArd: F1 StellA: And P1 FuA: "MeshUDF. FAst And diggerentiAble
+        network:; CM TrAns1 MultimediA Comput1: Commun1: ppl1: vol1 gm9:
+        no1 3: pp1 gm-23: ug1 20231                                               meshing of unsigned distAnce aeld networks:; in Proc1 Eur1 Conf1
+
+)gm8gm[ K1 k: 1 KAssim: J1"H1 Lim: And J1 Y1 ThAm: " ttribute                     Comput1 Vis1: 2022: pp1 576-5921
+        mAnipulAtion generAtive AdversAriAl networks for fAshion imAges:;
+        in Proc1 IEEE+CVF Int1 Conf1 Comput1 Vis1 -ICCV(: Oct1 20gm9:             )gm97[ L1 De Luigi: R1 Li: B1 GuillArd: M1 SAlzmAnn: And P1 FuA:
+        pp1 gm0540-gm05491
+                                                                                  "DrApeNet. GArment generAtion And self"supervised drAping:; in Proc1
+
+                                                                                  IEEE+CVF Conf1 Comput1 Vis1 PAttern Qecognit1 -CVPQ(: Jun1 2023:
+
+                                                                                  pp1 gm45gm-gm4601
+
+                                                                                  )gm98[ Y1 Li: H1"Y1 Chen: E1 LArionov: N1 SArAaAnos: W1 MAtusik: And
+
+                                                                                  T1 Stuyck: "Digg vAtAr. SimulAtion"reAdy gArment optimizAtion with
+
+                                                                                  diggerentiAble simulAtion:; in Proc1 IEEE+CVF Conf1 Comput1 Vis1
+
+                                                                                  PAttern Qecognit1 -CVPQ(: Jun1 2024: pp1 4368-43781
+
+                                                                                  )gm99[ S1 RostAmi: H1 SAdr: 1 shrAf: And M1 NAzAri: " n eggjcient hybrid
+
+                                                                                  deep neurAl network for intelligence quotient detection from brAin
+
+                                                                                  mAgnetic resonAnce imAging:; in Proc1 gjgjth Int1 Conf1 Web Qes1
+
+                                                                                  -ICWQ(: pr1 2025: pp1 5gm5-52gm1
+
+                                                                                  )200[ X1 Yu: S1 ZhAo: S1 Luo: G1 YAng: And L1 ShAo: "DiggCloth I. Dif"
+
+                                                                                  ferentiAble cloth simulAtion with intersection"free frictionAl contAct
+
+                                                                                  And diggerentiAble two"wAy coupling with ArticulAted rigid bodies:;
+
+                                                                                  in Proc1 IEEE+QSJ Int1 Conf1 Intell1 Qobots Syst1 -IQOS(: Oct1 2023:
+
+                                                                                  pp1 400-4071
+
+                                                                                  )20gm[ Y1 Li: T1 Du: K1 Wu: J1 Xu: And W1 MAtusik: "DiggCloth. DiggerentiAble
+
+                                                                                  cloth simulAtion with dry frictionAl contAct:; CM TrAns1 GrAph1:
+
+                                                                                  vol1 42: no1 gm: pp1 gm-20: Oct1 20221
+
+                                                                                  )202[ D1 BArAgg And 1 Witkin: "LArge steps in cloth simulAtion:; in Proc1
+
+                                                                                  25th nnu1 Conf1 Comput1 GrAph1 InterAct1 Techn1 -SIGGQ PH(: gm998:
+
+                                                                                  pp1 43-541
+
+                                                                                  )203[ Y1 Yunchu And Z1 WeiyuAn: "Prototype gArment pAttern gjAttening bAsed
+
+                                                                                  on individuAl 3D virtuAl dummy:; Int1 J1 Clothing Sci1 Technol1: vol1 gm9:
+
+                                                                                  no1 5: pp1 334-348: Oct1 20071
+
+                                                                                  )204[ M1 ZhuAng And X1 ZhAng: " novel AppArel surfAce gjAttening
+
+                                                                                  Algorithm:; Int1 J1 Clothing Sci1 Technol1: vol1 25: no1 4: pp1 300-3gm6:
+
+                                                                                  Jul1 20gm31
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+4756  IEEE TR NS CTIONS ON CIRCUITS ND SYSTEMS FOR VIDEO TECHNOLOGY: VOL1 36: NO1 4: PRIL 2026
+
+      Jinbo Kuo received the mAster#s degree from MAcAu                                      Jie ZhAng �Member: IEEE( received the Ph1D1
+      University of Science And Technology1 He is cur"                                       degree from The Hong Kong Polytechnic University:
+      rently pursuing the Ph1D1 degree with the School of                                    Kowloon: Hong Kong1 He is currently A Lecturer
+      FAshion And Textiles: The Hong Kong Polytechnic                                        with the FAculty of pplied Sciences: MAcAo Poly"
+      University: Kowloon: Hong Kong1 With A bAck"                                           technic University: MAcAu: ChinA1 He hAs published
+      ground in ArtiaciAl intelligence: his current reseArch                                 over 30 peer"reviewed journAl Articles �including
+      interests include I for 3D fAshion design And                                          IEEE TR NS CTIONS ON VISU LIZ TION ND
+      sewing pAtterns generAtion1                                                            COMPUTER GR PHICS: IEEE TR NS CTIONS ON
+                                                                                             MULTIMEDI : IEEE TR NS CTIONS ON INSTRU"
+      Hong Qu received the Ph1D1 degree from The Hong                                        MENT TION ND ME SUREMENT: C D: IJHCS:
+      Kong Polytechnic University in 20231 She is cur"                                       And IJHCI(: three textbooks: pAtents: And internA"
+      rently A Post"DoctorAl ReseArcher with the School       tionAl conference pApers1 His current reseArch interests include I for design
+      of FAshion: The Hong Kong Polytechnic University1       And grAphics: 3D generAtive models: ergonomic design: humAn-computer
+      She hAs extensive experience in both industry And       interAction: And 3D digitAl humAn modeling1
+      AcAdemic reseArch1 Her reseArch interests include
+      computer"Aided design: ArtiaciAl intelligence Appli"
+      cAtions in the fAshion industry: And humAn-mAchine
+      interAction: including both computer systems And
+      robotic Arms1
+
+      Xujie ZhAo received the mAster#s degree from            XAdie XAng received the Ph1D1 degree from The
+      London College of FAshion: University of the rts        Hong Kong Polytechnic University1 She is currently
+      London1 She is currently A FAshion Designer whose       An ssistAnt Professor with the School of FAshion
+      work is At the intersection of Art And modern crAft1    And Textiles: The Hong Kong Polytechnic Uni"
+      She is A TeAching ssistAnt with the School of rts       versity1 She hAs published peer"reviewed Articles
+      And Design: University of SAnyA1 Her prActice"bAsed     in top fAshion And textile journAls: pAtents: And
+      reseArch focuses on sustAinAble pAttern cutting in the  internAtionAl conference pApers1 Her reseArch inter"
+      AreAs of AppArel And Accessories1                       ests include ergonomic fAshion design: smArt textile
+                                                              design: knitting technology: sustAinAble fAshion And
+                                                              textiles1
+
+Bvuipsjafe mjdfotfe vtf mjnjufe up: Ofubkj Tvcibt Vojwfstjuz pg Ufdiopmphz Ofx Efmij. Epxompbefe po Bvhvtu 42,3137 bu 18:67:32 VUD gspn JFFF Yqmpsf. Sftusjdujpot bqqmz.
+
