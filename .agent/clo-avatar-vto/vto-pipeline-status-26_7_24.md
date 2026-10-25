@@ -148,17 +148,35 @@ until you dig).
      CLO/SDK-level issue, not something fixable in our plugin code. If it
      completes fine manually, the issue is specific to how the plugin calls
      it (wrong thread context, wrong timing relative to other queued
-     commands, etc.).
-   - Add `TraceLog` `BEGIN`/`END` instrumentation around the `simulate`
-     command handler (currently has none, unlike `create-seam`) so future
-     hangs are unambiguous in the log instead of inferred from "the next
-     tick never returned."
-   - Check whether the avatar's position ("very ahead of grid," per the
-     user's observation, not yet independently confirmed) is a factor —
-     an avatar transform far from CLO's world origin is a plausible way to
-     make a physics/collision solver degrade or loop pathologically. Avatar
-     import itself is out of scope to change, but worth checking whether
-     this is cause or coincidence.
+     commands, etc.). **Still needs a human to actually do this — not done.**
+   - ✅ **Done (2026-07-25):** Added `TraceLog` `BEGIN`/`END` instrumentation
+     around the `simulate` command handler in `RestPlugin_windows.cpp`
+     (previously had none, unlike `create-seam`) — a future hang now shows
+     unambiguously as a `BEGIN simulate ...` line with no matching `END`,
+     instead of being inferred from "the next drain tick never returned."
+     Plugin rebuilt clean (`python clo_workspace/build_plugin.py`) — **still
+     needs manual admin install + CLO restart before it takes effect**, same
+     caveat as Bug 2's fix below.
+   - ❌ **Tried and reverted (2026-07-25):** Found a real, applicable SDK
+     entry point for the "avatar far from world origin" hypothesis —
+     `UtilityAPIInterface.h` declares `AlignAvatarsAndGarmentToCenter()`, a
+     real, no-arg, void SDK call that recenters both avatar and garment.
+     Wired it into both plugin platforms as a new queued command
+     (`POST /align-to-center`, capability flag `has_align_to_center`) and
+     called it from `step_10_simulate.py` right before `simulate()`.
+     **Live test immediately showed this breaks the scene**: the 3D window
+     collapsed to a single-point "starburst" of degenerate lines, avatar and
+     garment silhouette both gone — `AlignAvatarsAndGarmentToCenter()` is
+     not safe to call on patterns that are still in their pre-simulation
+     arranged (not yet draped) state. **The call to it in
+     `step_10_simulate.py` has been removed** (a `# Do NOT call` comment is
+     left in its place). The plugin-side command/endpoint/capability flag
+     are left in place (harmless when unused) but `client.align_to_center()`
+     is now documented as unsafe pre-simulate and is not called anywhere in
+     the pipeline. **Net effect: the off-origin hypothesis is untested, not
+     ruled out** — this attempt just proved *this* call site is wrong, not
+     that avatar position is irrelevant to the hang. The GUI-repro step above
+     becomes the next real lead.
 3. **Once Simulate() completes reliably**, re-run and confirm Bug 4's export
    gate passes on its own (avatar mesh present, real drape) — expected to
    resolve automatically once 2 is fixed, per the original causal-chain

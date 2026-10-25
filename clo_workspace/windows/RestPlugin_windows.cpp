@@ -712,6 +712,7 @@ void StartRESTServer()
                 {"has_set_fabric_color", true},
                 {"has_set_fabric_texture", true},
                 {"has_set_fabric_graphic", true},
+                {"has_align_to_center", true},
                 {"notes", "has_avatar_state_readback, has_avatar_avt_export, and has_avatar_visibility_set are set from real usage (Phase 3 / Bug-2 fix), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
             };
             res.set_content(response.dump(), "application/json");
@@ -1067,6 +1068,38 @@ void StartRESTServer()
                 {"success",    true},
                 {"message",    "Simulation queued"},
                 {"steps",      cmd.param3},
+                {"queue_size", (int)g_commandQueue.size()}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
+    // Align avatar(s) and garment to world center - QUEUED (main-thread safe)
+    // Bug 3 investigation: the leading unconfirmed hypothesis for the
+    // Simulate() hang is that the avatar sits far from CLO's world origin
+    // ("very ahead of grid," per the user's observation) and the cloth
+    // physics/collision solver degrades or loops pathologically at that
+    // offset. AlignAvatarsAndGarmentToCenter() is a real, no-arg SDK call
+    // (UtilityAPIInterface.h) that recenters both — call it right before
+    // Simulate() to test/rule out that theory without touching avatar
+    // import itself.
+    svr.Post("/align-to-center", [](const Request&, Response& res) {
+        try {
+            APICommand cmd;
+            cmd.type = "align-to-center";
+
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+            }
+
+            json response = {
+                {"success",    true},
+                {"message",    "Align-to-center queued"},
                 {"queue_size", (int)g_commandQueue.size()}
             };
             res.set_content(response.dump(), "application/json");
@@ -1818,7 +1851,19 @@ void ProcessCommandQueue()
             }
             // ── Simulation ────────────────────────────────────────────────
             else if (cmd.type == "simulate") {
+                // No BEGIN/END coverage existed here before — every prior
+                // Simulate() hang had to be inferred from "the next drain
+                // tick never returned" rather than seen directly. This makes
+                // a hang unambiguous: BEGIN with no matching END means the
+                // hang is inside UTILITY_API->Simulate() itself.
+                int patternCountNow = -1;
+                try { patternCountNow = PATTERN_API->GetPatternCount(); } catch (...) {}
+                TraceLog(
+                    "BEGIN simulate steps=" + std::to_string(cmd.param3) +
+                    " livePatternCount=" + std::to_string(patternCountNow)
+                );
                 asyncResult.success = UTILITY_API->Simulate((unsigned int)cmd.param3);
+                TraceLog("END   simulate success=" + std::string(asyncResult.success ? "true" : "false"));
                 asyncResult.message = asyncResult.success
                     ? "Simulation complete (" + std::to_string(cmd.param3) + " steps)"
                     : "Simulation failed";
@@ -1868,6 +1913,17 @@ void ProcessCommandQueue()
                 }
                 asyncResult.success = true;
                 asyncResult.message = "New project created";
+            }
+            // ── Align avatar(s) and garment to center (Bug 3 investigation) ─
+            // See the /align-to-center endpoint comment for why this exists.
+            // AlignAvatarsAndGarmentToCenter() is void — nothing to check,
+            // same as SetShowHideAvatar/Refresh3DWindow.
+            else if (cmd.type == "align-to-center") {
+                TraceLog("BEGIN align-to-center");
+                UTILITY_API->AlignAvatarsAndGarmentToCenter();
+                TraceLog("END   align-to-center");
+                asyncResult.success = true;
+                asyncResult.message = "Aligned avatar(s) and garment to center";
             }
             // ── Ensure avatar visible (Bug 2 fix) ─────────────────────────
             // Always does the off->on transition rather than trusting

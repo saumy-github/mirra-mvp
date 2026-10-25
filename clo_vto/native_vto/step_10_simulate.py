@@ -18,6 +18,12 @@ def run(ctx):
     print("  Confirming avatar visibility before simulating ...")
     ensure_avatar_visible_checked(ctx, "before_simulate")
 
+    # Do NOT call ctx.client.align_to_center() here (or anywhere pre-simulate):
+    # AlignAvatarsAndGarmentToCenter() collapses all pattern geometry to a
+    # single point when called on patterns still in their pre-simulation
+    # arranged (not yet draped) state — confirmed live, see
+    # .agent/clo-avatar-vto/vto-pipeline-status-26_7_24.md.
+
     ok = print_result(ctx.client.simulate(steps=150), "simulate")
     if not ok:
         print("  [FAIL] CLO rejected the simulate command.")

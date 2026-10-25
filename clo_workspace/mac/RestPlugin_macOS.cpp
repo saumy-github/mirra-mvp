@@ -72,6 +72,7 @@ struct UtilityAPI {
     void SetShowHideAvatar(bool, int) {}
     bool IsShowAvatar(int) { return false; }
     void Refresh3DWindow() {}
+    void AlignAvatarsAndGarmentToCenter() {}
 };
 extern UtilityAPI* UTILITY_API;
 
@@ -703,6 +704,15 @@ static void ProcessCommandQueue()
                 asyncResult.success = true;
                 asyncResult.message = "New project created";
             }
+            // ── Align avatar(s) and garment to center (Bug 3 investigation) ────
+            // See the matching comment on Windows (/align-to-center) — tests
+            // whether an off-origin avatar transform is a factor in the
+            // Simulate() hang. AlignAvatarsAndGarmentToCenter() is void.
+            else if (cmd.type == "align-to-center") {
+                UTILITY_API->AlignAvatarsAndGarmentToCenter();
+                asyncResult.success = true;
+                asyncResult.message = "Aligned avatar(s) and garment to center";
+            }
             // ── Ensure avatar visible (Bug 2 fix) ─────────────────────────────
             // Always does the off->on transition rather than trusting
             // IsShowAvatar's own report — see the Windows-side comment and
@@ -1312,6 +1322,7 @@ static void StartRESTServer()
             {"has_set_fabric_color", true},
             {"has_set_fabric_texture", true},
             {"has_set_fabric_graphic", true},
+            {"has_align_to_center", true},
             {"notes", "has_avatar_state_readback, has_avatar_avt_export, and has_avatar_visibility_set are set from real usage (Phase 3 / Bug-2 fix), not hardcoded. Line count may be absent in GetPatternInformation; use line-length probe endpoint"}
         };
         res.set_content(r.dump(), "application/json");
@@ -1843,6 +1854,23 @@ static void StartRESTServer()
             res.status = 400;
             res.set_content(r.dump(), "application/json");
         }
+    });
+
+    // ── POST /align-to-center (Bug 3 investigation) ────────────────────────────
+    // See the matching comment on Windows and .agent/clo-avatar-vto/
+    // vto-pipeline-status-26_7_24.md — recenters avatar(s) and garment
+    // before Simulate() to test the off-origin hang hypothesis.
+    svr.Post("/align-to-center", [](const httplib::Request&, httplib::Response& res) {
+        APICommand cmd;
+        cmd.type = "align-to-center";
+        int qsize = 0;
+        {
+            std::lock_guard<std::mutex> lk(g_queueMutex);
+            g_commandQueue.push(cmd);
+            qsize = static_cast<int>(g_commandQueue.size());
+        }
+        json r = {{"success", true}, {"message", "Align-to-center queued"}, {"queue_size", qsize}};
+        res.set_content(r.dump(), "application/json");
     });
 
     // ── POST /export ──────────────────────────────────────────────────────────

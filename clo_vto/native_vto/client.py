@@ -316,6 +316,21 @@ class CLORestClient:
     def simulate(self, steps=100):
         return self._post("/simulate", {"steps": steps})
 
+    def align_to_center(self) -> dict:
+        """Recenter avatar(s) and garment to CLO's world origin.
+
+        Wraps UTILITY_API->AlignAvatarsAndGarmentToCenter().
+
+        DO NOT call this before simulate() on patterns that are still in
+        their pre-simulation arranged (not yet draped) state — confirmed
+        live (2026-07-25) to collapse all pattern geometry to a single
+        point. Left defined for future use only if a genuinely safe call
+        site is found; not currently called anywhere in the pipeline. See
+        .agent/clo-avatar-vto/vto-pipeline-status-26_7_24.md. Requires
+        plugin capability 'has_align_to_center'.
+        """
+        return self._post("/align-to-center", {})
+
     def export_garment(self, output_path, format="glb"):
         output_path = str(Path(output_path).as_posix())
         return self._post(
