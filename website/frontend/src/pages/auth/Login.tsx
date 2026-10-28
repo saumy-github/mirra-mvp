@@ -3,12 +3,14 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
 import {
   GoogleButton,
-  GithubButton,
 } from "@/features/auth/components/oauth-buttons";
+import { ConsentNote } from "@/features/auth/components/consent";
+import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 import { useAuthMutations } from "@/hooks/use-shopper";
 import { MirraApiError, userMessage } from "@/integrations/mirra-api";
 import { track } from "@/lib/analytics";
-import { postAuthDestination } from "@/lib/post-auth";
+import { shopperDestination } from "@/lib/shopper-destination";
+import { markPendingConsent } from "./pending-consent";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(
     params.get("error") ? "Google sign-in didn't complete. Please retry." : null,
   );
+  useRedirectIfSignedIn(shopperDestination(params.get("next")));
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,7 +35,7 @@ export default function Login() {
     try {
       await login.mutateAsync({ email, password });
       track("login_completed", { authenticated: true, properties: { method: "password" } });
-      navigate(postAuthDestination(params.get("next")));
+      navigate(await shopperDestination(params.get("next")));
     } catch (err) {
       setError(
         err instanceof MirraApiError
@@ -44,13 +47,16 @@ export default function Login() {
 
   async function onGoogle() {
     setError(null);
+    // Google sign-in can create an account; the terms are stated beside the
+    // button and recorded after the redirect by AuthCallback (doc 06).
+    markPendingConsent();
     try {
       await google.mutateAsync();
       track("login_completed", {
         authenticated: true,
         properties: { method: "google" },
       });
-      navigate(postAuthDestination(params.get("next")));
+      navigate(await shopperDestination(params.get("next")));
     } catch {
       setError("Google sign-in didn't complete. Please retry.");
     }
@@ -61,7 +67,7 @@ export default function Login() {
     try {
       await continueAsGuest.mutateAsync();
       track("guest_started", { authenticated: true });
-      navigate("/studio");
+      navigate(await shopperDestination(params.get("next")));
     } catch {
       setError("Guest access didn't start. Please retry.");
     }
@@ -77,7 +83,6 @@ export default function Login() {
       {/* Social Login Buttons matching screenshot */}
       <div className="flex flex-col gap-2.5 w-full">
         <GoogleButton onClick={onGoogle} loading={google.isPending} />
-        <GithubButton onClick={onGoogle} />
       </div>
 
       {/* Divider */}
@@ -172,8 +177,10 @@ export default function Login() {
           : "Continue as guest"}
       </button>
 
+      <ConsentNote />
+
       {/* Footer */}
-      <p className="mt-5 text-center text-xs text-neutral-500">
+      <p className="mt-3 text-center text-xs text-neutral-500">
         Don&apos;t have an account?{" "}
         <Link
           to={`/auth/sign-up${params.get("next") ? `?next=${encodeURIComponent(params.get("next")!)}` : ""}`}

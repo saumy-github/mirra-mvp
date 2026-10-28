@@ -27,6 +27,8 @@ import { buttonClass, inputClass } from "../../components/styles";
 import { fmtDate } from "../../data/util";
 import { useState } from "react";
 import { dashPath } from "../../routes";
+import { isLiveTenant } from "../../data/live-session";
+import { ShopifyConnectCard } from "../../components/shopify-connect";
 
 export default function SettingsPage() {
   const session = useSession();
@@ -38,6 +40,9 @@ export default function SettingsPage() {
   const ent = getEntitlements(tenant);
   const canManage = can(session.role, "settings.manage");
   const charts = tenant.defaults.brandSizeCharts;
+  // A real workspace has a backend for its store and Shopify link only; the
+  // cards below the connection still write to the demo store, so they're hidden.
+  const live = isLiveTenant(tenant.id);
 
   return (
     <>
@@ -59,6 +64,9 @@ export default function SettingsPage() {
             ]}
           />
         </Card>
+        {live && <ShopifyConnectCard tenantId={tenant.id} />}
+        {!live && (
+          <>
         {/* Was a form with a Save button that had no action — it claimed
             "changes publish within a minute" while discarding every edit.
             Shown read-only until theming is wired to the merchant API. */}
@@ -176,6 +184,8 @@ export default function SettingsPage() {
             <li>✓ Cancelled workspaces are preserved for 60 days, then permanently erased.</li>
           </ul>
         </Card>
+          </>
+        )}
       </div>
     </>
   );

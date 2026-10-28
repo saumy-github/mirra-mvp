@@ -34,7 +34,6 @@ for _p in (REPO_ROOT, BACKEND_ROOT):
         sys.path.insert(0, str(_p))
 
 from clo_avatar_generation.avatar_runtime.context import Step1Context  # noqa: E402
-from clo_avatar_generation.avatar_runtime.field_contract import get_default_base_avatar  # noqa: E402
 from clo_avatar_generation.avatar_runtime.pipeline import run_pipeline as run_avatar_pipeline  # noqa: E402
 from clo_avatar_generation.avatar_runtime.run_manifest import get_next_run_number  # noqa: E402
 from clo_vto.native_vto.pipeline import run_pipeline as run_vto_pipeline  # noqa: E402
@@ -70,11 +69,6 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _resolve_default_base_avatar() -> Path:
-    relative = get_default_base_avatar()
-    return relative if relative.is_absolute() else (REPO_ROOT / relative)
-
-
 # --- Avatar job --------------------------------------------------------------
 
 
@@ -99,7 +93,9 @@ async def _run_avatar_job(job_id: str) -> None:
         ctx = Step1Context(
             user_id=job.user_id,
             requested_run_number=run_number,
-            base_avatar_path_input=str(_resolve_default_base_avatar().resolve()),
+            # None: step 04 picks the base avatar for the measured gender
+            # (field contract `base_avatars`), so female profiles get a female body.
+            base_avatar_path_input=None,
             measurement_file_input=None,
             measurement_apply_mode_input="avt_patch",
             enable_legacy_route=False,
@@ -324,3 +320,24 @@ def run_merchant_preview(preview_id: str) -> None:
     from .merchant_tasks import _run_preview
 
     _get_loop().run_until_complete(_run_preview(preview_id))
+
+
+# --- Photo measurement -----------------------------------------------------
+#
+# Enqueued on the `measure` queue (not `clo`) by
+# website/backend/src/photo_measurements/engine.py; body in
+# worker/measure_tasks.py. Needs torch + MediaPipe, not CLO.
+
+
+def run_photo_measurement(capture_id: str) -> None:
+    """Front + side photo + height -> measurements, for the shopper to review."""
+    from .measure_tasks import _run_photo_measurement
+
+    _get_loop().run_until_complete(_run_photo_measurement(capture_id))
+
+
+def run_face_reconstruction(capture_id: str) -> None:
+    """1-3 face photos -> face.glb attached to the avatar in the web viewer."""
+    from .face_tasks import _run_face_reconstruction
+
+    _get_loop().run_until_complete(_run_face_reconstruction(capture_id))

@@ -13,8 +13,11 @@ from .analytics.routes import router as analytics_router
 from .auth.routes import router as auth_router
 from .avatars.routes import router as avatars_router
 from .catalog.routes import router as catalog_router
+from .faces.routes import router as faces_router
 from .join.routes import router as join_router
 from .merchant.routes import router as merchant_router
+from .photo_measurements.routes import public_router as photo_capture_router
+from .photo_measurements.routes import router as photo_measurements_router
 from .signature_looks.routes import router as signature_looks_router
 from .tryon.routes import router as tryon_router
 from .user_measurements.routes import router as user_measurements_router
@@ -60,6 +63,9 @@ def create_app() -> FastAPI:
     api.include_router(auth_router)
     api.include_router(users_router)
     api.include_router(user_measurements_router)
+    api.include_router(photo_measurements_router)
+    api.include_router(photo_capture_router)
+    api.include_router(faces_router)
     api.include_router(avatars_router)
     api.include_router(catalog_router)
     api.include_router(tryon_router)

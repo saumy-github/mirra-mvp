@@ -1,4 +1,5 @@
-"""Step 4: resolve and validate the fixed base avatar for the run."""
+"""Step 4: resolve and validate the base avatar for the run (per gender, see the
+contract's `base_avatars`; an explicit --base-avatar always wins)."""
 
 from __future__ import annotations
 
@@ -6,26 +7,32 @@ from pathlib import Path
 import zipfile
 
 from .context import Step1Context
-from .field_contract import get_default_base_avatar
+from .field_contract import get_base_avatar_for_gender
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-def _resolve_candidate(base_avatar_path_input: str | None) -> Path:
+def _resolve_candidate(base_avatar_path_input: str | None, gender: str) -> Path:
     if base_avatar_path_input:
         return Path(base_avatar_path_input).expanduser().resolve()
 
-    default_relative = get_default_base_avatar()
+    default_relative = get_base_avatar_for_gender(gender)
     if default_relative.is_absolute():
         return default_relative
     return (REPO_ROOT / default_relative).resolve()
 
 
 def run(ctx: Step1Context) -> bool:
-    candidate = _resolve_candidate(ctx.base_avatar_path_input)
-    ctx.logger.info("Resolving base avatar: %s", candidate)
+    gender = str((ctx.mongo_doc or {}).get("gender", "")).strip().lower()
+    candidate = _resolve_candidate(ctx.base_avatar_path_input, gender)
+    ctx.logger.info("Resolving base avatar for gender=%s: %s", gender or "?", candidate)
     if not candidate.exists():
+        if gender == "female" and not ctx.base_avatar_path_input:
+            raise FileNotFoundError(
+                f"Female base avatar not installed at {candidate}. Copy CLO's stock Female V2 avatar "
+                "(e.g. <CLO assets>/Avatar/Female_V2/FV2_Feifei.avt) there — see the contract's female_note."
+            )
         raise FileNotFoundError(f"Base avatar not found: {candidate}")
     if candidate.suffix.lower() != ".avt":
         raise ValueError(f"Base avatar must be a .avt file: {candidate}")

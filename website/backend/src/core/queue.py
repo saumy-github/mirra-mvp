@@ -18,9 +18,13 @@ from ..config import get_settings
 from .errors import ServiceUnavailable
 
 QUEUE_NAME = "clo"
+# Photo measurement (MediaPipe + BMnet, seconds per job) has its own queue and
+# worker process: the CLO worker runs one 20-minute job at a time, and a
+# shopper waiting on their measurements must not queue behind it.
+MEASURE_QUEUE_NAME = "measure"
 
 _redis: Redis | None = None
-_queue: Queue | None = None
+_queues: dict[str, Queue] = {}
 
 
 def _get_redis() -> Redis:
@@ -30,14 +34,13 @@ def _get_redis() -> Redis:
     return _redis
 
 
-def get_queue() -> Queue:
-    global _queue
-    if _queue is None:
-        _queue = Queue(QUEUE_NAME, connection=_get_redis())
-    return _queue
+def get_queue(name: str = QUEUE_NAME) -> Queue:
+    if name not in _queues:
+        _queues[name] = Queue(name, connection=_get_redis())
+    return _queues[name]
 
 
-def enqueue(func_path: str, *args, job_timeout: int) -> None:
+def enqueue(func_path: str, *args, job_timeout: int, queue: str = QUEUE_NAME) -> None:
     """Hand a job off to the worker. Raises ServiceUnavailable (not a raw
     redis exception) if Redis itself is unreachable, so callers get the same
     error contract as the old "engine not wired yet" refusal.
@@ -49,8 +52,8 @@ def enqueue(func_path: str, *args, job_timeout: int) -> None:
     pick a deliberate value rather than silently inheriting that default.
     """
     try:
-        get_queue().enqueue(func_path, *args, job_timeout=job_timeout)
+        get_queue(queue).enqueue(func_path, *args, job_timeout=job_timeout)
     except RedisError as exc:
         raise ServiceUnavailable(
-            "Live engine queue is unreachable (Redis down?)", code="engine_unavailable"
+            "We couldn't start processing right now. Please try again shortly.", code="engine_unavailable"
         ) from exc

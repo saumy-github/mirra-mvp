@@ -147,6 +147,7 @@ export function AvatarStage({
                 className="h-full max-h-[min(64vh,720px)] min-h-70 w-full rounded-none! border-0! bg-transparent! sm:min-h-85"
                 emptyMessage="This try-on's 3D model isn't available."
                 retryLabel="Retry 3D view"
+                withFace
               />
             ) : (
               <GlbViewer
@@ -158,6 +159,7 @@ export function AvatarStage({
                 }
                 className="h-full max-h-[min(64vh,720px)] min-h-70 w-full rounded-none! border-0! bg-transparent! sm:min-h-85"
                 emptyMessage="Your 3D avatar isn't available."
+                withFace
                 fallbackImageUrl={avatar.previewAssetUrl}
                 retryLabel="Retry 3D view"
                 onLoadStateChange={onAvatarViewStateChange}

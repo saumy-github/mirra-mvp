@@ -3,7 +3,17 @@ import type {
   AvatarGlbResult,
   AvatarJob,
   AvatarProfile,
+  AvatarSetup,
   MeasurementKey,
+  CaptureLink,
+  CaptureLinkProgress,
+  FaceCapture,
+  FaceLinkProgress,
+  FacePhotosInput,
+  PhotoCaptureInput,
+  PhotoMeasurement,
+  PhotoMeasurementField,
+  PhotoPairing,
   ProductListPage,
   PublicProduct,
   ShopperAccount,
@@ -36,7 +46,7 @@ export interface MirraRuntimeProvider {
     acceptedTerms: boolean;
   }): Promise<ShopperAccount>;
   login(input: { email: string; password: string }): Promise<ShopperAccount>;
-  loginWithGoogle(): Promise<ShopperAccount>;
+  loginWithGoogle(next?: string): Promise<ShopperAccount>;
   continueAsGuest(): Promise<ShopperAccount>;
   logout(): Promise<void>;
   getCurrentShopper(): Promise<ShopperAccount | null>;
@@ -64,6 +74,50 @@ export interface MirraRuntimeProvider {
     },
   ): Promise<AvatarProfile>;
   deleteAvatarProfile(): Promise<void>;
+
+  // Photo measurement — front + side photo → measurements to review, then
+  // applied into the same saved measurements the manual form writes.
+  startPhotoMeasurement(input: PhotoCaptureInput): Promise<PhotoMeasurement>;
+  getPhotoMeasurement(captureId: string): Promise<PhotoMeasurement>;
+  /** Desktop: a short-lived QR link that lets a signed-out phone upload the photos. */
+  createPhotoPairing(
+    buildAvatar?: boolean,
+    measurementMethod?: "photos" | "manual",
+  ): Promise<PhotoPairing>;
+  refreshCaptureLink(pairingId: string): Promise<PhotoPairing>;
+  getLatestAvatarSetup(): Promise<AvatarSetup | null>;
+  getAvatarSetup(pairingId: string): Promise<AvatarSetup>;
+  reviewAvatarSetup(
+    pairingId: string,
+    overrides: Partial<Record<PhotoMeasurementField, number>>,
+  ): Promise<AvatarSetup>;
+  retryAvatarSetup(pairingId: string, skipFace?: boolean): Promise<AvatarSetup>;
+  setCaptureStage(token: string, stage: "capturing" | "uploading"): Promise<void>;
+  finishCapture(token: string, skipFace?: boolean): Promise<void>;
+  /** Desktop poll: has the phone uploaded, and how far along is it? */
+  getPhotoPairing(
+    pairingId: string,
+  ): Promise<{ pairing: PhotoPairing; capture: PhotoMeasurement | null }>;
+  // Phone side — no sign-in, the token is the credential.
+  getCaptureLink(token: string): Promise<CaptureLink>;
+  uploadViaCaptureLink(token: string, input: PhotoCaptureInput): Promise<CaptureLinkProgress>;
+  getCaptureLinkProgress(token: string): Promise<CaptureLinkProgress | null>;
+  // Face — 1-3 photos → a face mesh the avatar viewer attaches to the head.
+  startFace(input: FacePhotosInput): Promise<FaceCapture>;
+  getFace(faceId: string): Promise<FaceCapture>;
+  getLatestFace(): Promise<FaceCapture | null>;
+  /** The current face mesh, or null when the shopper hasn't added one. */
+  getFaceGlb(): Promise<Blob | null>;
+  deleteFace(): Promise<void>;
+  uploadFaceViaCaptureLink(token: string, input: FacePhotosInput): Promise<FaceLinkProgress>;
+  getCaptureLinkFace(token: string): Promise<FaceLinkProgress | null>;
+  /** The most recent capture, so a reload mid-measurement can resume. */
+  getLatestPhotoMeasurement(): Promise<PhotoMeasurement | null>;
+  /** Save a ready capture; `overrides` are the shopper's corrections by backend field name. */
+  applyPhotoMeasurement(
+    captureId: string,
+    overrides: Partial<Record<PhotoMeasurementField, number>>,
+  ): Promise<AvatarProfile>;
 
   // Try-on — also routes through the CLO3D seam
   createTryOnSession(): Promise<TryOnSession>;

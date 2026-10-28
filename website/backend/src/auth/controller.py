@@ -4,7 +4,7 @@ import logging
 import re
 import secrets
 from datetime import datetime, timezone
-from urllib.parse import quote
+from urllib.parse import urlencode
 
 from fastapi import Response
 from fastapi.responses import RedirectResponse
@@ -153,7 +153,7 @@ async def google_callback(
     if not google_sub or not email:
         return failure("google_oauth_failed")
 
-    _user, _access, raw_refresh, refresh_exp = await service.google_login(
+    _user, _access, raw_refresh, refresh_exp, is_new_account = await service.google_login(
         google_sub=google_sub,
         email=email,
         email_verified=bool(userinfo.get("email_verified")),
@@ -162,8 +162,13 @@ async def google_callback(
 
     safe_next = _safe_next(next_cookie)
     target = settings.frontend_auth_success_url
+    query = {}
     if safe_next:
-        target = f"{target}?next={quote(safe_next, safe='')}"
+        query["next"] = safe_next
+    if is_new_account:
+        query["newAccount"] = "1"
+    if query:
+        target = f"{target}{'&' if '?' in target else '?'}{urlencode(query)}"
     redirect = RedirectResponse(target, status_code=302)
     _set_refresh_cookie(redirect, raw_refresh, refresh_exp)
     redirect.delete_cookie(GOOGLE_STATE_COOKIE, path=GOOGLE_OAUTH_COOKIE_PATH)

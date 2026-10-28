@@ -5,12 +5,15 @@
  * brand is never dropped into the shopper studio.
  */
 const BUSINESS_DESTINATIONS = new Set([
+  "/dashboard/start",
   "/dashboard/portal",
   "/dashboard/onboarding",
   "/join",
 ]);
 
-const DEFAULT_BUSINESS_DESTINATION = "/dashboard/portal";
+// Start resolves the signed-in account into its workspace (or offers to
+// create one) before entering the portal.
+const DEFAULT_BUSINESS_DESTINATION = "/dashboard/start";
 
 export function businessDestination(nextParam?: string | null): string {
   if (!nextParam || !/^\/(?!\/)/.test(nextParam)) return DEFAULT_BUSINESS_DESTINATION;

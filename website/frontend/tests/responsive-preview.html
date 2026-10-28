@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mirra responsive QA frame</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #e9e6e1;
+        font:
+          12px Arial,
+          sans-serif;
+      }
+      p {
+        margin: 0 0 16px;
+        color: #615b52;
+      }
+      iframe {
+        display: block;
+        border: 0;
+        background: #fcfbf9;
+      }
+    </style>
+  </head>
+  <body>
+    <p id="label">RESPONSIVE QA · real page in a fixed CSS viewport</p>
+    <iframe title="Responsive Mirra screen"></iframe>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const frame = document.querySelector("iframe");
+      const screen = params.get("screen") || "/onboarding/qr";
+      frame.width = Math.max(320, Math.min(1440, Number(params.get("width")) || 390));
+      frame.height = Math.max(600, Math.min(1600, Number(params.get("height")) || 844));
+      frame.src = screen.startsWith("/") && !screen.startsWith("//") ? screen : "/onboarding/qr";
+      document.querySelector("#label").textContent += ` · ${frame.width} × ${frame.height}`;
+    </script>
+  </body>
+</html>

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { AvatarGlbViewer } from "@/features/profile/components/avatar-glb-viewer";
+import { FacePanel } from "@/features/profile/components/face-capture";
 import { AVATAR_GLB_STALE_KEY } from "@/features/profile/glb-query-keys";
 import { Button } from "@/components/ui/button";
 import { GenerationProgress } from "@/features/profile/components/generation-progress";
@@ -83,6 +84,18 @@ export default function ProfileAvatar() {
   }, [job, qc]);
 
   const goToStudio = useCallback(() => navigate("/studio"), [navigate]);
+
+  // ?generate=1 — arriving from a just-saved photo measurement: start the
+  // CLO avatar run without another click. Once, then drop the flag so a
+  // reload doesn't queue a second job.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (searchParams.get("generate") !== "1" || autoStarted.current || isLoading || !avatar) return;
+    autoStarted.current = true;
+    setSearchParams({}, { replace: true });
+    startGeneration();
+  }, [searchParams, setSearchParams, isLoading, avatar, startGeneration]);
 
   function regenerate() {
     jobDone.current = false;
@@ -207,7 +220,7 @@ export default function ProfileAvatar() {
             <p>
               {avatar
                 ? "We build it from the measurements you saved. The generation usually takes about 90 seconds."
-                : "Save your fit details first, then return here to create your 3D avatar."}
+                : "Take a front and side photo on your phone. We’ll estimate your measurements and build your avatar."}
             </p>
             {avatar ? (
               <>
@@ -223,8 +236,8 @@ export default function ProfileAvatar() {
                 </Link>
               </>
             ) : (
-              <Link to="/profile/measurements" className="profile-dark-button">
-                Add measurements
+              <Link to="/onboarding/qr" className="profile-dark-button">
+                Create from photos
               </Link>
             )}
           </section>
@@ -339,6 +352,7 @@ export default function ProfileAvatar() {
           </div>
         </div>
       </div>
+      <FacePanel />
     </div>
   );
 }

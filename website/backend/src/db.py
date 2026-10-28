@@ -89,6 +89,21 @@ def avatar_profiles_col() -> AsyncCollection:
     return get_db()["avatar_profiles"]
 
 
+def photo_measurements_col() -> AsyncCollection:
+    """One doc per front + side photo pair submitted for measurement."""
+    return get_db()["photo_measurements"]
+
+
+def face_captures_col() -> AsyncCollection:
+    """Face photos -> face mesh for the avatar head (faces/ module)."""
+    return get_db()["face_captures"]
+
+
+def photo_pairings_col() -> AsyncCollection:
+    """QR hand-off links: desktop session -> phone camera (photo measurement)."""
+    return get_db()["photo_pairings"]
+
+
 def tryon_sessions_col() -> AsyncCollection:
     return get_db()["tryon_sessions"]
 
@@ -158,6 +173,12 @@ async def ensure_indexes() -> None:
     await refresh_tokens_col().create_index([("family_id", ASCENDING)])
     await avatar_jobs_col().create_index([("user_id", ASCENDING)])
     await avatar_profiles_col().create_index([("user_id", ASCENDING)], unique=True)
+    await photo_measurements_col().create_index([("user_id", ASCENDING), ("created_at", ASCENDING)])
+    await photo_measurements_col().create_index([("state", ASCENDING), ("created_at", ASCENDING)])
+    await photo_pairings_col().create_index([("token_hash", ASCENDING)], unique=True)
+    await face_captures_col().create_index([("user_id", ASCENDING), ("created_at", ASCENDING)])
+    await face_captures_col().create_index([("state", ASCENDING), ("created_at", ASCENDING)])
+    await photo_pairings_col().create_index([("user_id", ASCENDING)])
     await tryon_sessions_col().create_index([("user_id", ASCENDING)])
     await tryon_renders_col().create_index([("user_id", ASCENDING)])
     await tryon_renders_col().create_index([("session_id", ASCENDING)])

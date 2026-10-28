@@ -212,6 +212,8 @@ export const previewSchema = z.object({
 
 export const workspaceSchema = z.object({
   tenantId: z.string(),
+  /** The signed-in user's role here: owner | admin | editor | viewer | qa. */
+  role: z.string().nullable().optional(),
   slug: z.string(),
   name: z.string(),
   storeUrl: z.string(),
@@ -227,6 +229,14 @@ export const workspaceSchema = z.object({
   }),
 });
 
+export const memberSchema = z.object({
+  userId: z.string(),
+  email: z.string(),
+  name: z.string(),
+  role: z.string(),
+});
+
+export type Member = z.infer<typeof memberSchema>;
 export type MerchantProduct = z.infer<typeof merchantProductSchema>;
 export type ProductDraft = z.infer<typeof productDraftSchema>;
 export type LookupResult = z.infer<typeof lookupResultSchema>;
@@ -247,6 +257,28 @@ export const merchantApi = {
     merchantHttp()
       .request("GET", "/merchant/workspaces", z.object({ items: z.array(workspaceSchema) }))
       .then((r) => r.items),
+
+  /** Self-serve: a signed-in business account creates its workspace and owns it. */
+  createWorkspace: (body: { name: string; storeUrl?: string }) =>
+    merchantHttp()
+      .request("POST", "/merchant/workspaces", z.object({ workspace: workspaceSchema }), body)
+      .then((r) => r.workspace),
+
+  /** Seat an existing business account (owner/admin only). */
+  addMember: (tenantId: string, body: { email: string; role: "admin" | "editor" | "viewer" }) =>
+    merchantHttp()
+      .request("POST", `/merchant/${tenantId}/members`, z.object({ workspace: workspaceSchema }), body)
+      .then((r) => r.workspace),
+
+  listMembers: (tenantId: string) =>
+    merchantHttp()
+      .request("GET", `/merchant/${tenantId}/members`, z.object({ items: z.array(memberSchema) }))
+      .then((r) => r.items),
+
+  removeMember: (tenantId: string, userId: string) =>
+    merchantHttp()
+      .request("DELETE", `/merchant/${tenantId}/members/${userId}`, z.object({ workspace: workspaceSchema }))
+      .then((r) => r.workspace),
 
   getWorkspace: (tenantId: string) =>
     merchantHttp()
@@ -445,6 +477,16 @@ export const merchantApi = {
   ) =>
     merchantHttp()
       .request("POST", `/merchant/${tenantId}/garments/${garmentId}/qa/findings`, garmentEnvelope, body)
+      .then((r) => r.garment),
+
+  resolveQaFinding: (tenantId: string, garmentId: string, findingId: string) =>
+    merchantHttp()
+      .request(
+        "POST",
+        `/merchant/${tenantId}/garments/${garmentId}/qa/findings/${findingId}/resolve`,
+        garmentEnvelope,
+        {},
+      )
       .then((r) => r.garment),
 
   approve: (tenantId: string, garmentId: string) =>

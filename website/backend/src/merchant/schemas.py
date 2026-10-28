@@ -1,5 +1,7 @@
 """Merchant request bodies. camelCase on the wire, snake_case inside."""
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 _CFG = ConfigDict(populate_by_name=True)
@@ -36,6 +38,20 @@ class CreateManualProductRequest(BaseModel):
     option_name: str | None = Field(default=None, alias="optionName")
     description: str | None = None
     variants: list[ManualVariantInput]
+
+
+class CreateWorkspaceRequest(BaseModel):
+    """Self-serve workspace creation by a signed-in business account."""
+
+    model_config = _CFG
+    name: str = Field(min_length=2, max_length=80)
+    store_url: str = Field(default="", alias="storeUrl", max_length=2048)
+
+
+class AddMemberRequest(BaseModel):
+    model_config = _CFG
+    email: str = Field(min_length=3, max_length=320)
+    role: Literal["admin", "editor", "viewer"]
 
 
 class ConnectShopifyRequest(BaseModel):
@@ -130,7 +146,7 @@ class StageRequest(BaseModel):
 
 class QaFindingRequest(BaseModel):
     model_config = _CFG
-    severity: str = "blocking"
+    severity: Literal["blocking", "advisory"] = "blocking"
     area: str = "render"
     detail: str = Field(min_length=1, max_length=2000)
 

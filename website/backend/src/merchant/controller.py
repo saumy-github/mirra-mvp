@@ -25,9 +25,11 @@ from .pipeline_bridge import check_pipeline_capability
 from .product_source import ProductPayload
 
 
-def shape_tenant(tenant: MerchantTenantDocument) -> dict:
+def shape_tenant(tenant: MerchantTenantDocument, user_id: str | None = None) -> dict:
     return {
         "tenantId": tenant.id,
+        # The caller's own role in this workspace (owner/admin/editor/viewer/qa).
+        "role": tenant.members.get(user_id) if user_id else None,
         "slug": tenant.slug,
         "name": tenant.name,
         "storeUrl": tenant.store_url,
@@ -244,12 +246,37 @@ def shape_preview(preview: PreviewDocument) -> dict:
 
 async def list_workspaces(user_id: str) -> dict:
     tenants = await service.list_tenants_for_user(user_id)
-    return {"items": [shape_tenant(t) for t in tenants]}
+    return {"items": [shape_tenant(t, user_id) for t in tenants]}
+
+
+async def create_workspace(user_id: str, kind: str, body) -> dict:
+    tenant = await service.create_workspace(user_id, kind, name=body.name, store_url=body.store_url)
+    return {"workspace": shape_tenant(tenant, user_id)}
+
+
+async def add_member(tenant_id: str, user_id: str, body) -> dict:
+    tenant = await service.add_member(tenant_id, user_id, email=body.email, role=body.role)
+    return {"workspace": shape_tenant(tenant, user_id)}
+
+
+async def list_members(tenant_id: str, user_id: str) -> dict:
+    members = await service.list_members(tenant_id, user_id)
+    return {
+        "items": [
+            {"userId": m["user_id"], "email": m["email"], "name": m["name"], "role": m["role"]}
+            for m in members
+        ]
+    }
+
+
+async def remove_member(tenant_id: str, user_id: str, member_id: str) -> dict:
+    tenant = await service.remove_member(tenant_id, user_id, member_id)
+    return {"workspace": shape_tenant(tenant, user_id)}
 
 
 async def get_workspace(tenant_id: str, user_id: str) -> dict:
     await service.require_member(tenant_id, user_id, permission="")  # membership only
-    return {"workspace": shape_tenant(await service.get_tenant(tenant_id))}
+    return {"workspace": shape_tenant(await service.get_tenant(tenant_id), user_id)}
 
 
 async def connect_shopify(tenant_id: str, user_id: str, body) -> dict:
@@ -260,7 +287,7 @@ async def connect_shopify(tenant_id: str, user_id: str, body) -> dict:
         access_token=body.access_token,
         scopes=body.scopes,
     )
-    return {"workspace": shape_tenant(tenant)}
+    return {"workspace": shape_tenant(tenant, user_id)}
 
 
 async def reconcile(tenant_id: str, user_id: str) -> dict:
@@ -428,6 +455,11 @@ async def set_stage(tenant_id: str, user_id: str, garment_id: str, body) -> dict
 
 async def approve(tenant_id: str, user_id: str, garment_id: str) -> dict:
     garment = await service.approve_garment(tenant_id, user_id, garment_id)
+    return {"garment": await _with_product(tenant_id, garment)}
+
+
+async def resolve_finding(tenant_id: str, user_id: str, garment_id: str, finding_id: str) -> dict:
+    garment = await service.resolve_qa_finding(tenant_id, user_id, garment_id, finding_id)
     return {"garment": await _with_product(tenant_id, garment)}
 
 

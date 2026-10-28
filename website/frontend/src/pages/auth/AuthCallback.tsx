@@ -5,7 +5,7 @@ import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
 import { completeOAuthCallback } from "@/hooks/use-shopper";
 import { getRuntimeProvider } from "@/integrations/mirra-api";
 import { track } from "@/lib/analytics";
-import { postAuthDestination } from "@/lib/post-auth";
+import { oauthDestination } from "@/lib/shopper-destination";
 import { consumePendingConsent } from "./pending-consent";
 
 /**
@@ -43,7 +43,9 @@ export default function AuthCallback() {
           }
         }
         track("login_completed", { authenticated: true, properties: { method: "google" } });
-        navigate(postAuthDestination(params.get("next")), { replace: true });
+        navigate(oauthDestination(params.get("next"), params.get("newAccount") === "1"), {
+          replace: true,
+        });
       })
       .catch(() => {
         navigate("/auth/login?error=google_failed", { replace: true });

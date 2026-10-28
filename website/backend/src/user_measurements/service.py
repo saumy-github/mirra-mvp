@@ -27,8 +27,18 @@ async def get_for_user(user_id: str) -> UserMeasurementsDocument:
     return UserMeasurementsDocument.model_validate(raw)
 
 
-async def submit(user_id: str, gender: str, accuracy: str, units_preference: str, fields: dict[str, Any]) -> UserMeasurementsDocument:
-    """Full submit/replace. Field keys absent when not provided — never stored as null."""
+async def submit(
+    user_id: str,
+    gender: str,
+    accuracy: str,
+    units_preference: str,
+    fields: dict[str, Any],
+    *,
+    source: str = "manual",
+    photo_capture_id: str | None = None,
+) -> UserMeasurementsDocument:
+    """Full submit/replace. Field keys absent when not provided — never stored as null.
+    Also the write photo_measurements.service.apply_capture makes (source="photo")."""
     now = _now()
     existing = await user_measurements_col().find_one({"user_id": user_id}, {"_id": 1, "created_at": 1, "measurements_version": 1})
     doc = UserMeasurementsDocument(
@@ -37,6 +47,8 @@ async def submit(user_id: str, gender: str, accuracy: str, units_preference: str
         gender=gender,
         accuracy=accuracy,
         units_preference=units_preference,
+        source=source,
+        photo_capture_id=photo_capture_id,
         measurements_version=(existing.get("measurements_version", 0) + 1) if existing else 1,
         created_at=existing["created_at"] if existing else now,
         updated_at=now,

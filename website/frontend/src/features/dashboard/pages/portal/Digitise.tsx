@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "../../data/session";
 import { merchantApi, type MerchantGarment, type MerchantProduct } from "../../data/merchant-api";
@@ -7,28 +7,27 @@ import { IdentifyShopify } from "../../components/identify-shopify";
 import { CaptureUpload } from "../../components/capture-upload";
 import { PipelinePanel } from "../../components/pipeline-panel";
 import { ProductContentEditor } from "../../components/product-content-editor";
+import { MaterialEditor } from "../../components/material-editor";
+import { SizingEditor } from "../../components/sizing-editor";
+import { isLiveTenant, liveCan } from "../../data/live-session";
 import { Badge, Banner, ButtonLink, Card, EmptyState, PageHeader } from "../../components/ui";
-import { buttonClass } from "../../components/styles";
+import { buttonClass, inputClass } from "../../components/styles";
 import { dashPath } from "../../routes";
 
 /**
  * Digitise — the live, server-backed ingestion flow.
  *
- * Identify → Capture → Pipeline → Review → Publish, every step persisted in
- * Mongo through `/api/v1/merchant/...` and every pipeline stage a real job on
- * the CLO worker queue.
- *
- * This exists alongside the older `GarmentFlow` page, which still reads the
- * in-memory prototype store (audit P0-01). The two are deliberately not
- * merged mid-migration: one of them loses everything on reload and the other
- * does not, and quietly mixing them would make it impossible to tell which
- * you were looking at. `GarmentFlow` is the demo; this is the one a client
- * can actually use.
+ * Identify → Capture → Material → Sizing → Process → Product page → Review,
+ * every step persisted through `/api/v1/merchant/...` and every pipeline
+ * stage a real job on the CLO worker queue. The seeded demo workspace has no
+ * backend tenant, so it is sent to the in-memory `GarmentFlow` instead.
  */
 
 const STEPS = [
   { key: "identify", label: "Identify", hint: "Which Shopify product and sample" },
   { key: "capture", label: "Capture", hint: "Views of the sample" },
+  { key: "material", label: "Material", hint: "Fabric and how it behaves" },
+  { key: "sizing", label: "Sizing", hint: "Measurements per size" },
   { key: "pipeline", label: "Process", hint: "Panels and a 3D preview" },
   { key: "content", label: "Product page", hint: "What the shopper reads" },
   { key: "review", label: "Review", hint: "Check and send to QA" },
@@ -46,6 +45,9 @@ export default function DigitisePage() {
   const tenantId = session?.tenant?.id;
 
   if (!tenantId) return null;
+  if (!isLiveTenant(tenantId)) {
+    return <Navigate to={id ? dashPath.garmentFlow(id) : dashPath.addGarment} replace />;
+  }
 
   if (!id) {
     return (
@@ -124,7 +126,10 @@ function GarmentWorkspace({
   }
 
   const requested = params.get("step") as StepKey | null;
-  const step: StepKey = requested && STEPS.some((s) => s.key === requested) ? requested : "capture";
+  const step: StepKey =
+    requested && STEPS.some((s) => s.key === requested)
+      ? requested
+      : (STEPS.find((s) => s.key !== "identify" && stepState(s.key, g) !== "complete")?.key ?? "review");
   const index = STEPS.findIndex((s) => s.key === step);
   const go = (next: StepKey) => setParams({ step: next }, { replace: true });
 
@@ -150,6 +155,12 @@ function GarmentWorkspace({
           {step === "identify" && <IdentitySummary garment={g} product={p} />}
           {step === "capture" && (
             <CaptureUpload tenantId={tenantId} garment={g} onChange={apply} />
+          )}
+          {step === "material" && (
+            <MaterialEditor key={g.garmentId} tenantId={tenantId} garment={g} onChange={apply} />
+          )}
+          {step === "sizing" && (
+            <SizingEditor key={g.garmentId} tenantId={tenantId} garment={g} product={p} onChange={apply} />
           )}
           {step === "pipeline" && (
             <PipelinePanel tenantId={tenantId} garment={g} onChange={apply} />
@@ -203,6 +214,29 @@ function Breadcrumb({ label }: { label: string }) {
   );
 }
 
+function stepState(key: StepKey, garment: MerchantGarment): "complete" | "attention" | "todo" {
+  const blockedIn = (area: string) => garment.readiness.blocking.some((i) => i.area === area);
+  switch (key) {
+    case "identify":
+      return "complete";
+    case "capture":
+      return garment.capture.assets.some((a) => a.accepted && a.view === "front") ? "complete" : "todo";
+    case "material":
+      if (!garment.material.composition.length) return "todo";
+      return garment.material.confirmed ? "complete" : "attention";
+    case "sizing":
+      if (!garment.sizing.rows.length) return "todo";
+      return blockedIn("sizing") ? "attention" : "complete";
+    case "pipeline":
+      if (garment.pipeline.state === "failed") return "attention";
+      return Object.keys(garment.pipeline.ingestedRuns).length > 0 ? "complete" : "todo";
+    case "content":
+      return garment.content.description ? "complete" : "todo";
+    case "review":
+      return garment.stage === "live" ? "complete" : garment.stage === "qa_changes" ? "attention" : "todo";
+  }
+}
+
 function Stepper({
   active,
   onGo,
@@ -212,24 +246,7 @@ function Stepper({
   onGo?: (s: StepKey) => void;
   garment?: MerchantGarment;
 }) {
-  const stateOf = (key: StepKey): "complete" | "attention" | "todo" => {
-    if (!garment) return key === "identify" ? "todo" : "todo";
-    switch (key) {
-      case "identify":
-        return "complete";
-      case "capture":
-        return garment.capture.assets.some((a) => a.accepted && a.view === "front")
-          ? "complete"
-          : "todo";
-      case "pipeline":
-        if (garment.pipeline.state === "failed") return "attention";
-        return Object.keys(garment.pipeline.ingestedRuns).length > 0 ? "complete" : "todo";
-      case "content":
-        return garment.content.description ? "complete" : "todo";
-      case "review":
-        return garment.readiness.ready ? "complete" : "todo";
-    }
-  };
+  const stateOf = (key: StepKey) => (garment ? stepState(key, garment) : "todo");
 
   return (
     <nav aria-label="Setup steps" className="flex flex-col gap-4">
@@ -324,6 +341,13 @@ function IdentitySummary({
   );
 }
 
+const FIX_STEP: Record<string, StepKey | undefined> = {
+  capture: "capture",
+  material: "material",
+  sizing: "sizing",
+  pipeline: "pipeline",
+};
+
 function ReviewAndSubmit({
   tenantId,
   garment,
@@ -351,6 +375,9 @@ function ReviewAndSubmit({
   };
 
   const { blocking, advisory, ready } = garment.readiness;
+  const canEdit = liveCan(tenantId, "catalogue.edit");
+  const canPublish = liveCan(tenantId, "catalogue.publish");
+  const canQa = liveCan(tenantId, "qa.review");
 
   return (
     <div className="flex flex-col gap-4">
@@ -363,9 +390,9 @@ function ReviewAndSubmit({
                   <span className="font-medium text-red-700">{issue.label}</span>
                   <span className="block text-xs text-muted">{issue.detail}</span>
                 </span>
-                {(issue.area === "capture" || issue.area === "pipeline") && (
+                {FIX_STEP[issue.area] && (
                   <button
-                    onClick={() => onGo(issue.area === "capture" ? "capture" : "pipeline")}
+                    onClick={() => onGo(FIX_STEP[issue.area]!)}
                     className="shrink-0 text-xs font-medium text-accent hover:underline"
                   >
                     Fix →
@@ -392,6 +419,41 @@ function ReviewAndSubmit({
         </Card>
       )}
 
+      {garment.qaFindings.length > 0 && (
+        <Card title="QA findings">
+          <ul className="space-y-2.5">
+            {garment.qaFindings.map((f) => (
+              <li key={f.findingId} className="flex items-start justify-between gap-3 text-[13px]">
+                <span>
+                  <span className="flex items-center gap-2">
+                    <Badge tone={f.resolved ? "success" : f.severity === "blocking" ? "danger" : "warn"}>
+                      {f.resolved ? "resolved" : f.severity}
+                    </Badge>
+                    <span className="text-xs capitalize text-muted">{f.area}</span>
+                  </span>
+                  <span className="mt-1 block text-ink">{f.detail}</span>
+                </span>
+                {canQa && !f.resolved && (
+                  <button
+                    disabled={busy}
+                    onClick={() =>
+                      run(() => merchantApi.resolveQaFinding(tenantId, garment.garmentId, f.findingId))
+                    }
+                    className="shrink-0 text-xs font-medium text-accent hover:underline"
+                  >
+                    Mark resolved
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {canQa && garment.stage === "in_qa" && (
+        <QaReview tenantId={tenantId} garment={garment} busy={busy} run={run} />
+      )}
+
       {error && <Banner tone="danger">{error}</Banner>}
 
       <Card title="Hand it on">
@@ -401,7 +463,10 @@ function ReviewAndSubmit({
           them without another approval.
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          {garment.stage === "needs_data" && (
+          {!canEdit && garment.stage !== "in_qa" && (
+            <span className="text-xs text-muted">Your role can view this garment but not move it on.</span>
+          )}
+          {canEdit && garment.stage === "needs_data" && (
             <button
               disabled={!ready || busy}
               onClick={() => run(() => merchantApi.setStage(tenantId, garment.garmentId, "merchant_review"))}
@@ -410,7 +475,7 @@ function ReviewAndSubmit({
               I&apos;m ready to review it
             </button>
           )}
-          {garment.stage === "merchant_review" && (
+          {canEdit && garment.stage === "merchant_review" && (
             <>
               <button
                 disabled={busy}
@@ -434,29 +499,118 @@ function ReviewAndSubmit({
               the preview you rendered.
             </Banner>
           )}
-          {garment.stage === "ready" && (
+          {canEdit && garment.stage === "qa_changes" && (
+            <>
+              <button
+                disabled={busy || !ready}
+                onClick={() => run(() => merchantApi.setStage(tenantId, garment.garmentId, "merchant_review"))}
+                className={buttonClass("primary")}
+              >
+                I&apos;ve made the changes
+              </button>
+              <button
+                disabled={busy}
+                onClick={() => run(() => merchantApi.setStage(tenantId, garment.garmentId, "needs_data"))}
+                className={buttonClass("secondary")}
+              >
+                Back to editing
+              </button>
+            </>
+          )}
+          {canPublish && (garment.stage === "ready" || garment.stage === "paused") && (
             <button
               disabled={busy}
               onClick={() => run(() => merchantApi.setPublication(tenantId, garment.garmentId, true))}
               className={buttonClass("accent")}
             >
-              Publish to shoppers
+              {garment.stage === "paused" ? "Resume for shoppers" : "Publish to shoppers"}
             </button>
           )}
-          {garment.stage === "live" && (
-            <>
-              <Badge tone="success">Live</Badge>
-              <button
-                disabled={busy}
-                onClick={() => run(() => merchantApi.setPublication(tenantId, garment.garmentId, false))}
-                className={buttonClass("secondary")}
-              >
-                Pause
-              </button>
-            </>
+          {garment.stage === "live" && <Badge tone="success">Live</Badge>}
+          {canPublish && garment.stage === "live" && (
+            <button
+              disabled={busy}
+              onClick={() => run(() => merchantApi.setPublication(tenantId, garment.garmentId, false))}
+              className={buttonClass("secondary")}
+            >
+              Pause
+            </button>
+          )}
+          {!canPublish && (garment.stage === "ready" || garment.stage === "paused") && (
+            <span className="text-xs text-muted">Approved. An owner or admin can publish it.</span>
           )}
         </div>
       </Card>
     </div>
+  );
+}
+
+/** Mirra QA's controls: approve this revision, or send it back with a finding. */
+function QaReview({
+  tenantId,
+  garment,
+  busy,
+  run,
+}: {
+  tenantId: string;
+  garment: MerchantGarment;
+  busy: boolean;
+  run: (fn: () => Promise<MerchantGarment>) => Promise<void>;
+}) {
+  const [area, setArea] = useState("render");
+  const [detail, setDetail] = useState("");
+  const openBlocking = garment.qaFindings.filter((f) => f.severity === "blocking" && !f.resolved).length;
+
+  const requestChanges = () =>
+    run(async () => {
+      await merchantApi.addQaFinding(tenantId, garment.garmentId, {
+        severity: "blocking",
+        area,
+        detail: detail.trim(),
+      });
+      setDetail("");
+      return merchantApi.setStage(tenantId, garment.garmentId, "qa_changes");
+    });
+
+  return (
+    <Card title={`QA review — revision ${garment.revision}`}>
+      <p className="mb-3 text-[13px] text-muted">
+        Approving freezes this exact revision as what shoppers are served. Check the preview in
+        Process before approving.
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          disabled={busy || openBlocking > 0}
+          onClick={() => run(() => merchantApi.approve(tenantId, garment.garmentId))}
+          className={buttonClass("primary")}
+        >
+          Approve revision {garment.revision}
+        </button>
+        {openBlocking > 0 && (
+          <span className="text-xs text-muted">{openBlocking} blocking finding(s) still open.</span>
+        )}
+      </div>
+      <div className="mt-4 grid grid-cols-4 gap-2 max-sm:grid-cols-1">
+        <select value={area} onChange={(e) => setArea(e.target.value)} className={inputClass} aria-label="Area">
+          {["render", "capture", "material", "sizing"].map((a) => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
+        <input
+          value={detail}
+          onChange={(e) => setDetail(e.target.value)}
+          placeholder="What needs changing, specifically"
+          aria-label="What needs changing"
+          className={`${inputClass} col-span-3 max-sm:col-span-1`}
+        />
+      </div>
+      <button
+        disabled={busy || detail.trim().length < 4}
+        onClick={requestChanges}
+        className={`${buttonClass("secondary", "sm")} mt-2`}
+      >
+        Request changes
+      </button>
+    </Card>
   );
 }

@@ -133,7 +133,7 @@ async def create_guest() -> tuple[UserDocument, str, str, datetime]:
 
 async def google_login(
     google_sub: str, email: str, email_verified: bool, name: str | None
-) -> tuple[UserDocument, str, str, datetime]:
+) -> tuple[UserDocument, str, str, datetime, bool]:
     """Find-or-create by Google's stable subject id, falling back to
     linking a matching verified-email account. Only ever creates/links
     non-guest, non-password accounts — Google is the only account-creating
@@ -157,7 +157,8 @@ async def google_login(
             )
             raw = await users_col().find_one({"_id": existing["_id"]})
 
-    if raw is None:
+    is_new_account = raw is None
+    if is_new_account:
         user = UserDocument(
             id=new_id("u"),
             email=email if email_verified else None,
@@ -174,7 +175,7 @@ async def google_login(
         user = UserDocument.model_validate(raw)
 
     access, raw_refresh, refresh_exp = await _issue_tokens(user.id, "user")
-    return user, access, raw_refresh, refresh_exp
+    return user, access, raw_refresh, refresh_exp, is_new_account
 
 
 async def get_account(user_id: str) -> UserDocument:

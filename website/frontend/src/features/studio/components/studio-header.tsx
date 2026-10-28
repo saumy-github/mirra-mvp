@@ -6,10 +6,10 @@ import { CONTROL_SPRING } from "@/lib/motion-presets";
 
 const STUDIO_NAV = [
   { to: "/studio", label: "Studio", shortLabel: "Studio", current: true },
-  { to: "/profile/measurements", label: "Fit profile", shortLabel: "Fit", current: false },
+  { to: "/profile/measurements", label: "Measurements", shortLabel: "Fit", current: false },
   {
     to: "/profile/signature-looks",
-    label: "Saved looks",
+    label: "My Looks",
     shortLabel: "Looks",
     current: false,
   },

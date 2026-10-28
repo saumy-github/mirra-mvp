@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useDbVersion, getDb } from "../../data/store";
 import { useSession } from "../../data/session";
 import {
@@ -46,6 +46,7 @@ import { CopyField } from "../../components/copy-field";
 import { CAPTURE_VIEWS } from "../../data/types";
 import type { Garment, SoldOutPolicy } from "../../data/types";
 import { dashPath, publicUrl } from "../../routes";
+import { isLiveTenant } from "../../data/live-session";
 
 /**
  * The garment summary — everything about one garment, read at a glance.
@@ -62,6 +63,7 @@ export default function GarmentDetailPage() {
   useDbVersion();
   if (!session?.tenant) return null;
   const tenant = session.tenant;
+  if (isLiveTenant(tenant.id) && id) return <Navigate to={dashPath.digitiseGarment(id)} replace />;
 
   const db = getDb();
   const g = db.garments.find((x) => x.id === id && x.tenantId === tenant.id);

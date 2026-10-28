@@ -9,7 +9,9 @@
 // supports `<form action={fn}>` on the client, so the JSX that submits them
 // came across untouched.
 import { getDb, newId, updateDb, resetDb } from "./store";
-import { requireSession, signIn, signOut, startViewAs, stopViewAs, type ViewAsMode } from "./session";
+import { getRuntimeProvider } from "@/integrations/mirra-api";
+import { getSession, requireSession, signIn, signOut, startViewAs, stopViewAs, type ViewAsMode } from "./session";
+import { isLiveTenant } from "./live-session";
 import { can, canInternal } from "./rbac";
 import { canTransitionTenant } from "./lifecycle";
 import { canMerchantMove, requirements, STAGE_META } from "./ingestion";
@@ -71,7 +73,13 @@ export function signInAction(formData: FormData): string {
 
 /** @returns the path to navigate to after signing out. */
 export function signOutAction(): string {
+  const live = isLiveTenant(getSession()?.tenant?.id);
   signOut();
+  if (live) {
+    // A real business session: end it on the server too (refresh cookie).
+    void getRuntimeProvider().logout().catch(() => undefined);
+    return "/business/login";
+  }
   return dashPath.login;
 }
 

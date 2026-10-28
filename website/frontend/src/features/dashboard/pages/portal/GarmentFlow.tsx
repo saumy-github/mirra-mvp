@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDbVersion, getDb } from "../../data/store";
 import { useSession } from "../../data/session";
 import {
@@ -44,6 +44,7 @@ import {
   SizingStep,
 } from "../../components/ingestion-steps";
 import { dashPath } from "../../routes";
+import { isLiveTenant } from "../../data/live-session";
 import type { Garment, Product } from "../../data/types";
 
 /**
@@ -69,6 +70,12 @@ export default function GarmentFlowPage() {
 
   if (!session?.tenant) return null;
   const tenant = session.tenant;
+  // A real workspace's garments live in the backend; this in-memory flow
+  // would save them nowhere. Digitise is the same journey, server-backed.
+  if (isLiveTenant(tenant.id)) {
+    const step = params.get("step") ?? undefined;
+    return <Navigate to={id ? dashPath.digitiseGarment(id, step) : dashPath.digitise} replace />;
+  }
   const db = getDb();
   const g = db.garments.find((x) => x.id === id && x.tenantId === tenant.id);
 

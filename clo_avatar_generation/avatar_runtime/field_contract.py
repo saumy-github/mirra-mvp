@@ -46,6 +46,22 @@ def get_v1_avt_patch_fields_for_gender(gender: str) -> list[dict[str, Any]]:
     ]
 
 
+def get_supported_genders() -> set[str]:
+    """Genders with at least one v1 field — what step 03 accepts."""
+    contract = load_field_contract()
+    return {
+        g
+        for entry in contract.get("fields", [])
+        if entry.get("included_in_v1", False)
+        for g in entry.get("genders", [])
+    }
+
+
+def is_required(entry: dict[str, Any]) -> bool:
+    """Fields are required unless the contract marks them `"required": false`."""
+    return bool(entry.get("required", True))
+
+
 def get_round_decimals() -> int:
     contract = load_field_contract()
     return int(contract.get("round_decimals", 2))
@@ -55,6 +71,13 @@ def get_default_base_avatar() -> Path:
     contract = load_field_contract()
     relative = contract.get("default_base_avatar", "clo_avatar_generation/input/base-1.avt")
     return Path(relative)
+
+
+def get_base_avatar_for_gender(gender: str) -> Path:
+    """The base .avt a run starts from: `base_avatars[gender]`, else the default."""
+    contract = load_field_contract()
+    relative = contract.get("base_avatars", {}).get(gender)
+    return Path(relative) if relative else get_default_base_avatar()
 
 
 def get_measurement_bridge_template_csv() -> Path | None:

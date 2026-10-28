@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .context import Step1Context
-from .field_contract import get_v1_fields_for_gender
+from .field_contract import get_supported_genders, get_v1_fields_for_gender, is_required
 
 
 MEASUREMENT_RANGES = {
@@ -88,17 +88,34 @@ def _load_measurement_json(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _apply_gender_fallbacks(doc: dict[str, Any]) -> list[str]:
+    """Fill fields a gender needs from equivalents the website collects.
+
+    The manual measurement form asks everyone for "chest"; for a woman that
+    number is her bust, which is what the female avatar's slot 2 expects.
+    Photo measurement supplies bust directly, so this only fires for manual
+    entries. Returns warnings describing what was filled.
+    """
+    gender = str(doc.get("gender", "")).strip().lower()
+    warnings: list[str] = []
+    if gender == "female" and doc.get("bust_circumference_cm") is None and doc.get("chest_circumference_cm") is not None:
+        doc["bust_circumference_cm"] = doc["chest_circumference_cm"]
+        warnings.append("bust_circumference_cm missing; using chest_circumference_cm as the bust value.")
+    return warnings
+
+
 def _validate_required_fields(doc: dict[str, Any]) -> None:
     gender = str(doc.get("gender", "")).strip().lower()
-    if gender != "male":
+    supported = get_supported_genders()
+    if gender not in supported:
         raise ValueError(
-            f"Step-1 CLO avatar generation currently supports male only, got gender={gender!r}"
+            f"Step-1 CLO avatar generation supports {sorted(supported)}, got gender={gender!r}"
         )
 
     missing: list[str] = []
     for field in get_v1_fields_for_gender(gender):
         mongo_field = field.get("mongo_field")
-        if not mongo_field:
+        if not mongo_field or not is_required(field):
             continue
         if doc.get(mongo_field) is None:
             missing.append(mongo_field)
@@ -212,6 +229,9 @@ def run(ctx: Step1Context) -> bool:
     # leave no record of what data was actually present.
     ctx.log_json("mongo_snapshot", ctx.mongo_snapshot)
 
+    for warning in _apply_gender_fallbacks(doc):
+        ctx.warnings.append(warning)
+        ctx.logger.warning(warning)
     _validate_required_fields(doc)
     _validate_ranges(doc)
     ctx.logger.info("Measurement validation passed (gender=%s)", str(doc.get("gender", "")).strip().lower())

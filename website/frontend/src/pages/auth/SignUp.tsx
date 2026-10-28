@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthHeading, AuthShell } from "@/features/auth/components/auth-shell";
-import {
-  GoogleButton,
-  GithubButton,
-} from "@/features/auth/components/oauth-buttons";
+import { GoogleButton } from "@/features/auth/components/oauth-buttons";
+import { ConsentCheckbox } from "@/features/auth/components/consent";
+import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 import { useAuthMutations } from "@/hooks/use-shopper";
 import { MirraApiError, userMessage } from "@/integrations/mirra-api";
 import { track } from "@/lib/analytics";
-import { postAuthDestination } from "@/lib/post-auth";
+import { signupDestination } from "@/lib/post-auth";
+import { shopperDestination } from "@/lib/shopper-destination";
+import { markPendingConsent } from "./pending-consent";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -20,6 +21,17 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
+  const [consentMissing, setConsentMissing] = useState(false);
+  // Someone already signed in (e.g. pressing Back from setup) skips account creation.
+  useRedirectIfSignedIn(shopperDestination(params.get("next")));
+
+  function requireConsent() {
+    if (agreed) return true;
+    setConsentMissing(true);
+    setError("Please agree to the Terms and Privacy Policy to create your account.");
+    return false;
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,15 +40,16 @@ export default function SignUp() {
       setError("Please fill in your email and password.");
       return;
     }
+    if (!requireConsent()) return;
     try {
       await signUp.mutateAsync({
         displayName: username || email.split("@")[0],
         email,
         password,
-        acceptedTerms: true,
+        acceptedTerms: agreed,
       });
       track("signup_completed", { authenticated: true });
-      navigate(postAuthDestination(params.get("next")));
+      navigate(signupDestination(params.get("next")));
     } catch (err) {
       setError(
         err instanceof MirraApiError
@@ -48,13 +61,16 @@ export default function SignUp() {
 
   async function onGoogle() {
     setError(null);
+    if (!requireConsent()) return;
+    // Recorded after the redirect by AuthCallback (doc 06).
+    markPendingConsent();
     try {
-      await google.mutateAsync();
+      await google.mutateAsync(signupDestination(params.get("next")));
       track("login_completed", {
         authenticated: true,
         properties: { method: "google" },
       });
-      navigate(postAuthDestination(params.get("next")));
+      navigate(signupDestination(params.get("next")));
     } catch {
       setError("Google sign-in didn't complete. Please retry.");
     }
@@ -69,8 +85,18 @@ export default function SignUp() {
 
       {/* Social Login Buttons matching screenshot */}
       <div className="flex flex-col gap-2.5 w-full">
+        <ConsentCheckbox
+          checked={agreed}
+          invalid={consentMissing && !agreed}
+          onChange={(next) => {
+            setAgreed(next);
+            if (next) {
+              setConsentMissing(false);
+              setError(null);
+            }
+          }}
+        />
         <GoogleButton onClick={onGoogle} loading={google.isPending} />
-        <GithubButton onClick={onGoogle} />
       </div>
 
       {/* Divider */}

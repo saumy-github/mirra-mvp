@@ -11,7 +11,9 @@ _ENV_FILE = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=_ENV_FILE)
 
 MONGODB_URI   = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-DATABASE_NAME = "mirratest"
+# Same env var as the backend's Settings.database_name, so the CLO pipeline
+# and the website can never read and write different databases.
+DATABASE_NAME = os.getenv("DATABASE_NAME", "mirratest")
 
 # Collection names
 AVATAR_COLLECTION_NAME = "measurements"  # CLI/golden-user fixtures

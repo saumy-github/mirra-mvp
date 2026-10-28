@@ -5,7 +5,11 @@ black>=22.0.0
 flake8>=4.0.0
 mypy>=0.950
 numpy==1.26.4
-opencv-python==4.10.0.84
+# contrib, not plain opencv-python: mediapipe (below) depends on
+# opencv-contrib-python, and having both installed puts two copies of cv2 in
+# the venv. Same version, and contrib is a superset, so every existing cv2
+# caller is unaffected.
+opencv-contrib-python==4.10.0.84
 Pillow==10.4.0
 pandas>=1.3.0
 pip>=21.0
@@ -60,4 +64,8 @@ transformers==4.56.0
 # which conflicts with numpy==1.26.4 above (needed by opencv/scikit-learn/
 # torch). 2.0.67 is the most recent release with no numpy constraint at all.
 rembg==2.0.67
+# Photo measurement (photo_measurement/, run by the worker's `measure` queue):
+# person mask + pose landmarks. <0.11 because mediapipe 1.0.x aborts in a
+# Metal helper on macOS. 0.10.35 resolves against numpy==1.26.4 above.
+mediapipe>=0.10.14,<0.11
 trimesh>=3.9.0

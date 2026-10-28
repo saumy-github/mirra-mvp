@@ -45,7 +45,7 @@ export function useAuthMutations() {
   });
 
   const google = useMutation({
-    mutationFn: () => api.loginWithGoogle(),
+    mutationFn: (next: string | void) => api.loginWithGoogle(typeof next === "string" ? next : undefined),
     onSuccess: onAuthed,
   });
 

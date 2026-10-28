@@ -1714,3 +1714,79 @@
     align-items: flex-start;
   }
 }
+
+/* Responsive consolidation --------------------------------------------- */
+/* The setup steps sit in normal flow under the heading at every width. The
+   old negative-margin overlay collided with the subtitle on tablets. */
+.profile-avatar-steps {
+  justify-content: flex-start;
+  margin: 18px 0 44px;
+  /* The first step's label is wider than its circle. */
+  padding-left: 14px;
+}
+/* The garment rail is a 3:2 landscape plate. Showing it at its own ratio
+   keeps every garment whole instead of slicing the outer pieces at the
+   panel's edges, and lets the panel scale with any column width. */
+.profile-avatar-editorial,
+.profile-measurements-intake__visual {
+  height: auto;
+  aspect-ratio: 3 / 2;
+}
+.profile-avatar-empty-layout {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: start;
+}
+.profile-avatar-empty-card {
+  min-height: 0;
+  justify-content: flex-start;
+}
+.profile-measurements-intake {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  margin-top: 0;
+}
+
+/* Two columns need roughly 760px of content. Between the phone layout and a
+   wide desktop the 72px rail plus gutters leave less than that, so stack. */
+@media (max-width: 860px) {
+  .profile-overview-layout,
+  .profile-avatar-empty-layout,
+  .profile-avatar-live,
+  .profile-measurements-intake,
+  .profile-measurements-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .profile-measurements-intake__visual {
+    position: static;
+  }
+  /* Stacked, a wider frame keeps the form near the fold. It trims only wall
+     and floor; the garments sit in the middle band of the plate. */
+  .profile-avatar-editorial,
+  .profile-measurements-intake__visual {
+    aspect-ratio: 16 / 9;
+  }
+  .profile-overview-visual {
+    height: 420px;
+  }
+}
+
+@media (max-width: 700px) {
+  .profile-avatar-steps {
+    margin-bottom: 40px;
+  }
+  .profile-measurements-intake {
+    margin-top: 0;
+  }
+  .profile-measurements-empty__card {
+    padding: 24px 20px;
+  }
+}
+
+/* Very large screens: let the editorial pages breathe without stretching
+   line lengths. */
+@media (min-width: 1680px) {
+  .profile-overview-page,
+  .profile-avatar-page,
+  .profile-measurements-page {
+    width: min(100% - 96px, 1180px);
+  }
+}

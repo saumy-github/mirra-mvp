@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MeasurementForm } from "@/features/profile/components/measurement-form";
+import { MeasurementEntry } from "@/features/profile/components/measurement-entry";
+import { PhotoMeasurementFlow } from "@/features/profile/components/photo-measurement";
 import { useAvatarProfile, useAccount } from "@/hooks/use-shopper";
 import {
   CalendarDays,
+  Camera,
   ChevronDown,
   Layers3,
   ShieldCheck,
   Shirt,
   SlidersHorizontal,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getRuntimeProvider } from "@/integrations/mirra-api";
 import type { MeasurementField, MeasurementKey } from "@/integrations/mirra-api/types";
 import { track } from "@/lib/analytics";
@@ -85,6 +87,9 @@ function metricMeasurement(field: MeasurementField, value: number, units: UnitSy
 export default function ProfileMeasurements() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  // ?photos=1 — arriving from the QR hand-off: open the photo review.
+  const [params] = useSearchParams();
+  const fromPhotos = params.get("photos") === "1";
   const { data: account } = useAccount();
   const { data: avatar, isLoading } = useAvatarProfile(!!account);
   const [draft, setDraft] = useState<Partial<Record<MeasurementKey, number>>>({});
@@ -180,8 +185,14 @@ export default function ProfileMeasurements() {
             <p className="profile-meta">Step 1 of 3</p>
             <h2>Tell us about your fit</h2>
             <p>This helps us create a more accurate avatar and make better size recommendations.</p>
-            {/* This remains the only measurement entry point and saves to the existing backend. */}
-            <MeasurementForm onSaved={() => navigate("/profile/avatar")} />
+            {/* Photos or manual entry — both save to the same user_measurements record. */}
+            {/* A photo measurement goes straight on to building the avatar; manual
+                entry keeps landing on the avatar page to start it there. */}
+            <MeasurementEntry
+              onSaved={(_profile, method) =>
+                navigate(method === "photos" ? "/profile/avatar?generate=1" : "/profile/avatar")
+              }
+            />
           </section>
         </div>
       </div>
@@ -231,7 +242,7 @@ export default function ProfileMeasurements() {
       <div className="profile-measurements-main">
         <header className="profile-page-heading profile-measurements-heading">
           <p className="profile-meta">Measurements &amp; preferences</p>
-          <h1>Fit profile</h1>
+          <h1>Measurements</h1>
           <p>
             Tell us your measurements and fit preferences.
             <br />
@@ -327,6 +338,29 @@ export default function ProfileMeasurements() {
             />
           </div>
         </section>
+
+        <details className="profile-more-fit" open={fromPhotos}>
+          <summary>
+            <span className="profile-fit-icon">
+              <Camera aria-hidden size={19} strokeWidth={1.45} />
+            </span>
+            <span>
+              <strong>Re-measure from photos</strong>
+              <small>A front and a side photo replace the numbers above after you review them.</small>
+            </span>
+            <ChevronDown aria-hidden size={20} strokeWidth={1.6} />
+          </summary>
+          <div className="profile-more-fit__content">
+            <PhotoMeasurementFlow
+              onSaved={() => {
+                setDraft({});
+                save.reset();
+                // New measurements make the current avatar stale: rebuild it.
+                navigate("/profile/avatar?generate=1");
+              }}
+            />
+          </div>
+        </details>
 
         <details className="profile-more-fit">
           <summary>

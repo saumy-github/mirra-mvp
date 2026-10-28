@@ -23,6 +23,19 @@ def _matches(doc: dict, query: dict) -> bool:
                 if _get(doc, key) not in expected["$in"]:
                     return False
                 continue
+            if "$lt" in expected:
+                value = _get(doc, key)
+                if value is None or not value < expected["$lt"]:
+                    return False
+                continue
+            if "$nin" in expected:
+                if _get(doc, key) in expected["$nin"]:
+                    return False
+                continue
+            if "$ne" in expected:
+                if _get(doc, key) == expected["$ne"]:
+                    return False
+                continue
             if "$exists" in expected:
                 present = _get(doc, key, _MISSING) is not _MISSING
                 if present != expected["$exists"]:
@@ -112,6 +125,18 @@ class FakeCollection:
             self.docs.append(copy.deepcopy(doc))
         return type("R", (), {"matched_count": 0})()
 
+    async def update_many(self, query: dict, update: dict):
+        hits = [d for d in self.docs if _matches(d, query)]
+        for target in hits:
+            for key, value in (update.get("$set") or {}).items():
+                _set(target, key, copy.deepcopy(value))
+        return type("R", (), {"matched_count": len(hits)})()
+
+    async def delete_many(self, query: dict):
+        before = len(self.docs)
+        self.docs = [d for d in self.docs if not _matches(d, query)]
+        return type("R", (), {"deleted_count": before - len(self.docs)})()
+
     async def update_one(self, query: dict, update: dict, upsert: bool = False):
         target = next((d for d in self.docs if _matches(d, query)), None)
         if target is None:
@@ -137,6 +162,7 @@ class FakeDb:
         "merchant_previews_col",
         "cloths_col",
         "sizes_col",
+        "users_col",
     )
 
     def __init__(self):
@@ -144,6 +170,7 @@ class FakeDb:
         self._saved: dict = {}
 
     def install(self, monkeypatch) -> "FakeDb":
+        import src.catalog.service as catalog
         import src.db as db_module
         import src.merchant.pipeline_bridge as bridge
         import src.merchant.service as svc
@@ -152,7 +179,9 @@ class FakeDb:
             fake = self.collections[name]
             accessor = lambda _f=fake: _f
             monkeypatch.setattr(db_module, name, accessor, raising=False)
-            for module in (svc, bridge):
+            # Every module that imported the accessor by name holds its own
+            # reference; missing one here sends that module to the real Mongo.
+            for module in (svc, bridge, catalog):
                 if hasattr(module, name):
                     monkeypatch.setattr(module, name, accessor, raising=False)
         return self

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link, Navigate, Outlet } from "react-router-dom";
+import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 import { useDbVersion } from "./data/store";
 import { useSession } from "./data/session";
 import { getEntitlements } from "./data/entitlements";
@@ -7,6 +7,7 @@ import { can, canInternal } from "./data/rbac";
 import { AppShell, MirraLogo, TenantStatusBadge } from "./components/shell";
 import { ADMIN_NAV, PORTAL_NAV } from "./components/nav-items";
 import { Banner } from "./components/ui";
+import { isLiveTenant } from "./data/live-session";
 import { dashPath } from "./routes";
 import "./dashboard.css";
 
@@ -28,19 +29,27 @@ export default function DashboardRoot() {
  */
 export function PortalLayout() {
   const session = useSession();
+  const location = useLocation();
   useDbVersion(); // tenant status/launch changes must repaint the shell
 
-  if (!session) return <Navigate to={dashPath.login} replace />;
+  // No dashboard session: resolve the real business session first (Start
+  // sends signed-out visitors to /business/login). The demo persona picker
+  // stays reachable at /dashboard/login. `next` keeps a reload on the same page.
+  const start = `${dashPath.start}?next=${encodeURIComponent(location.pathname + location.search)}`;
+  if (!session) return <Navigate to={start} replace />;
   if (session.isInternal && !session.tenant) return <Navigate to={dashPath.admin} replace />;
   const tenant = session.tenant;
-  if (!tenant) return <Navigate to={dashPath.login} replace />;
+  if (!tenant) return <Navigate to={start} replace />;
   if (!tenant.onboarding.activated && !session.impersonating)
     return <Navigate to={dashPath.onboarding} replace />;
 
   const ent = getEntitlements(tenant);
   // Navigation is filtered to what this seat can actually do, so a Viewer is
   // never routed into Billing purely to be refused there.
-  const nav = PORTAL_NAV.filter((item) => !item.needs || can(session.role, item.needs));
+  const live = isLiveTenant(tenant.id);
+  const nav = PORTAL_NAV.filter(
+    (item) => (!item.needs || can(session.role, item.needs)) && !(live && item.demoOnly),
+  );
 
   return (
     <AppShell
@@ -72,6 +81,23 @@ export function PortalLayout() {
       <Outlet />
     </AppShell>
   );
+}
+
+/** A page with no backend yet: a real workspace is sent to the Overview instead. */
+export function DemoOnly({ children }: { children: ReactNode }) {
+  const session = useSession();
+  if (isLiveTenant(session?.tenant?.id)) return <Navigate to={dashPath.portal} replace />;
+  return <>{children}</>;
+}
+
+/**
+ * Pick the page for this tenant: the server-backed one for a real workspace,
+ * the in-memory one for the seeded demo. Never mix them — the demo tenant's
+ * ids mean nothing to the API, and a real workspace's data isn't in the store.
+ */
+export function ByTenant({ live, demo }: { live: ReactNode; demo: ReactNode }) {
+  const session = useSession();
+  return <>{isLiveTenant(session?.tenant?.id) ? live : demo}</>;
 }
 
 /**

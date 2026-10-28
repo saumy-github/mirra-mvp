@@ -5,11 +5,16 @@ Run this on the Windows machine that has CLO3D + the REST plugin running
 .agent/website-launch/07-step0-worker-queue.md for the design.
 
 Usage (from the repo root, inside the repo .venv):
-    python worker/run_worker.py
+    python worker/run_worker.py                    # CLO jobs (queue "clo")
+    python worker/run_worker.py --queues measure   # photo measurement; no CLO needed
+
+Run the two as separate processes: SimpleWorker handles one job at a time, and
+a photo measurement (seconds) must not wait behind a CLO job (20+ minutes).
 """
 
 from __future__ import annotations
 
+import argparse
 import logging
 import sys
 from pathlib import Path
@@ -32,29 +37,38 @@ from rq import Queue  # noqa: E402
 from rq.worker import SimpleWorker  # noqa: E402
 
 from src.config import get_settings  # noqa: E402
-from src.core.queue import QUEUE_NAME  # noqa: E402
+from src.core.queue import MEASURE_QUEUE_NAME, QUEUE_NAME  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("mirra.worker")
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Mirra RQ worker")
+    parser.add_argument(
+        "--queues",
+        nargs="+",
+        default=[QUEUE_NAME],
+        choices=[QUEUE_NAME, MEASURE_QUEUE_NAME],
+        help=f"queues to serve, in priority order (default: {QUEUE_NAME})",
+    )
+    args = parser.parse_args()
     settings = get_settings()
     conn = Redis.from_url(settings.redis_url)
-    queue = Queue(QUEUE_NAME, connection=conn)
+    queues = [Queue(name, connection=conn) for name in args.queues]
 
     logger.info(
-        "Starting CLO worker: redis=%s queue=%r (SimpleWorker, concurrency=1 — "
+        "Starting worker: redis=%s queues=%r (SimpleWorker, concurrency=1 — "
         "required on Windows, see worker/README.md)",
         settings.redis_url,
-        QUEUE_NAME,
+        args.queues,
     )
     # SimpleWorker: runs jobs in this same process/thread, no os.fork() —
     # the default rq.Worker forks a work-horse process per job, which
     # doesn't exist on Windows. This is also correct for us independent of
     # platform: CLO3D's plugin is itself single-threaded, so there's no
     # parallelism to gain from a forking worker anyway.
-    worker = SimpleWorker([queue], connection=conn)
+    worker = SimpleWorker(queues, connection=conn)
     worker.work(with_scheduler=False)
     return 0
 

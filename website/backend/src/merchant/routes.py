@@ -13,7 +13,9 @@ from fastapi.responses import FileResponse
 from ..core.auth_dependency import Identity, get_identity
 from . import controller
 from .schemas import (
+    AddMemberRequest,
     ConfirmMappingRequest,
+    CreateWorkspaceRequest,
     ConnectShopifyRequest,
     ContentRequest,
     CreateGarmentRequest,
@@ -42,6 +44,12 @@ async def list_workspaces(identity: CurrentIdentity):
     return await controller.list_workspaces(identity.user_id)
 
 
+@router.post("/workspaces", status_code=201)
+async def create_workspace(body: CreateWorkspaceRequest, identity: CurrentIdentity):
+    """A signed-in business account creates its workspace and becomes owner."""
+    return await controller.create_workspace(identity.user_id, identity.kind, body)
+
+
 @router.get("/{tenant_id}")
 async def get_workspace(tenant_id: str, identity: CurrentIdentity):
     return await controller.get_workspace(tenant_id, identity.user_id)
@@ -50,6 +58,22 @@ async def get_workspace(tenant_id: str, identity: CurrentIdentity):
 @router.post("/{tenant_id}/shopify/connect")
 async def connect_shopify(tenant_id: str, body: ConnectShopifyRequest, identity: CurrentIdentity):
     return await controller.connect_shopify(tenant_id, identity.user_id, body)
+
+
+@router.post("/{tenant_id}/members")
+async def add_member(tenant_id: str, body: AddMemberRequest, identity: CurrentIdentity):
+    """Seat an existing business account (owner/admin only)."""
+    return await controller.add_member(tenant_id, identity.user_id, body)
+
+
+@router.get("/{tenant_id}/members")
+async def list_members(tenant_id: str, identity: CurrentIdentity):
+    return await controller.list_members(tenant_id, identity.user_id)
+
+
+@router.delete("/{tenant_id}/members/{member_id}")
+async def remove_member(tenant_id: str, member_id: str, identity: CurrentIdentity):
+    return await controller.remove_member(tenant_id, identity.user_id, member_id)
 
 
 @router.post("/{tenant_id}/shopify/reconcile")
@@ -213,6 +237,13 @@ async def add_finding(
     tenant_id: str, garment_id: str, body: QaFindingRequest, identity: CurrentIdentity
 ):
     return await controller.add_finding(tenant_id, identity.user_id, garment_id, body)
+
+
+@router.post("/{tenant_id}/garments/{garment_id}/qa/findings/{finding_id}/resolve")
+async def resolve_finding(
+    tenant_id: str, garment_id: str, finding_id: str, identity: CurrentIdentity
+):
+    return await controller.resolve_finding(tenant_id, identity.user_id, garment_id, finding_id)
 
 
 @router.post("/{tenant_id}/garments/{garment_id}/qa/approve")

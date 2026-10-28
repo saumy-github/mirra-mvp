@@ -6,7 +6,10 @@ import * as live from "./live-schemas";
 import type { MirraRuntimeProvider } from "./runtime-provider";
 import type {
   AnalyticsEvent,
+  FacePhotosInput,
   MeasurementKey,
+  PhotoCaptureInput,
+  PhotoMeasurementField,
   ShopperAccount,
   SignatureLook,
   SignatureLookLayer,
@@ -71,12 +74,12 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
   async login(input: { email: string; password: string }) {
     return this.storeSession(await this.http.post("/auth/login", live.sessionEnvelope, input));
   }
-  async loginWithGoogle(): Promise<ShopperAccount> {
+  async loginWithGoogle(destination?: string): Promise<ShopperAccount> {
     // Full-page redirect flow (backend: auth/google/start + /callback) —
     // the browser navigates away, so this intentionally never resolves.
-    // Login.tsx/SignUp.tsx already carry their own "next" query param;
-    // read it straight from the URL rather than widening this interface.
-    const next = new URLSearchParams(window.location.search).get("next");
+    // Signup provides its standalone setup destination. Other login surfaces
+    // keep their existing safe post-auth destination.
+    const next = destination ?? new URLSearchParams(window.location.search).get("next");
     const qs = next ? `?next=${encodeURIComponent(next)}` : "";
     window.location.assign(`${this.http.baseUrl}/auth/google/start${qs}`);
     return new Promise<ShopperAccount>(() => {});
@@ -202,6 +205,159 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
     await this.http.delete("/avatars/profile", live.okEnvelope);
   }
 
+  // ── Photo measurement ──
+  startPhotoMeasurement(input: PhotoCaptureInput) {
+    return this.http
+      .postMultipart("/photo-measurements", live.photoCaptureEnvelope, photoForm(input))
+      .then((envelope) => live.mapPhotoCapture(envelope.capture));
+  }
+  createPhotoPairing(buildAvatar = false, measurementMethod: "photos" | "manual" = "photos") {
+    return this.http
+      .post("/photo-measurements/pairings", live.pairingEnvelope, {
+        buildAvatar,
+        measurementMethod,
+      })
+      .then((envelope) => envelope.pairing);
+  }
+  refreshCaptureLink(pairingId: string) {
+    return this.http
+      .post(
+        `/photo-measurements/pairings/${encodeURIComponent(pairingId)}/link`,
+        live.pairingEnvelope,
+        {},
+      )
+      .then((e) => e.pairing);
+  }
+  getLatestAvatarSetup() {
+    return this.http
+      .get("/photo-measurements/setup/latest", live.setupMaybeEnvelope)
+      .then((e) => e.setup);
+  }
+  getAvatarSetup(pairingId: string) {
+    return this.http
+      .get(`/photo-measurements/setup/${encodeURIComponent(pairingId)}`, live.setupEnvelope)
+      .then((e) => e.setup);
+  }
+  reviewAvatarSetup(pairingId: string, overrides: Partial<Record<PhotoMeasurementField, number>>) {
+    return this.http
+      .post(
+        `/photo-measurements/setup/${encodeURIComponent(pairingId)}/review`,
+        live.setupEnvelope,
+        { overrides },
+      )
+      .then((e) => e.setup);
+  }
+  retryAvatarSetup(pairingId: string, skipFace = false) {
+    return this.http
+      .post(
+        `/photo-measurements/setup/${encodeURIComponent(pairingId)}/retry`,
+        live.setupEnvelope,
+        { skipFace },
+      )
+      .then((e) => e.setup);
+  }
+  async setCaptureStage(token: string, stage: "capturing" | "uploading") {
+    await this.http.post(`/photo-capture/${encodeURIComponent(token)}/stage`, live.okEnvelope, {
+      stage,
+    });
+  }
+  async finishCapture(token: string, skipFace = false) {
+    await this.http.post(`/photo-capture/${encodeURIComponent(token)}/finish`, live.okEnvelope, {
+      skipFace,
+    });
+  }
+  async getPhotoPairing(pairingId: string) {
+    const envelope = await this.http.get(
+      `/photo-measurements/pairings/${encodeURIComponent(pairingId)}`,
+      live.pairingStatusEnvelope,
+    );
+    return {
+      pairing: envelope.pairing,
+      capture: envelope.capture ? live.mapPhotoCapture(envelope.capture) : null,
+    };
+  }
+  startFace(input: FacePhotosInput) {
+    return this.http
+      .postMultipart("/faces", live.faceEnvelope, faceForm(input))
+      .then((envelope) => envelope.face);
+  }
+  getFace(faceId: string) {
+    return this.http
+      .get(`/faces/${encodeURIComponent(faceId)}`, live.faceEnvelope)
+      .then((envelope) => envelope.face);
+  }
+  getLatestFace() {
+    return this.http.get("/faces/latest", live.faceMaybeEnvelope).then((envelope) => envelope.face);
+  }
+  async getFaceGlb() {
+    try {
+      return await this.http.getBlob("/faces/current/glb");
+    } catch (err) {
+      if (err instanceof MirraApiError && err.status === 404) return null;
+      throw err;
+    }
+  }
+  async deleteFace() {
+    await this.http.delete("/faces", live.okEnvelope);
+  }
+  uploadFaceViaCaptureLink(token: string, input: FacePhotosInput) {
+    return this.http
+      .postMultipart(
+        `/photo-capture/${encodeURIComponent(token)}/face`,
+        live.faceLinkEnvelope,
+        faceForm(input),
+      )
+      .then((envelope) => envelope.face);
+  }
+  getCaptureLinkFace(token: string) {
+    return this.http
+      .get(`/photo-capture/${encodeURIComponent(token)}/face`, live.faceLinkMaybeEnvelope)
+      .then((envelope) => envelope.face);
+  }
+  getCaptureLink(token: string) {
+    return this.http
+      .get(`/photo-capture/${encodeURIComponent(token)}`, live.captureLinkEnvelope)
+      .then((envelope) => envelope.link);
+  }
+  uploadViaCaptureLink(token: string, input: PhotoCaptureInput) {
+    return this.http
+      .postMultipart(
+        `/photo-capture/${encodeURIComponent(token)}`,
+        live.linkProgressEnvelope,
+        photoForm(input),
+      )
+      .then((envelope) => envelope.capture);
+  }
+  getCaptureLinkProgress(token: string) {
+    return this.http
+      .get(`/photo-capture/${encodeURIComponent(token)}/capture`, live.linkProgressMaybeEnvelope)
+      .then((envelope) => envelope.capture);
+  }
+  getPhotoMeasurement(captureId: string) {
+    return this.http
+      .get(`/photo-measurements/${encodeURIComponent(captureId)}`, live.photoCaptureEnvelope)
+      .then((envelope) => live.mapPhotoCapture(envelope.capture));
+  }
+  async getLatestPhotoMeasurement() {
+    const envelope = await this.http.get(
+      "/photo-measurements/latest",
+      live.photoCaptureLatestEnvelope,
+    );
+    return envelope.capture ? live.mapPhotoCapture(envelope.capture) : null;
+  }
+  async applyPhotoMeasurement(
+    captureId: string,
+    overrides: Partial<Record<PhotoMeasurementField, number>>,
+  ) {
+    const envelope = await this.http.post(
+      `/photo-measurements/${encodeURIComponent(captureId)}/apply`,
+      live.applyPhotoEnvelope,
+      { overrides },
+    );
+    const profile = await this.getAvatarProfile();
+    return profile ?? live.profileFromMeasurements(envelope.measurements);
+  }
+
   // ── Try-on ──
   createTryOnSession() {
     return this.http.post("/tryon/sessions", live.tryonSessionEnvelope, {}).then((envelope) => ({
@@ -285,4 +441,23 @@ export class HttpRuntimeProvider implements MirraRuntimeProvider {
       // Analytics must never break the user's experience.
     }
   }
+}
+
+function photoForm(input: PhotoCaptureInput): FormData {
+  const form = new FormData();
+  form.append("front", input.front);
+  form.append("side", input.side);
+  form.append("height_cm", String(input.heightCm));
+  form.append("gender", input.gender);
+  if (typeof input.weightKg === "number") form.append("weight_kg", String(input.weightKg));
+  if (input.shoeSoleCm) form.append("shoe_sole_cm", String(input.shoeSoleCm));
+  return form;
+}
+
+function faceForm(input: FacePhotosInput): FormData {
+  const form = new FormData();
+  form.append("front", input.front);
+  if (input.left) form.append("left", input.left);
+  if (input.right) form.append("right", input.right);
+  return form;
 }

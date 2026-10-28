@@ -1,0 +1,241 @@
+.live-camera {
+  width: 100%;
+  color: #242321;
+  font-family: var(--font-sans, sans-serif);
+}
+.live-camera-view {
+  position: relative;
+  height: min(52dvh, 430px);
+  min-height: 260px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #e9e5df;
+  isolation: isolate;
+}
+.live-camera-view[data-active="true"] {
+  background: #242321;
+}
+.live-camera-view video,
+.live-camera-view .camera-result {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.live-camera-view video[hidden] {
+  display: none;
+}
+.camera-mirrored {
+  transform: scaleX(-1);
+}
+.camera-welcome {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  background: #eeeae3;
+}
+.camera-welcome img {
+  height: min(25dvh, 190px);
+  max-width: 100%;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  object-fit: contain;
+}
+.camera-welcome > span {
+  font-size: 17px;
+  font-weight: 500;
+}
+.camera-welcome > p {
+  max-width: 290px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #736c61;
+  margin: 8px 0 0;
+}
+.camera-live-label {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #f1f4ee;
+  color: #465441;
+  border-radius: 20px;
+  padding: 7px 11px;
+  font-size: 11px;
+}
+.camera-live-label > span {
+  width: 5px;
+  height: 5px;
+  background: #67815f;
+  border-radius: 50%;
+}
+.camera-countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 80px;
+  color: white;
+  background: #0003;
+  font-variant-numeric: tabular-nums;
+}
+.camera-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #706c65;
+  text-align: center;
+  margin: 14px auto;
+  max-width: 330px;
+}
+.camera-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  margin-top: 14px;
+}
+.live-camera button {
+  cursor: pointer;
+  border: 0;
+  transition:
+    background-color 180ms,
+    color 180ms,
+    opacity 180ms;
+  font-family: inherit;
+}
+.live-camera button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.live-camera button:focus-visible {
+  outline: 2px solid #75836d;
+  outline-offset: 4px;
+}
+.camera-primary,
+.camera-secondary {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  padding: 12px 22px;
+}
+.camera-primary {
+  background: #242321;
+  color: #fff;
+}
+.camera-primary:hover {
+  background: #403d37;
+}
+.camera-secondary {
+  background: #efebe5;
+  color: #514c43;
+}
+.camera-secondary:hover {
+  background: #e7e1d7;
+}
+.camera-open {
+  display: flex;
+  width: 100%;
+  margin-top: 18px;
+}
+.camera-tool {
+  width: 54px;
+  height: 52px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 10px;
+  color: #69645b;
+  background: transparent;
+  font-size: 10px;
+}
+.camera-tool[aria-pressed="true"] {
+  background: #e8ede4;
+  color: #4f6147;
+}
+.camera-tool:hover {
+  background: #efebe5;
+}
+.camera-shutter {
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  background: #242321;
+  color: #fff;
+  border-radius: 50%;
+}
+.camera-shutter:hover {
+  background: #46423a;
+}
+.camera-cancel {
+  display: block;
+  margin: 10px auto 0;
+  min-height: 42px;
+  color: #6e6962;
+  background: transparent;
+  font-size: 13px;
+  padding: 8px 18px;
+}
+.camera-error {
+  margin: 14px 0;
+  padding: 13px 16px;
+  background: #f8e9e6;
+  color: #933e39;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.camera-dialog {
+  width: min(520px, calc(100% - 28px));
+  max-height: calc(100dvh - 28px);
+  overflow-y: auto;
+  border: none;
+  padding: 22px;
+  border-radius: 22px;
+  background: #fcfbf9;
+  color: #242321;
+  margin: auto;
+}
+.camera-dialog::backdrop {
+  background: #24232177;
+  backdrop-filter: blur(8px);
+}
+.camera-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.camera-dialog-header h2 {
+  font: 500 17px var(--font-sans, sans-serif);
+  margin: 0;
+}
+.camera-dialog-header button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f0ece6;
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-camera button {
+    transition: none;
+  }
+}

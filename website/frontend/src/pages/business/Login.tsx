@@ -10,15 +10,17 @@ import { useAuthMutations } from "@/hooks/use-shopper";
 import { MirraApiError, userMessage } from "@/integrations/mirra-api";
 import { track } from "@/lib/analytics";
 import { businessDestination } from "./destination";
+import { businessQuickAccessEnabled, enterBusinessDemo } from "./quick-access";
 
 export default function BusinessLogin() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { login, google, continueAsGuest } = useAuthMutations();
+  const { login, google } = useAuthMutations();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [quickAccessPending, setQuickAccessPending] = useState(false);
   const [error, setError] = useState<string | null>(
     params.get("error") ? "Google sign-in didn't complete. Please retry." : null,
   );
@@ -60,15 +62,13 @@ export default function BusinessLogin() {
 
   async function onQuickAccess() {
     setError(null);
+    setQuickAccessPending(true);
     try {
-      await continueAsGuest.mutateAsync();
-      track("login_completed", {
-        authenticated: true,
-        properties: { method: "quick_access" },
-      });
-      navigate(businessDestination(params.get("next")));
+      navigate(await enterBusinessDemo(params.get("next")));
     } catch {
       setError("Quick access login didn't complete. Please retry.");
+    } finally {
+      setQuickAccessPending(false);
     }
   }
 
@@ -81,15 +81,17 @@ export default function BusinessLogin() {
       />
 
       {/* Quick Access Demo Button */}
-      <button
-        type="button"
-        onClick={onQuickAccess}
-        disabled={continueAsGuest.isPending}
-        className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/10 bg-neutral-50 text-xs font-medium text-neutral-800 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all hover:bg-neutral-100 hover:border-black/20 active:scale-[0.99] disabled:opacity-50"
-      >
-        <span>⚡</span>
-        <span>{continueAsGuest.isPending ? "Entering workspace…" : "Quick Access (Auto Log In)"}</span>
-      </button>
+      {businessQuickAccessEnabled && (
+        <button
+          type="button"
+          onClick={onQuickAccess}
+          disabled={quickAccessPending}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-black/10 bg-neutral-50 text-xs font-medium text-neutral-800 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all hover:bg-neutral-100 hover:border-black/20 active:scale-[0.99] disabled:opacity-50"
+        >
+          <span>⚡</span>
+          <span>{quickAccessPending ? "Entering workspace…" : "Quick Access (Auto Log In)"}</span>
+        </button>
+      )}
 
       {/* Social Logins */}
       <div className="mt-3">

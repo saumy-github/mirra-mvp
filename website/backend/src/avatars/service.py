@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from ..config import get_settings
-from ..core.errors import NotFound
+from ..core.errors import NotFound, ServiceUnavailable
 from ..core.security import new_id
 from ..db import avatar_jobs_col, avatar_profiles_col
 from ..user_measurements.service import get_for_user as get_measurements
@@ -22,10 +22,16 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-async def start_generation(user_id: str) -> AvatarJobDocument:
+async def start_generation(user_id: str, *, job_id: str | None = None) -> AvatarJobDocument:
+    # Setup reserves an id before handing work off, so resuming a claimed
+    # build does not enqueue another CLO run.
+    if job_id:
+        raw = await avatar_jobs_col().find_one({"_id": job_id, "user_id": user_id})
+        if raw:
+            return AvatarJobDocument.model_validate(raw)
     measurements = await get_measurements(user_id)  # 404s if none stored
     job = AvatarJobDocument(
-        id=new_id("aj"),
+        id=job_id or new_id("aj"),
         user_id=user_id,
         measurement_snapshot=measurements.model_dump(exclude_none=True),
         state="queued",
@@ -38,7 +44,14 @@ async def start_generation(user_id: str) -> AvatarJobDocument:
     # before its document exists, log "not found" and drop it, leaving the
     # job stuck in `queued` forever (doc 13 section 43).
     await avatar_jobs_col().insert_one(job.to_mongo())
-    engine.start_job(job)  # hands off to the CLO worker via Redis
+    try:
+        engine.start_job(job)  # hands off to the CLO worker via Redis
+    except ServiceUnavailable:
+        await avatar_jobs_col().update_one(
+            {"_id": job.id}, {"$set": {"state": "failed", "completed_at": _now(),
+                "failure_reason": "We couldn't start your avatar. Please try again."}},
+        )
+        raise
     return await get_job(job.id, user_id)
 
 

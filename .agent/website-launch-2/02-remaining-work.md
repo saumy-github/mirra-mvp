@@ -144,3 +144,28 @@ Not urgent for local dev, genuinely blocking for a real pilot launch:
 ## Updating this doc
 
 Mark items done with a date and a pointer to the plan file that did the work (new numbered doc in this folder). Don't delete completed items — leave them as a record, same convention as the old folder.
+
+## Status addendum — 2026-10-06 (see `16-signup-to-studio-flow-audit.md`)
+
+Re-checked against the working tree. Corrections to items above:
+- **B8 (Google-only auth) — NOT current.** Shopper `Login.tsx`/`SignUp.tsx` render the live email+password form again; `ForgotPassword.tsx`/`VerifyEmail.tsx` are stubs with no working path. Reopened.
+- **B9 (Google consent gap) — REGRESSED, then re-fixed 2026-10-06** (doc 17 status): Login/SignUp set the pending-consent flag again; Sign-up has an explicit checkbox and no longer hardcodes `acceptedTerms: true`.
+- **B1/B2/B5 — superseded.** `/onboarding/qr` exists again as the standalone setup route (doc 15); doc 05's "`/onboarding` deleted" is historical. `/profile/avatar` still works but there are now two avatar creation surfaces.
+- **B6 (`RequireAuth`) — still open**, and redirect targets now differ (Studio/Profile → login, SetupFlow → sign-up).
+- **B4 — partially addressed** for onboarding via `getLatestAvatarSetup`; still open for `/profile/avatar`.
+- A1/A2 code landed; A3 live run, A4–A7, Groups C, D, F unchanged and still open. Not re-verified in this pass: B3, B7, A4–A7.
+- UI/UX audit of Profile layout, QR/phone capture and setup navigation: see `17-ui-ux-audit-profile-qr-navigation.md` (2026-10-06).
+
+## Temporary demo access — 2026-10-08
+
+`/business/login` Quick Access is restored for development using the
+existing Atelier Noir demo owner session; see
+`19-business-quick-access-demo-login.md`. It must stay outside real backend
+authentication. Before finalisation, verify real business sign-in, workspace
+provisioning, session restoration and sign-out, then retire the temporary entry
+point and review the older `/dashboard/login` persona picker. The demo session
+does not enable real merchant API operations.
+
+## 2026-10-10 — merchant portal consolidation
+
+See `20-merchant-portal-consolidation.md`: live workspaces now read every visible portal page from the merchant API; demo-only pages are hidden for them.

@@ -436,3 +436,169 @@ def test_the_access_token_is_never_serialised(env):
     body = env.get(f"/api/v1/merchant/{TENANT}").json()
     assert body["workspace"]["shopify"]["connected"] is True
     assert "shpat_secret" not in env.get(f"/api/v1/merchant/{TENANT}").text
+
+
+# ------------------------------------------------- shopper catalogue gating
+
+
+def test_a_submitted_garment_reaches_shoppers_only_once_live(env):
+    """Submitting writes `cloths`/`sizes` (the pipeline needs them), but the
+    shopper catalogue and try-on must not serve the garment until QA has
+    approved it, it is live, and a rendered asset exists."""
+    from datetime import datetime, timezone
+
+    from src.merchant.models import ApprovedSnapshot, MerchantGarmentDocument
+
+    # A seeded, non-merchant cloth keeps showing throughout.
+    env.fake.col("cloths_col").docs.append(
+        {"cloth_id": "c_001", "label": "Basic Tee", "category": "top", "size_ids": ["s_001"], "brand_id": None}
+    )
+    env.fake.col("sizes_col").docs.append({"size_id": "s_001", "fit_type": "regular"})
+
+    gid = _make_garment(env)
+    _complete(env, gid)
+    env.post(f"/api/v1/merchant/{TENANT}/garments/{gid}/ingestion").raise_for_status()
+    cloth = next(c for c in env.fake.col("cloths_col").docs if c.get("brand_id"))
+    size_id = cloth["size_ids"][0]
+
+    def shopper_ids():
+        return [c["clothId"] for c in env.get("/api/v1/catalog/garments").json()["items"]]
+
+    assert shopper_ids() == ["c_001"]
+    assert env.get("/api/v1/catalog/garments").json()["total"] == 1
+    assert env.get(f"/api/v1/catalog/garments/{cloth['cloth_id']}").status_code == 404
+
+    # Stand in for QA approval, publication and the preview render finishing.
+    now = datetime.now(timezone.utc)
+    raw = env.fake.col("merchant_garments_col").docs[0]
+    garment = MerchantGarmentDocument.model_validate(raw)
+    raw["approved"] = ApprovedSnapshot.freeze(garment, "u_qa", now).model_dump()
+    raw["stage"] = "live"
+    env.fake.col("merchant_previews_col").docs.append(
+        {"_id": "mp_1", "tenant_id": TENANT, "garment_id": gid, "cloth_id": cloth["cloth_id"],
+         "size_id": size_id, "revision": garment.revision, "state": "ready",
+         "glb_path": "previews/mp_1.glb", "created_at": now}
+    )
+
+    assert sorted(shopper_ids()) == sorted(["c_001", cloth["cloth_id"]])
+    served = env.get(f"/api/v1/catalog/garments/{cloth['cloth_id']}").json()["garment"]
+    assert [s["sizeId"] for s in served["sizes"]] == [size_id]
+
+    # Pausing takes it back out.
+    raw["stage"] = "paused"
+    assert shopper_ids() == ["c_001"]
+
+
+# --------------------------------------------------- workspace provisioning
+
+
+@pytest.fixture
+def fresh(env):
+    """The same app, but the signed-in user belongs to no workspace yet."""
+    from src.core.auth_dependency import Identity, get_identity
+
+    who = {"user": "u_new_brand", "kind": "user"}
+    env.app.dependency_overrides[get_identity] = lambda: Identity(user_id=who["user"], kind=who["kind"])
+    env.who = who
+    return env
+
+
+def test_a_business_account_creates_its_workspace_and_owns_it(fresh):
+    assert fresh.get("/api/v1/merchant/workspaces").json()["items"] == []
+    r = fresh.post("/api/v1/merchant/workspaces", json={"name": "Maison Lune", "storeUrl": "https://maisonlune.com"})
+    assert r.status_code == 201, r.text
+    ws = r.json()["workspace"]
+    assert ws["slug"] == "maison-lune" and ws["role"] == "owner" and ws["status"] == "trialing"
+    assert ws["shopify"]["connected"] is False
+
+    listed = fresh.get("/api/v1/merchant/workspaces").json()["items"]
+    assert [w["tenantId"] for w in listed] == [ws["tenantId"]] and listed[0]["role"] == "owner"
+    # The rest of the merchant surface now works for this account.
+    r = fresh.post(
+        f"/api/v1/merchant/{ws['tenantId']}/products",
+        json={"handle": "lune-slip", "title": "Lune Slip", "variants": [{"size": "S", "price": 90}]},
+    )
+    assert r.status_code == 201, r.text
+
+
+def test_workspace_rules(fresh):
+    fresh.who["kind"] = "guest"
+    assert fresh.post("/api/v1/merchant/workspaces", json={"name": "Guest Co"}).status_code == 403
+    fresh.who["kind"] = "user"
+    assert fresh.post("/api/v1/merchant/workspaces", json={"name": "Atelier Noir"}).status_code == 201
+    # slug collision with the seeded tenant gets a suffix; a second workspace is refused
+    assert fresh.fake.col("merchant_tenants_col").docs[-1]["slug"] == "atelier-noir-2"
+    assert fresh.post("/api/v1/merchant/workspaces", json={"name": "Another"}).status_code == 409
+
+
+def test_an_owner_seats_an_existing_account(env):
+    env.fake.col("users_col").docs.append({"_id": "u_colleague", "email": "sam@atelier.com", "is_guest": False})
+    r = env.post(f"/api/v1/merchant/{TENANT}/members", json={"email": "Sam@Atelier.com", "role": "editor"})
+    assert r.status_code == 200, r.text
+    tenant = env.fake.col("merchant_tenants_col").docs[0]
+    assert tenant["members"]["u_colleague"] == "editor"
+
+    unknown = env.post(f"/api/v1/merchant/{TENANT}/members", json={"email": "nobody@x.com", "role": "viewer"})
+    assert unknown.status_code == 404
+    owner = env.post(f"/api/v1/merchant/{TENANT}/members", json={"email": "x", "role": "owner"})
+    assert owner.status_code == 422  # owner is not grantable
+
+
+def test_an_editor_cannot_seat_people(env):
+    env.fake.col("merchant_tenants_col").docs[0]["members"][USER] = "editor"
+    env.fake.col("users_col").docs.append({"_id": "u_colleague", "email": "sam@atelier.com", "is_guest": False})
+    r = env.post(f"/api/v1/merchant/{TENANT}/members", json={"email": "sam@atelier.com", "role": "viewer"})
+    assert r.status_code == 403
+
+
+def _to_qa(env, gid):
+    _complete(env, gid)
+    env.put(f"/api/v1/merchant/{TENANT}/garments/{gid}/stage", json={"stage": "merchant_review"}).raise_for_status()
+    env.put(f"/api/v1/merchant/{TENANT}/garments/{gid}/stage", json={"stage": "in_qa"}).raise_for_status()
+
+
+def test_ready_cannot_be_reached_without_approval(env):
+    gid = _make_garment(env)
+    _to_qa(env, gid)
+    r = env.put(f"/api/v1/merchant/{TENANT}/garments/{gid}/stage", json={"stage": "ready"})
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "use_approve"
+
+
+def test_a_resolved_blocking_finding_no_longer_blocks_approval(env):
+    gid = _make_garment(env)
+    _to_qa(env, gid)
+    g = env.post(
+        f"/api/v1/merchant/{TENANT}/garments/{gid}/qa/findings",
+        json={"severity": "blocking", "area": "render", "detail": "Hem clips the hip"},
+    ).json()["garment"]
+    fid = g["qaFindings"][0]["findingId"]
+    assert env.post(f"/api/v1/merchant/{TENANT}/garments/{gid}/qa/approve").status_code == 409
+
+    r = env.post(f"/api/v1/merchant/{TENANT}/garments/{gid}/qa/findings/{fid}/resolve")
+    assert r.status_code == 200, r.text
+    assert r.json()["garment"]["qaFindings"][0]["resolved"] is True
+    assert env.post(f"/api/v1/merchant/{TENANT}/garments/{gid}/qa/approve").status_code == 200
+
+
+def test_an_unknown_finding_severity_is_a_422_not_a_500(env):
+    gid = _make_garment(env)
+    r = env.post(
+        f"/api/v1/merchant/{TENANT}/garments/{gid}/qa/findings",
+        json={"severity": "catastrophic", "detail": "x"},
+    )
+    assert r.status_code == 422
+
+
+def test_members_are_listed_and_can_be_removed(env):
+    env.fake.col("users_col").docs.append({"_id": USER, "email": "owner@atelier.com", "name": "Elodie", "is_guest": False})
+    env.fake.col("users_col").docs.append({"_id": "u_colleague", "email": "sam@atelier.com", "is_guest": False})
+    env.post(f"/api/v1/merchant/{TENANT}/members", json={"email": "sam@atelier.com", "role": "editor"}).raise_for_status()
+
+    items = env.get(f"/api/v1/merchant/{TENANT}/members").json()["items"]
+    assert {(m["email"], m["role"]) for m in items} == {("owner@atelier.com", "owner"), ("sam@atelier.com", "editor")}
+
+    assert env.delete(f"/api/v1/merchant/{TENANT}/members/{USER}").status_code == 409
+    r = env.delete(f"/api/v1/merchant/{TENANT}/members/u_colleague")
+    assert r.status_code == 200, r.text
+    assert "u_colleague" not in env.fake.col("merchant_tenants_col").docs[0]["members"]

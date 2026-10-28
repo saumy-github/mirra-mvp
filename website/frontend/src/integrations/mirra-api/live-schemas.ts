@@ -14,6 +14,8 @@ import type {
   AvatarProfile,
   MeasurementField,
   MeasurementKey,
+  PhotoMeasurement,
+  PhotoMeasurementField,
   ProductListPage,
   PublicProduct,
   ShopperAccount,
@@ -84,6 +86,147 @@ const jobSchema = z.object({
   completedAt: z.string().nullable(),
 });
 export const jobEnvelope = z.object({ job: jobSchema });
+
+const photoCaptureSchema = z.object({
+  captureId: z.string(),
+  state: z.enum(["queued", "processing", "ready", "failed", "applied"]),
+  stageLabel: z.string(),
+  heightCm: z.number(),
+  weightKg: z.number().nullable(),
+  gender: z.enum(["male", "female"]),
+  profile: z.record(z.string(), z.union([z.number(), z.string(), z.null()])).nullable(),
+  warnings: z.array(z.string()),
+  failureReason: z.string().nullable(),
+  createdAt: z.string(),
+  completedAt: z.string().nullable(),
+});
+export const photoCaptureEnvelope = z.object({ capture: photoCaptureSchema });
+export const photoCaptureLatestEnvelope = z.object({ capture: photoCaptureSchema.nullable() });
+const pairingSchema = z.object({
+  pairingId: z.string(),
+  token: z.string().optional(),
+  expiresAt: z.string(),
+  active: z.boolean(),
+  captureId: z.string().nullable(),
+  buildAvatar: z.boolean().default(false),
+  measurementMethod: z.enum(["photos", "manual"]).default("photos"),
+  phoneStage: z.enum(["waiting", "capturing", "uploading", "complete"]).default("waiting"),
+  captureComplete: z.boolean().default(false),
+  faceSkipped: z.boolean().default(false),
+});
+export const pairingEnvelope = z.object({ pairing: pairingSchema });
+export const pairingStatusEnvelope = z.object({
+  pairing: pairingSchema,
+  capture: photoCaptureSchema.nullable(),
+});
+export const captureLinkEnvelope = z.object({
+  link: z.object({
+    expiresAt: z.string(),
+    gender: z.enum(["male", "female"]).optional(),
+    heightCm: z.number().nullable().optional(),
+    weightKg: z.number().nullable().optional(),
+    buildAvatar: z.boolean().default(false),
+    measurementMethod: z.enum(["photos", "manual"]).default("photos"),
+    captureId: z.string().nullable().default(null),
+    faceId: z.string().nullable().default(null),
+    complete: z.boolean().default(false),
+  }),
+});
+const linkProgressSchema = z.object({
+  captureId: z.string(),
+  state: z.enum(["queued", "processing", "ready", "failed", "applied"]),
+  stageLabel: z.string(),
+  warnings: z.array(z.string()),
+  failureReason: z.string().nullable(),
+});
+export const linkProgressEnvelope = z.object({ capture: linkProgressSchema });
+export const linkProgressMaybeEnvelope = z.object({ capture: linkProgressSchema.nullable() });
+
+const faceSchema = z.object({
+  faceId: z.string(),
+  state: z.enum(["queued", "processing", "ready", "failed"]),
+  stageLabel: z.string(),
+  hasModel: z.boolean(),
+  views: z.array(z.string()),
+  skinToneHex: z.string().nullable(),
+  warnings: z.array(z.string()),
+  failureReason: z.string().nullable(),
+  createdAt: z.string(),
+  completedAt: z.string().nullable(),
+});
+export const faceEnvelope = z.object({ face: faceSchema });
+export const faceMaybeEnvelope = z.object({ face: faceSchema.nullable() });
+const setupSchema = z.object({
+  pairing: pairingSchema,
+  capture: photoCaptureSchema.nullable().transform((c) => (c ? mapPhotoCapture(c) : null)),
+  face: faceSchema.nullable(),
+  job: jobSchema.nullable().transform((j) => (j ? mapJob(j) : null)),
+  state: z.enum([
+    "waiting",
+    "capturing",
+    "syncing",
+    "measuring",
+    "building",
+    "review",
+    "updating",
+    "complete",
+    "failed",
+  ]),
+  measurements: z.record(z.string(), z.number()),
+  failureReason: z.string().nullable(),
+});
+export const setupEnvelope = z.object({ setup: setupSchema });
+export const setupMaybeEnvelope = z.object({ setup: setupSchema.nullable() });
+const faceLinkSchema = faceSchema.pick({
+  faceId: true,
+  state: true,
+  stageLabel: true,
+  warnings: true,
+  failureReason: true,
+});
+export const faceLinkEnvelope = z.object({ face: faceLinkSchema });
+export const faceLinkMaybeEnvelope = z.object({ face: faceLinkSchema.nullable() });
+
+export const applyPhotoEnvelope = z.object({
+  measurements: z.record(z.string(), z.unknown()),
+  capture: photoCaptureSchema,
+});
+
+const PHOTO_FIELDS: PhotoMeasurementField[] = [
+  "height_cm",
+  "weight_kg",
+  "shoulder_width_cm",
+  "chest_circumference_cm",
+  "waist_circumference_cm",
+  "hip_circumference_cm",
+  "leg_length_cm",
+  "bust_circumference_cm",
+  "under_bust_circumference_cm",
+];
+
+export function mapPhotoCapture(c: z.infer<typeof photoCaptureSchema>): PhotoMeasurement {
+  const raw = c.profile;
+  const profile = raw
+    ? Object.fromEntries(
+        PHOTO_FIELDS.map((f) => [f, typeof raw[f] === "number" ? (raw[f] as number) : null]),
+      )
+    : null;
+  return {
+    captureId: c.captureId,
+    state: c.state,
+    stageLabel: c.stageLabel,
+    heightCm: c.heightCm,
+    weightKg: c.weightKg,
+    gender: c.gender,
+    profile,
+    bodyShapeType: typeof raw?.body_shape_type === "string" ? raw.body_shape_type : null,
+    skinToneHex: typeof raw?.skin_tone_hex === "string" ? raw.skin_tone_hex : null,
+    warnings: c.warnings,
+    failureReason: c.failureReason,
+    createdAt: c.createdAt,
+    completedAt: c.completedAt,
+  };
+}
 
 const profileSchema = z.object({
   avatarProfileId: z.string(),

@@ -1,14 +1,68 @@
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import type { Object3D } from "three";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Canvas } from "@react-three/fiber";
 import { Bounds, ContactShadows, OrbitControls, useGLTF } from "@react-three/drei";
 import { getRuntimeProvider } from "@/integrations/mirra-api";
 import { Skeleton } from "@/components/ui/misc";
-import { AVATAR_GLB_STALE_KEY } from "../glb-query-keys";
+import { AVATAR_GLB_STALE_KEY, FACE_GLB_KEY } from "../glb-query-keys";
+import { headAnchorFor, placeFace, type FaceInfo } from "./face-attachment";
 
-function Model({ url }: { url: string }) {
+function Model({ url, faceUrl }: { url: string; faceUrl?: string | null }) {
   const { scene } = useGLTF(url);
-  return <primitive object={scene} />;
+  return (
+    <>
+      <primitive object={scene} />
+      {faceUrl && (
+        // Its own boundary: a face that fails to load must never take the body with it.
+        <Suspense fallback={null}>
+          <Face url={faceUrl} target={scene} />
+        </Suspense>
+      )}
+    </>
+  );
+}
+
+/** The shopper's reconstructed face (backend /faces), placed on the avatar's head. */
+function Face({ url, target }: { url: string; target: Object3D }) {
+  const gltf = useGLTF(url);
+  const placement = useMemo(() => {
+    const info = (gltf.parser.json as { extras?: { mirra_face?: FaceInfo } }).extras?.mirra_face;
+    const anchor = info ? headAnchorFor(target) : null;
+    return info && anchor ? placeFace(anchor, info) : null;
+  }, [gltf, target]);
+  if (!placement) return null;
+  return (
+    <primitive
+      object={gltf.scene}
+      position={placement.position}
+      rotation={[0, placement.yaw, 0]}
+      scale={placement.scale}
+    />
+  );
+}
+
+/** Loads the current face mesh as an object URL, or null when there is none. */
+function useFaceUrl(enabled: boolean) {
+  const { data: blob } = useQuery({
+    queryKey: FACE_GLB_KEY,
+    queryFn: () => getRuntimeProvider().getFaceGlb(),
+    enabled,
+    staleTime: Infinity,
+    retry: false,
+  });
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!blob) return;
+    const objectUrl = URL.createObjectURL(blob);
+    setUrl(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+      useGLTF.clear(objectUrl);
+      setUrl(null);
+    };
+  }, [blob]);
+  return url;
 }
 
 /** Renders one GLB in an orbitable 3D view.
@@ -26,6 +80,7 @@ export function GlbViewer({
   fallbackImageUrl = null,
   retryLabel,
   onLoadStateChange,
+  withFace = false,
 }: {
   queryKey: unknown[];
   fetchGlb: () => Promise<Blob>;
@@ -34,7 +89,10 @@ export function GlbViewer({
   fallbackImageUrl?: string | null;
   retryLabel?: string;
   onLoadStateChange?: (state: "loading" | "ready" | "error") => void;
+  /** Attach the shopper's face (if they have added one) to the model's head. */
+  withFace?: boolean;
 }) {
+  const faceUrl = useFaceUrl(withFace);
   const {
     data: blob,
     isLoading,
@@ -154,7 +212,7 @@ export function GlbViewer({
         <Suspense fallback={null}>
           {/* Frames the camera to the model's real bounds, so nothing is clipped. */}
           <Bounds fit clip observe margin={1.15}>
-            <Model url={url} />
+            <Model url={url} faceUrl={faceUrl} />
           </Bounds>
           <ContactShadows position={[0, -0.001, 0]} opacity={0.45} scale={6} blur={2.2} far={4} />
         </Suspense>
@@ -202,6 +260,7 @@ export function AvatarGlbViewer({ className = "" }: { className?: string }) {
       }}
       className={className}
       emptyMessage="Your avatar model isn't available."
+      withFace
     />
   );
 }

@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from ..auth.models import UserDocument
 from ..auth.service import delete_all_for_user as delete_refresh_tokens
 from ..core.errors import NotFound
+from ..faces.service import delete_for_user as delete_faces
+from ..photo_measurements.service import delete_for_user as delete_photo_measurements
 from ..db import (
     avatar_jobs_col,
     avatar_profiles_col,
@@ -54,6 +56,8 @@ async def delete_account(user_id: str) -> None:
         raise NotFound("User not found")
 
     await user_measurements_col().delete_many({"user_id": user_id})
+    await delete_photo_measurements(user_id)  # documents and any photos still on disk
+    await delete_faces(user_id)  # face photos and face meshes
     await avatar_jobs_col().delete_many({"user_id": user_id})
     await avatar_profiles_col().delete_many({"user_id": user_id})
     await tryon_sessions_col().delete_many({"user_id": user_id})

@@ -166,7 +166,7 @@ export default function Privacy() {
                   <h3>Manage your profile</h3>
                   <SettingsLink to="/profile/measurements" label="Measurements & fit" />
                   <SettingsLink to="/profile/avatar" label="3D avatar" />
-                  <SettingsLink to="/profile/signature-looks" label="Saved looks" />
+                  <SettingsLink to="/profile/signature-looks" label="My Looks" />
                 </div>
               </section>
             )}
@@ -211,7 +211,7 @@ export default function Privacy() {
                 <div className="profile-settings-shortcuts profile-settings-shortcuts--data">
                   <SettingsLink to="/profile/measurements" label="Measurements" />
                   <SettingsLink to="/profile/avatar" label="Generated avatar" />
-                  <SettingsLink to="/profile/signature-looks" label="Saved looks" />
+                  <SettingsLink to="/profile/signature-looks" label="My Looks" />
                 </div>
                 <div className="profile-settings-data-copy">
                   <Database aria-hidden size={18} />

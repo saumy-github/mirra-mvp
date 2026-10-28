@@ -48,7 +48,10 @@ def run(ctx: Step1Context) -> bool:
         mongo_field = entry["mongo_field"]
         clo_target = entry["clo_target"]
         property_key = str(entry.get("property_key", "")).strip() or None
-        raw_value = ctx.mongo_doc[mongo_field]
+        raw_value = ctx.mongo_doc.get(mongo_field)
+        if raw_value is None:
+            # Only optional fields can be absent here; step 03 enforced the required ones.
+            continue
         normalized_value = _normalize_field_value(entry, raw_value, decimals)
 
         payload_entry = {

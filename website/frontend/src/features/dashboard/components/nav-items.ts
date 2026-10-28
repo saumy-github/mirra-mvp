@@ -14,26 +14,24 @@ export interface NavItem {
    * into Billing and Settings in order to be told no. A menu is a promise.
    */
   needs?: Capability;
+  /** Reads only the in-memory demo store; hidden for a real (backend) workspace. */
+  demoOnly?: boolean;
 }
 
 export const PORTAL_NAV: NavItem[] = [
   { href: dashPath.portal, label: "Overview", icon: "◈", end: true },
   { href: dashPath.products, label: "Products & SKUs", icon: "▤", needs: "catalogue.view" },
   { href: dashPath.garments, label: "Garments", icon: "👗", needs: "catalogue.view" },
-  // The server-backed flow. Listed separately from "Garments" while the
-  // prototype pages are still being migrated, so it is never ambiguous
-  // which of the two you are looking at.
-  { href: dashPath.digitise, label: "Digitise", icon: "🪡", needs: "catalogue.edit" },
-  { href: dashPath.assets, label: "Assets", icon: "🖼", needs: "catalogue.view" },
-  { href: dashPath.sizeFit, label: "Size & fit", icon: "📐", needs: "catalogue.view" },
-  { href: dashPath.fabric, label: "Fabric & material", icon: "🧵", needs: "catalogue.view" },
+  { href: dashPath.assets, label: "Assets", icon: "🖼", needs: "catalogue.view", demoOnly: true },
+  { href: dashPath.sizeFit, label: "Size & fit", icon: "📐", needs: "catalogue.view", demoOnly: true },
+  { href: dashPath.fabric, label: "Fabric & material", icon: "🧵", needs: "catalogue.view", demoOnly: true },
   { href: dashPath.publication, label: "Publication", icon: "⇱", needs: "catalogue.view" },
-  { href: dashPath.analytics, label: "Analytics", icon: "∿", needs: "analytics.view" },
+  { href: dashPath.analytics, label: "Analytics", icon: "∿", needs: "analytics.view", demoOnly: true },
   { href: dashPath.team, label: "Team & permissions", icon: "👥", needs: "team.view" },
-  { href: dashPath.billing, label: "Billing", icon: "▦", needs: "billing.view" },
-  { href: dashPath.support, label: "Support", icon: "◉", needs: "support.create" },
+  { href: dashPath.billing, label: "Billing", icon: "▦", needs: "billing.view", demoOnly: true },
+  { href: dashPath.support, label: "Support", icon: "◉", needs: "support.create", demoOnly: true },
   { href: dashPath.settings, label: "Settings", icon: "⚙", needs: "settings.view" },
-  { href: dashPath.audit, label: "Audit log", icon: "≡", needs: "audit.view" },
+  { href: dashPath.audit, label: "Audit log", icon: "≡", needs: "audit.view", demoOnly: true },
 ];
 
 export interface InternalNavItem extends Omit<NavItem, "needs"> {

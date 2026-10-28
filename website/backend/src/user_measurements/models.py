@@ -45,6 +45,10 @@ class UserMeasurementsDocument(UserMeasurementFields):
     accuracy: Literal["accurate", "approx"]
     units_preference: Literal["metric", "imperial"] = "metric"
     measurements_version: int = 1
+    # How the last full submit was produced. None on documents written before
+    # photo measurement existed (all of those were manual).
+    source: Literal["manual", "photo"] | None = None
+    photo_capture_id: str | None = None  # the photo_measurements doc, when source == "photo"
     created_at: datetime
     updated_at: datetime
 

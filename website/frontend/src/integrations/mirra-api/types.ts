@@ -107,6 +107,136 @@ export interface AvatarGlbResult {
   isStale: boolean | null;
 }
 
+// ── Photo measurement ────────────────────────────────────────────────
+// Front + side photo → measurements the shopper reviews before saving.
+
+export type PhotoMeasurementState = "queued" | "processing" | "ready" | "failed" | "applied";
+
+/** Backend user_measurements field names (height_cm, chest_circumference_cm, …). */
+export type PhotoMeasurementField =
+  | "height_cm"
+  | "weight_kg"
+  | "shoulder_width_cm"
+  | "chest_circumference_cm"
+  | "waist_circumference_cm"
+  | "hip_circumference_cm"
+  | "leg_length_cm"
+  | "bust_circumference_cm"
+  | "under_bust_circumference_cm";
+
+export interface PhotoMeasurement {
+  captureId: string;
+  state: PhotoMeasurementState;
+  stageLabel: string;
+  heightCm: number;
+  weightKg: number | null;
+  gender: "male" | "female";
+  /** Ready-to-save values, keyed by backend field name; null until ready. */
+  profile: Partial<Record<PhotoMeasurementField, number | null>> | null;
+  bodyShapeType: string | null;
+  skinToneHex: string | null;
+  /** Capture problems to fix ("arm touches torso…"); numbers still returned. */
+  warnings: string[];
+  failureReason: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+/** Desktop → phone QR hand-off. `token` is only present right after creation. */
+export interface PhotoPairing {
+  pairingId: string;
+  token?: string;
+  expiresAt: string;
+  active: boolean;
+  captureId: string | null;
+  buildAvatar: boolean;
+  measurementMethod: "photos" | "manual";
+  phoneStage: "waiting" | "capturing" | "uploading" | "complete";
+  captureComplete: boolean;
+  faceSkipped: boolean;
+}
+
+export interface AvatarSetup {
+  pairing: PhotoPairing;
+  capture: PhotoMeasurement | null;
+  face: FaceCapture | null;
+  job: AvatarJob | null;
+  state:
+    | "waiting"
+    | "capturing"
+    | "syncing"
+    | "measuring"
+    | "building"
+    | "review"
+    | "updating"
+    | "complete"
+    | "failed";
+  measurements: Partial<Record<PhotoMeasurementField, number>>;
+  failureReason: string | null;
+}
+
+/** What the signed-out phone sees through a pairing link. */
+export interface CaptureLink {
+  expiresAt: string;
+  gender?: "male" | "female";
+  heightCm?: number | null;
+  weightKg?: number | null;
+  buildAvatar: boolean;
+  measurementMethod: "photos" | "manual";
+  captureId: string | null;
+  faceId: string | null;
+  complete: boolean;
+}
+
+/** Progress only — the numbers are reviewed on the signed-in screen. */
+export interface CaptureLinkProgress {
+  captureId: string;
+  state: PhotoMeasurementState;
+  stageLabel: string;
+  warnings: string[];
+  failureReason: string | null;
+}
+
+export interface PhotoCaptureInput {
+  front: File;
+  side: File;
+  heightCm: number;
+  gender: "male" | "female";
+  weightKg?: number | null;
+  shoeSoleCm?: number;
+}
+
+// ── Face ─────────────────────────────────────────────────────────────
+// 1-3 face photos → a textured face mesh attached to the avatar's head.
+
+export type FaceState = "queued" | "processing" | "ready" | "failed";
+
+export interface FaceCapture {
+  faceId: string;
+  state: FaceState;
+  stageLabel: string;
+  hasModel: boolean;
+  views: string[];
+  skinToneHex: string | null;
+  warnings: string[];
+  failureReason: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface FacePhotosInput {
+  front: File;
+  /** Head turned ~45° to the subject's left / right. Optional, improve the sides. */
+  left?: File | null;
+  right?: File | null;
+}
+
+/** Face progress as the signed-out phone sees it through the QR link. */
+export type FaceLinkProgress = Pick<
+  FaceCapture,
+  "faceId" | "state" | "stageLabel" | "warnings" | "failureReason"
+>;
+
 // ── Avatar job ───────────────────────────────────────────────────────
 // This is the CLO3D integration seam — see backend-structure-plan.md.
 

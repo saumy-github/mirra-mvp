@@ -29,9 +29,10 @@ const BusinessLogin = lazy(() => import("@/pages/business/Login"));
 const BusinessVerifyEmail = lazy(() => import("@/pages/business/VerifyEmail"));
 const BusinessForgotPassword = lazy(() => import("@/pages/business/ForgotPassword"));
 
-// Onboarding — only the QR pairing step survives. Measurement intake and
-// avatar generation now live under /profile (doc 13, D7).
+// Standalone shopper setup: camera handoff, build and review, then Studio.
 const QrPairing = lazy(() => import("@/pages/onboarding/QrPairing"));
+// The phone side of that hand-off: opened from the QR code, no sign-in.
+const CaptureLink = lazy(() => import("@/pages/onboarding/CaptureLink"));
 
 // Studio — the heaviest page; kept in its own chunk like everything else
 // here, and the natural place a future R3F/Three.js upgrade stays isolated.
@@ -80,6 +81,7 @@ export function AppRoutes() {
         <Route path="/business/forgot-password" element={<BusinessForgotPassword />} />
 
         <Route path="/onboarding/qr" element={<QrPairing />} />
+        <Route path="/capture/:token" element={<CaptureLink />} />
 
         <Route path="/studio" element={<Studio />} />
 

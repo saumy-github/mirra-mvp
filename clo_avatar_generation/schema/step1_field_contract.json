@@ -1,6 +1,6 @@
 {
-  "version": "v1-draft",
-  "scope": "male_only",
+  "version": "v2-draft",
+  "scope": "male_and_female",
   "unit": "cm",
   "round_decimals": 2,
   "default_base_avatar": "clo_avatar_generation/input/base-1.avt",
@@ -17,7 +17,7 @@
       "property_key": "Total Height",
       "avt_feature_index": 0,
       "included_in_v1": true,
-      "genders": ["male"],
+      "genders": ["male", "female"],
       "unit": "cm",
       "apply_routes": ["avt_patch", "avatar_properties", "csv_bridge"],
       "mapping_type": "direct",
@@ -27,7 +27,7 @@
       "mongo_field": "weight_kg",
       "clo_target": "Weight",
       "included_in_v1": true,
-      "genders": ["male"],
+      "genders": ["male", "female"],
       "unit": "kg",
       "apply_routes": ["csv_bridge"],
       "mapping_type": "direct",
@@ -39,7 +39,7 @@
       "property_key": "Across Shoulder (Curvilinear)",
       "avt_feature_index": 36,
       "included_in_v1": true,
-      "genders": ["male"],
+      "genders": ["male", "female"],
       "unit": "cm",
       "apply_routes": ["avt_patch", "avatar_properties", "csv_bridge"],
       "mapping_type": "approximate",
@@ -55,7 +55,7 @@
       "unit": "cm",
       "apply_routes": ["avt_patch", "avatar_properties", "csv_bridge"],
       "mapping_type": "direct",
-      "notes": "Male chest circumference maps to CLO Chest."
+      "notes": "Male chest circumference maps to CLO Chest (slot 2). Female avatars use Bust in the same slot."
     },
     {
       "mongo_field": "waist_circumference_cm",
@@ -63,7 +63,7 @@
       "property_key": "Waist",
       "avt_feature_index": 6,
       "included_in_v1": true,
-      "genders": ["male"],
+      "genders": ["male", "female"],
       "unit": "cm",
       "apply_routes": ["avt_patch", "avatar_properties", "csv_bridge"],
       "mapping_type": "direct",
@@ -75,7 +75,7 @@
       "property_key": "Low Hip",
       "avt_feature_index": 8,
       "included_in_v1": true,
-      "genders": ["male"],
+      "genders": ["male", "female"],
       "unit": "cm",
       "apply_routes": ["avt_patch", "avatar_properties", "csv_bridge"],
       "mapping_type": "closest_direct_field",
@@ -87,7 +87,7 @@
       "property_key": "Inseam",
       "avt_feature_index": 26,
       "included_in_v1": true,
-      "genders": ["male"],
+      "genders": ["male", "female"],
       "unit": "cm",
       "apply_routes": ["avt_patch", "avatar_properties", "csv_bridge"],
       "mapping_type": "closest_direct_field",
@@ -96,20 +96,27 @@
     {
       "mongo_field": "bust_circumference_cm",
       "clo_target": "Bust",
-      "included_in_v1": false,
+      "included_in_v1": true,
       "genders": ["female"],
       "unit": "cm",
-      "mapping_type": "direct",
-      "notes": "Reserved for future female workflow."
+      "mapping_type": "assumed_shared_slot",
+      "notes": "Slot 2 = CLO BustCircum (labelled Chest on male avatars). Falls back to chest_circumference_cm when a female profile has no bust value (manual entry asks for chest).",
+      "property_key": "Bust",
+      "avt_feature_index": 2,
+      "apply_routes": ["avt_patch", "avatar_properties", "csv_bridge"],
+      "required": true
     },
     {
       "mongo_field": "under_bust_circumference_cm",
       "clo_target": "Under Bust",
-      "included_in_v1": false,
+      "included_in_v1": true,
       "genders": ["female"],
       "unit": "cm",
       "mapping_type": "direct",
-      "notes": "Reserved for future female workflow."
+      "notes": "No known .avt slot: applied on the property/CSV routes only; ignored by avt_patch. Optional.",
+      "property_key": "Under Bust",
+      "apply_routes": ["avatar_properties", "csv_bridge"],
+      "required": false
     }
   ],
   "out_of_scope_notes": {
@@ -118,5 +125,10 @@
     "Feet": "Feet below the ankle are not a current target.",
     "Crotch Area": "Crotch realism work is not a current target."
   },
-  "implementation_note": "If CLO behavior later proves sensitive to the order of value application, ordering rules will be decided at that point."
+  "implementation_note": "If CLO behavior later proves sensitive to the order of value application, ordering rules will be decided at that point.",
+  "base_avatars": {
+    "male": "clo_avatar_generation/input/base-1.avt",
+    "female": "clo_avatar_generation/input/base-female.avt"
+  },
+  "female_note": "Female uses CLO's stock Female V2 avatar (e.g. FV2_Feifei.avt from CLO's asset folder) copied to base_avatars.female. Slot indices are assumed shared with Male V2: both are CLO V2 avatars with the same listFeatureValues block, and slot 2 is CLO's internal BustCircum (fBaseFeatureBustCircum appears next to the block in base-1.avt). Confirm on the first female run: requested vs the .avt readback in step 09."
 }

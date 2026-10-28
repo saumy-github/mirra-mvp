@@ -11,6 +11,8 @@ export type GarmentFlowStep = "identify" | "capture" | "material" | "sizing" | "
 
 export const dashPath = {
   login: `${DASH}/login`,
+  /** Real business sign-in lands here: resolves (or creates) the workspace. */
+  start: `${DASH}/start`,
   onboarding: `${DASH}/onboarding`,
 
   portal: `${DASH}/portal`,
@@ -32,11 +34,10 @@ export const dashPath = {
       ? `${DASH}/portal/garments/${id}/setup?step=${step}`
       : `${DASH}/portal/garments/${id}/setup`,
   /**
-   * The live, server-backed digitisation flow: Identify → Capture → Process
-   * → Product page → Review, persisted through /api/v1/merchant and driven
-   * by the real CLO pipeline. `garmentFlow` above is the older in-memory
-   * prototype of the same journey — see website/DASHBOARD_AUDIT for the
-   * migration status.
+   * The server-backed flow for a real workspace (Identify → Capture →
+   * Material → Sizing → Process → Product page → Review). `garmentFlow` is
+   * the seeded demo's in-memory equivalent; each redirects to the other when
+   * opened for the wrong kind of tenant.
    */
   digitise: `${DASH}/portal/digitise`,
   digitiseGarment: (id: string, step?: string) =>

@@ -15,6 +15,7 @@ import { useSignatureLookMutations, useSignatureLooks } from "@/hooks/use-signat
 import { useTryOn } from "@/hooks/use-try-on";
 import { getRuntimeProvider } from "@/integrations/mirra-api";
 import type {
+  AvatarSetup,
   GarmentCategory,
   PublicProduct,
   ProductVariant,
@@ -24,6 +25,7 @@ import type {
 import { hangerEntryId, type HangerEntry, type OutfitLayer } from "@/lib/hanger";
 import { track } from "@/lib/analytics";
 import { useStudioStore } from "@/stores/studio-store";
+import { onboardingPreviewEnabled } from "@/features/onboarding/preview-config";
 
 /**
  * The Mirra studio. Avatar left, garment panel right, Hanger + Signature
@@ -34,6 +36,8 @@ import { useStudioStore } from "@/stores/studio-store";
 export default function Studio() {
   const navigate = useNavigate();
   const location = useLocation();
+  const setupPreview =
+    onboardingPreviewEnabled && new URLSearchParams(location.search).get("setupPreview") === "1";
   const qc = useQueryClient();
   const api = getRuntimeProvider();
 
@@ -44,11 +48,28 @@ export default function Studio() {
     refetch: refetchAccount,
   } = useAccount();
   const {
-    data: avatar,
+    data: savedAvatar,
     isLoading: avatarLoading,
     isError: avatarError,
     refetch: refetchAvatar,
-  } = useAvatarProfile(!!account);
+  } = useAvatarProfile(!!account && !setupPreview);
+  // The temporary walkthrough can browse the real catalogue without a body
+  // model. Keeping avatar null also prevents try-on jobs and profile writes.
+  const avatar = setupPreview ? null : savedAvatar;
+  // Without a finished avatar Studio still opens for browsing. Try-on, looks
+  // and history stay off until the avatar exists.
+  const liveAvatar = avatar && avatar.version > 0 ? avatar : null;
+  const browseOnly = !liveAvatar;
+  const { data: avatarSetup } = useQuery({
+    queryKey: ["account", "avatar-setup", account?.shopperId],
+    queryFn: () => getRuntimeProvider().getLatestAvatarSetup(),
+    enabled: !!account && browseOnly && !setupPreview && !avatarLoading,
+    refetchInterval: (q) =>
+      ["measuring", "building", "updating", "syncing"].includes(q.state.data?.state ?? "")
+        ? 5000
+        : false,
+    retry: 1,
+  });
   const {
     data: looks = [],
     isLoading: looksLoading,
@@ -533,7 +554,7 @@ export default function Studio() {
   const shortlistCount = store.cart.length;
   const otherLayers = wornLayers.filter((l) => l.category !== activeProduct?.garmentCategory);
 
-  if (accountError || avatarError) {
+  if (accountError || (avatarError && !setupPreview)) {
     return (
       <StudioLoadFailure
         title={accountError ? "We couldn't open your Studio" : "Your avatar couldn't be loaded"}
@@ -546,7 +567,7 @@ export default function Studio() {
     );
   }
 
-  if (accountLoading || avatarLoading || !account) {
+  if (accountLoading || (avatarLoading && !setupPreview) || !account) {
     return (
       <main className="grid min-h-dvh place-items-center bg-canvas">
         <div className="flex flex-col items-center gap-4">
@@ -557,53 +578,30 @@ export default function Studio() {
     );
   }
 
-  if (!avatar || avatar.version === 0) {
-    return (
-      <div className="flex min-h-dvh flex-col bg-canvas">
-        <StudioHeader
-          accountInitial={(account.displayName?.[0] ?? "M").toUpperCase()}
-          profileImageUrl={null}
-          shortlistCount={shortlistCount}
-          onShortlistOpen={() => setShortlistOpen(true)}
-        />
-        <main className="grid flex-1 place-items-center px-5 py-12">
-          <div className="w-full max-w-md text-center">
-            <p className="font-mono text-[10px] tracking-[0.16em] text-muted uppercase">
-              Mirra Studio
-            </p>
-            <h1 className="mt-4 text-2xl font-semibold tracking-[-0.035em] text-ink">
-              Create your avatar to begin
-            </h1>
-            <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-muted">
-              Add an avatar to preview pieces on you. Your profile is always available from the
-              Studio header.
-            </p>
-            <Link
-              to="/profile/avatar"
-              className="mt-6 inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-semibold text-canvas transition-opacity hover:opacity-85"
-            >
-              Create your avatar
-            </Link>
-          </div>
-        </main>
-        <CartDrawer
-          open={shortlistOpen}
-          onClose={() => setShortlistOpen(false)}
-          items={store.cart}
-          onRemove={(variantPublicId) => useStudioStore.getState().removeCartItem(variantPublicId)}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-dvh flex-col bg-canvas lg:h-dvh lg:overflow-hidden">
       <StudioHeader
         accountInitial={(account?.displayName?.[0] ?? "M").toUpperCase()}
-        profileImageUrl={avatar.previewAssetUrl}
+        profileImageUrl={liveAvatar?.previewAssetUrl ?? null}
         shortlistCount={shortlistCount}
         onShortlistOpen={() => setShortlistOpen(true)}
       />
+
+      {setupPreview && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-2 bg-[#eee8dc] px-5 py-2 text-xs text-[#75684f]"
+        >
+          <span>
+            Preview mode · Browse the collection. Live try-on needs your completed avatar.
+          </span>
+          <Link className="inline-flex min-h-9 items-center text-ink" to="/onboarding/qr">
+            Return to setup
+          </Link>
+        </div>
+      )}
+
+      {browseOnly && !setupPreview && <AvatarSetupBanner setup={avatarSetup ?? null} />}
 
       {sessionError && (
         <div
@@ -636,20 +634,56 @@ export default function Studio() {
             onSelect={onSelectProduct}
             onCollectionEmptyChange={setRailCollectionEmpty}
           />
-          <AvatarStage
-            avatar={avatar}
-            layers={store.layers}
-            tryOnState={store.tryOn.state}
-            onMakeSignatureLook={() => setLookDialogOpen(true)}
-            canMakeLook={
-              wornLayers.length > 0 &&
-              (store.tryOn.state === "ready" || store.tryOn.state === "cached")
-            }
-            tryOnSessionId={store.tryOnSessionId}
-            renderSessionId={store.tryOn.renderSessionId}
-            renderId={store.tryOn.renderId}
-            onAvatarViewStateChange={setAvatarViewState}
-          />
+          {liveAvatar ? (
+            <AvatarStage
+              avatar={liveAvatar}
+              layers={store.layers}
+              tryOnState={store.tryOn.state}
+              onMakeSignatureLook={() => setLookDialogOpen(true)}
+              canMakeLook={
+                wornLayers.length > 0 &&
+                (store.tryOn.state === "ready" || store.tryOn.state === "cached")
+              }
+              tryOnSessionId={store.tryOnSessionId}
+              renderSessionId={store.tryOn.renderSessionId}
+              renderId={store.tryOn.renderId}
+              onAvatarViewStateChange={setAvatarViewState}
+            />
+          ) : setupPreview ? (
+            <div className="relative order-1 flex min-h-[440px] flex-1 items-center justify-center overflow-hidden rounded-2xl bg-[#ebe5db] lg:order-2 lg:min-h-0">
+              <img
+                src="/profile/capture-front.webp"
+                alt="Example figure for the temporary Studio preview"
+                className="absolute h-full w-full object-contain"
+              />
+              <span className="absolute bottom-5 rounded-full bg-white/85 px-4 py-2 text-xs text-[#746a59]">
+                Example avatar · preview only
+              </span>
+            </div>
+          ) : (
+            <div className="relative order-1 flex min-h-[360px] flex-1 flex-col items-center justify-center gap-4 overflow-hidden rounded-2xl bg-[#ebe5db] px-6 py-10 text-center sm:min-h-[440px] lg:order-2 lg:min-h-0">
+              <img
+                src="/profile/capture-front.webp"
+                alt=""
+                aria-hidden
+                className="absolute inset-0 h-full w-full object-contain opacity-35 blur-[2px]"
+              />
+              <div className="relative max-w-xs">
+                <h2 className="text-xl font-semibold tracking-[-0.03em] text-ink">
+                  Your avatar goes here
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-ink-soft">
+                  Browse the collection now. Add your avatar to see every piece on you.
+                </p>
+                <Link
+                  to="/onboarding/qr"
+                  className="mt-5 inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-semibold text-canvas transition-opacity hover:opacity-85"
+                >
+                  {avatarSetupCta(avatarSetup ?? null)}
+                </Link>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Product panel */}
@@ -730,11 +764,11 @@ export default function Studio() {
       )}
 
       <HangerBar
-        entries={store.hanger}
+        entries={browseOnly ? [] : store.hanger}
         currentRenderId={store.tryOn.renderId}
-        looks={looks}
+        looks={browseOnly ? [] : looks}
         appliedLookId={store.appliedLookId}
-        historyState={historyState}
+        historyState={browseOnly ? "ready" : historyState}
         looksLoading={looksLoading}
         looksError={looksError}
         onRestore={onRestoreEntry}
@@ -756,6 +790,54 @@ export default function Studio() {
         busy={createLook.isPending}
         layerNames={wornLayers.map((l) => l.name)}
       />
+    </div>
+  );
+}
+
+/** Where a shopper without an avatar stands, and the one action that moves it on. */
+function avatarSetupCta(setup: AvatarSetup | null): string {
+  switch (setup?.state) {
+    case "review":
+      return "Review your avatar";
+    case "failed":
+      return "Fix avatar setup";
+    case "capturing":
+    case "syncing":
+    case "measuring":
+    case "building":
+    case "updating":
+      return "See progress";
+    default:
+      return setup && setup.state !== "complete" ? "Continue avatar setup" : "Create your avatar";
+  }
+}
+
+function AvatarSetupBanner({ setup }: { setup: AvatarSetup | null }) {
+  const state = setup?.state;
+  const message =
+    state === "review"
+      ? "Your avatar is ready. Review your measurements to start trying pieces on."
+      : state === "failed"
+        ? "Your avatar setup needs attention. Your progress is saved."
+        : state === "measuring" || state === "building" || state === "updating" || state === "syncing"
+          ? "Your avatar is being made. You can browse while you wait."
+          : setup && state !== "complete"
+            ? "You’re part-way through avatar setup. Pick up where you left off."
+            : "You’re browsing. Add your avatar to see pieces on you.";
+  return (
+    <div
+      role="status"
+      className={`flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-2 text-xs sm:px-5 ${
+        state === "failed" ? "bg-[#fff3df] text-[#6e4614]" : "bg-[#eee8dc] text-[#5f5441]"
+      }`}
+    >
+      <span>{message}</span>
+      <Link
+        className="inline-flex min-h-9 items-center font-semibold text-ink underline-offset-4 hover:underline"
+        to="/onboarding/qr"
+      >
+        {avatarSetupCta(setup)}
+      </Link>
     </div>
   );
 }

@@ -61,7 +61,7 @@ export function HangerBar({
             <p className="truncate text-muted">Starts after your first preview</p>
           </div>
           <div className="flex min-w-0 items-center justify-between gap-4">
-            <p className="shrink-0 font-semibold text-ink">Saved looks</p>
+            <p className="shrink-0 font-semibold text-ink">My Looks</p>
             <p className="truncate text-muted">Save the outfit when it feels right</p>
           </div>
         </motion.footer>
@@ -186,7 +186,7 @@ export function HangerBar({
         {/* Signature looks */}
         <div className="flex min-w-0 items-center gap-3 lg:flex-col lg:items-start lg:gap-2">
           <div className="flex shrink-0 items-center gap-2 lg:w-full lg:justify-between">
-            <p className="text-xs font-semibold tracking-[-0.01em] text-ink">Saved looks</p>
+            <p className="text-xs font-semibold tracking-[-0.01em] text-ink">My Looks</p>
             {looksLoading && <span className="text-xs text-muted">Loading…</span>}
           </div>
           <div className="min-w-0 flex-1 lg:w-full">

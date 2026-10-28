@@ -1,0 +1,80 @@
+MIRRA FLOW — DEFERRED INTEGRATIONS
+Source: Flow - User Centric.pdf and workflow for client.pdf, supplied 5 October 2026.
+
+IMPLEMENT NOW / KEEP AVAILABLE
+- New shopper: sign up -> standalone QR / phone capture -> photo sync -> Mirra
+  introduction while measurement, face and body jobs run -> measurement review
+  -> Studio. Profile is not a step in this journey.
+- Returning sign-in opens Studio without a completeness check. Reuse a ready
+  avatar; resume incomplete setup only when the shopper explicitly opens it.
+- Manual measurements remain an alternative to the two-photo estimate.
+- Preserve the existing Studio, saved looks, garment pipeline, merchant workspace,
+  team access, and brand application form.
+
+DEFERRED UNTIL A REAL SHOPIFY STORE IS AVAILABLE
+1. Storefront "Try it on" button/theme extension and first-load/hover animation.
+   Need a test store, theme access, app installation and a chosen launch animation.
+2. Secure product/variant/merchant launch context, opening Mirra in a new tab,
+   store-logo splash, merchant-specific URLs, and a verified return-to-store link.
+   Preserve this context across signup, Google callback and avatar setup.
+3. Live product media, variants, prices, inventory and garment-to-Shopify mapping.
+   Existing merchant linking/sync code is retained; do not substitute invented
+   prices, availability or successful connections for a real store.
+4. Add-to-cart feedback backed by a real Shopify cart; edit quantities/remove
+   lines, transfer Mirra choices into that store's cart, and open its checkout.
+   Today's local comparison shortlist is not a Shopify shopping cart.
+5. End-to-end store installation, disconnect/uninstall, catalogue/inventory
+   webhooks, auth scopes, domain verification and cross-origin testing.
+6. Store-specific subscription enforcement, service suspension/reactivation,
+   and storefront behaviour for inactive merchants need the billing agreement
+   and real store before being validated in production.
+7. Store/brand training and launch verification after the technical integration.
+
+ADDITIONAL DEPENDENCIES FROM THE CLIENT WORKFLOW (NOT SHOPIFY FEATURES)
+- The existing /join brand application persists to the backend. Discovery,
+  sales discussions, negotiated pricing and onboarding approval remain human
+  business processes; no outbound messages are sent by this change.
+- The merchant workspace, team/garment/pipeline API already exists. Parts of the
+  billing and support dashboard still use the existing client-side store.
+  Connecting a real payment provider and Jira/support service is separate work;
+  the PDFs do not specify credentials, plan contracts, Jira project or routing.
+  No simulated payment or ticket delivery should be presented as live.
+- The diagrams mention external Argentum animation links but contain no supplied
+  target assets. Preserve current subtle motion; use the approved assets later.
+- Advanced "complete the look", same-category and merchant-curated suggestion
+  sections are explicitly marked for later in the shopper diagram. Keep the
+  existing simpler garment recommendation rail for now.
+
+LOCAL AVATAR RUNTIME REQUIREMENTS
+- Redis and a measure worker must be running against the API's database and
+  shared upload directory; CLO needs its existing Windows worker + REST plugin.
+- The trained BMnet weights are present locally. The female CLO base file
+  clo_avatar_generation/input/base-female.avt is not present in this checkout.
+- Cross-device QR capture needs a phone-reachable frontend AND backend. Set
+  VITE_CAPTURE_ORIGIN to the public HTTPS frontend origin if needed, with matching
+  API/CORS/cookie configuration. localhost on a phone points to the phone itself.
+- The introduction uses a labelled video placeholder until the final explainer
+  and captions are supplied. Set VITE_ONBOARDING_VIDEO_URL when ready.
+- A temporary development walkthrough bypasses capture/build dependencies.
+  See ONBOARDING_PREVIEW.md for how to use it and remove it before release.
+
+VERIFICATION ON 5 OCTOBER 2026
+- 143 backend/model tests and 55 frontend tests passed, along with lint,
+  typecheck and the frontend production build.
+- Real BMnet measurement inference and facial GLB reconstruction passed on
+  generated guide images. These are native model checks, not a CLO body run.
+- The local browser upload reached the real API and reported queue unavailable.
+  Full phone -> native CLO body + face -> review -> Studio acceptance remains
+  pending the running processing environment and female base asset above.
+
+VERIFICATION ON 6 OCTOBER 2026
+- Corrected first-signup versus returning-sign-in routing; returning/linked
+  Google accounts no longer automatically enter QR setup.
+- Live-camera-only shopper capture replaces gallery/file pickers. Physical
+  camera acceptance still needs device permission and a reachable HTTPS site.
+- The authorized temporary preview reaches Studio on desktop and phone widths
+  without Redis/CLO and without changing profile data; the catalogue stays live.
+- 148 backend/model tests and 62 frontend tests pass. Typecheck, lint (zero
+  warnings), production build and diff whitespace checks pass.
+- Full live native reconstruction/CLO acceptance remains pending the services
+  and assets listed above. See design-qa.md and ONBOARDING_PREVIEW.md.

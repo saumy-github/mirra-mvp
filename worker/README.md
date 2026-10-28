@@ -25,6 +25,23 @@ against the local filesystem the same way the existing dev CLI scripts
    python worker/run_worker.py
    ```
 
+### Photo measurement worker (`measure` queue)
+
+Shopper photo measurement (`website/backend/src/photo_measurements`) runs on
+its own queue so a few-second job never waits behind a 20-minute CLO run.
+It needs **no CLO** — only the repo `.venv` (torch, mediapipe) and the model
+weights in `photo_measurement/models/` (see `photo_measurement/README.md`):
+
+```
+python worker/run_worker.py --queues measure
+```
+
+The same worker builds face meshes (`worker/face_tasks.py`, `face_reconstruction/`).
+
+It must run on the machine whose `dev_upload/` / `live_upload/` the API
+writes photos into (the Docker host), with the same `APP_ENV`, because
+the photos travel through that folder. It deletes them after measuring.
+
 Concurrency is intentionally 1 — CLO3D's plugin is itself single-threaded
 (one command queue, drained by CLO's own UI thread), so running a second
 worker against the same CLO instance would race and corrupt whichever job's

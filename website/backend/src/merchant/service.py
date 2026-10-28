@@ -9,11 +9,13 @@ from __future__ import annotations
 import csv
 import io
 import logging
+import re
 from datetime import datetime, timezone
 
 from ..core.errors import Conflict, Forbidden, NotFound, ValidationFailed
 from ..core.security import new_id
 from ..db import (
+    users_col,
     merchant_garments_col,
     merchant_ingestion_runs_col,
     merchant_previews_col,
@@ -104,6 +106,92 @@ async def require_member(tenant_id: str, user_id: str, permission: str) -> Merch
     if permission and permission not in ROLE_PERMISSIONS.get(role, set()):
         raise Forbidden(f"Your role ({role}) cannot {permission.replace('.', ' ')}")
     return tenant
+
+
+def _slugify(name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    return slug[:48].strip("-") or "workspace"
+
+
+async def create_workspace(user_id: str, kind: str, *, name: str, store_url: str) -> MerchantTenantDocument:
+    """A business account creates its own workspace and becomes its owner.
+
+    This is the link that was missing: business sign-up produced a user, but
+    nothing ever produced a tenant or a membership, so every merchant route
+    404'd for a real account. One workspace per account for now — the
+    dashboard serves a single tenant per session.
+    """
+    if kind != "user":
+        raise Forbidden("Sign in with a business account to create a workspace")
+    if await list_tenants_for_user(user_id):
+        raise Conflict("This account already belongs to a workspace", code="workspace_exists")
+    name = name.strip()
+    if len(name) < 2:
+        raise ValidationFailed("A workspace name is required")
+
+    base = _slugify(name)
+    slug, n = base, 2
+    while await merchant_tenants_col().find_one({"slug": slug}, {"_id": 1}):
+        slug, n = f"{base}-{n}", n + 1
+
+    now = _now()
+    tenant = MerchantTenantDocument(
+        id=new_id("mt"),
+        slug=slug,
+        name=name,
+        store_url=store_url.strip(),
+        status="trialing",
+        members={user_id: "owner"},
+        created_at=now,
+        updated_at=now,
+    )
+    await merchant_tenants_col().insert_one(tenant.to_mongo())
+    logger.info("workspace %s (%s) created by %s", tenant.id, slug, user_id)
+    return tenant
+
+
+async def add_member(tenant_id: str, actor_id: str, *, email: str, role: str) -> MerchantTenantDocument:
+    """Give an existing Mirra account a seat. There is no invitation email in
+    the pilot, so the colleague signs up at /business/sign-up first."""
+    tenant = await require_member(tenant_id, actor_id, "settings.edit")
+    user = await users_col().find_one({"email": email.strip().lower(), "is_guest": False}, {"_id": 1})
+    if not user:
+        raise NotFound("No Mirra business account uses that email yet — ask them to sign up first")
+    if tenant.members.get(user["_id"]) == "owner":
+        raise Conflict("The workspace owner's role can't be changed here")
+    await merchant_tenants_col().update_one(
+        {"_id": tenant_id}, {"$set": {f"members.{user['_id']}": role, "updated_at": _now()}}
+    )
+    return await get_tenant(tenant_id)
+
+
+async def list_members(tenant_id: str, actor_id: str) -> list[dict]:
+    tenant = await require_member(tenant_id, actor_id, "")
+    ids = list(tenant.members)
+    users = {u["_id"]: u for u in await users_col().find({"_id": {"$in": ids}}).to_list(length=len(ids) or 1)}
+    return [
+        {
+            "user_id": uid,
+            "email": users.get(uid, {}).get("email") or "",
+            "name": users.get(uid, {}).get("name") or "",
+            "role": role,
+        }
+        for uid, role in tenant.members.items()
+    ]
+
+
+async def remove_member(tenant_id: str, actor_id: str, member_id: str) -> MerchantTenantDocument:
+    tenant = await require_member(tenant_id, actor_id, "settings.edit")
+    role = tenant.members.get(member_id)
+    if role is None:
+        raise NotFound("That person is not in this workspace")
+    if role == "owner":
+        raise Conflict("The workspace owner can't be removed")
+    members = {uid: r for uid, r in tenant.members.items() if uid != member_id}
+    await merchant_tenants_col().update_one(
+        {"_id": tenant_id}, {"$set": {"members": members, "updated_at": _now()}}
+    )
+    return await get_tenant(tenant_id)
 
 
 async def list_tenants_for_user(user_id: str) -> list[MerchantTenantDocument]:
@@ -818,6 +906,10 @@ async def set_stage(
     await require_member(tenant_id, user_id, permission)
     garment = await get_garment(tenant_id, garment_id)
 
+    if stage == "ready":
+        # Only approval may reach `ready`: it is what freezes the served snapshot.
+        raise Conflict("Approve the garment through QA to mark it ready", code="use_approve")
+
     allowed = ALLOWED_TRANSITIONS.get(garment.stage, set())
     if stage not in allowed:
         raise Conflict(
@@ -854,6 +946,18 @@ async def add_qa_finding(
             raised_at=_now(),
         )
     )
+    return await _save(garment, user_id)
+
+
+async def resolve_qa_finding(
+    tenant_id: str, user_id: str, garment_id: str, finding_id: str
+) -> MerchantGarmentDocument:
+    await require_member(tenant_id, user_id, "qa.review")
+    garment = await get_garment(tenant_id, garment_id)
+    finding = next((f for f in garment.qa_findings if f.finding_id == finding_id), None)
+    if finding is None:
+        raise NotFound("QA finding not found")
+    finding.resolved = True
     return await _save(garment, user_id)
 
 
@@ -1037,6 +1141,36 @@ async def list_ingestion_runs(tenant_id: str, garment_id: str) -> list[Ingestion
 
 
 # -------------------------------------------------------------- shopper API
+
+
+async def shopper_size_ids(tenant_id: str, cloth_id: str) -> set[str] | None:
+    """The size ids of a merchant cloth a shopper may see and try on, or None
+    when the garment is not served at all.
+
+    The shopper studio browses `cloths`/`sizes` (catalog service), and
+    `pipeline_bridge.publish_measurements` writes those documents when a
+    garment is *submitted for ingestion* — long before QA approval. This is
+    the gate that keeps them out of the studio until `resolve_garment` (the
+    same function the dashboard's publication view uses) says they are live.
+    """
+    raw = await merchant_garments_col().find_one({"tenant_id": tenant_id, "pipeline.cloth_id": cloth_id})
+    if not raw:
+        return None
+    garment = MerchantGarmentDocument.model_validate(raw)
+    try:
+        tenant = await get_tenant(tenant_id)
+    except NotFound:
+        return None
+    product_raw = await merchant_products_col().find_one({"_id": garment.product_id, "tenant_id": tenant_id})
+    product = MerchantProductDocument.model_validate(product_raw) if product_raw else None
+    ready_preview = await latest_ready_preview(tenant_id, garment.id)
+    resolved = publication.resolve_garment(
+        garment, tenant, product,
+        asset_available=ready_preview is not None and bool(ready_preview.glb_path),
+    )
+    if not resolved.visible:
+        return None
+    return {v.size_id for v in resolved.variants if v.size_id and not v.hidden_reason}
 
 
 async def public_catalogue(tenant_id: str, *, preview: bool = False) -> list[dict]:
