@@ -61,3 +61,11 @@ transformers==4.56.0
 # torch). 2.0.67 is the most recent release with no numpy constraint at all.
 rembg==2.0.67
 trimesh>=3.9.0
+
+# Face personalization (face_fitting/). MediaPipe 1.x ships only the Tasks API, so the
+# face landmarker bundle is a separate download - see face_fitting/fetch_model.py.
+# Installs opencv-contrib-python, which shadows opencv-python above with the same cv2 API.
+mediapipe>=1.1.1
+# rembg 2.0.67 imports onnxruntime but does not declare it; without this the U2-Net
+# fallback in product_ingestion/segmentation.py silently reports HAS_U2NET = False.
+onnxruntime>=1.31.0

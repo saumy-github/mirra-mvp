@@ -11,5 +11,5 @@
 #define MIRRA_PLUGIN_PLATFORM_SYNC_STATE "in_sync"
 #define MIRRA_PLUGIN_CONTRACT_NAME "clo-rest-plugin"
 #define MIRRA_PLUGIN_CONTRACT_VERSION "v1"
-#define MIRRA_PLUGIN_BUILD_TIME "2026-09-12T14:27:45Z"
-#define MIRRA_PLUGIN_LOG_DIR "C:/D-drive-data/mirra-mvp/clo_workspace/logs"
+#define MIRRA_PLUGIN_BUILD_TIME "2026-10-27T11:08:45Z"
+#define MIRRA_PLUGIN_LOG_DIR "C:/Users/Anant/mirra-mvp/clo_workspace/logs"
