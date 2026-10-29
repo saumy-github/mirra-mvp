@@ -1,0 +1,6346 @@
+# CLO SDK v2026.1.336 — Complete Function Inventory
+
+Generated 2026-10-29 from the SDK headers at
+`C:/setup/CLO_SDK_v2026.1.336_Win/CLO_SDK_v2026.1.336_Win/CLOAPIInterface/`.
+Audience: Claude and other agents working on this repo.
+
+**This file is generated. Do not hand-edit it** — regenerate with the script in
+Part 0 when the SDK version changes. Analysis, incident history and recommendations
+live in `04-clo-sdk-deep-dive-26_10_29.md`; this file is the raw, complete surface.
+
+## How to use this file
+
+- **Looking for a capability?** Grep a tag: `[fit-map]`, `[animation]`, `[grading]`,
+  `[elastic]`, `[trim]`, `[avatar]`, `[measure]`, `[simulate]`, `[fabric]`, `[pattern]`,
+  `[topstitch]`, `[export]`, `[import]`, `[render]`, `[graphic]`, `[gui]`, `[rest]`,
+  `[project]`, `[techpack]`.
+- **`WIRED`** means our plugin calls it today (`clo_workspace/{windows,mac}/RestPlugin_*.cpp`).
+- **`doc`** means the name appears somewhere in `.agent/` or `clo_workspace/` notes —
+  often a past incident. Check the deep dive before using it.
+- **`py`** means the name appears in our Python pipeline (usually as a comment or an
+  endpoint note, since Python never calls the SDK directly).
+- Every entry carries `header:line` so you can read the real signature and comment.
+- A missing brief means the SDK itself ships no comment for that function.
+
+### ⚠ Before calling anything new
+
+Read Part 3 of the deep dive first. Several of these functions **crash or hang CLO**,
+and the failures are not guessable from the signatures. In particular: any per-index
+avatar query against an absent index, and the `EXPORT_API` family without an SEH guard.
+
+## Surface summary
+
+| Header | Accessor | Declarations | Wired | Purpose |
+|---|---|---|---|---|
+| `UtilityAPIInterface.h` | `UTILITY_API` | 407 | 6 | Scene, avatar, simulation, trims, rendering, grading, widgets. The grab-bag, and the biggest. |
+| `PatternAPIInterface.h` | `PATTERN_API` | 231 | 21 | Pattern pieces, lines, seams, arrangement, topstitch, elastic, pins. |
+| `FabricAPIInterface.h` | `FABRIC_API` | 284 | 10 | Fabric objects: PBR appearance, texture maps, .jfab/.zfab/xtex I/O, assignment. |
+| `ExportAPIInterface.h` | `EXPORT_API` | 123 | 9 | All file/image/video export. Historically the SEH-crash-prone family. |
+| `ImportAPIInterface.h` | `IMPORT_API` | 44 | 5 | All file import: avatars, patterns, poses, measurements, meshes. |
+| `GuiAPIInterface.h` | `GUI_API` | 39 | 0 | Native CLO dialogs, tool windows, dock panels, widgets. |
+| `RestAPIInterface.h` | `REST_API` | 9 | 0 | CLO making OUTBOUND HTTP calls. Not our inbound plugin server. |
+| **TOTAL** | | **1137** | **51** | |
+
+Declaration count includes overloads. 1086 declarations (95%) have never been called by Mirra.
+
+## Capability census
+
+How many declarations carry each tag, and how many of those we already use.
+
+| Tag | Declarations | Wired |
+|---|---|---|
+| `[fabric]` | 278 | 7 |
+| `[render]` | 207 | 4 |
+| `[pattern]` | 205 | 19 |
+| `[export]` | 126 | 6 |
+| `[graphic]` | 90 | 0 |
+| `[import]` | 64 | 5 |
+| `[trim]` | 61 | 0 |
+| `[gui]` | 52 | 0 |
+| `[topstitch]` | 51 | 0 |
+| `[avatar]` | 37 | 8 |
+| `[animation]` | 34 | 0 |
+| `[grading]` | 32 | 0 |
+| `[simulate]` | 24 | 1 |
+| `[project]` | 23 | 4 |
+| `[techpack]` | 20 | 0 |
+| `[measure]` | 15 | 2 |
+| `[rest]` | 8 | 0 |
+| `[elastic]` | 6 | 0 |
+| `[fit-map]` | 4 | 0 |
+
+## Part 0 — Regenerating this file
+
+Two scripts, both written for this task and kept in the session scratchpad. If you need
+them again, recreate them: the first walks each header, matches every `virtual`
+declaration, walks backwards over the contiguous `///` Doxygen block above it, and
+pulls `@ingroup` / `@fn` / `@brief` / `@param` / `@return`; it then greps
+`clo_workspace/{windows,mac}/RestPlugin_*.cpp` for `[A-Z_]+_API->(\w+)` to set `WIRED`,
+and the Python pipeline plus `.agent/` notes for name mentions. The second renders this
+markdown from that JSON. Nothing is hand-written, so nothing drifts.
+
+---
+
+## `UtilityAPIInterface.h` — `UTILITY_API`
+
+Scene, avatar, simulation, trims, rendering, grading, widgets. The grab-bag, and the biggest.
+
+407 declarations, 6 wired.
+
+- **`GetCLOTemporaryFolderPath`** [pattern]
+  - `std::string GetCLOTemporaryFolderPath()` — `UtilityAPIInterface.h:21`
+  - Create and get the temporary folder path
+    - returns: Get the temporary folder path to store temporary files used when exporting to server
+- **`GetCLOTemporaryFolderPathW`** [pattern]
+  - `std::wstring GetCLOTemporaryFolderPathW()` — `UtilityAPIInterface.h:27`
+  - Create and get the temporary folder path
+    - returns: Get the temporary folder path to store temporary files used when exporting to server
+- **`DisplayMessageBox`** · **WIRED** 
+  - `void DisplayMessageBox(std::string str)` — `UtilityAPIInterface.h:34`
+  - Show a message with using the DialogBox implemented in CLO software
+    - param `str: message`
+    - returns: Display a message box to show input string on CLO. This can be used for debugging.
+- **`DisplayMessageBoxW`** 
+  - `void DisplayMessageBoxW(std::wstring str)` — `UtilityAPIInterface.h:41`
+  - Show a message with using the DialogBox implemented in CLO software
+    - param `str: message`
+    - returns: Display a message box to show input string on CLO. This can be used for debugging.
+- **`GetProjectName`** [project]
+  - `std::string GetProjectName()` — `UtilityAPIInterface.h:47`
+  - Get the current project name in CLO
+    - returns: The current project name. When you opening "test.zprj" file at last, then the project name is given as "test"
+- **`GetProjectNameW`** [project]
+  - `std::wstring GetProjectNameW()` — `UtilityAPIInterface.h:53`
+  - Get the current project name in CLO
+    - returns: The current project name. When you opening "test.zprj" file at last, then the project name is given as "test"
+- **`GetActiveWorkspaceFileName`** 
+  - `std::string GetActiveWorkspaceFileName()` — `UtilityAPIInterface.h:59`
+  - Get the name of the file currently active in the CLO workspace, of any file type
+    - returns: The active file's name with extension, e.g. "test.zprj", "test.zpac" or "test.avt". Returns "NULL" if no file is active.
+- **`GetActiveWorkspaceFileNameW`** 
+  - `std::wstring GetActiveWorkspaceFileNameW()` — `UtilityAPIInterface.h:65`
+  - Get the name of the file currently active in the CLO workspace, of any file type
+    - returns: The active file's name with extension, e.g. "test.zprj", "test.zpac" or "test.avt". Returns "NULL" if no file is active.
+- **`GetProjectFilePath`** [project]
+  - `std::string GetProjectFilePath()` — `UtilityAPIInterface.h:71`
+  - Get the current profile file path
+    - returns: The current project file path. If you load a project file saved in "c://download/default.zprj", this function returns the full path - "c://download/default.zprj". If you never load project files, then it returns "NULL".
+- **`GetProjectFilePathW`** [project]
+  - `std::wstring GetProjectFilePathW()` — `UtilityAPIInterface.h:77`
+  - Get the current profile file path
+    - returns: The current project file path. If you load a project file saved in "c://download/default.zprj", this function returns the full path - "c://download/default.zprj". If you never load project files, then it returns "NULL".
+- **`GetMajorVersion`** 
+  - `unsigned int GetMajorVersion()` — `UtilityAPIInterface.h:83`
+  - Get the major version of the CLO software
+    - returns: Major version of SW. ex) 5 of 5.0.72
+- **`GetMinorVersion`** 
+  - `unsigned int GetMinorVersion()` — `UtilityAPIInterface.h:89`
+  - Get the minor version of the CLO software
+    - returns: Minor version of SW. ex) 0 of 5.0.72
+- **`GetPatchVersion`** 
+  - `unsigned int GetPatchVersion()` — `UtilityAPIInterface.h:95`
+  - Get the patch version of the CLO software
+    - returns: Patch version of SW. ex) 72 of 5.0.72
+- **`toUtf8`** 
+  - `std::string toUtf8(const std::wstring &str)` — `UtilityAPIInterface.h:102`
+  - Convert and get the string encoded in UTF-8 from wstring
+    - param `str: target wstring to convert`
+    - returns: string in UTF8 from wstring encoded by UCS-2 in Windows or UTF-8 in Mac OS
+- **`CleanFilePath`** 
+  - `Marvelous::CleanedPathResult CleanFilePath(const std::string& _filePath)` — `UtilityAPIInterface.h:118`
+  - Sanitize a file name or full file path for safe cross-platform / cloud / web use.
+    - param `_filePath: the raw file name or path (UTF-8). The input is auto-detected as a standalone`
+    - param `file name or a full path (it is a path when it contains a slash or a drive letter such as`
+    - param `"C:"). Processing per component: NFC Unicode normalization; stripping of characters that`
+    - param `conflict with Windows / cloud clients / HTTP-FTP`
+    - param `(< > : " \| ? * # % & { } \ $ ! ' @ + = and ASCII control characters); spaces become '_';`
+    - param `leading/trailing spaces and periods are trimmed; "." and ".." segments are dropped; Windows`
+    - param `reserved device names (CON, PRN, AUX, NUL, COM1..9, LPT1..9) get a trailing '_' on the stem;`
+    - param `each component is truncated to 255 bytes on a UTF-8 boundary. Drive letters (e.g. "C:") and`
+    - param `UNC / POSIX roots are preserved, and mixed slashes are collapsed.`
+    - returns: a CleanedPathResult holding the path in universal ('/'), Windows native ('\') and Windows long-path (\\?\ / \\?\UNC\) forms, plus the isolated and percent-encoded file name.
+- **`GetColorwayCount`** [render]
+  - `unsigned int GetColorwayCount()` — `UtilityAPIInterface.h:124`
+  - Get the number of colorways in the current project
+    - returns: The number of Colorways in the current project.
+- **`GetCurrentColorwayIndex`** [render]
+  - `unsigned int GetCurrentColorwayIndex()` — `UtilityAPIInterface.h:130`
+  - Get the current colorway index
+    - returns: The current colorway index.
+- **`SetCurrentColorwayIndex`** [render]
+  - `void SetCurrentColorwayIndex(unsigned int index)` — `UtilityAPIInterface.h:136`
+  - Change the current colorway
+    - param `index: the colorway index`
+- **`SetColorwayName`** [render]
+  - `void SetColorwayName(unsigned int index, const std::string& str)` — `UtilityAPIInterface.h:143`
+  - Change colorway name
+    - param `index: the target colorway index to change the name`
+    - param `str: new name for the colorway`
+- **`SetColorwayNameW`** [render]
+  - `void SetColorwayNameW(unsigned int index, const std::wstring& wstr)` — `UtilityAPIInterface.h:150`
+  - Change colorway name
+    - param `index: the target colorway index to change the name`
+    - param `wstr: new name for the colorway`
+- **`GetColorwayName`** [render]
+  - `std::string GetColorwayName(unsigned int index)` — `UtilityAPIInterface.h:157`
+  - Get the colorway name for the colorway index
+    - param `index: colorway index to get the name`
+    - returns: the colorway name for the colorway index
+- **`GetColorwayNameW`** [render]
+  - `std::wstring GetColorwayNameW(unsigned int index)` — `UtilityAPIInterface.h:164`
+  - Get the colorway name for the colorway index
+    - param `index: colorway index to get the name`
+    - returns: the colorway name for the colorway index
+- **`CopyColorway`** [render]
+  - `unsigned int CopyColorway(unsigned int index, int _colorwayCopyOption)` — `UtilityAPIInterface.h:176`
+  - Copy the colorway in the index and create a new one
+    - param `index: the source colorway index to copy`
+    - param `_colorwayCopyOption: The copy option`
+    - param `0: Unlink all properties`
+    - param `1: Unlink material properties only`
+    - param `2: Link all properties`
+    - returns: index for the created colorway
+- **`GetCustomViewInformation`** 
+  - `std::string GetCustomViewInformation()` — `UtilityAPIInterface.h:203`
+  - Get the custom view information { "customViewList": [ { "cameraMatrix": [ // row vector 0, 1, 2 of "local to world camera matrix" 1.0, 0.000166, -0.001024, 0.352125, 0.0, 0.987069, 0.160306, 2592.8, 0.001039, -0.160306, 0.987068, 7973.05 ], "fov": 40.0 } ] }
+    - returns: Json stream including the data of Custom View such as Camera Matrix, FOV, and so on.
+- **`GetCustomViewInformationW`** 
+  - `std::wstring GetCustomViewInformationW()` — `UtilityAPIInterface.h:230`
+  - Get the custom view information { "customViewList": [ { "cameraMatrix": [ // row vector 0, 1, 2 of "local to world camera matrix" 1.0, 0.000166, -0.001024, 0.352125, 0.0, 0.987069, 0.160306, 2592.8, 0.001039, -0.160306, 0.987068, 7973.05 ], "fov": 40.0 } ] }
+    - returns: Json stream including the data of Custom View such as Camera Matrix, FOV, and so on.
+- **`GetClothPositions`** 
+  - `void GetClothPositions(std::vector<float>& positions)` — `UtilityAPIInterface.h:236`
+  - Get the position array of cloth shape. Each three array has x, y, z position of each vertex.
+    - param `positions: the output position list for the cloth shape`
+- **`ResetClothArrangement`** 
+  - `void ResetClothArrangement()` — `UtilityAPIInterface.h:241`
+  - Restore the shape of cloth to when the cloth was loaded
+- **`GetThumbnailInCLOFile`** [render]
+  - `unsigned char* GetThumbnailInCLOFile(std::string filePath, unsigned int thumbnailIndex, unsigned int& fileSize)` — `UtilityAPIInterface.h:250`
+  - Get Preview thumbnail file buffer(png type) from the CLO file format(.zprj, .zpac, .zfab, .sst, and so on)
+    - param `filePath: the source file path to retrieve the thumbnail buffer`
+    - param `thumbnailIndex: the index of the thumbnails in the CLO file format(the number of thumbnails differs by the format)`
+    - param `fileSize: get the size of the thumbnail buffer`
+    - returns: thumbnail(png) buffer
+- **`SaveCLOFileThumbnail`** [render] [project]
+  - `bool SaveCLOFileThumbnail(std::string filePath, std::string outputPath, unsigned int thumbnailIndex)` — `UtilityAPIInterface.h:259`
+  - Save Preview thumbnail image file(png type) from the CLO file format(.zprj, .zpac, .zfab, .sst, and so on)
+    - param `filePath: the source file path to retrieve the thumbnail buffer`
+    - param `outputPath: output png imager path`
+    - param `thumbnailIndex: the index of the thumbnails in the CLO file format(the number of thumbnails differs by the format)`
+    - returns: save result
+- **`SaveCLOFileThumbnail`** [render] [project]
+  - `bool SaveCLOFileThumbnail(std::string filePath, std::wstring outputPath, unsigned int thumbnailIndex)` — `UtilityAPIInterface.h:268`
+  - Save Preview thumbnail image file(png type) from the CLO file format(.zprj, .zpac, .zfab, .sst, and so on)
+    - param `filePath: the source file path to retrieve the thumbnail buffer`
+    - param `outputPath: output png imager path`
+    - param `thumbnailIndex: the index of the thumbnails in the CLO file format(the number of thumbnails differs by the format)`
+    - returns: save result
+- **`GetAssetIconInCLOFile`** 
+  - `unsigned char* GetAssetIconInCLOFile(std::string filePath, unsigned int& fileSize)` — `UtilityAPIInterface.h:276`
+  - Get Asset Icon thumbnail file buffer(png type) from the CLO file format(.zprj, .zpac, .zfab, .sst, and so on)
+    - param `filePath: the source file path to retrieve the thumbnail buffer`
+    - param `fileSize: get the size of the thumbnail buffer`
+    - returns: thumbnail(png) buffer
+- **`GetMetaDataForCurrentGarment`** 
+  - `std::string GetMetaDataForCurrentGarment()` — `UtilityAPIInterface.h:282`
+  - Get Meta data for the current Garment
+    - returns: the meta data for the current garment
+- **`GetMetaDataForCurrentGarmentW`** 
+  - `std::wstring GetMetaDataForCurrentGarmentW()` — `UtilityAPIInterface.h:288`
+  - Get Meta data for the current Garment
+    - returns: the meta data for the current garment
+- **`SetMetaDataForCurrentGarment`** 
+  - `void SetMetaDataForCurrentGarment(const std::string& metaDataStr)` — `UtilityAPIInterface.h:294`
+  - Overwrite Meta data for the current Garment
+    - param `metaDataStr: the new meata data to set to the current garment`
+- **`ChangeMetaDataValueForCurrentGarment`** 
+  - `void ChangeMetaDataValueForCurrentGarment(const std::string& metaDataKey, const std::string& metaDataValue)` — `UtilityAPIInterface.h:301`
+  - Change Meta Data Value for the current Garment
+    - param `metaDataKey: target Key`
+    - param `metaDataValue: the new value for the key`
+- **`CreateProgressBar`** 
+  - `void CreateProgressBar()` — `UtilityAPIInterface.h:306`
+  - Create Progress Bar to show progress. This function should be called before using SetProgress function
+- **`SetProgress`** 
+  - `void SetProgress(const std::string& title, int progress)` — `UtilityAPIInterface.h:311`
+  - Set progress on the Progress Bar
+- **`SetProgressW`** 
+  - `void SetProgressW(const std::wstring& title, int progress)` — `UtilityAPIInterface.h:316`
+  - Set progress on the Progress Bar
+- **`DeleteProgressBar`** 
+  - `void DeleteProgressBar(bool bForce)` — `UtilityAPIInterface.h:322`
+  - Delete the current Progress Bar. This function should be called after using the SetProgress funtion
+    - param `bForce: true - retry to delete progress bar; false - try only once to delete progress bar`
+- **`stringToMD5`** 
+  - `std::string stringToMD5(const std::string& str)` — `UtilityAPIInterface.h:329`
+  - Create MD5 hashing string from string
+    - param `str: the source string to hash`
+    - returns: MD5 hashed string
+- **`AddColorSwatch`** 
+  - `std::string AddColorSwatch(const std::map<std::string, std::string>& plmIDtoNameList, const std::map<std::string, Marvelous::CloApiRgb>& plmIDtoColorList, const std::map<std::string, std::string>& plmIDtoApiMetaDataList, const std::string& swatchName)` — `UtilityAPIInterface.h:339`
+  - Add Color Swatch
+    - param `plmIDtoNameList: the list for map of PLM ID to Color Name`
+    - param `plmIDtoColorList: list for map of PLM ID to color name`
+    - param `plmIDtoApiMetaDataList: list for map of PLM ID to Api Meta Data`
+    - param `swatchName: swatchName which will be shown in the color palette and the swatch file name to save`
+    - returns: added swatch file name(.aco) inside the asset folder for the current version of CLO
+- **`AddColorSwatchW`** 
+  - `std::wstring AddColorSwatchW(const std::map<std::wstring, std::wstring>& plmIDtoNameList, const std::map<std::wstring, Marvelous::CloApiRgb>& plmIDtoColorList, const std::map<std::wstring, std::wstring>& plmIDtoApiMetaDataList, const std::wstring& swatchName)` — `UtilityAPIInterface.h:349`
+  - Add Color Swatch
+    - param `plmIDtoNameList: the list for map of PLM ID to Color Name`
+    - param `plmIDtoColorList: list for map of PLM ID to color name`
+    - param `plmIDtoApiMetaDataList: list for map of PLM ID to Api Meta Data`
+    - param `swatchName: swatchName which will be shown in the color palette and the swatch file name to save`
+    - returns: added swatch file name(.aco) inside the asset folder for the current version of CLO
+- **`LoadLibraryColorSwatchList`** [project]
+  - `void LoadLibraryColorSwatchList(const std::vector<std::string>& library, const std::string tabName)` — `UtilityAPIInterface.h:356`
+  - Load the library and add it to the color palette tab.
+    - param `library: the list with multiple color swatch file paths`
+    - param `tabName: tabName which will be shown in the color palette library tab`
+- **`AddLibraryColorSwatchList`** 
+  - `bool AddLibraryColorSwatchList(const std::vector<std::string>& library, const std::string& tabName)` — `UtilityAPIInterface.h:364`
+  - Add the library to the color swatch list of the color palette tab(for combobox palette).
+    - param `library: The list of multiple color swatch file paths`
+    - param `tabName: Name of the color palette library tab`
+    - returns: true on success, false on failure
+- **`SetColorSwatchListItemName`** 
+  - `bool SetColorSwatchListItemName(const std::string& tabName, const int index, const std::string& text)` — `UtilityAPIInterface.h:373`
+  - Sets the name of a color switch item in the library(for combobox palette).
+    - param `tabName: Name of the color palette library tab`
+    - param `index: Index of the item to be renamed from the color swatch list`
+    - param `text: Text to be set`
+    - returns: true on success, false on failure
+- **`DeleteColorSwatchListItem`** 
+  - `bool DeleteColorSwatchListItem(const std::string& tabName, int index)` — `UtilityAPIInterface.h:381`
+  - Delete the index item from the Color Switch list within the library tab(for combobox palette).
+    - param `tabName: Name of the color palette library tab`
+    - param `index: Index of the item to be deleted from the color swatch list.`
+    - returns: true on success, false on failure
+- **`SetColorSwatchLibraryTabName`** 
+  - `bool SetColorSwatchLibraryTabName(const std::string& tabName, const std::string& newTabName)` — `UtilityAPIInterface.h:389`
+  - Sets the name of the library tab.
+    - param `tabName: Name of the color palette library tab`
+    - param `newTabName: Text to be set`
+    - returns: true on success, false on failure
+- **`DeleteColorSwatchLibraryTabByName`** 
+  - `bool DeleteColorSwatchLibraryTabByName(const std::string& tabName, bool bCaseInsensitive = true)` — `UtilityAPIInterface.h:397`
+  - Delete library tab from color palette in name
+    - param `tabName: tabName which will be shown in the color palette library tab`
+    - param `bCaseInsensitive: If true, case is not sensitive.`
+    - returns: true if deletion is successful
+- **`GetColorSwatchLibraryTabList`** 
+  - `std::vector<std::string> GetColorSwatchLibraryTabList()` — `UtilityAPIInterface.h:403`
+  - Get the list of color swatch library tab names
+    - returns: the list of color swatch library tab names
+- **`GetColorSwatchLibraryTabListW`** 
+  - `std::vector<std::wstring> GetColorSwatchLibraryTabListW()` — `UtilityAPIInterface.h:409`
+  - Get the list of color swatch library tab names as wstring
+    - returns: the list of color swatch library tab names as wstring
+- **`CreateUserCustomLibrary`** 
+  - `int CreateUserCustomLibrary()` — `UtilityAPIInterface.h:415`
+  - Create a new empty User Custom Library tab.
+    - returns: 0-based index among User Custom Library tabs in current visual order, or -1 on failure.
+- **`AddUserCustomLibraryFolder`** [pattern]
+  - `bool AddUserCustomLibraryFolder(int libraryIndex, const std::string& folderPath)` — `UtilityAPIInterface.h:423`
+  - Add a folder to a User Custom Library.
+    - param `libraryIndex: 0-based index among User Custom Library tabs in current visual order.`
+    - param `folderPath: Absolute folder path to add.`
+    - returns: true on success, false on failure.
+- **`AddUserCustomLibraryFolderW`** [pattern]
+  - `bool AddUserCustomLibraryFolderW(int libraryIndex, const std::wstring& folderPath)` — `UtilityAPIInterface.h:431`
+  - Add a folder to a User Custom Library.
+    - param `libraryIndex: 0-based index among User Custom Library tabs in current visual order.`
+    - param `folderPath: Absolute folder path to add.`
+    - returns: true on success, false on failure.
+- **`DeleteUserCustomLibraryFolder`** [pattern]
+  - `bool DeleteUserCustomLibraryFolder(int libraryIndex, int index)` — `UtilityAPIInterface.h:439`
+  - Delete a folder from a User Custom Library.
+    - param `libraryIndex: 0-based index among User Custom Library tabs in current visual order.`
+    - param `index: 0-based index among the target library's root folders.`
+    - returns: true on success, false on failure.
+- **`DeleteUserCustomLibrary`** 
+  - `bool DeleteUserCustomLibrary(int index)` — `UtilityAPIInterface.h:446`
+  - Delete a User Custom Library tab by 0-based index in the current visual order of User Custom tabs only.
+    - param `index: 0-based index among User Custom Library tabs only.`
+    - returns: true on success, false on failure.
+- **`NewProject`** · **WIRED**, doc [project]
+  - `void NewProject()` — `UtilityAPIInterface.h:451`
+  - Clear the current garment and begin a new garment
+- **`IsReadableImageFormat`** [render]
+  - `bool IsReadableImageFormat(const std::string& filePath)` — `UtilityAPIInterface.h:467`
+  - Check if the file stream loaded from the filepath used in Library Windows Implementations can be displayed on Library Windows for item thumbnail and/or preview dialog.
+    - returns: true if the file can be displayed on Library Windows for item thumbnail and/or preview dialog
+- **`IsReadableImageFormatW`** [render]
+  - `bool IsReadableImageFormatW(const std::wstring& filePath)` — `UtilityAPIInterface.h:473`
+  - Check if the file stream loaded from the filepath used in Library Windows Implementations can be displayed on Library Windows for item thumbnail and/or preview dialog.
+    - returns: true if the file can be displayed on Library Windows for item thumbnail and/or preview dialog
+- **`IsCLOFileFormatWithThumbnail`** [render]
+  - `bool IsCLOFileFormatWithThumbnail(const std::string& filePath)` — `UtilityAPIInterface.h:479`
+  - Check if the CLO file format has the thumbnail memory.
+    - returns: true if the file is the CLO format file and contains the thumbnail memory which can be displayed on Library Windows for item thumbnail and/or preview dialog
+- **`IsCLOFileFormatWithThumbnailW`** [render]
+  - `bool IsCLOFileFormatWithThumbnailW(const std::wstring& filePath)` — `UtilityAPIInterface.h:485`
+  - Check if the CLO file format has the thumbnail memory.
+    - returns: true if the file is the CLO format file and contains the thumbnail memory which can be displayed on Library Windows for item thumbnail and/or preview dialog
+- **`IsCLOFileFormatWithTripleThumbnail`** [render]
+  - `bool IsCLOFileFormatWithTripleThumbnail(const std::string& filePath)` — `UtilityAPIInterface.h:491`
+  - Check if the CLO file format has the three images memory for preview thumbnail for the Library Preview Dialog.
+    - returns: true if the CLO file format has the three images memory for preview thumbnail for the Library Preview Dialog.
+- **`IsCLOFileFormatWithTripleThumbnailW`** [render]
+  - `bool IsCLOFileFormatWithTripleThumbnailW(const std::wstring& filePath)` — `UtilityAPIInterface.h:497`
+  - Check if the CLO file format has the three images memory for preview thumbnail for the Library Preview Dialog.
+    - returns: true if the CLO file format has the three images memory for preview thumbnail for the Library Preview Dialog.
+- **`ValidateCLOFile`** · pure-virtual 
+  - `std::map<std::string, std::string> ValidateCLOFile(const std::string& filePath)` — `UtilityAPIInterface.h:504`
+  - Validate whether the given file is a CLO native file by checking its file signature.
+    - param `filePath: The absolute path to the file to validate.`
+    - returns: A map containing "isValid" ("true" / "false") and "fileType" (string, e.g., "CLO Fabric", "CLO Button").
+- **`ValidateCLOFileW`** · pure-virtual 
+  - `std::map<std::wstring, std::wstring> ValidateCLOFileW(const std::wstring& filePath)` — `UtilityAPIInterface.h:511`
+  - Validate whether the given file is a CLO native file by checking its file signature.
+    - param `filePath: The absolute path to the file to validate.`
+    - returns: A map containing "isValid" ("true" / "false") and "fileType" (string, e.g., "CLO Fabric", "CLO Button").
+- **`GetCLOExecutableFolderPath`** [pattern]
+  - `std::string GetCLOExecutableFolderPath(bool bLinuxTypePathDelimeter = true)` — `UtilityAPIInterface.h:518`
+  - Get the executable folder path where the current version of CLO is located
+    - param `bLinuxTypePathDelimeter: if true, set path delimiter to '/', false: set path delimiter to '\'`
+    - returns: Get the executable folder path for the current version of CLO software
+- **`GetCLOExecutableFolderPathW`** [pattern]
+  - `std::wstring GetCLOExecutableFolderPathW(bool bLinuxTypePathDelimeter = true)` — `UtilityAPIInterface.h:525`
+  - Get the executable folder path where the current version of CLO is located
+    - param `bLinuxTypePathDelimeter: if true, set path delimiter to '/', false: set path delimiter to '\'`
+    - returns: Get the executable folder path for the current version of CLO software
+- **`GetCLOAssetFolderPath`** [pattern]
+  - `std::string GetCLOAssetFolderPath(bool bLinuxTypePathDelimeter = true)` — `UtilityAPIInterface.h:532`
+  - Get the folder path where the CLO asset files are distributed
+    - param `bLinuxTypePathDelimeter: if true, set path delimiter to '/', false: set path delimiter to '\'`
+    - returns: Get the asset folder path where the CLO asset files are located in
+- **`GetCLOAssetFolderPathW`** [pattern]
+  - `std::wstring GetCLOAssetFolderPathW(bool bLinuxTypePathDelimeter = true)` — `UtilityAPIInterface.h:539`
+  - Get the folder path where the CLO asset files are distributed
+    - param `bLinuxTypePathDelimeter: if true, set path delimiter to '/', false: set path delimiter to '\'`
+    - returns: Get the asset folder path where the CLO asset files are located in
+- **`GetAPIMetaData`** 
+  - `std::string GetAPIMetaData(const std::string& filePath)` — `UtilityAPIInterface.h:546`
+  - Get API meta data for the file
+    - param `filePath: CLO file path`
+    - returns: json string for meta data [key - value] list
+- **`GetAPIMetaDataW`** 
+  - `std::wstring GetAPIMetaDataW(const std::wstring& filePath)` — `UtilityAPIInterface.h:553`
+  - Get API meta data for the file
+    - param `filePath: CLO file path`
+    - returns: json string for meta data [key - value] list
+- **`SetAPIMetaData`** 
+  - `bool SetAPIMetaData(const std::string& filePath, std::string jsonStr)` — `UtilityAPIInterface.h:561`
+  - Set API meta data to the file
+    - param `filePath: target file path`
+    - param `jsonStr: api meta data in string format`
+    - returns: if it succeeds, return true
+- **`SetAPIMetaDataW`** 
+  - `bool SetAPIMetaDataW(const std::wstring& filePath, std::wstring jsonStr)` — `UtilityAPIInterface.h:569`
+  - Set API meta data to the file
+    - param `filePath: target file path`
+    - param `jsonStr: api meta data in wstring format`
+    - returns: if it succeeds, return true
+- **`Set3DWindowTitle`** [gui]
+  - `bool Set3DWindowTitle(const std::string& title)` — `UtilityAPIInterface.h:576`
+  - Set 3D Window Title
+    - param `title: desired text in 3D window`
+    - returns: if it succeeds, return true
+- **`Set3DWindowTitleW`** [gui]
+  - `bool Set3DWindowTitleW(const std::wstring& title)` — `UtilityAPIInterface.h:583`
+  - Set 3D Window Title
+    - param `title: desired text in 3D window`
+    - returns: if it succeeds, return true
+- **`GetColorListForColorWay`** [render]
+  - `std::vector<Marvelous::CloApiRgba> GetColorListForColorWay(unsigned int _colorWayIndex)` — `UtilityAPIInterface.h:590`
+  - Get Color List for ColorWay
+    - param `_colorwayIndex: the colorway index to get the result`
+    - returns: the color list in CloAgiRgba for the target ColorWay
+- **`SetShowHideAvatar`** · doc [avatar]
+  - `void SetShowHideAvatar(bool _bShow)` — `UtilityAPIInterface.h:596`
+  - Set all avatars' show/hide status
+    - param `_bShow: true for show, false for hide`
+- **`SetShowHideAvatar`** · doc [avatar]
+  - `void SetShowHideAvatar(bool _bShow, int _avatarIdex)` — `UtilityAPIInterface.h:603`
+  - Set show/hide status of avatar that matches the index
+    - param `_bShow: true for show, false for hide`
+    - param `_avatarIdex: the target avatar index`
+- **`IsShowAvatar`** · doc [avatar]
+  - `bool IsShowAvatar(int _avatarIndex)` — `UtilityAPIInterface.h:610`
+  - Get show status of avatar that matches the index
+    - param `_avatarIndex: the avatar index to get the result.`
+    - returns: if avatar is shown, return true. if avatar is hidden, return false.
+- **`SetSchematicRender`** [render]
+  - `void SetSchematicRender(bool _bSet)` — `UtilityAPIInterface.h:616`
+  - Set Schematic Render status
+    - param `_bSet: true for enable, false for disable`
+- **`UpdateColorways`** [render]
+  - `void UpdateColorways(bool bUpdateSnapshot = true)` — `UtilityAPIInterface.h:622`
+  - Update Colorways in the CLO software
+    - param `bUpdateSnapshot: put the value to true to update the colorway's snapshot`
+- **`DeleteColorwayItem`** [render]
+  - `void DeleteColorwayItem(unsigned int _index)` — `UtilityAPIInterface.h:628`
+  - Delete the colorway in the index
+    - param `index: the source colorway index to delete`
+- **`ReplaceGraphicStyleFromImage`** [render] [graphic]
+  - `bool ReplaceGraphicStyleFromImage(int _graphicstyleIndex, const std::string& _imagePath, int _anchor)` — `UtilityAPIInterface.h:668`
+  - Replace the image on a graphic style. All colorways that share this style are updated. The chosen anchor point on the original graphic stays fixed in world space after replacement.
+    - param `_graphicstyleIndex: index of the style to replace`
+    - param `_imagePath: path to the new image file`
+    - param `_anchor: anchor point to hold fixed. Accepts plain integers or Marvelous::CloApiAnchorPoint enum values:`
+    - param `0=Center  1=Up  2=RightUp  3=Right  4=RightDown`
+    - param `5=Down  6=LeftDown  7=Left  8=LeftUp`
+    - returns: true if successful
+- **`ReplaceGraphicStyleFromImageW`** [render] [graphic]
+  - `bool ReplaceGraphicStyleFromImageW(int _graphicstyleIndex, const std::wstring& _imagePath, int _anchor)` — `UtilityAPIInterface.h:680`
+  - Wide-string variant of ReplaceGraphicStyleFromImage(index, string, anchor). See the string overload for full documentation and diagrams.
+    - param `_graphicstyleIndex: index of the style to replace`
+    - param `_imagePath: path to the new image file (wide string)`
+    - param `_anchor: anchor point to hold fixed. Accepts plain integers or Marvelous::CloApiAnchorPoint enum values:`
+    - param `0=Center  1=Up  2=RightUp  3=Right  4=RightDown`
+    - param `5=Down  6=LeftDown  7=Left  8=LeftUp`
+    - returns: true if successful
+- **`ReplaceGraphicStyleFromImage`** [render] [graphic]
+  - `bool ReplaceGraphicStyleFromImage(int _iColorwayIndex, int _graphicstyleIndex, const std::string& _imagePath, int _anchor, float _width, float _height)` — `UtilityAPIInterface.h:715`
+  - Replace the graphic style image for ONE colorway with an explicit display size. If the style is currently linked (shared) across colorways it is automatically unlinked for the target colorway first, so other colorways are NOT affected. The graphic is resized to exactly (_width x _height) mm regardless of anchor choice.
+    - param `_iColorwayIndex: index of the colorway to target`
+    - param `_graphicstyleIndex: index within that colorway's graphic style list`
+    - param `_imagePath: path to the new image file`
+    - param `_anchor: anchor point to hold fixed. Accepts plain integers or Marvelous::CloApiAnchorPoint enum values:`
+    - param `0=Center  1=Up  2=RightUp  3=Right  4=RightDown`
+    - param `5=Down  6=LeftDown  7=Left  8=LeftUp`
+    - param `_width:  target display width  in mm`
+    - param `_height: target display height in mm`
+    - returns: true if successful, false if any index is out of range or the style is not applied in the target colorway
+- **`ReplaceGraphicStyleFromImageW`** [render] [graphic]
+  - `bool ReplaceGraphicStyleFromImageW(int _iColorwayIndex, int _graphicstyleIndex, const std::wstring& _imagePath, int _anchor, float _width, float _height)` — `UtilityAPIInterface.h:730`
+  - Wide-string variant of ReplaceGraphicStyleFromImage(colorway, index, string, anchor, w, h). See the string overload for full documentation and diagrams.
+    - param `_iColorwayIndex: index of the colorway to target`
+    - param `_graphicstyleIndex: index within that colorway's graphic style list`
+    - param `_imagePath: path to the new image file (wide string)`
+    - param `_anchor: anchor point to hold fixed. Accepts plain integers or Marvelous::CloApiAnchorPoint enum values:`
+    - param `0=Center  1=Up  2=RightUp  3=Right  4=RightDown`
+    - param `5=Down  6=LeftDown  7=Left  8=LeftUp`
+    - param `_width:  target display width  in mm`
+    - param `_height: target display height in mm`
+    - returns: true if successful, false if any index is out of range or the style is not applied in the target colorway
+- **`Simulate`** · **WIRED**, doc, py [simulate]
+  - `bool Simulate(unsigned int _steps)` — `UtilityAPIInterface.h:737`
+  - Simulate the garment in multi steps. All dynamics properties (time step, CG iteration count, ...) follow the current simulation properties
+    - param `_steps: how many steps(=frames) to simulate`
+    - returns: if it succeeds, return true.
+- **`SetSimulationQuality`** · doc [simulate]
+  - `void SetSimulationQuality(int _quality, int _simulationMode)` — `UtilityAPIInterface.h:744`
+  - Set simulation quality preset
+    - param `_quality: input simulation preset (0: Normal(Default), 1: Animation(Stable), 2: Fitting(Accurate Fabric), 3: FAST(GPU))`
+    - param `_simulationMode: input simulation mode (0: CPU, 1: FAST(GPU))`
+- **`SetSimulationTimeStep`** [simulate]
+  - `void SetSimulationTimeStep(float _timeStep)` — `UtilityAPIInterface.h:750`
+  - Set simulation time step
+    - param `_timeStep: time step in second (Default : 0.03333, Min value: 0.001)`
+- **`SetSimulationNumberOfSimulation`** [simulate]
+  - `void SetSimulationNumberOfSimulation(int _numberOfSimulation)` — `UtilityAPIInterface.h:756`
+  - Set simulation substeps in one time step
+    - param `_numberOfSimulation: the number of substeps in one time step (Default : 1, Min/Max Range : 1~50)`
+- **`SetSimulationCGFinishCondition`** [simulate]
+  - `void SetSimulationCGFinishCondition(int _cgFinishCondition)` — `UtilityAPIInterface.h:762`
+  - Set simulation finish condition
+    - param `_cgFinishCondition : Conjugate Gradient finish condition (0: iteration, 1: residual)`
+- **`SetSimulationCGIterationCount`** [simulate]
+  - `void SetSimulationCGIterationCount(int _cgIterationCount)` — `UtilityAPIInterface.h:768`
+  - Set Conjugate Gradient iteration count per one step.
+    - param `_cgIterationCount : iteration count (Default : 50, Min/Max Range 1~1000)`
+- **`SetSimulationCGResidual`** [simulate]
+  - `void SetSimulationCGResidual(float _cgResidual)` — `UtilityAPIInterface.h:774`
+  - Set Conjugate Gradient relative residual value for finishing
+    - param `_cgResidual : relative residual value for finishing (0.0001 in Normal, 0.00001 in Animation and Fitting)`
+- **`SetSimulationSelfCollisionIterationCount`** [simulate]
+  - `void SetSimulationSelfCollisionIterationCount(int _selfCollisionIterationCount)` — `UtilityAPIInterface.h:780`
+  - Set self collision iteration count
+    - param `_selfCollisionIterationCount : self collision iteration count (Default: 1)`
+- **`SetSimulationAirDamping`** [simulate]
+  - `void SetSimulationAirDamping(float _airDamping)` — `UtilityAPIInterface.h:786`
+  - Set air damping value
+    - param `_airDamping : air damping(Default: 1.0)`
+- **`SetSimulationGravity`** [simulate]
+  - `void SetSimulationGravity(float _gravity)` — `UtilityAPIInterface.h:792`
+  - Set gravity value in y-axis
+    - param `_gravity : gravity  (Default: -9800.0 mm/s^2)`
+- **`SetSimulationNumberOfCPUInUse`** [simulate]
+  - `void SetSimulationNumberOfCPUInUse(int _numberOfSimulationInUse)` — `UtilityAPIInterface.h:798`
+  - Set the number of CPUs for simulation
+    - param `_numberOfSimulationInUse : the number of CPUs (Default: total number of logical threads - 1, Min/Max Range : 1~total number of logical threads)`
+- **`SetSimulationNonlinearSimulation`** [simulate]
+  - `void SetSimulationNonlinearSimulation(bool _bNonlinearSimulation)` — `UtilityAPIInterface.h:804`
+  - Set nonlinear simulation
+    - param `_bNonlinearSimulation : true for enable, false for disable`
+- **`SetSimulationGroundCollision`** [simulate]
+  - `void SetSimulationGroundCollision(bool _bGroundCollision)` — `UtilityAPIInterface.h:810`
+  - Set ground collision
+    - param `_bGroundCollision : true for enable, false for disable`
+- **`SetSimulationGroundHeight`** [simulate]
+  - `void SetSimulationGroundHeight(float _groundHeight)` — `UtilityAPIInterface.h:816`
+  - Set ground height value
+    - param `_groundHeight : ground height in y-axis (Default: 0.0)`
+- **`SetSimulationSelfCollisionAvoidanceStiffness`** [simulate]
+  - `void SetSimulationSelfCollisionAvoidanceStiffness(float _avoidanceStiffness)` — `UtilityAPIInterface.h:822`
+  - Set stiffness of the inserted spring to avoid self collision
+    - param `_avoidanceStiffness : (Default: 0.001)`
+- **`SetSimulationLayerBasedCollisionDetection`** [simulate]
+  - `void SetSimulationLayerBasedCollisionDetection(bool _bUseLayer)` — `UtilityAPIInterface.h:828`
+  - Set layer based collision detection
+    - param `_bUseLayer : true for enable, false for disable`
+- **`StartNesting`** 
+  - `void StartNesting()` — `UtilityAPIInterface.h:834`
+  - Start Nesting Simulation
+- **`SetNestingBufferSpacing`** 
+  - `void SetNestingBufferSpacing(float _mm)` — `UtilityAPIInterface.h:840`
+  - Set all nesting buffer spacings (fabric and pattern) to the same value
+    - param `_mm : Buffer spacing in mm applied uniformly to all axes`
+- **`GetNestingFabricBufferSpacing`** [fabric]
+  - `std::array<float, 4> GetNestingFabricBufferSpacing()` — `UtilityAPIInterface.h:845`
+  - Get fabric buffer spacing as {left, right, top, bottom} in mm.
+- **`SetNestingFabricBufferSpacing`** [fabric]
+  - `void SetNestingFabricBufferSpacing(float _mmLeft, float _mmRight, float _mmTop, float _mmBottom)` — `UtilityAPIInterface.h:854`
+  - Set fabric buffer spacing per side in mm
+    - param `_mmLeft   : Left margin (Selvedge Side A)`
+    - param `_mmRight  : Right margin (Selvedge Side B)`
+    - param `_mmTop    : Top margin (Cut-Line Start)`
+    - param `_mmBottom : Bottom margin (Cut-Line End)`
+- **`GetNestingPatternBufferSpacing`** [pattern]
+  - `std::array<float, 4> GetNestingPatternBufferSpacing()` — `UtilityAPIInterface.h:859`
+  - Get pattern buffer spacing as {left, right, top, bottom} in mm.
+- **`SetNestingPatternBufferSpacing`** [pattern]
+  - `void SetNestingPatternBufferSpacing(float _mmLeft, float _mmRight, float _mmTop, float _mmBottom)` — `UtilityAPIInterface.h:868`
+  - Set pattern buffer spacing per side in mm
+    - param `_mmLeft   : Left buffer`
+    - param `_mmRight  : Right buffer`
+    - param `_mmTop    : Top buffer`
+    - param `_mmBottom : Bottom buffer`
+- **`SetNestingTargetColorway`** [render]
+  - `void SetNestingTargetColorway(std::vector<int> _colorwayList)` — `UtilityAPIInterface.h:874`
+  - Colorway index to apply nesting result
+    - param `_colorwayList : Colorway index to apply nesting result`
+- **`GetNestingTargetColorway`** [render]
+  - `std::vector<int> GetNestingTargetColorway()` — `UtilityAPIInterface.h:879`
+  - Gets the colorway index to apply nesting to.
+- **`SetAvatarMeshTexture`** · doc [avatar]
+  - `bool SetAvatarMeshTexture(const std::wstring& _matShapeName, int _matMeshIndex, const std::wstring& _textureImagePath)` — `UtilityAPIInterface.h:889`
+  - Import AvatarTexture Body Part(face, body, arm, leg)
+    - param `_matShapeName: input avatar shape name(find object browser)`
+    - param `_matMeshIndex: mat mesh index (0: face, 1:body, 2:arm, 3:leg)`
+    - param `_textureImagePath: change texture full path`
+    - returns: if it succeeds, return true.
+- **`SetAnimationRecording`** · doc [animation]
+  - `void SetAnimationRecording(bool _bStart)` — `UtilityAPIInterface.h:895`
+  - set animation recording
+    - param `_bStart: true for recording start, false for recording stop`
+- **`SetCurrentAnimationFrame`** [animation]
+  - `void SetCurrentAnimationFrame(double _frame)` — `UtilityAPIInterface.h:901`
+  - set current animation frame
+    - param `_frame: Value for setting current frame`
+- **`GetCurrentAnimationFrame`** [animation]
+  - `double GetCurrentAnimationFrame()` — `UtilityAPIInterface.h:906`
+  - get current animation frame
+- **`SetStartAnimationFrame`** [animation]
+  - `void SetStartAnimationFrame(double _frame)` — `UtilityAPIInterface.h:912`
+  - set start animation frame
+    - param `_frame: Value for setting start frame`
+- **`GetStartAnimationFrame`** [animation]
+  - `double GetStartAnimationFrame()` — `UtilityAPIInterface.h:917`
+  - get start animation frame
+- **`SetEndAnimationFrame`** [animation]
+  - `void SetEndAnimationFrame(double _frame)` — `UtilityAPIInterface.h:923`
+  - set end animation frame
+    - param `_frame: Value for setting end frame`
+- **`GetEndAnimationFrame`** [animation]
+  - `double GetEndAnimationFrame()` — `UtilityAPIInterface.h:928`
+  - get end animation frame
+- **`GetTotalEndAnimationFrame`** · pure-virtual [animation]
+  - `double GetTotalEndAnimationFrame()` — `UtilityAPIInterface.h:934`
+  - Returns the last frame from the animation list.
+    - returns: end animation frame value type Double. Returns -FLT_MAX if the value is invalid.
+- **`GetAnimationLayerFrameRange`** · pure-virtual [animation]
+  - `std::pair<double, double> GetAnimationLayerFrameRange(int _layerIndex)` — `UtilityAPIInterface.h:940`
+  - Returns the start and end frame values of the specified animation layer.
+    - returns: A pair containing the start frame (first) and end frame (second) as double values. Returns -FLT_MAX if the value is invalid.
+- **`RunAnimationRecording`** [animation]
+  - `void RunAnimationRecording(double _startFrame, double _endFrame)` — `UtilityAPIInterface.h:947`
+  - Start recording an animation within the specified frame range.
+    - param `_startFrame The starting frame of the recording.`
+    - param `_endFrame The ending frame of the recording.`
+- **`MoveAnimationFrame`** [animation]
+  - `void MoveAnimationFrame(double _frame)` — `UtilityAPIInterface.h:953`
+  - Move the animation to a specific frame.
+    - param `_frame The target frame to move the animation to.`
+- **`CopyFromFirstClothCache`** [animation]
+  - `void CopyFromFirstClothCache()` — `UtilityAPIInterface.h:958`
+  - Copy the first cloth cache to current frame
+- **`GetStressMapStatus`** [fit-map]
+  - `bool GetStressMapStatus()` — `UtilityAPIInterface.h:963`
+  - return current rendered status of the stress map (false = Off \| true = On)
+- **`SetStressMapStatus`** [fit-map]
+  - `void SetStressMapStatus(bool _bOn)` — `UtilityAPIInterface.h:969`
+  - set the rendered status of stress map
+    - param `_bOn: false = Off \| true = On`
+- **`GetStrainMapStatus`** [fit-map]
+  - `bool GetStrainMapStatus()` — `UtilityAPIInterface.h:974`
+  - return current rendered status of the strain map (false = Off \| true = On)
+- **`SetStrainMapStatus`** [fit-map]
+  - `void SetStrainMapStatus(bool _bOn)` — `UtilityAPIInterface.h:980`
+  - set the rendered status of strain map
+    - param `_bOn: false = Off \| true = On`
+- **`GetSchematicRender`** [render]
+  - `bool GetSchematicRender()` — `UtilityAPIInterface.h:985`
+  - Get Show Schematic Render Status
+- **`RefreshPlugIns`** 
+  - `void RefreshPlugIns()` — `UtilityAPIInterface.h:990`
+  - Refresh all PlugIns
+- **`RegisterPythonScript`** 
+  - `bool RegisterPythonScript(const std::string& pythonScriptPath, const std::string& menuPath)` — `UtilityAPIInterface.h:995`
+  - Register one Python script under the target menu path.
+- **`RegisterPythonScriptW`** 
+  - `bool RegisterPythonScriptW(const std::wstring& pythonScriptPath, const std::wstring& menuPath)` — `UtilityAPIInterface.h:1000`
+  - Register one Python script under the target menu path.
+- **`RegisterPythonScriptFolder`** [pattern]
+  - `bool RegisterPythonScriptFolder(const std::string& folderPath, const std::string& menuPath)` — `UtilityAPIInterface.h:1005`
+  - Register all direct child Python scripts under a folder-named submenu in the target menu path.
+- **`RegisterPythonScriptFolderW`** [pattern]
+  - `bool RegisterPythonScriptFolderW(const std::wstring& folderPath, const std::wstring& menuPath)` — `UtilityAPIInterface.h:1010`
+  - Register all direct child Python scripts under a folder-named submenu in the target menu path.
+- **`SetCamViewPoint`** [render]
+  - `void SetCamViewPoint(int _viewPointIndex)` — `UtilityAPIInterface.h:1016`
+  - set camera view point
+    - param `_viewPointIndex: Value for setting camera view point index(0: bottom, 1:3/4 right, 2:front, 3:3/4 left, 4: right, 5:top, 6:left, 7:focus zoom, 8:back, 9:zoom extents all)`
+- **`StopNesting`** 
+  - `void StopNesting()` — `UtilityAPIInterface.h:1021`
+  - Stop Nesting process
+- **`CreateModularCategory`** 
+  - `void CreateModularCategory(const std::wstring& _title, const std::wstring& _folderPath)` — `UtilityAPIInterface.h:1028`
+  - create modular category
+    - param `_title : category title,`
+    - param `_folderPath: groupFolderPath`
+- **`DeleteModularCategory`** 
+  - `void DeleteModularCategory(const std::wstring& _categoryPath)` — `UtilityAPIInterface.h:1034`
+  - delete modular category
+    - param `_categoryPath : category title`
+- **`AddLineToCategory`** 
+  - `bool AddLineToCategory(const std::wstring& _lineName, const std::wstring& _lineThumbnailPath, const std::wstring& _categoryPath)` — `UtilityAPIInterface.h:1042`
+  - This function creates a line that includes all existing styles if there are no lines in the current category. If there is a line, it adds the line to the category.
+    - param `_lineName : The name of the line to be added`
+    - param `_lineThumbnailPath : The path of the thumbnail image to be used for the style`
+    - param `_categoryPath : The path where the category to be added is located`
+- **`AddStyleToCategory`** 
+  - `bool AddStyleToCategory(const std::wstring& _styleName, const std::wstring& _styleThumbnailPath, const std::wstring& _categoryPath, const std::wstring& _lineName = L"None")` — `UtilityAPIInterface.h:1051`
+  - Add Style to category
+    - param `_styleName : The name of the style to be added`
+    - param `_styleThumbnailPath : The path of the thumbnail image to be used for the style`
+    - param `_categoryPath : The path where the category to be added is located`
+    - param `_lineName : Has a default value of 'None'. Only provide a value if a line exists in the category you are adding`
+- **`AddBlockTypeToStyle`** 
+  - `bool AddBlockTypeToStyle(const std::wstring& _blockName, const unsigned int _blockType, const std::wstring& _styleName, const std::wstring& _categoryPath, const std::wstring& _lineName = L"None")` — `UtilityAPIInterface.h:1089`
+  - Add block type to style
+    - param `_blockName : The name of the block to be added`
+    - param `_blockType : Specifies the block type. You must select the desired type from the list below.`
+    - param `Block Type List:`
+    - param `Front Body         = 0`
+    - param `Back Body          = 1`
+    - param `Full Body          = 2`
+    - param `Sleeves            = 3`
+    - param `Collar             = 4`
+    - param `Raglan Front Body  = 5`
+    - param `Raglan Back Body   = 6`
+    - param `Raglan Full Body   = 7`
+    - param `Raglan Sleeve      = 8`
+    - param `Raglan Collar      = 9`
+    - param `Hem                = 10`
+    - param `Placket Front      = 11`
+    - param `Cuff               = 12`
+    - param `Front Skirt        = 13`
+    - param `Skirt Back         = 14`
+    - param `Full Skirt         = 15`
+    - param `Front Pants        = 16`
+    - param `Back Pants         = 17`
+    - param `Left Pants         = 18`
+    - param `Right Pants        = 19`
+    - param `Front Left Pants   = 20`
+    - param `Front Right Pants  = 21`
+    - param `Back Left Pants    = 22`
+    - param `Back Right Pants   = 23`
+    - param `Full Pants         = 24`
+    - param `Waistband          = 25`
+    - param `Cuff Leg           = 26`
+    - param `_styleName : The name of the style to which the block type will be added`
+    - param `_categoryPath : Has a default value of 'None'. Only provide a value if a line exists in the category you are adding`
+    - param `_lineName : Has a default value of 'None'. Only provide a value if a line exists in the category you are adding`
+- **`GetNestingTime`** 
+  - `int GetNestingTime()` — `UtilityAPIInterface.h:1094`
+  - Get Nesting duration Time (milliseconds)
+- **`SetSchematicSilhouetteLineWidth`** 
+  - `void SetSchematicSilhouetteLineWidth(int _value)` — `UtilityAPIInterface.h:1100`
+  - set schematic silhouette line width
+    - param `_value: Value for setting schematic silhouette line width`
+- **`SetSchematicSeamLineWidth`** [pattern]
+  - `void SetSchematicSeamLineWidth(int _value)` — `UtilityAPIInterface.h:1106`
+  - set schematic seamline width
+    - param `_value: Value for setting schematic seamline width`
+- **`SetSchematicInternalLineWidth`** [pattern]
+  - `void SetSchematicInternalLineWidth(int _value)` — `UtilityAPIInterface.h:1112`
+  - set schematic internal line width
+    - param `_value: Value for setting schematic internal line width`
+- **`SetSchematicTopstitchLineScalePercent`** [topstitch]
+  - `void SetSchematicTopstitchLineScalePercent(int _value)` — `UtilityAPIInterface.h:1118`
+  - set schematic topstitch line scale percent
+    - param `_value: Value for setting schematic topstitch line scale percent`
+- **`SetSchematicBrightness`** 
+  - `void SetSchematicBrightness(int _value)` — `UtilityAPIInterface.h:1124`
+  - set schematic brightness
+    - param `_value: Value for setting schematic brightness`
+- **`SetShowSchematicSilhouetteLine`** 
+  - `void SetShowSchematicSilhouetteLine(bool _bOn)` — `UtilityAPIInterface.h:1130`
+  - set show schematic silhouetteline
+    - param `_bOn: Value for setting showschematic silhouetteline`
+- **`SetShowSchematicSeamLine`** [pattern]
+  - `void SetShowSchematicSeamLine(bool _bOn)` — `UtilityAPIInterface.h:1136`
+  - set show schematic seamline
+    - param `_bOn: Value for setting show schematic seamline`
+- **`SetShowSchematicInternalLine`** [pattern]
+  - `void SetShowSchematicInternalLine(bool _bOn)` — `UtilityAPIInterface.h:1142`
+  - set show schematic internal line
+    - param `_bOn: Value for setting show schematic internalline`
+- **`SetShowSchematicTopstitchLine`** [topstitch]
+  - `void SetShowSchematicTopstitchLine(bool _bOn)` — `UtilityAPIInterface.h:1148`
+  - set show schematic topstitch line
+    - param `_bOn: Value for setting show schematic topstitchline`
+- **`SetSchematicClothRenderType`** [render]
+  - `void SetSchematicClothRenderType(bool _bTexture)` — `UtilityAPIInterface.h:1154`
+  - set schematic cloth render type
+    - param `_bTexture: Value for setting schematic cloth render type`
+- **`SetStyleLineColor`** 
+  - `void SetStyleLineColor(int _r, int _g, int _b)` — `UtilityAPIInterface.h:1163`
+  - set style line color
+    - param `int _r, int _g, int _b: Value for setting style line color`
+    - param `Red: 0 ~ 255`
+    - param `Green: 0 ~ 255`
+    - param `Blue: 0 ~ 255`
+- **`SetSchematicClothColor`** 
+  - `void SetSchematicClothColor(int _r, int _g, int _b)` — `UtilityAPIInterface.h:1172`
+  - set schematic cloth color
+    - param `int _r, int _g, int _b: Value for setting schematic cloth color`
+    - param `Red: 0 ~ 255`
+    - param `Green: 0 ~ 255`
+    - param `Blue: 0 ~ 255`
+- **`SetQualityRender`** [render]
+  - `void SetQualityRender(bool _bSet)` — `UtilityAPIInterface.h:1178`
+  - Set Quality Render status
+    - param `_bSet: true for enable, false for disable`
+- **`GetQualityRenderStatus`** [render]
+  - `bool GetQualityRenderStatus()` — `UtilityAPIInterface.h:1183`
+  - Get Current Quality Render Status
+- **`BakeUVTexture`** 
+  - `std::vector<std::string> BakeUVTexture(const std::string& _filePath, const Marvelous::ImportExportOption& _options, bool _bAll)` — `UtilityAPIInterface.h:1192`
+  - Bake textures on UV editor
+    - param `_filePath: File path to be saved.`
+    - param `_options: It bakes textures according to options, not allowing user for selecting options in Bake Textures Dialog.`
+    - param `_bAll: true for all UV tiles, false for only 0-1 tile`
+    - returns: Output file paths.
+- **`BakeUVTextureW`** 
+  - `std::vector<std::wstring> BakeUVTextureW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options, bool _bAll)` — `UtilityAPIInterface.h:1205`
+  - Bake textures on UV editor
+    - param `_filePath: File path to be saved.`
+    - param `_options: It bakes textures according to options, not allowing user for selecting options in Bake Textures Dialog.`
+    - param `_bAll: true for all UV tiles, false for only 0-1 tile`
+    - returns: Output file paths.
+- **`ResetUVTo2DArrangement`** 
+  - `void ResetUVTo2DArrangement()` — `UtilityAPIInterface.h:1226`
+  - Reset UV islands to the 2D arrangement.
+- **`SetTrimWeight`** [trim]
+  - `void SetTrimWeight(unsigned int _trimStyleIndex, float _mass)` — `UtilityAPIInterface.h:1233`
+  - Change weight of the trim style
+    - param `_trimStyleIndex: trimstyle index to change weight of trim style`
+    - param `_mass: value to set weight of trim`
+- **`Refresh3DWindow`** [gui]
+  - `void Refresh3DWindow()` — `UtilityAPIInterface.h:1238`
+  - Refresh 3D Garment Window
+- **`SetColorwayColorItem`** [render]
+  - `void SetColorwayColorItem(int _colorwayIndex, int _colorItemIndex, std::string _plmId, std::string _colorName, Marvelous::CloApiRgb _rgb)` — `UtilityAPIInterface.h:1248`
+  - Changes the color of the color item in colorway
+    - param `_colorwayIndex: colorway index to change color of color item`
+    - param `_colorItemIndex: color item index to change color of colorway`
+    - param `_plmId: plm id of color`
+    - param `_colorName: name of color`
+    - param `_rgb: rgb value of color`
+- **`GetColorwayColorItemRGB`** [render]
+  - `Marvelous::CloApiRgb GetColorwayColorItemRGB(int _colorwayIndex, int _colorItemIndex)` — `UtilityAPIInterface.h:1256`
+  - Get rgb color value of the color item in colorway
+    - param `_colorwayIndex: colorway index to get rgb color value of color item`
+    - param `_colorItemIndex: color item index to get rgb color value color of colorway`
+    - returns: a rgb color value if the indices are valid, (0, 0, 0) otherwise.
+- **`GetColorwayColorItemPlmId`** [render]
+  - `std::string GetColorwayColorItemPlmId(int _colorwayIndex, int _colorItemIndex)` — `UtilityAPIInterface.h:1264`
+  - Get plm id of the color item in colorway
+    - param `_colorwayIndex: colorway index to get plm id of color item`
+    - param `_colorItemIndex: color item index to get plm id of colorway`
+    - returns: a plm id if the indices are valid, empty string otherwise.
+- **`GetColorwayColorItemName`** [render]
+  - `std::string GetColorwayColorItemName(int _colorwayIndex, int _colorItemIndex)` — `UtilityAPIInterface.h:1272`
+  - Get color name of the color item in colorway
+    - param `_colorwayIndex: colorway index to get color name of color item`
+    - param `_colorItemIndex: color item index to get color name of colorway`
+    - returns: color name if the indices are valid, empty string otherwise.
+- **`RemovePlugInFromList`** 
+  - `void RemovePlugInFromList(unsigned int _pluginListIndex)` — `UtilityAPIInterface.h:1278`
+  - Remove Plug In From PluginList
+    - param `_pluginListIndex: PluginList index to delete the plugin`
+- **`AddPlugInFromFile`** 
+  - `void AddPlugInFromFile(const std::string& _filePath)` — `UtilityAPIInterface.h:1284`
+  - Add Plug In From Filepath
+    - param `_filePath: File path to be added plugin.`
+- **`UsePlugInFromList`** 
+  - `void UsePlugInFromList(unsigned int _pluginListIndex)` — `UtilityAPIInterface.h:1290`
+  - Use Plug In From PluginList
+    - param `_pluginListIndex: PluginList index to use the plugin`
+- **`TerminatePlugInFromList`** 
+  - `void TerminatePlugInFromList(unsigned int _pluginListIndex)` — `UtilityAPIInterface.h:1296`
+  - Terminate Plug In From PluginList
+    - param `_pluginListIndex: PluginList index to use the plugin`
+- **`Set3DGarmentRenderingStyle`** [render]
+  - `void Set3DGarmentRenderingStyle(unsigned int _surfaceTextureTypeIndex)` — `UtilityAPIInterface.h:1303`
+  - Sets garment surface rending style in the 3D window.
+    - param `_surfaceTextureTypeIndex : 0: textured surface, 1: thick textured surface, 2 : monochrome surface,`
+    - param `3 : translucent surface, 4 : mesh, 5 : thick textured surface (back), 6 : random color surface. Any other value defaults to 1.`
+- **`Get3DGarmentRenderingStyle`** [render]
+  - `int Get3DGarmentRenderingStyle()` — `UtilityAPIInterface.h:1310`
+  - Gets garment surface rending style currently used in the 3D window. return: _surfaceTextureTypeIndex : 0: textured surface, 1: thick textured surface, 2 : monochrome surface, 3 : translucent surface, 4 : mesh, 5 : thick textured surface (back), 6 : random color surface. Invalid response : -1.
+- **`GetTotalGraphicItemQuantity`** [graphic]
+  - `int GetTotalGraphicItemQuantity()` — `UtilityAPIInterface.h:1316`
+  - Returns the total quantity of all graphic items
+    - returns: If valid, returns the total quantity; otherwise, -1.
+- **`GetGraphicStyleCount`** [graphic]
+  - `int GetGraphicStyleCount()` — `UtilityAPIInterface.h:1322`
+  - Returns the number of graphic styles in the current colorway
+    - returns: If valid, returns the number of graphic styles; otherwise, -1.
+- **`GetGraphicStylePosition`** · pure-virtual [graphic]
+  - `std::map<int, std::vector<std::vector<float>>> GetGraphicStylePosition(int _graphicIndex, bool _is2D)` — `UtilityAPIInterface.h:1330`
+  - Returns the position information of each graphic object.
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - param `_is2D: If True, returns the value based on the 2D window; if False, returns the value based on the 3D window.`
+    - returns: The map’s key is the pattern index, and the value is a list of position information for the graphics assigned to that pattern.
+- **`GetGraphicStylePosition`** [graphic]
+  - `std::map<int, std::vector<std::vector<float>>> GetGraphicStylePosition(int _graphicIndex, int _colorwayIndex, bool _is2D)` — `UtilityAPIInterface.h:1339`
+  - Returns the position information of each graphic object for the specified colorway.
+    - param `_graphicIndex: The index corresponding to the graphic style list of the target colorway.`
+    - param `_colorwayIndex: The target colorway index. If out of range, the current colorway is used.`
+    - param `_is2D: If True, returns the value based on the 2D window; if False, returns the value based on the 3D window.`
+    - returns: The map's key is the pattern index, and the value is a list of position information for the graphics assigned to that pattern.
+- **`GetGraphicStyleName`** [graphic]
+  - `std::string GetGraphicStyleName(int _index)` — `UtilityAPIInterface.h:1346`
+  - Returns the name of the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - returns: If valid, returns the name; otherwise, an empty string.
+- **`SetGraphicStyleLocked`** [graphic]
+  - `void SetGraphicStyleLocked(int _graphicIndex, bool _bLocked)` — `UtilityAPIInterface.h:1353`
+  - Sets the lock state of the graphic style (style-level: affects size, map size/scale)
+    - param `_graphicIndex: Graphic style index in the current colorway's style list`
+    - param `_bLocked: If true, locks the style; if false, unlocks it`
+- **`IsGraphicStyleLocked`** [graphic]
+  - `bool IsGraphicStyleLocked(int _graphicIndex)` — `UtilityAPIInterface.h:1360`
+  - Returns whether the graphic style is locked (style-level)
+    - param `_graphicIndex: Graphic style index in the current colorway's style list`
+    - returns: true if the style is locked, false otherwise or if index is invalid
+- **`SetGraphicInstanceLocked`** [graphic]
+  - `void SetGraphicInstanceLocked(int _patternIndex, int _graphicIndex, bool _bLocked)` — `UtilityAPIInterface.h:1368`
+  - Sets the lock state of the graphic instance placed on a specific pattern piece (instance-level: affects angle, position, Z-offset, configuration)
+    - param `_patternIndex: Pattern piece index in the PatternEditor's pattern list`
+    - param `_graphicIndex: Graphic style index in the current colorway's style list`
+    - param `_bLocked: If true, locks the instance; if false, unlocks it`
+- **`IsGraphicInstanceLocked`** [graphic]
+  - `bool IsGraphicInstanceLocked(int _patternIndex, int _graphicIndex)` — `UtilityAPIInterface.h:1376`
+  - Returns whether the graphic instance placed on a specific pattern piece is locked (instance-level)
+    - param `_patternIndex: Pattern piece index in the PatternEditor's pattern list`
+    - param `_graphicIndex: Graphic style index in the current colorway's style list`
+    - returns: true if the instance is locked, false otherwise or if not found
+- **`GetGraphicStyleDimensions`** [graphic]
+  - `Marvelous::CloApiGraphicDimensions GetGraphicStyleDimensions(int _index)` — `UtilityAPIInterface.h:1383`
+  - Returns the dimensions of the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - returns: If valid, returns a Dimension object filled with the graphic's dimension information.
+- **`SetGraphicStyleName`** [graphic]
+  - `void SetGraphicStyleName(int _index, std::string _name)` — `UtilityAPIInterface.h:1390`
+  - Sets the name of the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - param `_name: The name to be set for the graphic style`
+- **`SetGraphicStyleDimensions`** [graphic]
+  - `void SetGraphicStyleDimensions(int _index, float _width, float _height)` — `UtilityAPIInterface.h:1398`
+  - Sets the dimensions of the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - param `_width: The width to be set for the graphic style`
+    - param `_height: The height to be set for the graphic style`
+- **`SetGraphicStyleDimensions`** · pure-virtual [graphic]
+  - `void SetGraphicStyleDimensions(int _colorwayIndex, int _index, float _width, float _height)` — `UtilityAPIInterface.h:1407`
+  - Sets the dimensions of the graphic style for a specific colorway
+    - param `_colorwayIndex: Target colorway index`
+    - param `_index: Graphic style index`
+    - param `_width: The width to be set for the graphic style`
+    - param `_height: The height to be set for the graphic style`
+- **`SetGraphicStyleWidth`** [graphic]
+  - `void SetGraphicStyleWidth(int _index, float _width, bool _bOnly)` — `UtilityAPIInterface.h:1415`
+  - Sets the width of the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - param `_width: The width to be set for the graphic style`
+    - param `_bOnly: If true, the ratio is ignored, if false, the height is set according to the ratio.`
+- **`SetGraphicStyleHeight`** [graphic]
+  - `void SetGraphicStyleHeight(int _index, float _height, bool _bOnly)` — `UtilityAPIInterface.h:1423`
+  - Sets the height of the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - param `_height: The height to be set for the graphic style`
+    - param `_bOnly: If true, the ratio is ignored, if false, the height is set according to the ratio.`
+- **`GetGraphicStylePatternPieceIndices`** · pure-virtual [pattern] [graphic]
+  - `std::vector<int> GetGraphicStylePatternPieceIndices(int _graphicIndex)` — `UtilityAPIInterface.h:1431`
+  - Returns the list of pattern piece indices that a graphic style is placed on
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - returns: A deduplicated vector of pattern piece indices.
+- **`GetGraphicStylePatternPieceIndices`** · pure-virtual [pattern] [graphic]
+  - `std::vector<int> GetGraphicStylePatternPieceIndices(int _colorwayIndex, int _graphicIndex)` — `UtilityAPIInterface.h:1440`
+  - Returns the list of pattern piece indices that a graphic style is placed on for a specific colorway
+    - param `_colorwayIndex: Target colorway index`
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - returns: A deduplicated vector of pattern piece indices.
+- **`GetGraphicStyleDimensionsOnPattern`** · pure-virtual [pattern] [graphic]
+  - `Marvelous::CloApiGraphicDimensions GetGraphicStyleDimensionsOnPattern(int _colorwayIndex, int _graphicIndex, int _patternIndex)` — `UtilityAPIInterface.h:1450`
+  - Returns the dimensions of a graphic placement on a specific pattern piece for a specific colorway
+    - param `_colorwayIndex: Target colorway index`
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - param `_patternIndex: The index of the pattern piece.`
+    - returns: If valid, returns a Dimension object filled with the graphic's dimension information.
+- **`SetGraphicStylePositionOnPattern`** · pure-virtual [pattern] [graphic]
+  - `bool SetGraphicStylePositionOnPattern(int _colorwayIndex, int _graphicIndex, int _patternIndex, float _x, float _y)` — `UtilityAPIInterface.h:1462`
+  - Sets the 2D position of a graphic on a specific pattern piece for a specific colorway
+    - param `_colorwayIndex: Target colorway index`
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - param `_patternIndex: The index of the pattern piece.`
+    - param `_x: The X coordinate of the graphic's center in 2D pattern-local space.`
+    - param `_y: The Y coordinate of the graphic's center in 2D pattern-local space.`
+    - returns: true if the position was set successfully, false otherwise.
+- **`SetGraphicStyleDimensionsOnPattern`** · pure-virtual [pattern] [graphic]
+  - `bool SetGraphicStyleDimensionsOnPattern(int _colorwayIndex, int _graphicIndex, int _patternIndex, float _width, float _height)` — `UtilityAPIInterface.h:1475`
+  - Sets the dimensions of a graphic on a specific pattern piece for a specific colorway
+    - param `_colorwayIndex: Target colorway index`
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - param `_patternIndex: The index of the pattern piece.`
+    - param `_width: The width to be set for the graphic. Must be > 0 to take effect.`
+    - param `_height: The height to be set for the graphic. Must be > 0 to take effect.`
+    - returns: true if the dimensions were set successfully, false otherwise.
+- **`GetGraphicStylePlacementPoints`** · pure-virtual [graphic]
+  - `Marvelous::CloApiGraphicPlacementPoints GetGraphicStylePlacementPoints(int _colorwayIndex, int _graphicIndex, int _patternIndex, bool _is2D)` — `UtilityAPIInterface.h:1485`
+  - Returns the center, corner, and edge center points of a graphic placement on a pattern piece for a specific colorway
+    - param `_colorwayIndex: Target colorway index`
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - param `_patternIndex: The index of the pattern piece.`
+    - param `_is2D: If true, returns 2D pattern-local coordinates; if false, returns 3D world coordinates.`
+    - returns: A CloApiGraphicPlacementPoints struct containing center, corners, and edge center points.
+- **`RepositionGraphicByAnchor`** [graphic]
+  - `bool RepositionGraphicByAnchor(int _colorwayIndex, int _graphicIndex, int _patternIndex, Marvelous::CloApiAnchorPoint _anchorPoint, float _x, float _y)` — `UtilityAPIInterface.h:1522`
+  - Repositions a graphic so the specified anchor point lands at (_x, _y) for a specific colorway.
+    - param `_colorwayIndex: Target colorway index.`
+    - param `_graphicIndex: The index corresponding to the graphic style list.`
+    - param `_patternIndex: The index of the pattern piece.`
+    - param `_anchorPoint: Anchor point to pin (int value or CloApiAnchorPoint enum both accepted) -- see table below.`
+    - param `_x: Target X coordinate for the anchor point in 2D pattern-local space.`
+    - param `_y: Target Y coordinate for the anchor point in 2D pattern-local space.`
+    - returns: true if the position was updated successfully, false otherwise.
+- **`UpdateCloStyleForPlugIn`** 
+  - `void UpdateCloStyleForPlugIn(QWidget* _pWidget)` — `UtilityAPIInterface.h:1529`
+  - Set CLO style-sheet code to QWidget.
+    - param `_pWidget: Root widget pointer of Plug-In Window.`
+    - param `ex> QWidget, QDialog, QFrame, etc...`
+- **`UpdateCloStyleForPlugIn`** 
+  - `void UpdateCloStyleForPlugIn(QWidget* _pWidget, Marvelous::CloWidgetType _type)` — `UtilityAPIInterface.h:1537`
+  - Set the style-sheet code corresponding to the CloWidgetType.
+    - param `_pWidget: Widget pointer to set style-sheet code`
+    - param `_type: CloWidgetType of widget pointer`
+    - param `ex> TitleBar, ComboBox, Slider, ScrollArea, Dialog, Frame, etc...`
+- **`GetStyleSheetCodeForWidget`** [gui]
+  - `std::string GetStyleSheetCodeForWidget(Marvelous::CloWidgetType _type)` — `UtilityAPIInterface.h:1544`
+  - Returns the style-sheet code for CloWidgetType
+    - param `_type: CloWidgetType of widget pointer`
+    - returns: Style-sheet code for CloWidgetType
+- **`GetStyleSheetCodeForWidgetW`** [gui]
+  - `std::wstring GetStyleSheetCodeForWidgetW(Marvelous::CloWidgetType _type)` — `UtilityAPIInterface.h:1551`
+  - Returns the style-sheet code for CloWidgetType
+    - param `_type: CloWidgetType of widget pointer`
+    - returns: Style-sheet code for CloWidgetType
+- **`CurrentlyThemeInCLO`** 
+  - `Marvelous::CloTheme CurrentlyThemeInCLO()` — `UtilityAPIInterface.h:1557`
+  - Returns the currently Theme information used in CLO
+    - returns: currently Theme type
+- **`SetCropBackground`** 
+  - `void SetCropBackground(bool _bToggle)` — `UtilityAPIInterface.h:1563`
+  - Set crop status.
+    - param `_bToggle: change crop background as _bToggle`
+- **`SetBackgroundColorForExportRenderingImage`** · pure-virtual [render]
+  - `void SetBackgroundColorForExportRenderingImage(float _r, float _g, float _b, float _a)` — `UtilityAPIInterface.h:1574`
+  - Set the background color used when exporting rendering images with the V-Ray renderer. This color will be applied as the rendering environment background, replacing any default scene background. It is useful for generating images with transparent backgrounds or consistent studio-like setups.
+    - param `_r Red component of the background color (range: 0.0 ~ 1.0).`
+    - param `_g Green component of the background color (range: 0.0 ~ 1.0).`
+    - param `_b Blue component of the background color (range: 0.0 ~ 1.0).`
+    - param `_a Alpha component of the background color (range: 0.0 ~ 1.0).`
+    - param `Set to 0.0 for fully transparent or 1.0 for fully opaque.`
+- **`SetLightPresetForExportRenderingImage`** · pure-virtual [render]
+  - `void SetLightPresetForExportRenderingImage(int _index)` — `UtilityAPIInterface.h:1580`
+  - Set a light preset to be used when exporting rendering images with the V-Ray renderer. Light presets define preconfigured lighting environments (e.g., studio lights, daylight, HDRI setups) that affect the overall appearance of the rendered output.
+    - param `_index Index of the desired light preset, as retrieved from GetLightPresetForExportRenderingImage().`
+- **`GetLightPresetForExportRenderingImage`** · pure-virtual [render]
+  - `std::map<std::string, int> GetLightPresetForExportRenderingImage()` — `UtilityAPIInterface.h:1588`
+  - Retrieve the list of available light presets for the V-Ray renderer. Each preset provides a predefined lighting setup that can be applied to the rendering scene. The returned map allows you to display preset options in a UI and use the corresponding index to apply a preset with SetLightPresetForExportRenderingImage().
+    - returns: A map containing pairs of preset name (key: std::string) and preset index (value: int). Example: { {"Studio Light", 0}, {"Daylight", 1}, {"HDRI Sky", 2} }
+- **`SetTransparentBackgroundForExportRenderingImage`** · pure-virtual [render]
+  - `void SetTransparentBackgroundForExportRenderingImage(bool _bTransparent)` — `UtilityAPIInterface.h:1594`
+  - Enable the transparent background option in the V-Ray renderer.
+    - param `_bTransparent : If set to True, the transparent background option will be enabled.`
+- **`GetButtonHeadStyleListWithIndex`** · pure-virtual [trim]
+  - `std::string GetButtonHeadStyleListWithIndex()` — `UtilityAPIInterface.h:1600`
+  - Gets the list of button head styles available in the Current project.
+    - returns: Returns the list of button head styles with their corresponding indices.
+- **`GetTrimStyleListWithIndex`** · pure-virtual [trim]
+  - `std::string GetTrimStyleListWithIndex()` — `UtilityAPIInterface.h:1606`
+  - Gets the list of trim styles available in the current project's object browser.
+    - returns: Returns a JSON-formatted string containing the list of trim styles with their corresponding indices and names.
+- **`GetGraphicStyleListWithIndex`** · pure-virtual [graphic]
+  - `std::string GetGraphicStyleListWithIndex()` — `UtilityAPIInterface.h:1612`
+  - Gets the list of graphic files available in the current project's object browser.
+    - returns: Returns a JSON-formatted string containing the list of graphic styles with their corresponding indices and names.
+- **`OpenButtonHeadStyleFileByIndex`** · pure-virtual [trim] [project]
+  - `bool OpenButtonHeadStyleFileByIndex(const std::string& _filePath, int _index)` — `UtilityAPIInterface.h:1618`
+  - Loads a button head style file based on the provided index.
+    - param `_filePath: The file path of the button head style file to be loaded, _Index: The index of the Designated button`
+- **`OpenGraphicStyleFileByIndex`** · pure-virtual [graphic] [project]
+  - `bool OpenGraphicStyleFileByIndex(const std::string& _filePath, int _index)` — `UtilityAPIInterface.h:1624`
+  - Loads a graphic style file based on the provided index.
+    - param `_filePath: The file path of the graphic style file to be loaded, _Index: The index of the Designated graphic`
+- **`OpenTrimStyleFileByIndex`** · pure-virtual [trim] [project]
+  - `bool OpenTrimStyleFileByIndex(const std::string& _filePath, int _index)` — `UtilityAPIInterface.h:1630`
+  - Loads a trim style file based on the provided index.
+    - param `_filePath: The file path of the trim style file to be loaded, _Index: The index of the Designated trim style`
+- **`AddGraphicStyleFromImageFile`** · pure-virtual [render] [graphic]
+  - `bool AddGraphicStyleFromImageFile(const std::string& _filePath, int _index)` — `UtilityAPIInterface.h:1638`
+  - Converts an image file to a graphic style and inserts it into the graphic file list at the given index.
+    - param `_filePath: The file path of the image file (.png, .jpg, etc.).`
+    - param `_index: The position in the graphic file list. Must be >= 0 and <= current graphic style count.`
+    - returns: true if the graphic style was added or replaced successfully, otherwise false.
+- **`SetRenderImageVideoProperties`** [render]
+  - `void SetRenderImageVideoProperties(Marvelous::RenderImageVideoOptions& _renderImageVideoOption)` — `UtilityAPIInterface.h:1644`
+  - Sets render image/video property values.
+    - param `_renderImageVideoOption: render option values`
+- **`GetRenderImageVideoProperties`** [render]
+  - `std::string GetRenderImageVideoProperties()` — `UtilityAPIInterface.h:1649`
+  - Returns render image/video property values
+- **`SetRenderingProperties`** [render]
+  - `void SetRenderingProperties(Marvelous::RenderPropertyOptions& _renderPropertyOptions)` — `UtilityAPIInterface.h:1655`
+  - Sets rendering property values.
+    - param `_renderPropertyOptions: render property option values`
+- **`GetRenderingProperties`** [render]
+  - `std::string GetRenderingProperties()` — `UtilityAPIInterface.h:1661`
+  - Gets rendering property values
+    - returns: If valid, returns a string containing rendering property values.
+- **`SetZoomView`** 
+  - `void SetZoomView()` — `UtilityAPIInterface.h:1666`
+  - Zoom cloth
+- **`SetViewPoint`** 
+  - `void SetViewPoint(int _index)` — `UtilityAPIInterface.h:1672`
+  - Set View Point in render property window
+    - param `_index: View Point index to set (0: Current View, 1: Custom View)`
+- **`GetViewPoint`** 
+  - `int GetViewPoint()` — `UtilityAPIInterface.h:1679`
+  - Get current view point
+    - returns: View Point index (0: Current View, 1: Custom View)
+- **`ReDrape3DArrangement`** · doc 
+  - `void ReDrape3DArrangement(const Marvelous::ImportExportOption& _options)` — `UtilityAPIInterface.h:1684`
+  - Redrape all patterns 3D Arrangement
+- **`SetAPF`** 
+  - `void SetAPF(std::string _path)` — `UtilityAPIInterface.h:1690`
+  - Set APF file path
+    - param `_path: APF file path`
+- **`ABPNetworkAuth`** 
+  - `void ABPNetworkAuth(std::string id, std::string pw, std::string _APFpath = "")` — `UtilityAPIInterface.h:1698`
+  - Regist Alvanon ID and Password
+    - param `id: Alvanon ID`
+    - param `pw: Alvanon Password`
+    - param `_APFpath : APF File path`
+- **`SetGraphicBaseColorMapTexture`** · pure-virtual [graphic]
+  - `void SetGraphicBaseColorMapTexture(const std::string _imageFilePath, int _graphicStyleIndex)` — `UtilityAPIInterface.h:1706`
+  - Sets the base color map texture for the graphic style
+    - param `_imageFilePath: The file path to be set for the graphic style`
+    - param `_graphicStyleIndex: The graphic style index to change the base color map texture`
+- **`SetGraphicBaseColorMapTexture`** · pure-virtual [graphic]
+  - `void SetGraphicBaseColorMapTexture(const std::string _imageFilePath, int _graphicStyleIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1714`
+  - Sets the base color map texture for the graphic style in the specified colorway
+    - param `_imageFilePath: The file path to be set for the graphic style`
+    - param `_graphicStyleIndex: The graphic style index to change the base color map texture`
+    - param `_colorwayIndex: The colorway index to change the base color map texture`
+- **`SetGraphicNormalMapTexture`** [fabric] [graphic]
+  - `void SetGraphicNormalMapTexture(const std::string _imageFilePath)` — `UtilityAPIInterface.h:1720`
+  - Sets the texture map for the graphic style (default index = 0)
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicDisplacementMapTexture`** [fabric] [graphic]
+  - `void SetGraphicDisplacementMapTexture(const std::string _imageFilePath)` — `UtilityAPIInterface.h:1726`
+  - Sets the texture map for the graphic style (default index = 0)
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicOpacityMapTexture`** [fabric] [graphic]
+  - `void SetGraphicOpacityMapTexture(const std::string _imageFilePath)` — `UtilityAPIInterface.h:1732`
+  - Sets the texture map for the graphic style (default index = 0)
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicRoughnessMapTexture`** [fabric] [graphic]
+  - `void SetGraphicRoughnessMapTexture(const std::string _imageFilePath)` — `UtilityAPIInterface.h:1738`
+  - Sets the texture map for the graphic style (default index = 0)
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicMetalnessMapTexture`** [fabric] [graphic]
+  - `void SetGraphicMetalnessMapTexture(const std::string _imageFilePath)` — `UtilityAPIInterface.h:1744`
+  - Sets the texture map for the graphic style (default index = 0)
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetBaseTextureMapImageDesaturation`** · pure-virtual [render]
+  - `void SetBaseTextureMapImageDesaturation(int _fabricIndex, int _colorwayIndex, bool _bSetOnOff)` — `UtilityAPIInterface.h:1752`
+  - Set desaturation on/off for base texture map image of fabric in colorway.
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_bSetOnOff: true to enable desaturation, false to disable`
+- **`AutoGenerateGraphicNormalMap`** · pure-virtual [fabric] [graphic]
+  - `void AutoGenerateGraphicNormalMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1759`
+  - Auto-generates the normal map from the current base color map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`DeleteGraphicNormalMap`** · pure-virtual [fabric] [graphic]
+  - `void DeleteGraphicNormalMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1766`
+  - Deletes the normal map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`AutoGenerateGraphicOpacityMap`** · pure-virtual [fabric] [graphic]
+  - `void AutoGenerateGraphicOpacityMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1773`
+  - Auto-generates the opacity map from the current base color map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`DeleteGraphicOpacityMap`** · pure-virtual [fabric] [graphic]
+  - `void DeleteGraphicOpacityMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1780`
+  - Deletes the opacity map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`AutoGenerateGraphicRoughnessMap`** · pure-virtual [fabric] [graphic]
+  - `void AutoGenerateGraphicRoughnessMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1787`
+  - Auto-generates the roughness map from the current base color map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`DeleteGraphicRoughnessMap`** · pure-virtual [fabric] [graphic]
+  - `void DeleteGraphicRoughnessMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1794`
+  - Deletes the roughness map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`AutoGenerateGraphicDisplacementMap`** · pure-virtual [fabric] [graphic]
+  - `void AutoGenerateGraphicDisplacementMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1801`
+  - Auto-generates the displacement map from the current base color map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`DeleteGraphicDisplacementMap`** · pure-virtual [fabric] [graphic]
+  - `void DeleteGraphicDisplacementMap(int _graphicIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:1808`
+  - Deletes the displacement map of a graphic style.
+    - param `_graphicIndex: Graphic style index.`
+    - param `_colorwayIndex: Colorway index.`
+- **`SetGraphicNormalMapTexture`** [fabric] [graphic]
+  - `void SetGraphicNormalMapTexture(unsigned int _GraphicIndex, const std::string _imageFilePath)` — `UtilityAPIInterface.h:1815`
+  - Sets the texture map for the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicDisplacementMapTexture`** [fabric] [graphic]
+  - `void SetGraphicDisplacementMapTexture(unsigned int _GraphicIndex, const std::string _imageFilePath)` — `UtilityAPIInterface.h:1822`
+  - Sets the texture map for the graphic style
+    - param `_index: Graphic style index to use the plugin`
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicOpacityMapTexture`** [fabric] [graphic]
+  - `void SetGraphicOpacityMapTexture(unsigned int _GraphicIndex, const std::string _imageFilePath)` — `UtilityAPIInterface.h:1829`
+  - Sets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicRoughnessMapTexture`** [fabric] [graphic]
+  - `void SetGraphicRoughnessMapTexture(unsigned int _GraphicIndex, const std::string _imageFilePath)` — `UtilityAPIInterface.h:1836`
+  - Sets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`SetGraphicMetalnessMapTexture`** [fabric] [graphic]
+  - `void SetGraphicMetalnessMapTexture(unsigned int _GraphicIndex, const std::string _imageFilePath)` — `UtilityAPIInterface.h:1843`
+  - Sets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - param `_imageFilePath: The file path to be set for the graphic style`
+- **`GetGraphicNormalMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicNormalMapTexture()` — `UtilityAPIInterface.h:1849`
+  - Gets the texture map for the graphic style
+    - returns: The file path of the graphic style
+- **`GetGraphicDisplacementMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicDisplacementMapTexture()` — `UtilityAPIInterface.h:1855`
+  - Gets the texture map for the graphic style
+    - returns: _imageFilePath: The file path of the graphic style
+- **`GetGraphicOpacityMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicOpacityMapTexture()` — `UtilityAPIInterface.h:1861`
+  - Gets the texture map for the graphic style
+    - returns: _imageFilePath: The file path of the graphic style
+- **`GetGraphicRoughnessMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicRoughnessMapTexture()` — `UtilityAPIInterface.h:1867`
+  - Gets the texture map for the graphic style
+    - returns: _imageFilePath: The file path of the graphic style
+- **`GetGraphicMetalnessMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicMetalnessMapTexture()` — `UtilityAPIInterface.h:1873`
+  - Gets the texture map for the graphic style
+    - returns: _imageFilePath: The file path of the graphic style
+- **`GetGraphicNormalMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicNormalMapTexture(unsigned int _GraphicIndex)` — `UtilityAPIInterface.h:1880`
+  - Gets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - returns: The file path to be set for the graphic style
+- **`GetGraphicDisplacementMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicDisplacementMapTexture(unsigned int _GraphicIndex)` — `UtilityAPIInterface.h:1887`
+  - Gets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - returns: imageFilePath: The file path to be set for the graphic style
+- **`GetGraphicOpacityMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicOpacityMapTexture(unsigned int _GraphicIndex)` — `UtilityAPIInterface.h:1894`
+  - Gets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - returns: imageFilePath: The file path to be set for the graphic style
+- **`GetGraphicRoughnessMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicRoughnessMapTexture(unsigned int _GraphicIndex)` — `UtilityAPIInterface.h:1901`
+  - Gets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - returns: imageFilePath: The file path to be set for the graphic style
+- **`GetGraphicMetalnessMapTexture`** [fabric] [graphic]
+  - `std::string GetGraphicMetalnessMapTexture(unsigned int _GraphicIndex)` — `UtilityAPIInterface.h:1908`
+  - Gets the texture map for the graphic style
+    - param `_GraphicIndex: Graphic style index to use the plugin`
+    - returns: imageFilePath: The file path to be set for the graphic style
+- **`GetGraphicStyleColor`** · pure-virtual [graphic]
+  - `std::tuple<float, float, float, float> GetGraphicStyleColor()` — `UtilityAPIInterface.h:1914`
+  - Get a base color of PBR material in a Graphic.  (default index = 0)
+    - returns: RGBA float tuple
+- **`SetGraphicStyleColor`** · pure-virtual [graphic]
+  - `bool SetGraphicStyleColor(int _styleIndex, float r, float g, float b, float a)` — `UtilityAPIInterface.h:1929`
+  - Set a base color of PBR material in a Graphic using given RGBA values. (default index = 0)
+    - param `_styleIndex: Graphic style index`
+    - returns: if it succeeds, return true.
+- **`SetGraphicStyleColor`** · pure-virtual [graphic]
+  - `bool SetGraphicStyleColor(float r, float g, float b, float a)` — `UtilityAPIInterface.h:1943`
+  - Set a base color of PBR material in a Graphic using given RGBA values. (default index = 0)
+    - returns: if it succeeds, return true.
+- **`SetGraphicStyleColor`** · pure-virtual [graphic]
+  - `bool SetGraphicStyleColor(int _styleIndex, std::string _colorName)` — `UtilityAPIInterface.h:1951`
+  - Set a base color of PBR material in a Graphic using given color name values. (default index = 0)
+    - param `_styleIndex: Graphic style index`
+    - param `_colorName: name of color`
+    - returns: if it succeeds, return true.
+- **`GetItemsCountsinColorway`** [render]
+  - `unsigned int GetItemsCountsinColorway(int _colorwayIndex)` — `UtilityAPIInterface.h:1963`
+  - Get the color count in a target colorway.
+    - returns: if it succeeds, return the color count in a colorway.
+- **`AutoHang`** 
+  - `bool AutoHang(const std::string _garmentPath, const std::string _hangerPath, const unsigned int _hangerType, const Marvelous::ImportExportOption& _hangerImportOption)` — `UtilityAPIInterface.h:1973`
+  - Auto-hang a garment to a hanger.
+    - returns: if it succeeds, return true.
+- **`AddPinsForFabricValidation`** [fabric]
+  - `bool AddPinsForFabricValidation(float size1, float size2, float size3, float size4)` — `UtilityAPIInterface.h:1978`
+  - Adjust lengths and adjust pin locations
+- **`UpdatePropertyWindow`** [gui]
+  - `void UpdatePropertyWindow()` — `UtilityAPIInterface.h:1983`
+  - Update the PropertyWindow
+- **`FitAllUV`** 
+  - `void FitAllUV(int x_coordinate, int y_coordinate, bool _bIsRelative, float _marginValue)` — `UtilityAPIInterface.h:1992`
+  - Fitting patterns in UV editor to given coordinates
+    - param `x_coordinate: x coordinate value`
+    - param `y_coordinate: y coordinate value`
+    - param `_bIsRelative: true for relative, false for Absolute`
+    - param `_marginValue: margin value`
+- **`DeleteAvatar`** · **WIRED**, doc, py [avatar]
+  - `bool DeleteAvatar(std::vector<int> _avatarIndexList)` — `UtilityAPIInterface.h:1998`
+  - Delete Avatars
+    - param `_avatarIndexList: List of indices for avatars to delete`
+- **`GetGraphicStyleColor`** · pure-virtual [graphic]
+  - `Marvelous::CloApiRgba GetGraphicStyleColor(int _styleIndex)` — `UtilityAPIInterface.h:2004`
+  - Get base color of PBR material from Graphic Style
+    - param `_styleIndex: Graphic Style index on Object Browser to get Color`
+    - returns: The color value in CloAgiRgba.
+- **`GetGraphicStyleColor`** · pure-virtual [graphic]
+  - `Marvelous::CloApiRgba GetGraphicStyleColor(int _styleIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:2011`
+  - Get base color of PBR material from Graphic Style
+    - param `_styleIndex: Graphic Style index on [_colorwayIndex]th Colorway to get Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - returns: The color value in CloAgiRgba.
+- **`SetGraphicStyleColor`** · pure-virtual [graphic]
+  - `void SetGraphicStyleColor(int _styleIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2020`
+  - Set base color of PBR material in a Graphic Style using given RGBA values
+    - param `_styleIndex: Graphic Style index on Object Browser to set Color`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetGraphicStyleColor`** · pure-virtual [graphic]
+  - `void SetGraphicStyleColor(int _styleIndex, int _colorwayIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2030`
+  - Set base color of PBR material in a Graphic Style using given RGBA values
+    - param `_styleIndex: Graphic Style index on [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetGraphicStyleColor`** · pure-virtual [graphic]
+  - `bool SetGraphicStyleColor(int _styleIndex, int _colorwayIndex, const std::string& _colorName)` — `UtilityAPIInterface.h:2039`
+  - Set base color of PBR material in a Graphic Style using given color name
+    - param `_styleIndex: Graphic Style index on [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_colorName: Name of color from the color palette`
+    - returns: true if successful, false otherwise
+- **`GetButtonHeadStyleColor`** · pure-virtual [trim]
+  - `Marvelous::CloApiRgba GetButtonHeadStyleColor(int _styleIndex, int _meshIndex)` — `UtilityAPIInterface.h:2048`
+  - Get base color of PBR material from ButtonHead Style
+    - param `_styleIndex: ButtonHead Style index on Object Browser to get Color`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `0: ButtonHead`
+    - param `1: Thread`
+    - returns: The color value in CloAgiRgba.
+- **`GetButtonHeadStyleColor`** · pure-virtual [trim]
+  - `Marvelous::CloApiRgba GetButtonHeadStyleColor(int _styleIndex, int _colorwayIndex, int _meshIndex)` — `UtilityAPIInterface.h:2058`
+  - Get base color of PBR material from ButtonHead Style
+    - param `_styleIndex: ButtonHead Style index [_colorwayIndex]th Colorway to get Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `0: ButtonHead`
+    - param `1: Thread`
+    - returns: The color value in CloAgiRgba.
+- **`SetButtonHeadStyleColor`** · pure-virtual [trim]
+  - `void SetButtonHeadStyleColor(int _styleIndex, int _meshIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2071`
+  - Set base color of PBR material in a ButtonHead Style using given RGBA values
+    - param `_styleIndex: ButtonHead Style index on Object Browser to set Color`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `-1: All`
+    - param `0: ButtonHead`
+    - param `1: Thread`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetButtonHeadStyleColor`** · pure-virtual [trim]
+  - `void SetButtonHeadStyleColor(int _styleIndex, int _colorwayIndex, int _meshIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2085`
+  - Set base color of PBR material in a ButtonHead Style using given RGBA values
+    - param `_styleIndex: ButtonHead Style index [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `-1: All`
+    - param `0: ButtonHead`
+    - param `1: Thread`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`GetButtonHoleStyleColor`** · pure-virtual [trim]
+  - `Marvelous::CloApiRgba GetButtonHoleStyleColor(int _styleIndex)` — `UtilityAPIInterface.h:2091`
+  - Get base color of PBR material from ButtonHole Style
+    - param `_styleIndex: ButtonHole Style index on Object Browser to get Color`
+    - returns: The color value in CloAgiRgba.
+- **`GetButtonHoleStyleColor`** · pure-virtual [trim]
+  - `Marvelous::CloApiRgba GetButtonHoleStyleColor(int _styleIndex, int _colorwayIndex)` — `UtilityAPIInterface.h:2098`
+  - Get base color of PBR material from ButtonHole Style
+    - param `_styleIndex: ButtonHole Style index [_colorwayIndex]th Colorway to get Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - returns: The color value in CloAgiRgba.
+- **`SetButtonHoleStyleColor`** · pure-virtual [trim]
+  - `void SetButtonHoleStyleColor(int _styleIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2107`
+  - Set base color of PBR material in a ButtonHole Style using given RGBA values
+    - param `_styleIndex: ButtonHole Style index on Object Browser to set Color`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetButtonHoleStyleColor`** · pure-virtual [trim]
+  - `void SetButtonHoleStyleColor(int _styleIndex, int _colorwayIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2117`
+  - Set base color of PBR material in a ButtonHole Style using given RGBA values
+    - param `_styleIndex: ButtonHole Style index [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`GetTrimStyleColor`** · pure-virtual [trim]
+  - `Marvelous::CloApiRgba GetTrimStyleColor(int _styleIndex, int _meshIndex)` — `UtilityAPIInterface.h:2125`
+  - Get base color of PBR material from Trim Style
+    - param `_styleIndex: Trim Style index on Object Browser to get Color`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `0~: [_meshIndex]th mesh`
+    - returns: The color value in CloAgiRgba.
+- **`GetTrimStyleColor`** · pure-virtual [trim]
+  - `Marvelous::CloApiRgba GetTrimStyleColor(int _styleIndex, int _colorwayIndex, int _meshIndex)` — `UtilityAPIInterface.h:2134`
+  - Get base color of PBR material from Trim Style
+    - param `_styleIndex: Trim Style index [_colorwayIndex]th Colorway to get Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `0~: [_meshIndex]th mesh`
+    - returns: The color value in CloAgiRgba.
+- **`SetTrimStyleColor`** · pure-virtual [trim]
+  - `void SetTrimStyleColor(int _styleIndex, int _meshIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2146`
+  - Set base color of PBR material in a Trim Style using given RGBA values
+    - param `_styleIndex: Trim Style index on Object Browser to set Color`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `-1: All`
+    - param `0~: [_meshIndex]th mesh`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetTrimStyleColor`** · pure-virtual [trim]
+  - `bool SetTrimStyleColor(int _styleIndex, int _meshIndex, std::string _colorName)` — `UtilityAPIInterface.h:2155`
+  - Set base color of PBR material in a Trim Style using given Color name values
+    - param `_styleIndex: Trim Style index on Object Browser to set Color`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `-1: All`
+    - param `0~: [_meshIndex]th mesh`
+    - param `/// @param	_colorName: Color name`
+- **`SetTrimStyleColor`** · pure-virtual [trim]
+  - `void SetTrimStyleColor(int _styleIndex, int _colorwayIndex, int _meshIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2169`
+  - Set base color of PBR material in a Trim Style using given RGBA values
+    - param `_styleIndex: Trim Style index [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_meshIndex: Mesh index to get Color`
+    - param `-1: All`
+    - param `0~: [_meshIndex]th mesh`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetTrimStyleColor`** · pure-virtual [trim]
+  - `bool SetTrimStyleColor(int _styleIndex, int _colorwayIndex, int _meshIndex, const std::string& _colorName)` — `UtilityAPIInterface.h:2179`
+  - Set base color of PBR material in a Trim Style using given color name
+    - param `_styleIndex: Trim Style index on [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_meshIndex: Mesh index to set color`
+    - param `_colorName: Name of color from the color palette`
+    - returns: true if successful, false otherwise
+- **`GetTopStitchOpacity`** · pure-virtual [fabric] [topstitch]
+  - `int GetTopStitchOpacity(int _styleIndex, int _lineIndex)` — `UtilityAPIInterface.h:2187`
+  - Get opacity of PBR material from TopStitch
+    - param `_styleIndex: TopStitch index on Object Browser`
+    - param `_lineIndex: Stitch index to get opacity`
+    - param `0~: [_lineIndex]th Stitch`
+    - returns: Opacity value
+- **`GetTopStitchOpacity`** · pure-virtual [fabric] [topstitch]
+  - `int GetTopStitchOpacity(int _styleIndex, int _colorwayIndex, int _lineIndex)` — `UtilityAPIInterface.h:2196`
+  - Get opacity of PBR material from TopStitch
+    - param `_styleIndex: TopStitch index [_colorwayIndex]th Colorway`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_lineIndex: Stitch index to get opacity`
+    - param `0~: [_lineIndex]th Stitch`
+    - returns: Opacity value
+- **`SetTopStitchOpacity`** · pure-virtual [fabric] [topstitch]
+  - `void SetTopStitchOpacity(int _styleIndex, int _lineIndex, int _opacityValue)` — `UtilityAPIInterface.h:2204`
+  - Set opacity of PBR material in a TopStitch
+    - param `_styleIndex: TopStitch index on Object Browser`
+    - param `_lineIndex: Stitch index to set opacity`
+    - param `0~: [_lineIndex]th Stitch`
+    - param `_opacityValue: opacity`
+- **`SetTopStitchOpacity`** · pure-virtual [fabric] [topstitch]
+  - `void SetTopStitchOpacity(int _styleIndex, int _colorwayIndex, int _lineIndex, int _opacityValue)` — `UtilityAPIInterface.h:2213`
+  - Set opacity of PBR material in a TopStitch
+    - param `_styleIndex: TopStitch index [_colorwayIndex]th Colorway`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_lineIndex: Stitch index to set opacity`
+    - param `0~: [_lineIndex]th Stitch`
+    - param `_opacityValue: opacity`
+- **`GetTopStitchColor`** · pure-virtual [topstitch]
+  - `Marvelous::CloApiRgba GetTopStitchColor(int _styleIndex, int _lineIndex)` — `UtilityAPIInterface.h:2221`
+  - Get base color of PBR material from TopStitch Style
+    - param `_styleIndex: TopStitch Style index on Object Browser to get Color`
+    - param `_lineIndex: Stitch index to get Color`
+    - param `0~: [_lineIndex]th Stitch`
+    - returns: The color value in CloAgiRgba.
+- **`GetTopStitchColor`** · pure-virtual [topstitch]
+  - `Marvelous::CloApiRgba GetTopStitchColor(int _styleIndex, int _colorwayIndex, int _lineIndex)` — `UtilityAPIInterface.h:2230`
+  - Get base color of PBR material from TopStitch Style
+    - param `_styleIndex: TopStitch Style index [_colorwayIndex]th Colorway to get Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_lineIndex: Stitch index to get Color`
+    - param `0~: [_lineIndex]th Stitch`
+    - returns: The color value in CloAgiRgba.
+- **`SetTopStitchColor`** · pure-virtual [topstitch]
+  - `void SetTopStitchColor(int _styleIndex, int _lineIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2242`
+  - Set base color of PBR material in a TopStitch Style using given RGBA values
+    - param `_styleIndex: TopStitch Style index on Object Browser to set Color`
+    - param `_lineIndex: Stitch index to set Color`
+    - param `-1: All`
+    - param `0~: [_lineIndex]th Stitch`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetTopStitchColor`** · pure-virtual [topstitch]
+  - `bool SetTopStitchColor(int _styleIndex, int _lineIndex, std::string _colorName)` — `UtilityAPIInterface.h:2251`
+  - Set base color of PBR material in a TopStitch Style using given Color name values
+    - param `_styleIndex: TopStitch Style index on Object Browser to set Color`
+    - param `_lineIndex: Stitch index to set Color`
+    - param `-1: All`
+    - param `0~: [_lineIndex]th Stitch`
+    - param `/// /// @param _colorName: Color name`
+- **`SetTopStitchColor`** · pure-virtual [topstitch]
+  - `void SetTopStitchColor(int _styleIndex, int _colorwayIndex, int _lineIndex, int _r, int _g, int _b, int _a)` — `UtilityAPIInterface.h:2264`
+  - Set base color of PBR material in a TopStitch Style using given RGBA values
+    - param `_styleIndex: TopStitch Style index [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_lineIndex: Stitch index to set Color`
+    - param `-1: All`
+    - param `0~: [_lineIndex]th Stitch`
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+    - param `_a: Alpha channel`
+- **`SetTopStitchColor`** · pure-virtual [topstitch]
+  - `bool SetTopStitchColor(int _styleIndex, int _colorwayIndex, int _lineIndex, const std::string& _colorName)` — `UtilityAPIInterface.h:2274`
+  - Set base color of PBR material in a TopStitch Style using given color name
+    - param `_styleIndex: TopStitch Style index on [_colorwayIndex]th Colorway to set Color`
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_lineIndex: Stitch index to set Color (-1: All, 0~: [_lineIndex]th Stitch)`
+    - param `_colorName: Name of color from the color palette`
+    - returns: true if successful, false otherwise
+- **`SetGraphicStyleToGraphic`** · pure-virtual [graphic]
+  - `void SetGraphicStyleToGraphic(int _styleIndex, int _graphicIndex, int _assignOption)` — `UtilityAPIInterface.h:2284`
+  - Set GraphicStyle of Graphic
+    - param `_styleIndex: Graphic Style index on the Object Browser`
+    - param `_graphicIndex: Graphic index to change style`
+    - param `_assignOption:`
+    - param `_assignOption = 1 (Current Colorway): An item is only applied to the current colorway, while the other colorways retain the existing items.`
+    - param `_assignOption = 2 (All Colorways unlinked Materials): Each colorway is applied its own materials, such as textures and colors.`
+    - param `_assignOption = 3 (All Colorways linked): All colorways share the same item with linked properties, allowing any changes to be applied across all colorways simultaneously`
+- **`SetGraphicStyleToGraphic`** · pure-virtual [graphic]
+  - `void SetGraphicStyleToGraphic(int _styleIndex, int _colorwayIndex, int _graphicIndex, int _assignOption)` — `UtilityAPIInterface.h:2295`
+  - Set GraphicStyle of Graphic
+    - param `_styleIndex: Graphic Style index on the [_colorwayIndex]th Colorway`
+    - param `_colorwayIndex: Colorway index to get Graphic Style`
+    - param `_graphicIndex: Graphic index to change Graphic Style`
+    - param `_assignOption:`
+    - param `_assignOption = 1 (Current Colorway): An item is only applied to the current colorway, while the other colorways retain the existing items.`
+    - param `_assignOption = 2 (All Colorways unlinked Materials): Each colorway is applied its own materials, such as textures and colors.`
+    - param `_assignOption = 3 (All Colorways linked): All colorways share the same item with linked properties, allowing any changes to be applied across all colorways simultaneously`
+- **`GetSimulationQuality`** · pure-virtual [simulate]
+  - `std::pair<int, int> GetSimulationQuality()` — `UtilityAPIInterface.h:2299`
+    - returns: The Simulation type(0: Normal(Default), 1: Animation(Stable), 2: Fitting(Accurate Fabric)) and simulation mode (0: CPU, 1: FAST(GPU))
+- **`CheckZPRJForUnsavedChanges`** · pure-virtual [project]
+  - `bool CheckZPRJForUnsavedChanges()` — `UtilityAPIInterface.h:2303`
+    - returns: Returns true if the file has been modified.
+- **`SetAvatarOpacityMapByIndex`** · doc, pure-virtual [avatar] [fabric]
+  - `void SetAvatarOpacityMapByIndex(const std::string _imageFilePath, int _matShapeIndex)` — `UtilityAPIInterface.h:2309`
+  - Set OpacityMap of Avatar
+    - param `_imageFilePath: The file path to be set for the Avatar Map`
+    - param `_matShapeIndex: mat shape index (0: face, 1:body, 2:arm, 3:leg)`
+- **`SetAvatarOpacityMap`** · doc, pure-virtual [avatar] [fabric]
+  - `void SetAvatarOpacityMap(const std::string _imageFilePath)` — `UtilityAPIInterface.h:2314`
+  - Set OpacityMap of Avatar
+    - param `_imageFilePath: The file path to be set for the Avatar Map`
+- **`GetAvatarOpacityMaps`** · doc [avatar] [fabric]
+  - `std::vector<std::string> GetAvatarOpacityMaps()` — `UtilityAPIInterface.h:2320`
+  - Get opacity maps Avatar
+    - returns: Output file paths.
+- **`SetTrimDisplaySettings`** · pure-virtual [trim]
+  - `void SetTrimDisplaySettings(int _option, bool _show)` — `UtilityAPIInterface.h:2331`
+  - Set Show/Hide Trim Properties
+    - param `_option: Option 0: Button, 1: Pipings, 2: Bond/Skive, 3: Puckering, 4: All Trims, 5: All`
+    - param `_show: True/False. True is for show. False is for Hide`
+- **`SetViewControlDefaults`** · pure-virtual 
+  - `void SetViewControlDefaults(double _xAngle, double _yPosition, double _cameraDistance)` — `UtilityAPIInterface.h:2339`
+  - Set default setting for view controls
+    - param `_xAngle: Angle to set the Default X-Axis Angle`
+    - param `_yPosition: Angle to set the Default Y-Axis Position`
+    - param `_cameraDistance: Angle to set the Default Camera Distance for view point shortcuts`
+- **`SetFormat3DBackground`** · pure-virtual 
+  - `void SetFormat3DBackground(float r, float g, float b)` — `UtilityAPIInterface.h:2347`
+  - Set 3D Background color
+    - param `_r: Red channel`
+    - param `_g: Green channel`
+    - param `_b: Blue channel`
+- **`SetGarmentDisplayProperties`** · pure-virtual 
+  - `void SetGarmentDisplayProperties(int _option, bool _show)` — `UtilityAPIInterface.h:2354`
+  - Set Show/Hide Garment Properties
+    - param `_option: Option 0: Garment, 1: Archived Pattern, 2: Seamlines, 3: Internal Lines, 4: ShowBaselines, 5: 3D Pen (Garment), 6: Threads, 7: Pins, 8: Garment Measurements, 9: 2D Measurements, 10: Garment Fitting Suit, 11: All`
+    - param `_show: True/False. True is for show. False is for Hide`
+- **`SetEnvironmentDisplayProperties`** · pure-virtual 
+  - `void SetEnvironmentDisplayProperties(int _option, bool _show)` — `UtilityAPIInterface.h:2362`
+  - Set Show/Hide Environment Properties
+    - param `_option: Option 0: Light (3D), 1: Light (Render), 2: Wind Controller, 3: 3D Shadow, 4: Ground Grid, 5: Grid , 6: All`
+    - param `_show: True/False. True is for show. False is for Hide`
+- **`SetShowHideColorOptions`** · pure-virtual 
+  - `void SetShowHideColorOptions(int _option, bool _show)` — `UtilityAPIInterface.h:2369`
+  - Set Show/Hide Color Options
+    - param `_option: Option 0: All, 1: Freeze, 2: Strengthen, 3: Solidify, 4: Layer, 5: All (Mesh) , 6: Subdivide (Mesh), 7: Freeze (Mesh), 8: Strengthen (Mesh), 9: Solidify (Mesh)`
+    - param `_show: True/False. True is for show. False is for Hide`
+- **`SetAvatarTexureMap`** · doc, pure-virtual [avatar]
+  - `void SetAvatarTexureMap(const std::string _imageFilePath, int _textureType)` — `UtilityAPIInterface.h:2377`
+  - Set texture maps for Avatar
+    - param `_imageFilePath: The file path to be set for the Avatar Map`
+    - param `_textureType: 0: BaseColorMap, 1: MetalnessMap, 2: NormalMap 3: GlossinessMap 4: AlphaMap 5: DisplacementMap`
+    - returns: Output file paths.
+- **`GetAvatarTexureMap`** · doc [avatar]
+  - `std::vector<std::string> GetAvatarTexureMap(int _textureType)` — `UtilityAPIInterface.h:2384`
+  - Get texture maps for Avatar
+    - param `_textureType: 0: BaseColorMap, 1: MetalnessMap, 2: NormalMap 3: GlossinessMap 4: AlphaMap 5: DisplacementMap`
+    - returns: Output file paths.
+- **`AlignAvatarsAndGarmentToCenter`** · doc, pure-virtual [avatar]
+  - `void AlignAvatarsAndGarmentToCenter()` — `UtilityAPIInterface.h:2394`
+  - Align Avatars and Garment to Center
+- **`AddGraphicStyleToPattern`** [pattern] [graphic]
+  - `bool AddGraphicStyleToPattern(int _patternIndex, int _graphicStyleIndex, float _x, float _y, float _width, float _height, int _face, float _zOffset, float _fAngle)` — `UtilityAPIInterface.h:2411`
+  - Add Graphic Style to Pattern
+    - param `_patternIndex: pattern index to add graphic style`
+    - param `_graphicStyleIndex: graphic style index to add to pattern`
+    - param `_x: The values along the X-axis represent the horizontal position relative to this point, moving to the right.`
+    - param `_y: The values along the Y-axis represent the vertical position relative to this point, moving downward.`
+    - param `For example, in a 100x100 pattern, the bottom-right corner is located at (100, 100)`
+    - param `Place the graphic so that its center aligns with the specified (X, Y) coordinates.`
+    - param `_width: Width of the graphic`
+    - param `_height: Height of the graphic`
+    - param `_face: 0: Front, 1: Back 2: Both`
+    - param `_zOffset: offset value`
+    - param `_fAngle: angle value`
+    - returns: if it succeeds, return true.
+- **`SetAvatarActivation`** · doc [avatar]
+  - `bool SetAvatarActivation(const std::string _avatarName, bool _bActivate)` — `UtilityAPIInterface.h:2419`
+  - Set Avatar Activation/Deactivation
+    - param `_avatarName: Avatar name to activate or deactivate`
+    - param `_bActivate: true for activate, false for deactivate`
+    - returns: if it succeeds, return true.
+- **`GetUseSameMapAsFabricForGraphicOpacity`** · pure-virtual [fabric] [graphic]
+  - `bool GetUseSameMapAsFabricForGraphicOpacity(int _colorwayIndex, int _graphicItemIndex, int _materialFace)` — `UtilityAPIInterface.h:2427`
+  - Returns whether the graphic's opacity map uses the same map as the fabric it is applied to.
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_graphicItemIndex: The index of the graphic item within the list of graphics applied to the object in the Object Browser.`
+    - param `_materialFace: 0 ,  back : 1 , side : 2`
+    - returns: Returns True if 'Use Same Map as Fabric' is enabled for the graphic opacity map.
+- **`SetUseSameMapAsFabricForGraphicOpacity`** · pure-virtual [fabric] [graphic]
+  - `void SetUseSameMapAsFabricForGraphicOpacity(int _colorwayIndex, int _graphicItemIndex, int _materialFace, bool _bUse)` — `UtilityAPIInterface.h:2435`
+  - Sets whether the graphic's opacity map uses the same map as the fabric.
+    - param `_colorwayIndex: Colorway Index to get Style`
+    - param `_graphicItemIndex: The index of the graphic item within the list of graphics applied to the object in the Object Browser.`
+    - param `_materialFace: 0 ,  back : 1 , side : 2`
+    - param `_bUse: True to use the fabric's opacity map, False to use a separate map.`
+- **`GetTrimStyleCount`** · pure-virtual [trim]
+  - `int GetTrimStyleCount(bool _usedOnly)` — `UtilityAPIInterface.h:2442`
+  - Get the count of Trim Styles
+    - param `_usedOnly: If true, only count the Trim Styles that are currently used in the garment. else, count all available Trim Styles.`
+    - returns: The number of Trim Styles available.
+- **`GetTopStitchCount`** · pure-virtual [topstitch]
+  - `int GetTopStitchCount(bool _usedOnly)` — `UtilityAPIInterface.h:2449`
+  - Get the count of Top Stitch Styles
+    - param `_usedOnly: If true, only count the Top Stitch Styles that are currently used in the garment. else, count all available Top Stitch Styles.`
+    - returns: The number of Top Stitch Styles available.
+- **`GetTrimStyleIndex`** [trim]
+  - `int GetTrimStyleIndex(const std::string _trimStyleName)` — `UtilityAPIInterface.h:2456`
+  - Get the index of a Trim Style by its name
+    - param `_trimStyleName: The name of the Trim Style to search for.`
+    - returns: The index of the Trim Style if found, otherwise -1.
+- **`GetTopStitchIndex`** [topstitch]
+  - `int GetTopStitchIndex(const std::string _stitchName)` — `UtilityAPIInterface.h:2463`
+  - Get the index of a Top Stitch Style by its name
+    - param `_stitchName: The name of the Top Stitch Style to search for.`
+    - returns: The index of the Top Stitch Style if found, otherwise -1.
+- **`GetTrimStyleName`** · pure-virtual [trim]
+  - `std::string GetTrimStyleName(int _trimStyleIndex)` — `UtilityAPIInterface.h:2470`
+  - Get the name of a Trim Style by its index
+    - param `_trimStyleIndex: The index of the Trim Style to retrieve the name for.`
+    - returns: The name of the Trim Style if found, otherwise an empty string.
+- **`ConvertTrimsToButtons`** [trim]
+  - `int ConvertTrimsToButtons(int _trimStyleIndex, bool _bButtonHead)` — `UtilityAPIInterface.h:2478`
+  - Convert placed trim objects into real Button-tool items (button heads or buttonholes) at each trim's position on its glued pattern, then delete the source trims. Use this to migrate "fake buttons" that were built with the trim/sewing tools into proper Button-tool objects, so the FDT trim library stays clean.
+    - param `_trimStyleIndex: Index of the trim style whose instances to convert. Pass -1 to convert every trim object in the scene. Trim indices match GetTrimStyleListWithIndex().`
+    - param `_bButtonHead: true creates Button heads; false creates Buttonholes. The project's current button-head / buttonhole style is used for the new items.`
+    - returns: The number of trim objects successfully converted.
+- **`CreateButtonholesForButtonHeads`** [trim]
+  - `int CreateButtonholesForButtonHeads()` — `UtilityAPIInterface.h:2485`
+  - For every button head in the scene, ray-cast through the placket (in the direction the head is attached) to find the underlap layer and create a buttonhole there (the "find the pattern itself" step). Uses the project's current buttonhole style.
+    - returns: The number of buttonholes created. Heads skipped by any of the rules above are not counted, so a second call on an unchanged garment returns 0.
+- **`FastenButtons`** [trim]
+  - `int FastenButtons(float _maxDistance)` — `UtilityAPIInterface.h:2492`
+  - Fasten button heads into buttonholes: each unfastened buttonhole is paired with the nearest unfastened button head (by 3D distance) and a fastener is created, which also pulls the head onto the hole. Buttons already fastened are left untouched.
+    - param `_maxDistance: Maximum 3D distance (in CLO units) allowed between a head and a hole to pair them. Pass 0 or a negative value for no distance limit.`
+    - returns: The number of head/hole pairs fastened.
+- **`UnfastenAllButtons`** [trim]
+  - `int UnfastenAllButtons()` — `UtilityAPIInterface.h:2498`
+  - Remove every button fastener in the scene and spring the freed button heads back to their resting position. Inverse of FastenButtons. The button heads and holes themselves are kept.
+    - returns: The number of fasteners removed.
+- **`GetButtonPairInfoAsJson`** [trim]
+  - `std::string GetButtonPairInfoAsJson(float _maxDistance, float _misalignmentTolerance)` — `UtilityAPIInterface.h:2506`
+  - Return a JSON report of every Button head / Buttonhole pair in the current garment: whether each pair is fastened, whether FastenButtons would fasten it, each item's distance from its pattern edge, and whether a pair is misaligned relative to the majority (median) edge distance. Intended for QC validation of button placement. Read-only; does not modify the scene.
+    - param `_maxDistance: The same distance gate FastenButtons uses. A pair is reported fastenable only when its 3D separation is below this value. Pass 0 or negative for no distance limit.`
+    - param `_misalignmentTolerance: Maximum allowed deviation (in CLO units) of a pair's edge distance from the median before it is flagged misaligned. Pass 0 or negative to use a relative default (25% of the median).`
+    - returns: JSON string: { status, reason, buttonHeadCount, buttonHoleCount, maxDistance, standardEdgeDistance, misalignmentTolerance, pairs[], unpairedHeads[], unpairedHoles[] }. Top-level status is one of "NO_PAIRS_AVAILABLE", "MISALIGNED", "PAIRS_NOT_FASTENABLE", "OK". Each pairs[] entry has headUid, headName, holeUid, holeName, fastened, fastenable, reason, separation, headEdgeDistance, holeEdgeDistance, deviation, misaligned. Per-pair reason is one of "OK", "ALREADY_FASTENED", "TOO_FAR". unpairedHeads[] and unpairedHoles[] entries have uid and name. Reported maxDistance is -1 when no distance limit was requested.
+- **`GetTopStitchName`** · pure-virtual [topstitch]
+  - `std::string GetTopStitchName(int _stitchIndex)` — `UtilityAPIInterface.h:2513`
+  - Get the name of a Top Stitch Style by its index
+    - param `_stitchIndex: The index of the Top Stitch Style to retrieve the name for.`
+    - returns: The name of the Top Stitch Style if found, otherwise an empty string
+- **`RegisterWidget`** · pure-virtual [gui]
+  - `void RegisterWidget(int64_t _widget)` — `UtilityAPIInterface.h:2519`
+  - A function to store the int64_t-casted address of a QtWidget in a list.
+    - param `_widget:  A QtWidget’s address is cast to an int64_t using reinterpret_cast, then passed as an argument. reinterpret_cast<int64_t>(widget)`
+- **`DeleteWidgets`** · pure-virtual [gui]
+  - `void DeleteWidgets()` — `UtilityAPIInterface.h:2523`
+  - Removes and deletes all widgets that were registered using the RegisterWidget function.
+- **`ResetWidgetRegistry`** · pure-virtual [gui]
+  - `void ResetWidgetRegistry()` — `UtilityAPIInterface.h:2527`
+  - Resets the list of registered widgets to an empty state.
+- **`GetUserHeadQuarterId`** 
+  - `std::string GetUserHeadQuarterId()` — `UtilityAPIInterface.h:2533`
+  - Get the logged in user's head quarter Id
+    - returns: Logged in user's head quarter Id
+- **`GetUserHeadQuarterIdW`** 
+  - `std::wstring GetUserHeadQuarterIdW()` — `UtilityAPIInterface.h:2539`
+  - Get the logged in user's head quarter Id
+    - returns: Logged in user's head quarter Id
+- **`SetWindControllerSettings`** · pure-virtual 
+  - `bool SetWindControllerSettings(int _index, Marvelous::WindControllerOptions _op)` — `UtilityAPIInterface.h:2547`
+  - It is a function that sets the configuration values for the wind controller.
+    - param `_index : It is the index of the wincontroller list.`
+    - param `_op : It is a parameter of the WindControllerOptions struct.`
+    - returns: It returns false if the index is invalid.
+- **`GetWindControllerSettings`** · pure-virtual 
+  - `Marvelous::WindControllerOptions GetWindControllerSettings(int _index)` — `UtilityAPIInterface.h:2554`
+  - It is a function that retrieves the option values set in the wind controller.
+    - param `_index : It is the index of the wincontroller list.`
+    - returns: It returns a WindControllerOptions.
+- **`LoadCustomViewIn3DWindow`** · pure-virtual [gui] [project]
+  - `void LoadCustomViewIn3DWindow(int _index)` — `UtilityAPIInterface.h:2560`
+  - Selects a custom view from the list of custom views.
+    - param `_index: The index of the custom view to select.`
+- **`ExportColorwayEditorImage`** · pure-virtual [export] [render]
+  - `bool ExportColorwayEditorImage(const std::string _filePath, int _scale)` — `UtilityAPIInterface.h:2567`
+  - Exprot Colorway Editor as Image.
+    - param `_filePath: Image path to save`
+    - param `_scale: Image scale (1-4)`
+- **`SetZipperStyleName`** · pure-virtual [trim]
+  - `void SetZipperStyleName(int _zipperStyleIndex, const std::string& _name)` — `UtilityAPIInterface.h:2574`
+  - Updates the zipper style name.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_name: Name.`
+- **`GetZipperStyleName`** [trim]
+  - `std::string GetZipperStyleName(int _zipperStyleIndex)` — `UtilityAPIInterface.h:2581`
+  - Get the zipper style name.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - returns: It returns the zipper style name.
+- **`SetZipperStyleFunctionType`** · pure-virtual [trim]
+  - `void SetZipperStyleFunctionType(int _zipperStyleIndex, int _typeIndex)` — `UtilityAPIInterface.h:2591`
+  - Update the zipper style function type.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_typeIndex: The function type index.`
+    - param `0: One way`
+    - param `1: Two way(Bottom to bottom)`
+    - param `2: Two way(Head to head)`
+- **`GetZipperStyleFunctionType`** [trim]
+  - `int GetZipperStyleFunctionType(int _zipperStyleIndex)` — `UtilityAPIInterface.h:2601`
+  - Get the zipper style function type.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - returns: It returns the zipper style function type index. 0: One way 1: Two way(Bottom to bottom) 2: Two way(Head to head)
+- **`SetZipperStyleAssetType`** · pure-virtual [trim]
+  - `void SetZipperStyleAssetType(int _zipperStyleIndex, int _typeIndex)` — `UtilityAPIInterface.h:2615`
+  - Update the zipper style asset type.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_typeIndex: The asset type index.`
+    - param `0: Custom(No Change)`
+    - param `1: Plastic_01`
+    - param `2: Plastic_02`
+    - param `3: Metal`
+    - param `4: Nylon`
+    - param `5: Reverse_Nylon`
+    - param `6: Invisible`
+- **`GetZipperStyleAssetType`** [trim]
+  - `int GetZipperStyleAssetType(int _zipperStyleIndex)` — `UtilityAPIInterface.h:2629`
+  - Get the zipper style asset type index.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - returns: It returns the zipper style asset type index. 0: Custom(No Change) 1: Plastic_01 2: Plastic_02 3: Metal 4: Nylon 5: Reverse_Nylon 6: Invisible
+- **`SetZipperStyleTeethType`** · pure-virtual [trim]
+  - `void SetZipperStyleTeethType(int _zipperStyleIndex, int _typeIndex)` — `UtilityAPIInterface.h:2638`
+  - Update the zipper style teeth type.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_typeIndex: The teeth type index.`
+    - param `0: Texture`
+    - param `1: OBJ`
+- **`GetZipperStyleTeethType`** [trim]
+  - `int GetZipperStyleTeethType(int _zipperStyleIndex)` — `UtilityAPIInterface.h:2647`
+  - Update the zipper style teeth type.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - returns: It returns the teeth type index. 0: Texture 1: OBJ
+- **`SetZipperSliderStyle`** · pure-virtual [trim]
+  - `void SetZipperSliderStyle(int _zipperStyleIndex, const std::string& _filePath)` — `UtilityAPIInterface.h:2654`
+  - Update the zipper slider style.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_filePath: Slider file path. (.zsd, .zsl, .zss)`
+- **`SetZipperPullerStyle`** · pure-virtual [trim]
+  - `void SetZipperPullerStyle(int _zipperStyleIndex, const std::string& _filePath)` — `UtilityAPIInterface.h:2661`
+  - Update the zipper puller style.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_filePath: Puller file path. (.zpl, .zpu)`
+- **`SetZipperTopStopperStyle`** · pure-virtual [trim]
+  - `void SetZipperTopStopperStyle(int _zipperStyleIndex, const std::string& _filePath)` — `UtilityAPIInterface.h:2668`
+  - Update the zipper top stopper style.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_filePath: Top stopper file path. (.zsp, .zst)`
+- **`SetZipperBottomStopperStyle`** · pure-virtual [trim]
+  - `void SetZipperBottomStopperStyle(int _zipperStyleIndex, const std::string& _filePath)` — `UtilityAPIInterface.h:2675`
+  - Update the zipper bottom stopper style.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_filePath: Bottom stopper file path (.zsp, .zst)`
+- **`SetZipperStyleTeethWidth`** · pure-virtual [trim]
+  - `void SetZipperStyleTeethWidth(int _zipperStyleIndex, float _teethWidth)` — `UtilityAPIInterface.h:2682`
+  - Update the zipper style teeth width.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_teethWidth: Teeth width (mm)`
+- **`GetZipperStyleTeethWidth`** [trim]
+  - `float GetZipperStyleTeethWidth(int _zipperStyleIndex)` — `UtilityAPIInterface.h:2689`
+  - Get the zipper style teeth width.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - returns: It returns the zipper style teeth width (mm)
+- **`SetZipperStyleWeight`** · pure-virtual [trim]
+  - `void SetZipperStyleWeight(int _zipperStyleIndex, float _weight)` — `UtilityAPIInterface.h:2696`
+  - Update the zipper style weight.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_weight: Weight (g)`
+- **`GetZipperStyleWeight`** [trim]
+  - `float GetZipperStyleWeight(int _zipperStyleIndex)` — `UtilityAPIInterface.h:2703`
+  - Get the zipper style weight.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - returns: It returns the zipper style weight (g)
+- **`SetZipperStyleTapeThickness`** · pure-virtual [trim]
+  - `void SetZipperStyleTapeThickness(int _zipperStyleIndex, float _tapeThickness)` — `UtilityAPIInterface.h:2710`
+  - Update the zipper style tape thickness.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - param `_tapeThickness: Tape thickness (mm)`
+- **`GetZipperStyleTapeThickness`** [trim]
+  - `float GetZipperStyleTapeThickness(int _zipperStyleIndex)` — `UtilityAPIInterface.h:2717`
+  - Get the zipper style tape thickness.
+    - param `_zipperStyleIndex: The zipper style index.`
+    - returns: It returns the zipper style tape thickness (mm)
+- **`SetAvatarSmooth`** · doc, pure-virtual [avatar]
+  - `void SetAvatarSmooth(unsigned int _avatarIndex, unsigned int _smoothlevel)` — `UtilityAPIInterface.h:2724`
+  - Set the maximum subdivision level for avatar smoothing.
+    - param `_avatarIndex: The index of the avatar to apply smoothing to.`
+    - param `_smoothlevel: The maximum subdivision level to set for avatar smoothing. (1-3)`
+- **`GetAvatarSubdivisionLevel`** · doc, pure-virtual [avatar]
+  - `int GetAvatarSubdivisionLevel(unsigned int _avatarIndex)` — `UtilityAPIInterface.h:2731`
+  - Get the current subdivision level for avatar smoothing.
+    - param `_avatarIndex: The index of the avatar to query.`
+    - returns: The current subdivision level for avatar smoothing. (1-3, 0 means no subdivision). If 0 to uncheck/unselect DivideMesh.
+- **`SetAvatarProperties`** · **WIRED**, doc, py, pure-virtual [avatar]
+  - `void SetAvatarProperties(unsigned int _avatarIndex, const std::map<std::string, std::string>& avatarPropertyMap)` — `UtilityAPIInterface.h:2738`
+  - Set multiple properties for the avatar at the specified index.
+    - param `_avatarIndex: The index of the avatar to set properties for.`
+    - param `avatarPropertyMap: A map containing property names and their corresponding values to set for the avatar. Such as {'KineticFriction': '0.050000', 'SkinOffsetMM': '3.000000', 'StaticFriction': '0.800000'}`
+- **`GetAvatarProperties`** · **WIRED**, doc, py, pure-virtual [avatar]
+  - `std::map<std::string, std::string> GetAvatarProperties(unsigned int _avatarIndex)` — `UtilityAPIInterface.h:2745`
+  - Get multiple properties for the avatar at the specified index.
+    - param `_avatarIndex: The index of the avatar to get properties for.`
+    - returns: A map containing property names and their corresponding values for the avatar. Such as {'DivideMesh': 'true/false', 'KineticFriction': '0.050000', 'SkinOffsetMM': '3.000000', 'SoftBodySimulation': 'true/false', 'StaticFriction': '0.800000'}
+- **`SetAvatarSoftBodyStiffness`** · doc, pure-virtual [avatar]
+  - `void SetAvatarSoftBodyStiffness(unsigned int _avatarIndex, float _stiffnessValue)` — `UtilityAPIInterface.h:2752`
+  - Set the stiffness value for soft body simulation of the avatar at the specified
+    - param `_avatarIndex: The index of the avatar to set the stiffness value for.`
+    - param `_stiffnessValue: The value to set for soft body stiffness. (5000.0 - 10000.0).  If 0.0f to uncheck/unselect SoftBodySimulation.`
+- **`GetAvatarSoftBodyStiffness`** · doc [avatar]
+  - `float GetAvatarSoftBodyStiffness(unsigned int _avatarIndex)` — `UtilityAPIInterface.h:2759`
+  - Get the stiffness value for soft body simulation of the avatar at the specified
+    - param `_avatarIndex: The index of the avatar to get the stiffness value for.`
+    - returns: The current stiffness value for soft body simulation of the avatar. (5000.0 - 10000.0, 0.0f means no soft body simulation).
+- **`SetPatternSnapShotImageOption`** · pure-virtual [pattern] [render]
+  - `void SetPatternSnapShotImageOption(Marvelous::PatternSnapShotImageOption _op, int _mode)` — `UtilityAPIInterface.h:2766`
+  - Sets the Image option for the PatternSnapshot.
+    - param `PatternSnapShotImageOption _op : Controls display of fabric, pattern, and graphic textures, and fabric texture opacity.`
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+- **`GetPatternSnapShotImageOption`** · pure-virtual [pattern] [render]
+  - `Marvelous::PatternSnapShotImageOption GetPatternSnapShotImageOption(int _mode)` — `UtilityAPIInterface.h:2801`
+  - Retrieves the currently set PatternSnapShotImageOption.
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+    - param `Preset`
+    - param `A4            = 0`
+    - param `A3            = 1`
+    - param `B5            = 2`
+    - param `B4            = 3`
+    - param `Letter        = 4`
+    - param `Legal         = 5`
+    - param `Tabloid       = 6`
+    - param `WideFormat_24 = 7`
+    - param `WideFormat_36 = 8`
+    - param `WideFormat_44 = 9`
+    - param `oneToOne      = 10`
+    - param `Custom        = 11`
+    - param `Orientation`
+    - param `Portrait  = 0`
+    - param `Landscape = 1`
+    - param `Unit`
+    - param `Pixels      = 0`
+    - param `Inches      = 1`
+    - param `Milimeters  = 2`
+    - param `Centimeters = 3`
+    - returns: The currently set PatternSnapShotImageOption value.
+- **`SetPatternSnapShotSizeOption`** · pure-virtual [pattern] [render]
+  - `void SetPatternSnapShotSizeOption(Marvelous::PatternSnapShotSizeOption _op, int _mode)` — `UtilityAPIInterface.h:2837`
+  - Sets the Size option for the PatternSnapshot.
+    - param `PatternSnapShotSizeOption _op : Defines paper preset, orientation, unit, width/height (always in mm), and resolution.`
+    - param `Preset`
+    - param `A4            = 0`
+    - param `A3            = 1`
+    - param `B5            = 2`
+    - param `B4            = 3`
+    - param `Letter        = 4`
+    - param `Legal         = 5`
+    - param `Tabloid       = 6`
+    - param `WideFormat_24 = 7`
+    - param `WideFormat_36 = 8`
+    - param `WideFormat_44 = 9`
+    - param `oneToOne      = 10`
+    - param `Custom        = 11`
+    - param `Orientation`
+    - param `Portrait  = 0`
+    - param `Landscape = 1`
+    - param `Unit`
+    - param `Pixels      = 0`
+    - param `Inches      = 1`
+    - param `Milimeters  = 2`
+    - param `Centimeters = 3`
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+- **`GetPatternSnapShotSizeOption`** · pure-virtual [pattern] [render]
+  - `Marvelous::PatternSnapShotSizeOption GetPatternSnapShotSizeOption(int _mode)` — `UtilityAPIInterface.h:2844`
+  - Retrieves the currently set PatternSnapShotSizeOption.
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+    - returns: The currently set PatternSnapShotSizeOption value.
+- **`SetPatternSnapShotLineOption`** · pure-virtual [pattern] [render]
+  - `void SetPatternSnapShotLineOption(Marvelous::PatternSnapShotLineOption _op, int _mode)` — `UtilityAPIInterface.h:2851`
+  - Sets the Line option for the PatternSnapshot.
+    - param `PatternSnapShotLineOption _op : Controls visibility, color, and line type of outlines, internal lines, graphics, baseline, notches, seam allowance, symmetry lines, and reference lines.`
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+- **`GetPatternSnapShotLineOption`** · pure-virtual [pattern] [render]
+  - `Marvelous::PatternSnapShotLineOption GetPatternSnapShotLineOption(int _mode)` — `UtilityAPIInterface.h:2858`
+  - Retrieves the currently set PatternSnapShotLineOption.
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+    - returns: The currently set PatternSnapShotLineOption value.
+- **`SetPatternSnapShotColorwayOption`** · pure-virtual [pattern] [render]
+  - `void SetPatternSnapShotColorwayOption(Marvelous::PatternSnapShotColorwayOption _op, int _mode)` — `UtilityAPIInterface.h:2865`
+  - Sets the Colorway option for the PatternSnapshot.
+    - param `PatternSnapShotColorwayOption _op : Defines which colorway(s) to apply, including custom selections.`
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+- **`GetPatternSnapShotColorwayOption`** · pure-virtual [pattern] [render]
+  - `Marvelous::PatternSnapShotColorwayOption GetPatternSnapShotColorwayOption(int _mode)` — `UtilityAPIInterface.h:2872`
+  - Retrieves the currently set PatternSnapShotColorwayOption.
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+    - returns: The currently set PatternSnapShotColorwayOption value.
+- **`SetPatternSnapShotInformationOption`** · pure-virtual [pattern] [render]
+  - `void SetPatternSnapShotInformationOption(Marvelous::PatternSnapShotInformationOption _op, int _mode)` — `UtilityAPIInterface.h:2879`
+  - Sets the Information option for the PatternSnapshot.
+    - param `PatternSnapShotInformationOption _op : Controls visibility and type of metadata, including pattern name, annotations, line length, grain line, buttonholes, seam taping, 2D measurements, grading size name, and nest information.`
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+- **`GetPatternSnapShotInformationOption`** · pure-virtual [pattern] [render]
+  - `Marvelous::PatternSnapShotInformationOption GetPatternSnapShotInformationOption(int _mode)` — `UtilityAPIInterface.h:2886`
+  - Retrieves the currently set PatternSnapShotInformationOption.
+    - param `int _mode : 0 = capture from PatternWindow, 1 = capture from PrintLayoutWindow.`
+    - returns: The currently set PatternSnapShotInformationOption value.
+- **`SetTrimMaterialProperties`** · pure-virtual [trim]
+  - `void SetTrimMaterialProperties(int _trimStyleIndex, int _meshIndex, const std::map<std::string, std::string>& _props)` — `UtilityAPIInterface.h:2894`
+  - Sets multiple material properties for a specific trim style and mesh index.
+    - param `_trimStyleIndex: The index of the trim style to set properties for.`
+    - param `_meshIndex: The index of the mesh within the trim style to set properties for.`
+    - param `_props: A map containing property names and their corresponding values to set for the trim material. MaterialType 0 to 14, Such as {'MaterialType': '0', 'Metalness': '0.100000', 'NormalMapIntensity': '2', 'Opacity': '0.500000', 'ReflectionIntensity': '0.250000', 'Roughness': '0.550000', 'RoughnessMapIntensity': '1.600000', 'RoughnessMapInvert': 'true'}`
+- **`GetTrimMaterialProperties`** · pure-virtual [trim]
+  - `std::map<std::string, std::string> GetTrimMaterialProperties(int _trimStyleIndex, int _meshIndex)` — `UtilityAPIInterface.h:2902`
+  - Gets multiple material properties for a specific trim style and mesh index.
+    - param `_trimStyleIndex: The index of the trim style to get properties for.`
+    - param `_meshIndex: The index of the mesh within the trim style to get properties for.`
+    - returns: A map containing property names and their corresponding values for the trim material. Such as {'MaterialType': '0', 'Metalness': '0.100000', 'NormalMapIntensity': '2', 'Opacity': '0.500000', 'ReflectionIntensity': '0.250000', 'Roughness': '0.550000', 'RoughnessMapIntensity': '1.600000', 'RoughnessMapInvert': 'true'}
+- **`SetNormalBlendingMethod`** · pure-virtual 
+  - `void SetNormalBlendingMethod(int _index)` — `UtilityAPIInterface.h:2908`
+  - Sets the normal blending method for given index.
+    - param `_index: The index of the normal blending method to set.`
+- **`GetNormalBlendingMethod`** · pure-virtual 
+  - `int GetNormalBlendingMethod()` — `UtilityAPIInterface.h:2914`
+  - Gets the current normal blending method.
+    - returns: The index of the current normal blending method.
+- **`SetTopStitchName`** · pure-virtual [topstitch]
+  - `void SetTopStitchName(int _topStitchIndex, const std::string& _name)` — `UtilityAPIInterface.h:2921`
+  - Updates the top stitch style name.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_name: Name.`
+- **`SetTopStitchOffsetIndex`** · pure-virtual [topstitch]
+  - `void SetTopStitchOffsetIndex(int _topStitchIndex, int _offsetIndex)` — `UtilityAPIInterface.h:2928`
+  - Update the top stitch offset index.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_offsetIndex: The offset index.`
+- **`SetTopStitchNumberOfLines`** · pure-virtual [topstitch]
+  - `void SetTopStitchNumberOfLines(int _topStitchIndex, int _stitchCountIndex, int _numberOfLines)` — `UtilityAPIInterface.h:2936`
+  - Update the top stitch number of lines.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_stitchCountIndex: The stitch count index. Ex: for 3 count, 1:index for 1st line, 2:index for 2nd line, 3:index for 3rd line`
+    - param `_numberOfLines: The number of lines.`
+- **`SetTopStitchWidthValue`** · pure-virtual [topstitch]
+  - `void SetTopStitchWidthValue(int _topStitchIndex, int _stitchCountIndex, float _widthValue)` — `UtilityAPIInterface.h:2944`
+  - Update the top stitch width value.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_stitchCountIndex: The stitch count index. Ex: for 3 count, 1:index for 1st line, 2:index for 2nd line, 3:index for 3rd line`
+    - param `_widthValue: The width value.`
+- **`SetTopStitchDistanceValue`** · pure-virtual [topstitch]
+  - `void SetTopStitchDistanceValue(int _topStitchIndex, int _stitchCountIndex, float _distanceValue)` — `UtilityAPIInterface.h:2952`
+  - Update the top stitch distance value.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_stitchCountIndex: The stitch count index. Ex: for 3 count, 1:index for 1st line, 2:index for 2nd line, 3:index for 3rd line`
+    - param `_distanceValue: The distance value. Based on CLO unit (mm/inch).`
+- **`GetTopStitchOffsetIndex`** · pure-virtual [topstitch]
+  - `int GetTopStitchOffsetIndex(int _topStitchIndex)` — `UtilityAPIInterface.h:2959`
+  - Get the top stitch offset index.
+    - param `_topStitchIndex: The top stitch style index.`
+    - returns: The offset index.
+- **`GetTopStitchNumberOfLines`** · pure-virtual [topstitch]
+  - `int GetTopStitchNumberOfLines(int _topStitchIndex, int _stitchCountIndex)` — `UtilityAPIInterface.h:2967`
+  - Get the top stitch number of lines.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_stitchCountIndex: The stitch count index. Ex: for 3 count, 1:index for 1st line, 2:index for 2nd line, 3:index for 3rd line`
+    - returns: The number of lines.
+- **`GetTopStitchOffsetValue`** · pure-virtual [topstitch]
+  - `float GetTopStitchOffsetValue(int _topStitchIndex)` — `UtilityAPIInterface.h:2974`
+  - Get the top stitch stitch offset value.
+    - param `_topStitchIndex: The top stitch style index.`
+    - returns: The offset value.
+- **`GetTopStitchWidthValue`** · pure-virtual [topstitch]
+  - `float GetTopStitchWidthValue(int _topStitchIndex, int _stitchCountIndex)` — `UtilityAPIInterface.h:2982`
+  - Get the top stitch width value.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_stitchCountIndex: The stitch count index. Ex: for 3 count, 1:index for 1st line, 2:index for 2nd line, 3:index for 3rd line`
+    - returns: The width value.
+- **`GetTopStitchDistanceValue`** · pure-virtual [topstitch]
+  - `float GetTopStitchDistanceValue(int _topStitchIndex, int _stitchCountIndex)` — `UtilityAPIInterface.h:2990`
+  - Get the top stitch distance value.
+    - param `_topStitchIndex: The top stitch style index.`
+    - param `_stitchCountIndex: The stitch count index. Ex: for 3 count, 1:index for 1st line, 2:index for 2nd line, 3:index for 3rd line`
+    - returns: The distance value.
+- **`SetWindActive`** · pure-virtual 
+  - `void SetWindActive(bool _bActive)` — `UtilityAPIInterface.h:2996`
+  - It is a function that sets whether the wind is active or not.
+    - param `_bActive : True to activate wind, False to deactivate wind.`
+- **`GetWindActive`** · pure-virtual 
+  - `bool GetWindActive()` — `UtilityAPIInterface.h:3002`
+  - It is a function that gets whether the wind is active or not.
+    - returns: It returns True if wind is active, False if wind is inactive.
+- **`SetWindRotation`** · pure-virtual 
+  - `void SetWindRotation(float _xAngle, float _yAngle, float _zAngle)` — `UtilityAPIInterface.h:3010`
+  - It is a function that sets the rotation of the wind.
+    - param `_xAngle : Rotation angle around the X-axis in degrees.`
+    - param `_yAngle : Rotation angle around the Y-axis in degrees.`
+    - param `_zAngle : Rotation angle around the Z-axis in degrees.`
+- **`GetWindRotation`** · pure-virtual 
+  - `std::vector<float> GetWindRotation()` — `UtilityAPIInterface.h:3016`
+  - It is a function that gets the rotation of the wind.
+    - returns: It returns a vector of three floats representing the rotation angles around the X, Y, and Z axes in degrees.
+- **`SetWindPosition`** · pure-virtual 
+  - `void SetWindPosition(float _xPos, float _yPos, float _zPos)` — `UtilityAPIInterface.h:3024`
+  - It is a function that sets the position of the wind.
+    - param `_xPos : Position along the X-axis.`
+    - param `_yPos : Position along the Y-axis.`
+    - param `_zPos : Position along the Z-axis.`
+- **`GetWindPosition`** · pure-virtual 
+  - `std::vector<float> GetWindPosition()` — `UtilityAPIInterface.h:3030`
+  - It is a function that gets the position of the wind.
+    - returns: It returns a vector of three floats representing the position along the X, Y, and Z axes.
+- **`CopyGraphicStyle`** [graphic]
+  - `int CopyGraphicStyle(int _graphicStyleIndex)` — `UtilityAPIInterface.h:3038`
+  - Creates an independent copy of the specified graphic style and adds it to the graphic style library. Use this before placing the same graphic on multiple pattern pieces so that resizing one does not affect the others.
+    - param `_graphicStyleIndex: Index of the graphic style to copy.`
+    - returns: Index of the newly created graphic style copy, or -1 on failure.
+- **`UnlinkGraphicStyleAllColorways`** [render] [graphic]
+  - `bool UnlinkGraphicStyleAllColorways(int _graphicStyleIndex)` — `UtilityAPIInterface.h:3046`
+  - Unlinks the specified graphic style across all colorways so that each colorway holds an independent copy. After calling this, modifying the graphic style in one colorway will not affect other colorways.
+    - param `_graphicStyleIndex: Index of the graphic style to unlink.`
+    - returns: true if the unlink succeeded; otherwise false.
+- **`SetGraphicStyleBaseColorMapTextureDesaturation`** · pure-virtual [graphic]
+  - `void SetGraphicStyleBaseColorMapTextureDesaturation(int _graphicStyleIndex, int _colorwayIndex, bool _bSetOnOff)` — `UtilityAPIInterface.h:3054`
+  - Turns the desaturation (grayscale) on or off for the base color map texture of the specified graphic style in the specified colorway
+    - param `_graphicStyleIndex: The graphic style index to apply the desaturation setting`
+    - param `_colorwayIndex: The colorway index to apply the desaturation setting`
+    - param `_bSetOnOff: true to enable desaturation, false to disable`
+- **`AddGraphicStyleToPatternV2`** · pure-virtual [pattern] [graphic]
+  - `std::string AddGraphicStyleToPatternV2(int _patternIndex, int _graphicStyleIndex, float _x, float _y, float _width, float _height, int _face, float _zOffset, float _fAngle)` — `UtilityAPIInterface.h:3071`
+  - Add Graphic Style to Pattern and return result as JSON-like map
+    - param `_patternIndex: pattern index to add graphic style`
+    - param `_graphicStyleIndex: graphic style index to add to pattern`
+    - param `_x: The values along the X-axis represent the horizontal position relative to this point, moving to the right.`
+    - param `_y: The values along the Y-axis represent the vertical position relative to this point, moving downward.`
+    - param `For example, in a 100x100 pattern, the bottom-right corner is located at (100, 100)`
+    - param `Place the graphic so that its center aligns with the specified (X, Y) coordinates.`
+    - param `_width: Width of the graphic`
+    - param `_height: Height of the graphic`
+    - param `_face: 0: Front, 1: Back 2: Both`
+    - param `_zOffset: offset value`
+    - param `_fAngle: angle value`
+    - returns: A string containing "status" ("success" or "failure") and "message" with details
+- **`RemoveGraphicStyle`** [graphic]
+  - `std::string RemoveGraphicStyle(int _graphicIndex)` — `UtilityAPIInterface.h:3079`
+  - Backward-compatible overload. Removes a graphic style from the current colorway's graphic list with no pattern removal. Equivalent to RemoveGraphicStyle(GetCurrentColorwayIndex(), _graphicIndex, -1, 0).
+    - param `_graphicIndex: The index of the graphic style to remove.`
+    - returns: JSON string containing "status" ("Success" or "Failed") and "message" with contextual details.
+- **`RemoveGraphicStyle`** · pure-virtual [graphic]
+  - `std::string RemoveGraphicStyle(int _colorwayIndex, int _graphicIndex, int _styleChipIndex, int _overrideMode)` — `UtilityAPIInterface.h:3095`
+  - Removes a graphic style at the specified index with configurable deletion targets.
+    - param `_colorwayIndex: Target colorway index (0 to N-1 for specific colorway's graphic list, -1 for the all-colorways graphic list).`
+    - param `_graphicIndex: The index into the selected graphic list.`
+    - param `_styleChipIndex: Colorway context when _colorwayIndex is -1. Ignored when _colorwayIndex >= 0.`
+    - param `_overrideMode: Deletion target mode (Marvelous::GraphicRemoveMode).`
+    - param `0 = GRAPHIC_REMOVE_BROWSER_ONLY (remove from Object Browser only; fails if graphic is applied to a pattern),`
+    - param `1 = GRAPHIC_REMOVE_PATTERN_ONLY (remove from pattern, retain in Object Browser),`
+    - param `2 = GRAPHIC_REMOVE_PATTERN_AND_BROWSER (delete from both pattern and Object Browser).`
+    - returns: JSON string containing "status" ("Success" or "Failed") and "message" with contextual details.
+- **`GenerateZippersFromObj`** · pure-virtual [trim]
+  - `bool GenerateZippersFromObj(const std::string& _outputFilePathWithExt, const Marvelous::ObjRegisterOptions& _options, int _zipperIndex = -1)` — `UtilityAPIInterface.h:3119`
+  - Generates a zipper part asset file from one or two OBJ files, mirroring the full "Register OBJ" dialog (DialogRegisterZipperObject) without any UI interaction. Supports all 7 object types: - 0: ZIPPER_OBJECT_SLIDER                → .zsl (single OBJ, single shape) - 1: ZIPPER_OBJECT_PULLER                → .zpu (single OBJ, single shape) - 2: ZIPPER_OBJECT_SLIDER_PULLER         → .zss (single OBJ, dual shape; mesh auto-assignment fallback) - 3: ZIPPER_OBJECT_TEETH                 → .zth (single OBJ, fixed internal axes) - 4: ZIPPER_OBJECT_TOP_STOPPER           → .zst (dual OBJ, dual shape) - 5: ZIPPER_OBJECT_BOTTOM_OPEN_STOPPER   → .zst (dual OBJ, dual shape) - 6: ZIPPER_OBJECT_BOTTOM_CLOSED_STOPPER → .zst (single OBJ, single shape) For ZIPPER_OBJECT_SLIDER_PULLER, mesh assignment follows this fallback hierarchy: 1. User Explicit: OBJ group names listed in ObjRegisterOptions::sliderMeshNames / pullerMeshNames. 2. CLO Default: mesh names containing "slider" or "puller" (case-insensitive). 3. Dimensional: the mesh with the larger bounding-box extent is classified as Puller. 4. Alphabetical: sorted names; index 0 = Slider, index 1 = Puller. NOTE: ZIPPER_OBJECT_TEETH ignores user-defined axis settings (axes are fixed internally).
+    - param `_outputFilePathWithExt: Full output file path including the extension matching the object type.`
+    - param `_options: Full set of registration options (see ObjRegisterOptions).`
+    - param `_zipperIndex: Index of the zipper style in the Object Browser to assign the registered file to after saving. -1 = do not assign.`
+    - returns: true on success; false if validation fails, OBJ loading fails, or saving fails.
+- **`SetMaterialTextureTransformations`** 
+  - `void SetMaterialTextureTransformations(int colorwayIndex, int objectIndex, const Marvelous::ObjectBrowserContextOptions& browserContextOptions, const Marvelous::PropertyEditorContextOptions& propertyEditorContextOptions, const Marvelous::TransformOptions& transformOptions)` — `UtilityAPIInterface.h:3137`
+  - Sets the texture transformation of the targeted object's material map. Routes to the matching per-type implementation based on browserContextOptions.type. Currently backs OB_TYPE_FABRIC and OB_TYPE_GRAPHIC; other types are accepted but no-op until their per-type backend exists.
+    - param `colorwayIndex: target colorway index (0 to n-1; -1 uses the current colorway).`
+    - param `objectIndex: index of the targeted object within its Object Browser category.`
+    - param `browserContextOptions: Object Browser context (type, print vs base color, style-chip / sub-item, folder).`
+    - param `propertyEditorContextOptions: Property Editor context (material side, target texture map).`
+    - param `transformOptions: the texture transformation to apply.`
+- **`GetMaterialTextureTransformations`** 
+  - `Marvelous::TransformOptions GetMaterialTextureTransformations(int colorwayIndex, int objectIndex, const Marvelous::ObjectBrowserContextOptions& browserContextOptions, const Marvelous::PropertyEditorContextOptions& propertyEditorContextOptions)` — `UtilityAPIInterface.h:3143`
+  - Gets the current texture transformation of the targeted object's material map.
+    - returns: TransformOptions for the targeted texture. Returns an identity transform if it cannot be resolved.
+- **`SetMaterialProperties`** 
+  - `std::string SetMaterialProperties(int colorwayIndex, int objectIndex, const Marvelous::ObjectBrowserContextOptions& browserContextOptions, const Marvelous::MaterialPropertyOptions& materialContextProperties, const Marvelous::MaterialPropertyOptions& newValues)` — `UtilityAPIInterface.h:3178`
+  - Applies newValues to the material of the target object. The object is located via colorwayIndex, objectIndex and browserContextOptions; the active component tab / mapping / type is taken from materialContextProperties.contextOptions.
+    - param `colorwayIndex: target colorway index (0 to n-1; -1 uses the current colorway).`
+    - param `objectIndex: index of the targeted object within its Object Browser category.`
+    - param `browserContextOptions: Object Browser context locating the object (type, sub-item, style-chip...).`
+    - param `materialContextProperties: carries contextOptions (targetComponent / textureMappingType / printType`
+    - param `/ materialType) that selects which component tab the write applies to.`
+    - param `newValues: the material property values to write.`
+    - returns: JSON string: {"status": "success"\|"error", "message": "..."}. Context mismatches and invalid states are reported in the message rather than thrown across the binding boundary.
+- **`GetMaterialProperties`** 
+  - `Marvelous::MaterialPropertyOptions GetMaterialProperties(int colorwayIndex, int objectIndex, const Marvelous::ObjectBrowserContextOptions& browserContextOptions, const Marvelous::MaterialPropertyOptions& materialContextProperties)` — `UtilityAPIInterface.h:3194`
+  - Returns the current material properties for the active context (e.g. a Button's "Thread" tab vs its "Button" tab). Only materialContextProperties.contextOptions is read from the input.
+    - param `colorwayIndex: target colorway index (0 to n-1; -1 uses the current colorway).`
+    - param `objectIndex: index of the targeted object within its Object Browser category.`
+    - param `browserContextOptions: Object Browser context locating the object.`
+    - param `materialContextProperties: only its contextOptions is used, to select the component tab to read.`
+    - returns: MaterialPropertyOptions for the active context. On an unresolved or mismatched context a default MaterialPropertyOptions (echoing the requested contextOptions) is returned.
+- **`GetMaterialPropertiesAsJson`** 
+  - `std::string GetMaterialPropertiesAsJson(int colorwayIndex, int objectIndex, const Marvelous::ObjectBrowserContextOptions& browserContextOptions, const Marvelous::MaterialPropertyOptions& materialContextProperties)` — `UtilityAPIInterface.h:3209`
+  - JSON-returning duplicate of GetMaterialProperties. Resolves and reads the same material stack but returns it as a JSON string, so scripting clients can consume the full fabric material payload (base color, normal, displacement, opacity and reflection maps, each with their transformation) without binding the nested option structs.
+    - param `colorwayIndex: target colorway index (0 to n-1; -1 uses the current colorway).`
+    - param `objectIndex: index of the targeted object within its Object Browser category.`
+    - param `browserContextOptions: Object Browser context locating the object.`
+    - param `materialContextProperties: only its contextOptions is used, to select the component tab to read.`
+    - returns: JSON string. On success: {"status":"success","properties":{...}} where "properties" mirrors the MaterialPropertyOptions struct (contextOptions, material_type, front/back/side stacks, physical_*). On an unresolved or mismatched context: {"status":"error","message":"..."}.
+- **`GetObjectBrowserContext`** 
+  - `Marvelous::ObjectBrowserContextOptions GetObjectBrowserContext()` — `UtilityAPIInterface.h:3219`
+  - Reads the current Object Browser state into an ObjectBrowserContextOptions object. Aggregates the active tab (type), its scope (folderName), and the booleans (bIncludeUnusedObjects, bShowAllColorways) from the per-tab context store. In UI mode the active tab is resolved live; in headless mode it is the last tab applied via the setter. A never-set tab yields safe defaults. Callers should call this before mutating + re-applying.
+    - returns: The aggregated ObjectBrowserContextOptions for the active tab (safe defaults if unset).
+- **`SetObjectBrowserContext`** 
+  - `void SetObjectBrowserContext(const Marvelous::ObjectBrowserContextOptions& options)` — `UtilityAPIInterface.h:3229`
+  - Applies an Object Browser context. The state is always persisted per-tab (keyed by options.type) so subsequent getter calls return it; updating one tab never affects the other tabs' cached context. In UI mode the Object Browser additionally switches to the targeted tab. In headless mode no UI is touched (all UI access is guarded), preventing null-pointer crashes while still persisting the state internally.
+    - param `options: the Object Browser context to apply (type selects the target tab).`
+- **`SetAssetShareRoot`** 
+  - `void SetAssetShareRoot(const std::string& _shareRoot)` — `UtilityAPIInterface.h:3239`
+  - Sets a FALLBACK base folder for resolving project-relative '//<folder>/<file>' paths, used only when no SetBasePath override is set AND no project is open. Resolution is a plain concatenation (NO directory search): '//Textures/texture.png' becomes '<shareRoot>/Textures/texture.png', with the whole remainder appended (multi-level paths supported). Full/normal paths are unaffected. Pass an empty string to clear it.
+    - param `_shareRoot: the fallback base folder (a local folder or an already-mounted/UNC path).`
+- **`GetAssetShareRoot`** 
+  - `std::string GetAssetShareRoot()` — `UtilityAPIInterface.h:3244`
+  - Returns the fallback base folder set by SetAssetShareRoot, or an empty string if none is set.
+- **`SetBasePath`** 
+  - `void SetBasePath(const std::string& _basePath)` — `UtilityAPIInterface.h:3257`
+  - Sets the base folder used to resolve project-relative '//<folder>/<file>' paths on EXPORT/SAVE APIs. A path like '//USD/out.usd' then resolves to '<basePath>/USD/out.usd' (the whole remainder is appended, so multi-level paths like '//A/B/C/out.usd' work too). Opening a project sets this automatically to the project's folder; call this to override it (e.g. in a headless script or to redirect output). Full/absolute paths are unaffected. Note: while a base is set, EVERY '//' path is treated as project-relative (never as a UNC server or home folder); pass a full/mounted path for those. '//' resolution applies to export/save paths only - IMPORT paths (e.g. ImportFile) are NOT resolved; pass a full path when importing. Pass an empty string to clear it.
+    - param `_basePath: the base folder, e.g. "C:/CLO/Test/Project".`
+- **`GetBasePath`** 
+  - `std::string GetBasePath()` — `UtilityAPIInterface.h:3263`
+  - Returns the base folder currently used for project-relative '//' path resolution, or an empty string if none is set.
+- **`GetAvatarMeasurements`** · doc [avatar] [measure]
+  - `std::vector<Marvelous::CloApiAvatarMeasurement> GetAvatarMeasurements(int _avatarIndex)` — `UtilityAPIInterface.h:3270`
+  - Gets all measurements (user measures and avatar-default resizing measurements) on the avatar at the given index.
+    - param `_avatarIndex: Zero-based index of the target avatar.`
+    - returns: List of measurements. Empty if no avatar is loaded or the index is out of range.
+- **`DrawInternalLinesAroundGraphic`** [pattern] [graphic]
+  - `Marvelous::CloApiInternalShape DrawInternalLinesAroundGraphic(int _patternIndex, const Marvelous::CloApiGraphicPlacementPoints& _placementPoints)` — `UtilityAPIInterface.h:3284`
+  - Creates a closed internal shape tracing the boundary of a placed graphic, connecting _placementPoints' corners in order with straight internal lines (any polygon, not just rectangles).
+    - param `_patternIndex: The index of the pattern piece to draw the internal lines on.`
+    - param `_placementPoints: Corners describing the boundary, in pattern-local 2D coordinates (e.g. from`
+    - param `GetGraphicStylePlacementPoints with _is2D == true). At least 3 corners are required.`
+    - returns: The created boundary as GetInternalShapeInformation reports it — same name space, so the returned name can be passed straight to PlaceGraphicOnInternalShape — with its lines and their intersection points in pattern-local 2D coordinates. If the new boundary touches existing internal lines they are grouped into one shape, so the result can span more than the input corners. Empty CloApiInternalShape on failure.
+- **`PlaceTopstitchOnInternalLine`** [pattern] [topstitch]
+  - `bool PlaceTopstitchOnInternalLine(int _colorwayIndex, int _topStitchStyleIndex, int _patternIndex, const Marvelous::CloApiLine& _line, Marvelous::CloApiAnchorPoint _anchorPoint)` — `UtilityAPIInterface.h:3300`
+  - Applies a topstitch style to the pattern's internal line located via _line and _anchorPoint. The internal line matching _line's endpoints is preferred; otherwise the one closest to _anchorPoint's reference point on _line is used, so this works whether the internal line exists yet or not.
+    - param `_colorwayIndex: Target colorway index (0 to colorway count - 1); topstitch geometry is shared`
+    - param `across colorways (use SetTopStitchColor for per-colorway appearance).`
+    - param `_topStitchStyleIndex: Index of the topstitch style in the Object Browser topstitch list.`
+    - param `_patternIndex: The index of the pattern piece that owns the internal line.`
+    - param `_line: The line geometry designating the target internal line, endpoints in pattern-local 2D`
+    - param `coordinates (as returned by GetInternalShapeInformation / DrawInternalLinesAroundGraphic).`
+    - param `_anchorPoint: Reference point on _line: corner anchors use the nearest endpoint, center/edge`
+    - param `anchors use the midpoint.`
+    - returns: true if the topstitch was applied to an internal line, false otherwise.
+- **`PlaceGraphicOnInternalShape`** [pattern] [graphic]
+  - `bool PlaceGraphicOnInternalShape(int _colorwayIndex, int _graphicStyleIndex, const std::string& _shapeName, int _face = 0, float _zOffset = 0.0f)` — `UtilityAPIInterface.h:3314`
+  - Places a graphic style so it fills the internal shape named _shapeName exactly, aligned to the shape's longest edge (aspect ratio is NOT preserved; works for irregular / non-rectangular shapes).
+    - param `_colorwayIndex: Target colorway index for resolving the graphic style.`
+    - param `_graphicStyleIndex: Index of the graphic style in the Object Browser graphic list.`
+    - param `_shapeName: Name of the internal shape to place the graphic on (e.g. "InternalShape_0", as returned`
+    - param `by GetInternalShapeInformation / DrawInternalLinesAroundGraphic); the first pattern with a matching`
+    - param `name is used, so names should be unique across the document.`
+    - param `_face: 0: Front, 1: Back, 2: Both.`
+    - param `_zOffset: Z offset value of the placed graphic.`
+    - returns: true if the graphic was placed successfully, false otherwise.
+- **`GetIntersectionPoints`** 
+  - `Marvelous::CloApiInternalShape GetIntersectionPoints(const std::vector<Marvelous::CloApiLine>& _lines)` — `UtilityAPIInterface.h:3323`
+  - Finds the intersection point of every pair of the given lines. Parallel, collinear, and zero-length segments produce no intersection; touching endpoints count as one. Pure geometry computation; no scene data is read or modified.
+    - param `_lines: The line segments to evaluate. Renumbered from 0 if any lineNumber is negative or duplicated.`
+    - returns: A CloApiInternalShape with the (possibly renumbered) input lines and their intersection points.
+- **`GetInternalShapeInformation`** [pattern]
+  - `std::vector<Marvelous::CloApiInternalShape> GetInternalShapeInformation(int _patternIndex)` — `UtilityAPIInterface.h:3332`
+  - Groups a pattern's internal lines into disjoint shapes by connectivity: lines that intersect or touch within a small tolerance belong to the same shape.
+    - param `_patternIndex: The index of the pattern piece to analyze.`
+    - returns: Shapes named "InternalShape_0", "InternalShape_1", ... ordered by smallest contained line number, line endpoints in pattern-local 2D coordinates. Empty if the pattern is invalid or has no internal lines.
+- **`GetObjectBrowserItems`** 
+  - `std::string GetObjectBrowserItems(const Marvelous::ObjectBrowserContextOptions& objectBrowserContextOptions)` — `UtilityAPIInterface.h:3350`
+  - Returns the Object Browser item list for a single asset type (one type per call), as a JSON string. The asset type is given by objectBrowserContextOptions.type; supported values are OB_TYPE_FABRIC, OB_TYPE_GRAPHIC, OB_TYPE_BUTTON, OB_TYPE_BUTTON_HOLE, OB_TYPE_TRIM, OB_TYPE_PUCKERING, OB_TYPE_ZIPPER, OB_TYPE_TOPSTITCH. The two filters are independent: showAllColorways (tri-state) scopes the "used" check - -1 (default) follows the app's UI "Show All Colorways" toggle, 0 forces the single colorway (colorwayIndex), 1 forces all colorways - and bIncludeUnusedObjects additionally keeps free/unused objects (not used by any colorway) when true. folderName is FABRIC-only: it scopes the result to one Object Browser folder. Empty = the primary/root folder; a non-empty name = that folder (an unknown name yields an empty list). It composes with the colorway filters and with bIncludePrints. bIncludePrints is FABRIC-only: when true the fabric response carries print info per fabric (see @return).
+    - returns: JSON object string: { "ObjectType": "<type>", "ObjectNameList": ["name", ...] }. An unsupported targetObjectType yields { "ObjectType": "", "ObjectNameList": [] }; an empty list is returned as []. FABRIC with bIncludePrints == true keeps the SAME top-level "ObjectNameList" key, but its entries are objects instead of plain names: { "ObjectType": "Fabric Prints", "ObjectNameList": [ { "Name": "<fabric>" [, "PrintName": "<print>"] }, ... ] }; the "PrintName" key is present only for fabrics that actually have a print.
+
+---
+
+## `PatternAPIInterface.h` — `PATTERN_API`
+
+Pattern pieces, lines, seams, arrangement, topstitch, elastic, pins.
+
+231 declarations, 21 wired.
+
+- **`GetPatternSize`** [pattern]
+  - `int GetPatternSize()` — `PatternAPIInterface.h:18`
+  - Get the number of patterns
+    - returns: return the number of patterns on the pattern editor and avatar window
+- **`GetPatternIndex`** [pattern]
+  - `int GetPatternIndex(const std::string& patternName)` — `PatternAPIInterface.h:25`
+  - Get the pattern index which is using the pattern name
+    - param `patternName: the input pattern name to get the pattern index`
+    - returns: pattern index
+- **`GetPatternIndexW`** [pattern]
+  - `int GetPatternIndexW(const std::wstring& patternName)` — `PatternAPIInterface.h:32`
+  - Get the pattern index which is using the pattern name
+    - param `patternName: the pattern name to get the pattern index`
+    - returns: pattern index
+- **`GetPatternIndexFrom2DView`** [pattern]
+  - `int GetPatternIndexFrom2DView(float _scenePosX, float _scenePosY)` — `PatternAPIInterface.h:40`
+  - Get the pattern index which is using the 2D scene position
+    - param `scenePosX: the scene position X`
+    - param `scenePosY: the scene position Y`
+    - returns: pattern index
+- **`GetPatternIndexFrom3DView`** [pattern]
+  - `int GetPatternIndexFrom3DView(float _scenePosX, float _scenePosY)` — `PatternAPIInterface.h:48`
+  - Get the pattern index which is using the 3D scene position
+    - param `scenePosX: the scene position X`
+    - param `scenePosY: the scene position Y`
+    - returns: pattern index
+- **`GetPatternInformation`** · **WIRED**, doc [pattern]
+  - `std::string GetPatternInformation(int patternIndex)` — `PatternAPIInterface.h:55`
+  - Get the pattern information which is using for pattern index
+    - param `patternIndex: the pattern index to get the pattern information`
+    - returns: json string for pattern information
+- **`GetPatternInformationW`** [pattern]
+  - `std::wstring GetPatternInformationW(int patternIndex)` — `PatternAPIInterface.h:62`
+  - Get the pattern information which is using for pattern index
+    - param `patternIndex: the pattern index to get the pattern information`
+    - returns: json string for pattern information
+- **`GetPatternCount`** · **WIRED**, doc [pattern]
+  - `int GetPatternCount()` — `PatternAPIInterface.h:68`
+  - Get the number of patterns
+    - returns: return the number of patterns on the pattern editor and avatar window
+- **`GetPatternInputInformation`** · **WIRED**, doc [pattern]
+  - `std::string GetPatternInputInformation(int _patternIndex)` — `PatternAPIInterface.h:75`
+  - Get the pattern input information which is using for pattern index
+    - param `patternIndex: the pattern index to get the pattern input information`
+    - returns: json string for pattern input information
+- **`GetPatternInputInformationW`** [pattern]
+  - `std::wstring GetPatternInputInformationW(int _patternIndex)` — `PatternAPIInterface.h:82`
+  - Get the pattern input information which is using for pattern index
+    - param `patternIndex: the pattern index to get the pattern input information`
+    - returns: json string for pattern input information
+- **`GetPatternInputInformation`** · **WIRED**, doc [pattern]
+  - `std::string GetPatternInputInformation()` — `PatternAPIInterface.h:89`
+  - Get the pattern input information which is using for pattern index
+    - param `patternIndex: the pattern index to get the pattern input information`
+    - returns: json string for pattern input information
+- **`GetPatternInputInformationW`** [pattern]
+  - `std::wstring GetPatternInputInformationW()` — `PatternAPIInterface.h:96`
+  - Get the pattern input information which is using for pattern index
+    - param `patternIndex: the pattern index to get the pattern input information`
+    - returns: json string for pattern input information
+- **`GetPatternPieceArea`** · **WIRED**, doc [pattern]
+  - `float GetPatternPieceArea(int _patternIndex)` — `PatternAPIInterface.h:102`
+  - Get the pattern piece area which is using for pattern index
+    - returns: return pattern piece
+- **`GetLineLength`** · **WIRED** [pattern]
+  - `float GetLineLength(int _patternIndex, int _lineIndex)` — `PatternAPIInterface.h:108`
+  - Get the pattern line length which is using for pattern index and line index
+    - returns: return line length
+- **`GetLineLength`** · **WIRED** [pattern]
+  - `float GetLineLength(int _patternIndex, int _childrenIndex, int _lineIndex)` — `PatternAPIInterface.h:114`
+  - Get the pattern line length which is using for pattern index and children shape index and line index
+    - returns: return line length
+- **`GetParticleDistanceOfPattern`** [simulate] [pattern]
+  - `float GetParticleDistanceOfPattern(int _patternIndex)` — `PatternAPIInterface.h:121`
+  - Get particle distance which is using pattern index
+    - param `patternIndex: the pattern index to get the pattern particle distance`
+    - returns: Output particle distance; If an error occurs, return MIN_PARTICLE_DISTANCE, 0.8f.
+- **`GetParticleDistanceOfPattern`** [simulate] [pattern]
+  - `float GetParticleDistanceOfPattern(const std::string& _patternName)` — `PatternAPIInterface.h:132`
+  - Get particle distance which is using the pattern name
+    - param `patternName: the pattern name to get the pattern particle distance`
+    - returns: Output particle distance; If an error occurs, return MIN_PARTICLE_DISTANCE, 0.8f.
+- **`GetParticleDistanceOfPatternW`** [simulate] [pattern]
+  - `float GetParticleDistanceOfPatternW(const std::wstring& _patternName)` — `PatternAPIInterface.h:143`
+  - Get particle distance which is using the pattern name
+    - param `patternName: the pattern name to get the pattern particle distance`
+    - returns: Output particle distance; If an error occurs, return MIN_PARTICLE_DISTANCE, 0.8f.
+- **`GetMeshCountByType`** 
+  - `std::map<std::string, std::string> GetMeshCountByType(int _patternIndex)` — `PatternAPIInterface.h:154`
+  - Get mesh face, vertex count by mesh type which is using pattern index
+    - param `patternIndex: the pattern index to get the pattern mesh face, vertex count`
+    - returns: Output map string mesh face,vertex count, mesh type; If an error occurs, return infoMap
+- **`GetMeshCountByType`** 
+  - `std::map<std::string, std::string> GetMeshCountByType(const std::string& _patternName)` — `PatternAPIInterface.h:165`
+  - Get mesh face, vertex count by mesh type which is using the pattern name
+    - param `patternName: the pattern name to get the pattern mesh face, vertex count`
+    - returns: Output map string mesh face,vertex count, mesh type; If an error occurs, return infoMap
+- **`GetMeshCountByTypeW`** 
+  - `std::map<std::string, std::string> GetMeshCountByTypeW(const std::wstring& _patternName)` — `PatternAPIInterface.h:177`
+- **`GetShrinkagePercentage`** 
+  - `std::map<std::string, std::string> GetShrinkagePercentage(int _patternIndex)` — `PatternAPIInterface.h:189`
+- **`GetShrinkagePercentage`** 
+  - `std::map<std::string, std::string> GetShrinkagePercentage(const std::string& _patternName)` — `PatternAPIInterface.h:201`
+- **`GetShrinkagePercentageW`** 
+  - `std::map<std::string, std::string> GetShrinkagePercentageW(const std::wstring& _patternName)` — `PatternAPIInterface.h:213`
+- **`GetBoundingBoxOfPattern`** · **WIRED**, doc [pattern]
+  - `std::vector<std::map<std::string, std::string>> GetBoundingBoxOfPattern()` — `PatternAPIInterface.h:225`
+- **`GetBoundingBoxOfPattern`** · **WIRED**, doc [pattern]
+  - `std::map<std::string, std::string> GetBoundingBoxOfPattern(int _patternIndex)` — `PatternAPIInterface.h:237`
+- **`GetBoundingBoxOfPattern`** · **WIRED**, doc [pattern]
+  - `std::map<std::string, std::string> GetBoundingBoxOfPattern(const std::string& _patternName)` — `PatternAPIInterface.h:249`
+- **`GetBoundingBoxOfPatternW`** [pattern]
+  - `std::map<std::string, std::string> GetBoundingBoxOfPatternW(const std::wstring& _patternName)` — `PatternAPIInterface.h:261`
+- **`SetParticleDistanceOfPattern`** [simulate] [pattern]
+  - `void SetParticleDistanceOfPattern(int _patternIndex, float _length)` — `PatternAPIInterface.h:273`
+- **`SetParticleDistanceOfPatterns`** [simulate] [pattern]
+  - `void SetParticleDistanceOfPatterns(float _length)` — `PatternAPIInterface.h:280`
+- **`SetMeshType`** 
+  - `void SetMeshType(int _patternIndex, const std::string& _meshType)` — `PatternAPIInterface.h:289`
+- **`SetMeshTypeW`** 
+  - `void SetMeshTypeW(int _patternIndex, const std::wstring& _meshType)` — `PatternAPIInterface.h:297`
+- **`SetWidthShrinkagePercentage`** 
+  - `void SetWidthShrinkagePercentage(int _patternIndex, float _width)` — `PatternAPIInterface.h:305`
+- **`SetHeightShrinkagePercentage`** 
+  - `void SetHeightShrinkagePercentage(int _patternIndex, float _height)` — `PatternAPIInterface.h:313`
+- **`GetArrangementList`** · **WIRED**, doc 
+  - `std::vector<std::map<std::string, std::string>> GetArrangementList()` — `PatternAPIInterface.h:321`
+- **`GetArrangementOfPattern`** · **WIRED**, doc [pattern]
+  - `std::vector<std::map<std::string, std::string>> GetArrangementOfPattern()` — `PatternAPIInterface.h:333`
+- **`GetArrangementOfPattern`** · **WIRED**, doc [pattern]
+  - `std::map<std::string, std::string> GetArrangementOfPattern(int _patternIndex)` — `PatternAPIInterface.h:345`
+- **`GetArrangementOfPattern`** · **WIRED**, doc [pattern]
+  - `std::map<std::string, std::string> GetArrangementOfPattern(const std::string& _patternName)` — `PatternAPIInterface.h:357`
+- **`GetArrangementOfPatternW`** [pattern]
+  - `std::map<std::string, std::string> GetArrangementOfPatternW(const std::wstring& _patternName)` — `PatternAPIInterface.h:369`
+- **`SetArrangementShapeStyle`** 
+  - `void SetArrangementShapeStyle(int _patternIndex, const std::string& _shapeStyle)` — `PatternAPIInterface.h:381`
+- **`SetArrangementShapeStyleW`** 
+  - `void SetArrangementShapeStyleW(int _patternIndex, const std::wstring& _shapeStyle)` — `PatternAPIInterface.h:389`
+- **`SetArrangementPosition`** · **WIRED** 
+  - `void SetArrangementPosition(int _patternIndex, int _positionX, int _positionY, int _offset)` — `PatternAPIInterface.h:397`
+- **`SetArrangementOrientation`** · **WIRED** 
+  - `void SetArrangementOrientation(int _patternIndex, int _orientation)` — `PatternAPIInterface.h:405`
+- **`SetArrangement`** · **WIRED** 
+  - `void SetArrangement(int _patternIndex, int _arrangementIndex)` — `PatternAPIInterface.h:413`
+- **`CopyPatternPiecePos`** [pattern]
+  - `int CopyPatternPiecePos(int _patternPieceIndex, float _x, float _y)` — `PatternAPIInterface.h:421`
+- **`CopyPatternPieceMove`** [pattern]
+  - `int CopyPatternPieceMove(int _patternPieceIndex, float _offsetX, float _offsetY)` — `PatternAPIInterface.h:430`
+- **`DeletePatternPiece`** [pattern]
+  - `void DeletePatternPiece(int _patternIndex)` — `PatternAPIInterface.h:437`
+- **`DeleteLine`** 
+  - `void DeleteLine(int _patternIndex, int _lineIndex)` — `PatternAPIInterface.h:445`
+- **`DeletePoint`** 
+  - `void DeletePoint(int _patternIndex, int _pointIndex)` — `PatternAPIInterface.h:453`
+- **`FlipPatternPiece`** [pattern]
+  - `void FlipPatternPiece(int _patternIndex, bool _bHorizontally, bool _bEach)` — `PatternAPIInterface.h:462`
+- **`LayerClonePatternPiecePos`** [pattern]
+  - `void LayerClonePatternPiecePos(int _patternIndex, float _x, float _y, bool _bUnder)` — `PatternAPIInterface.h:471`
+- **`LayerClonePatternPieceMove`** [pattern]
+  - `void LayerClonePatternPieceMove(int _patternIndex, float _offsetX, float _offsetY, bool _bUnder)` — `PatternAPIInterface.h:480`
+- **`OffsetAsInternalLine`** [pattern]
+  - `void OffsetAsInternalLine(int _patternIndex, int _lineIndex, int _number, float _distance, bool _bReverseDirection, bool _bExtend)` — `PatternAPIInterface.h:492`
+- **`UnfoldPatternPiece`** [pattern]
+  - `bool UnfoldPatternPiece(int _patternIndex, int _lineIndex, bool _bHalfSymmetry)` — `PatternAPIInterface.h:502`
+- **`UnfoldPatternPieceWithPatternName`** [pattern]
+  - `bool UnfoldPatternPieceWithPatternName(std::wstring _patternName, int _lineIndex, bool _bHalfSymmetry)` — `PatternAPIInterface.h:512`
+- **`SymmetryPatternPiece`** [pattern]
+  - `void SymmetryPatternPiece(int _patternIndex, bool _bWithSewing)` — `PatternAPIInterface.h:520`
+- **`InstancePatternPiece`** [pattern]
+  - `void InstancePatternPiece(int _patternIndex)` — `PatternAPIInterface.h:527`
+- **`SymmetryPatternPieceWithPatternName`** [pattern]
+  - `void SymmetryPatternPieceWithPatternName(std::wstring _patternName, bool _bWithSewing)` — `PatternAPIInterface.h:535`
+- **`InstancePatternPieceWithPatternName`** [pattern]
+  - `void InstancePatternPieceWithPatternName(std::wstring _patternName)` — `PatternAPIInterface.h:542`
+- **`GetPatternPieceName`** [pattern]
+  - `std::string GetPatternPieceName(int _patternIndex)` — `PatternAPIInterface.h:549`
+- **`SetPatternPieceName`** [pattern]
+  - `void SetPatternPieceName(int _patternIndex, std::string _patternName)` — `PatternAPIInterface.h:557`
+- **`GetPatternPieceFabricIndex`** [fabric] [pattern]
+  - `int GetPatternPieceFabricIndex(int _patternPieceIndex)` — `PatternAPIInterface.h:564`
+- **`SetPatternPieceFabricIndex`** · **WIRED** [fabric] [pattern]
+  - `void SetPatternPieceFabricIndex(int _patternPieceIndex, int _fabricIndex)` — `PatternAPIInterface.h:572`
+- **`GetPatternPieceGrainDirection`** [pattern]
+  - `float GetPatternPieceGrainDirection(int _patternPieceIndex)` — `PatternAPIInterface.h:579`
+- **`SetPatternPieceGrainDirection`** [pattern]
+  - `void SetPatternPieceGrainDirection(int _patternPieceIndex, float _degree)` — `PatternAPIInterface.h:587`
+- **`IsPatternPieceGrainLinkAllColorways`** [pattern] [render]
+  - `bool IsPatternPieceGrainLinkAllColorways(int _patternPieceIndex)` — `PatternAPIInterface.h:594`
+- **`SetPatternPieceGrainLinkAllColorways`** [pattern] [render]
+  - `void SetPatternPieceGrainLinkAllColorways(int _patternPieceIndex, bool _isOn)` — `PatternAPIInterface.h:602`
+- **`GetPatternPieceCategory`** [pattern]
+  - `int GetPatternPieceCategory(int _patternPieceIndex)` — `PatternAPIInterface.h:609`
+- **`SetPatternPieceCategory`** [pattern]
+  - `void SetPatternPieceCategory(int _patternPieceIndex, int _category)` — `PatternAPIInterface.h:617`
+- **`GetPatternPieceClassification`** [pattern]
+  - `std::string GetPatternPieceClassification(int _patternPieceIndex)` — `PatternAPIInterface.h:624`
+- **`SetPatternPieceClassification`** [pattern]
+  - `void SetPatternPieceClassification(int _patternPieceIndex, std::string _classification)` — `PatternAPIInterface.h:632`
+- **`IsPatternPieceSolidify`** [pattern]
+  - `bool IsPatternPieceSolidify(int _patternPieceIndex)` — `PatternAPIInterface.h:639`
+- **`SetPatternPieceSolidify`** [pattern]
+  - `void SetPatternPieceSolidify(int _patternPieceIndex, bool _isOn)` — `PatternAPIInterface.h:647`
+- **`GetPatternPieceSolidifyStrengthen`** [pattern]
+  - `float GetPatternPieceSolidifyStrengthen(int _patternPieceIndex)` — `PatternAPIInterface.h:654`
+- **`SetPatternPieceSolidifyStrengthen`** [pattern]
+  - `void SetPatternPieceSolidifyStrengthen(int _patternPieceIndex, float _strengthen)` — `PatternAPIInterface.h:662`
+- **`ConvertToBaseLine`** 
+  - `void ConvertToBaseLine(int _patternIndex, int _childrenIndex)` — `PatternAPIInterface.h:670`
+- **`ConvertToInternalLine`** [pattern]
+  - `void ConvertToInternalLine(int _patternIndex, int _childrenIndex)` — `PatternAPIInterface.h:678`
+- **`DistribueInternalLinesbetweenSegments`** [pattern]
+  - `void DistribueInternalLinesbetweenSegments(int _patternIndex, std::vector<int> _lineIndexs, int _number, bool _bStraightLine, bool _bPerpendicularDirection, bool _bGraduateSegmentLengths)` — `PatternAPIInterface.h:690`
+- **`GetPatternPiecePos`** [pattern]
+  - `std::vector<float> GetPatternPiecePos(int _patternIndex)` — `PatternAPIInterface.h:696`
+  - Get Pattern piece's world position
+    - param `_patternIndex: The pattern index to get the world position`
+    - returns: The world position of pattern is given in order (x, y). If an error occurs, return empty vector
+- **`SetPatternPiecePos`** [pattern]
+  - `void SetPatternPiecePos(int _patternIndex, float _x, float _y)` — `PatternAPIInterface.h:703`
+  - Set Pattern piece's world position to (_x, _y)
+    - param `_patternIndex: The pattern index to move`
+    - param `_x: The X position of pattern want to move`
+    - param `_y: The Y position of pattern want to move`
+- **`SetPatternPieceMove`** [pattern]
+  - `void SetPatternPieceMove(int _patternIndex, float _offsetX, float _offsetY)` — `PatternAPIInterface.h:710`
+  - Set Pattern piece's world position to (CurrentPosition.x + _offsetX, CurrentPosition.y + _offsetY)
+    - param `_patternIndex: The pattern index to move`
+    - param `_offsetX: The X position offset of pattern want to move`
+    - param `_offsetY: The Y position offset of pattern want to move`
+- **`SetPatternPieceElastic`** [pattern] [elastic]
+  - `void SetPatternPieceElastic(int _patternIndex, int _lineIndex, bool _bElastic)` — `PatternAPIInterface.h:717`
+  - Set Pattern piece's elastic. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply elastic`
+    - param `_lineIndex: The line index to apply elastic. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_bElastic: Whether to apply elastic`
+- **`SetPatternPieceElasticStrength`** [pattern] [elastic]
+  - `void SetPatternPieceElasticStrength(int _patternIndex, int _lineIndex, float _strength)` — `PatternAPIInterface.h:724`
+  - Set Pattern piece's elastic strength. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply elastic strength`
+    - param `_lineIndex: The line index to apply elastic strength. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_strength: The strength of elastic`
+- **`SetPatternPieceElasticStrengthRatio`** [pattern] [elastic]
+  - `void SetPatternPieceElasticStrengthRatio(int _patternIndex, int _lineIndex, int _ratio)` — `PatternAPIInterface.h:731`
+  - Set Pattern piece's elastic strength ratio. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply elastic strength ratio`
+    - param `_lineIndex: The line index to apply elastic strength ratio. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_ratio: The strength ratio of elastic`
+- **`SetPatternPieceElasticSegmentLength`** [pattern] [elastic]
+  - `void SetPatternPieceElasticSegmentLength(int _patternIndex, int _lineIndex, float _segmentLength)` — `PatternAPIInterface.h:738`
+  - Set Pattern piece's segment length of elastic. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply segment length`
+    - param `_lineIndex: The line index to apply segment length. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_segmentLength: The segment length of elastic`
+- **`SetPatternPieceElasticTotalLength`** [pattern] [elastic]
+  - `void SetPatternPieceElasticTotalLength(int _patternIndex, int _lineIndex, float _totalLength)` — `PatternAPIInterface.h:745`
+  - Set Pattern piece's total length of elastic. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply total length`
+    - param `_lineIndex: The line index to apply total length. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_totalLength: The total length of elasitc`
+- **`SetPatternPieceShirring`** [pattern]
+  - `void SetPatternPieceShirring(int _patternIndex, int _lineIndex, bool _bShirring)` — `PatternAPIInterface.h:752`
+  - Set Pattern piece's shirring. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply shirring`
+    - param `_lineIndex: The line index to apply shirring. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_bShirring: Whether to apply shirring`
+- **`SetPatternPieceShirringInterval`** [pattern]
+  - `void SetPatternPieceShirringInterval(int _patternIndex, int _lineIndex, float _interval)` — `PatternAPIInterface.h:759`
+  - Set Pattern piece's shirring interval. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply shirring interval`
+    - param `_lineIndex: The line index to apply shirring interval. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_interval: The interval of shirring`
+- **`SetPatternPieceShirringHeight`** [pattern]
+  - `void SetPatternPieceShirringHeight(int _patternIndex, int _lineIndex, float _height)` — `PatternAPIInterface.h:766`
+  - Set Pattern piece's shirring height. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply shirring height`
+    - param `_lineIndex: The line index to apply shirring height. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_height: The height of shirring`
+- **`SetPatternPieceShirringExtend`** [pattern]
+  - `void SetPatternPieceShirringExtend(int _patternIndex, int _lineIndex, bool _bExtend)` — `PatternAPIInterface.h:773`
+  - Set Pattern piece's shirring extend. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply shirring extend`
+    - param `_lineIndex: The line index to apply shirring extend. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_bExtend: Whether to apply shirring extend`
+- **`SetPatternPieceSeamtaping`** [pattern] [elastic]
+  - `void SetPatternPieceSeamtaping(int _patternIndex, int _lineIndex, bool _bSeamtaping)` — `PatternAPIInterface.h:780`
+  - Set Pattern piece's seamtaping. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply seamtaping`
+    - param `_lineIndex: The line index to apply seamtaping. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_bSeamtaping: Whether to apply seamtaping`
+- **`SetPatternPieceSametapingWidth`** [pattern]
+  - `void SetPatternPieceSametapingWidth(int _patternIndex, int _lineIndex, float _width)` — `PatternAPIInterface.h:787`
+  - Set Pattern piece's seamtaping width. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line
+    - param `_patternIndex: The pattern index to apply seamtaping width`
+    - param `_lineIndex: The line index to apply seamtaping width. When _lineIndex == -1, apply to all line, 0 <= _lineIndex, apply to line`
+    - param `_width: The width of seamtaping width`
+- **`CreatePatternWithPoints`** [pattern]
+  - `int CreatePatternWithPoints(std::vector<std::tuple<float, float, int>> _points)` — `PatternAPIInterface.h:797`
+  - Create a pattern using a set of vertices.
+    - param `_points: set of vertices.`
+    - param `tuple --> postion X, postion Y, VertexType`
+    - param `VertexType : 0, 2, 3`
+    - param `0 : Straight Point`
+    - param `2 : Spline Curve Point`
+    - param `3 : Bezier Curve Point`
+- **`CreateInternalShapeWithPoints`** [pattern]
+  - `int CreateInternalShapeWithPoints(int _patternIndex, std::vector<std::tuple<float, float, int>> _points, bool _isClosed)` — `PatternAPIInterface.h:809`
+  - Create a pattern's internal shape using a set of vertices.
+    - param `_patternIndex: Parent Pattern Index`
+    - param `tuple --> postion X, postion Y, VertexType`
+    - param `VertexType : 0, 2, 3`
+    - param `0 : Straight Point`
+    - param `2 : Spline Curve Point`
+    - param `3 : Bezier Curve Point`
+    - param `_isClosed: If true, connect the last vertex to the first vertex.`
+    - returns: PatternIndex
+- **`CreateBaseShapeWithPoints`** 
+  - `int CreateBaseShapeWithPoints(int _patternIndex, std::vector<std::tuple<float, float, int>> _points, bool _isClosed)` — `PatternAPIInterface.h:822`
+  - Create a pattern's base shape using a set of vertices.
+    - param `_patternIndex: Parent Pattern Index`
+    - param `_points: set of vertices.`
+    - param `tuple --> postion X, postion Y, VertexType`
+    - param `VertexType : 0, 2, 3`
+    - param `0 : Straight Point`
+    - param `2 : Spline Curve Point`
+    - param `3 : Bezier Curve Point`
+    - param `_isClosed: If true, connect the last vertex to the first vertex.`
+    - returns: InternalShapeIndex
+- **`SetPatternLayer`** [pattern]
+  - `void SetPatternLayer(int _patternIndex, int _layer)` — `PatternAPIInterface.h:830`
+  - Set Pattern Layer using pattern index, layer
+    - param `patternIndex: the pattern index to set the pattern layer,`
+    - param `layer: the layer value to determine pattern layer`
+    - returns: BaseShapeIndex
+- **`GetPatternLayer`** [pattern]
+  - `int GetPatternLayer(int _patternIndex)` — `PatternAPIInterface.h:836`
+  - Get Pattern Layer using pattern index
+    - param `patternIndex: the pattern index to get the pattern layer,`
+- **`SetPatternFreeze`** [pattern]
+  - `void SetPatternFreeze(int _patternIndex, bool _bFreeze)` — `PatternAPIInterface.h:843`
+  - Set Pattern Freeze using pattern index, freeze state
+    - param `patternIndex: the pattern index to set the pattern freeze state,`
+    - param `freeze: the freeze state to determine pattern freeze`
+- **`SetPatternStrengthen`** [pattern]
+  - `void SetPatternStrengthen(int _patternIndex, bool _bStrengthen)` — `PatternAPIInterface.h:850`
+  - Set Pattern Strengthen using pattern index, Active state
+    - param `patternIndex: the pattern index to set the pattern Strengthen,`
+    - param `Strengthen: the Active state to determine pattern Strengthen`
+- **`SetPatternLock`** [pattern]
+  - `void SetPatternLock(int _patternIndex, bool _bLock)` — `PatternAPIInterface.h:857`
+  - Set Pattern Lock using pattern index, Lock state
+    - param `patternIndex: the pattern index to set the pattern Lock,`
+    - param `Lock: the Lock state to determine pattern Lock`
+- **`SetPatternHide3D`** [pattern]
+  - `void SetPatternHide3D(int _patternIndex, bool _bHide)` — `PatternAPIInterface.h:864`
+  - Set Pattern Hide 3d using pattern index, Hide state
+    - param `patternIndex: the pattern index to set the pattern Hide 3d,`
+    - param `Hide: the Hide state to determine pattern Lock`
+- **`AddSegmentTopstitch`** [topstitch]
+  - `bool AddSegmentTopstitch(int _patternIndex, int _lineIndex, int _topStitchStyleIndex)` — `PatternAPIInterface.h:873`
+- **`AddSeamlineTopstitch`** [pattern] [topstitch]
+  - `bool AddSeamlineTopstitch(unsigned int _seamlinePairGroupIndex, float _startRatio, float _endRatio, int _topStichStyleIndex)` — `PatternAPIInterface.h:882`
+  - Add Seamline Topstitch to  Seamline using the seamline pair group index, startRatio, endRatio, topStitchStyleIndex
+    - param `_seamlinePairGroupIndex: the seamline pair groupindex for Add Seamilne Topstitch to pattern`
+    - param `_startRatio: This is where the topstitch starts. You need to enter what percentage of the total seamline pair group length you want to start at.`
+    - param `_endRatio: This is where the topstitch ends. You need to enter what percentage of the total seamline pair group length you want to end at.`
+    - param `_topStichStyleIndex : the topstitch style index for topstitch`
+- **`GetTopstitchStyleList`** [topstitch]
+  - `std::vector<std::map<std::string, std::string>> GetTopstitchStyleList()` — `PatternAPIInterface.h:890`
+- **`GetPatternAssignedTopstitchCount`** [pattern] [topstitch]
+  - `int GetPatternAssignedTopstitchCount(int _patternIndex)` — `PatternAPIInterface.h:902`
+- **`GetPatternAssignedTopstitchStyle`** [pattern] [topstitch]
+  - `std::vector<std::map<std::string, std::string>> GetPatternAssignedTopstitchStyle(int _patternIndex)` — `PatternAPIInterface.h:910`
+- **`GetPatternAssignedTopstitch`** [pattern] [topstitch]
+  - `std::vector<std::map<std::string, std::string>> GetPatternAssignedTopstitch(int _patternIndex)` — `PatternAPIInterface.h:922`
+- **`GetPatternAssignedTopstitchStyleIndex`** [pattern] [topstitch]
+  - `int GetPatternAssignedTopstitchStyleIndex(int _patternIndex, int _segmentStitchIndex)` — `PatternAPIInterface.h:934`
+- **`SetPatternAssignedTopstitchStyle`** [pattern] [topstitch]
+  - `void SetPatternAssignedTopstitchStyle(int _patternIndex, int _segmentStitchIndex, int _stitchStyleIndex)` — `PatternAPIInterface.h:941`
+- **`IsPatternAssignedTopstitchExtendStart`** [pattern] [topstitch]
+  - `bool IsPatternAssignedTopstitchExtendStart(int _patternIndex, int _segmentStitchIndex)` — `PatternAPIInterface.h:949`
+- **`SetPatternAssignedTopstitchExtendStart`** [pattern] [topstitch]
+  - `void SetPatternAssignedTopstitchExtendStart(int _patternIndex, int _segmentStitchIndex, bool _bStart)` — `PatternAPIInterface.h:957`
+- **`IsPatternAssignedTopstitchExtendEnd`** [pattern] [topstitch]
+  - `bool IsPatternAssignedTopstitchExtendEnd(int _patternIndex, int _segmentStitchIndex)` — `PatternAPIInterface.h:965`
+- **`SetPatternAssignedTopstitchExtendEnd`** [pattern] [topstitch]
+  - `void SetPatternAssignedTopstitchExtendEnd(int _patternIndex, int _segmentStitchIndex, bool _bEnd)` — `PatternAPIInterface.h:973`
+- **`IsPatternAssignedTopstitchCurved`** [pattern] [topstitch]
+  - `bool IsPatternAssignedTopstitchCurved(int _patternIndex, int _segmentStitchIndex)` — `PatternAPIInterface.h:981`
+- **`SetPatternAssignedTopstitchCurved`** [pattern] [topstitch]
+  - `void SetPatternAssignedTopstitchCurved(int _patternIndex, int _segmentStitchIndex, bool _bCurved)` — `PatternAPIInterface.h:989`
+- **`GetPatternAssignedTopstitchCurvedLength`** [pattern] [topstitch]
+  - `int GetPatternAssignedTopstitchCurvedLength(int _patternIndex, int _segmentStitchIndex)` — `PatternAPIInterface.h:997`
+- **`SetPatternAssignedTopstitchCurvedLength`** [pattern] [topstitch]
+  - `void SetPatternAssignedTopstitchCurvedLength(int _patternIndex, int _segmentStitchIndex, int _length)` — `PatternAPIInterface.h:1005`
+- **`IsPatternAssignedTopstitchCurvedRightAngled`** [pattern] [topstitch]
+  - `bool IsPatternAssignedTopstitchCurvedRightAngled(int _patternIndex, int _segmentStitchIndex)` — `PatternAPIInterface.h:1013`
+- **`SetPatternAssignedTopstitchCurvedRightAngled`** [pattern] [topstitch]
+  - `void SetPatternAssignedTopstitchCurvedRightAngled(int _patternIndex, int _segmentStitchIndex, bool _bRightAngled)` — `PatternAPIInterface.h:1021`
+- **`GetPatternAssignedTopstitchZOffset`** [pattern] [topstitch]
+  - `float GetPatternAssignedTopstitchZOffset(int _patternIndex, int _segmentStitchIndex)` — `PatternAPIInterface.h:1029`
+- **`SetPatternAssignedTopstitchZOffset`** [pattern] [topstitch]
+  - `void SetPatternAssignedTopstitchZOffset(int _patternIndex, int _segmentStitchIndex, float _zOffset)` — `PatternAPIInterface.h:1037`
+- **`ImportTopStitchStyle`** [topstitch] [import]
+  - `bool ImportTopStitchStyle(const std::string& _filePath)` — `PatternAPIInterface.h:1044`
+- **`GetNestingPatternPieceGrainDirection`** [pattern]
+  - `int GetNestingPatternPieceGrainDirection(int patternPieceIndex)` — `PatternAPIInterface.h:1050`
+  - Returns the index of the graindirection option widget for the pattern.
+    - param `patternPieceIndex: PatternIndex`
+- **`SetNestingPatternPieceGrainDirection`** [pattern]
+  - `void SetNestingPatternPieceGrainDirection(int patternPieceIndex, int menuIndex)` — `PatternAPIInterface.h:1057`
+  - Set the index of the graindirection option widget for the pattern.
+    - param `patternPieceIndex: PatternIndex`
+    - param `menuIndex: graindirection option widget index, 0 : 1-way, 1 : 2-way , 2 : 4-way`
+- **`GetNestingFixedPatternPiecePos`** [pattern]
+  - `std::pair<int, int> GetNestingFixedPatternPiecePos(int patternPieceIndex)` — `PatternAPIInterface.h:1063`
+  - When the pattern is fixed in print layout mode, the coordinates of the fixed position are returned. If not, it returns {0, 0}.
+    - param `patternPieceIndex: PatternIndex`
+- **`SetNestingFixedPatternPiecePos`** [pattern]
+  - `void SetNestingFixedPatternPiecePos(int patternPieceIndex, int x, int y)` — `PatternAPIInterface.h:1071`
+  - Fix the pattern in print layout mode.
+    - param `patternPieceIndex: PatternIndex`
+    - param `x: fixed position x`
+    - param `y: fixed position y`
+- **`AddPatternAnnotation`** [pattern]
+  - `void AddPatternAnnotation(int patternIndex, float posX, float posY, std::string annotation)` — `PatternAPIInterface.h:1079`
+  - Add Annotation in pattern
+    - param `patternPieceIndex: PatternIndex`
+    - param `posX: annotation position x`
+    - param `posY: annotation position y`
+- **`EditPatternAnnotation`** [pattern]
+  - `void EditPatternAnnotation(int patternIndex, float posX, float posY, int annotationIndex, std::string annotation)` — `PatternAPIInterface.h:1088`
+  - Edit Annotation
+    - param `patternPieceIndex: PatternIndex`
+    - param `posX: annotation position x`
+    - param `posY: annotation position y`
+    - param `annotationIndex: annotation Index`
+- **`GetPatternAnnotation`** [pattern]
+  - `std::vector<std::tuple<std::string, float, float>> GetPatternAnnotation(int patternIndex)` — `PatternAPIInterface.h:1094`
+  - Returns all annotations the pattern has.
+    - param `patternIndex: PatternIndex`
+- **`GetLinkedPatternIndex`** [pattern]
+  - `std::vector<int> GetLinkedPatternIndex(int patternIndex)` — `PatternAPIInterface.h:1100`
+  - Get the pattern index information connected to the pattern.
+    - param `patternIndex: Tartget Pattern Index`
+- **`GetTopstitchStyleModelType`** [topstitch]
+  - `int GetTopstitchStyleModelType(int _topStitchStyleIndex)` — `PatternAPIInterface.h:1106`
+  - Get topstitch style's model type (Type value: OBJ = 0, Texture = 1, Fail = -1)
+    - param `_topStitchStyleIndex: the topstitch style index for topstitch`
+- **`SetTopstitchStyleModelType`** [topstitch]
+  - `bool SetTopstitchStyleModelType(int _topStitchStyleIndex, int _modelType)` — `PatternAPIInterface.h:1113`
+  - Set topstitch style's model type. If it succeeds, return true
+    - param `_topStitchStyleIndex: the topstitch style index for topstitch`
+    - param `_modelType:  the topstitch style model type (Type value: OBJ = 0, Texture = 1)`
+- **`ExportObjectBrowserMaterialsList`** [export]
+  - `std::string ExportObjectBrowserMaterialsList()` — `PatternAPIInterface.h:1119`
+  - Get the material name used in the garment
+    - returns: json string for pattern input information
+- **`GetPinListSize`** [pattern]
+  - `int GetPinListSize()` — `PatternAPIInterface.h:1125`
+  - Count the number of pins from patterns
+    - returns: number of pins
+- **`RemovePin`** 
+  - `bool RemovePin()` — `PatternAPIInterface.h:1130`
+  - Removes Pin one by one
+- **`RemoveAllPins`** 
+  - `bool RemoveAllPins()` — `PatternAPIInterface.h:1135`
+  - Removes all active pins
+- **`GetValidGradingSizeGroupInformation`** [grading]
+  - `std::vector<std::wstring> GetValidGradingSizeGroupInformation()` — `PatternAPIInterface.h:1141`
+  - Gets the names of the grading size groups that are valid for the patterns currently loaded in the scene.
+    - returns: names of the grading size groups
+- **`GetValidGradingSizeGroupCount`** [grading]
+  - `unsigned int GetValidGradingSizeGroupCount()` — `PatternAPIInterface.h:1147`
+  - Get the size of the grading size grouplist that is valid for the patterns currently loaded in the scene.
+    - returns: size of the grading size groups
+- **`GetGradingSizeGroupInformation`** [grading]
+  - `std::vector<std::wstring> GetGradingSizeGroupInformation()` — `PatternAPIInterface.h:1153`
+  - Get the names of all existing grading size groups.
+    - returns: names of the grading size groups
+- **`GetGradingSizeGroupCount`** [grading]
+  - `unsigned int GetGradingSizeGroupCount()` — `PatternAPIInterface.h:1159`
+  - Get the size of all existing grading size groups.
+    - returns: size of the grading size groups
+- **`GetGradingSizeTotalCount`** [grading]
+  - `unsigned int GetGradingSizeTotalCount()` — `PatternAPIInterface.h:1165`
+  - Get the number of sizes/gradings
+    - returns: total count of sizes/gradings
+- **`GetCurrentGradingSizeIndex`** [grading]
+  - `unsigned int GetCurrentGradingSizeIndex()` — `PatternAPIInterface.h:1171`
+  - Get the index of the current size/grading
+    - returns: the current index of size/grading
+- **`GetGradingSizeListFromRuleTable`** [grading]
+  - `std::vector<std::wstring> GetGradingSizeListFromRuleTable(const std::wstring& _gradingSizeGroupName)` — `PatternAPIInterface.h:1177`
+  - Get the list of name about the grading size from grading size group;
+    - returns: the list of name of all sizes/gradings
+- **`GetGradingSizeListFromRuleTable`** [grading]
+  - `std::vector<std::wstring> GetGradingSizeListFromRuleTable(unsigned int _gradingSizeGroupIndex)` — `PatternAPIInterface.h:1179`
+- **`GetGradingSizeNameList`** [grading]
+  - `std::vector<std::string> GetGradingSizeNameList()` — `PatternAPIInterface.h:1185`
+  - Get the name of the current size/grading
+    - returns: the list of name of all sizes/gradings
+- **`GetGradingSizeNameListW`** [grading]
+  - `std::vector<std::wstring> GetGradingSizeNameListW()` — `PatternAPIInterface.h:1195`
+  - Get the index of the current size/grading
+    - returns: the list of name of all sizes/gradings
+- **`ChangeGradingSizeInformation`** [grading]
+  - `bool ChangeGradingSizeInformation(const std::wstring& _gradingSizeGroupName, const std::wstring& _gradingSizeName)` — `PatternAPIInterface.h:1207`
+  - Change Grading Size information
+    - param `_gradingSizeGroupName: sizegroup name`
+    - param `_gradingSizeName: grading size name`
+    - returns: Successful grading size change
+- **`ChangeGradingSizeInformation`** [grading]
+  - `bool ChangeGradingSizeInformation(unsigned int _gradingSizeGroupIndex, unsigned int _gradingSizeIndex)` — `PatternAPIInterface.h:1215`
+  - Change Grading Size information
+    - param `_gradingSizeGroupIndex: sizegroup index`
+    - param `_gradingSizeIndex: grading size index`
+    - returns: Successful grading size change
+- **`GetGradingPairedAvatar`** [avatar] [grading]
+  - `std::string GetGradingPairedAvatar(unsigned int _gradingIndex)` — `PatternAPIInterface.h:1222`
+  - Get grading paired avatar's name
+    - param `grading index`
+    - returns: Paired avatar's name
+- **`GetSeamlinePairGroupListInPattern`** · doc [pattern]
+  - `std::vector<unsigned int> GetSeamlinePairGroupListInPattern(unsigned int _patternIndex)` — `PatternAPIInterface.h:1229`
+  - Gets a list of the seamlinePairGroup associated with the pattern.
+    - param `_patternIndex: pattern index`
+    - returns: Index List of seamlinePairGroup
+- **`GetSeamlinePairGroupCount`** · doc [pattern]
+  - `int GetSeamlinePairGroupCount()` — `PatternAPIInterface.h:1235`
+  - Gets the number of seamlinePairGroup that exist in the scene.
+    - returns: Number of seamlinePairGroup
+- **`GetSeamlinePairGroupName`** · doc [pattern]
+  - `std::string GetSeamlinePairGroupName(int _seamlinePiarGroupIndex)` — `PatternAPIInterface.h:1242`
+  - Get name from seamline pair group index
+    - param `_seamlinePiarGroupIndex : seamlinePairGroup index`
+    - returns: name of seamline Pair Group
+- **`GetSeamlinePairGroupNameW`** [pattern]
+  - `std::wstring GetSeamlinePairGroupNameW(int _seamlinePiarGroupIndex)` — `PatternAPIInterface.h:1249`
+  - Get name from seamline pair group index
+    - param `_seamlinePiarGroupIndex : seamline Pair Group index`
+    - returns: name of seamline Pair Group
+- **`GetSeamlinePairGroupIndexFromName`** · doc [pattern]
+  - `int GetSeamlinePairGroupIndexFromName(std::string _seamlinePairGroupName)` — `PatternAPIInterface.h:1256`
+  - Get index from seamline pair group name
+    - param `_seamlinePairGroupName : seamlinePairGroup name`
+    - returns: name of sewing group(wide string)
+- **`GetSeamlinePairGroupIndexFromNameW`** [pattern]
+  - `int GetSeamlinePairGroupIndexFromNameW(std::wstring _seamlinePairGroupNameW)` — `PatternAPIInterface.h:1263`
+  - Get index from seamline pair group name
+    - param `_seamlinePairGroupNameW : seamlinePairGroup name`
+    - returns: name of sewing group(wide string)
+- **`ExportPatternJSON`** [pattern] [export]
+  - `bool ExportPatternJSON(std::string _path)` — `PatternAPIInterface.h:1269`
+  - Export pattern information by JSON format
+    - returns: boolean result of exporting json file
+- **`ImportPatternJSON`** · doc [pattern] [import]
+  - `bool ImportPatternJSON(std::string _path)` — `PatternAPIInterface.h:1275`
+  - Import pattern information of JSON file
+    - returns: boolean result of importing json file
+- **`ExportPatternCPX`** · doc [pattern] [export]
+  - `bool ExportPatternCPX(std::string _path)` — `PatternAPIInterface.h:1283`
+  - Export pattern information in binary .cpx (CLO Pattern eXchange) format. Returns false on hosts without CLO_HAS_PATTERN_API_CPX support (e.g. WASM builds).
+    - returns: boolean result of exporting cpx file
+- **`ImportPatternCPX`** · doc [pattern] [import]
+  - `bool ImportPatternCPX(std::string _path)` — `PatternAPIInterface.h:1290`
+  - Import pattern information from a .cpx binary file. Returns false on hosts without CLO_HAS_PATTERN_API_CPX support.
+    - returns: boolean result of importing cpx file
+- **`ConvertPatternJSONToCPX`** · doc [pattern]
+  - `bool ConvertPatternJSONToCPX(std::string _jsonPath, std::string _cpxPath)` — `PatternAPIInterface.h:1299`
+  - Convert a .json pattern file to a .cpx binary without permanently altering the current scene's user-visible state. Useful for batch conversion / vendor pipelines. Returns false on hosts without CLO_HAS_PATTERN_API_CPX support.
+    - returns: boolean result of conversion
+- **`GetAllStitchProperty`** [topstitch]
+  - `std::string GetAllStitchProperty()` — `PatternAPIInterface.h:1305`
+  - Gets property information for all the stitches that exist in the scene. It will be returned as a JSON string.
+    - returns: stitch property list, It will be returned as a JSON string.
+- **`AddSeamlinePairGroup`** · **WIRED**, doc [pattern]
+  - `bool AddSeamlinePairGroup(int _patternAIndex, int _lineAIndex, int _patternBIndex, int _lineBIndex, bool _directionA, bool _directionB)` — `PatternAPIInterface.h:1317`
+  - Add Pattern and Sewing between Pattern
+    - param `_patternAIndex : A pattern index`
+    - param `_lineAIndex : The index of the line that belongs to the A pattern.`
+    - param `_patternBIndex : B pattern index`
+    - param `_lineBIndex : The index of the line that belongs to the B pattern.`
+    - param `_directionA : The direction of the stitching, true : forward, false : backward`
+    - param `_directionB : The direction of the stitching, true : forward, false : backward`
+    - returns: name of sewing group(wide string)
+- **`AddSeamlinePairGroup`** · **WIRED**, doc [pattern]
+  - `bool AddSeamlinePairGroup(int _patternAIndex, int _lineAIndex, int _patternBIndex, int _childIndex, int _lineBIndex, bool _directionA, bool _directionB)` — `PatternAPIInterface.h:1330`
+  - Add Patterns and Sewing between InnerShape
+    - param `_patternAIndex : A pattern index`
+    - param `_lineAIndex : The index of the line that belongs to the A pattern.`
+    - param `_patternBIndex : B pattern index`
+    - param `_childIndex : The index of the innershape that belongs to the B pattern.`
+    - param `_lineBIndex : The index of the line that belongs to the innerShape.`
+    - param `_directionA : The direction of the stitching, true : forward, false : backward`
+    - param `_directionB : The direction of the stitching, true : forward, false : backward`
+    - returns: name of sewing group(wide string)
+- **`AddSeamlinePairGroup`** · **WIRED**, doc [pattern]
+  - `bool AddSeamlinePairGroup(int _patternAIndex, int _childAIndex, int _lineAIndex, int _patternBIndex, int _childBIndex, int _lineBIndex, bool _directionA, bool _directionB)` — `PatternAPIInterface.h:1344`
+  - Add InnerShape and Sewing between InnerShape
+    - param `_patternAIndex : A pattern index`
+    - param `_childAIndex : The index of the innershape that belongs to the A pattern.`
+    - param `_lineAIndex : The index of the line that belongs to the innerShape.`
+    - param `_patternBIndex : B pattern index`
+    - param `_childBIndex : The index of the innershape that belongs to the B pattern.`
+    - param `_lineBIndex : The index of the line that belongs to the innerShape.`
+    - param `_directionA : The direction of the stitching, true : forward, false : backward`
+    - param `_directionB : The direction of the stitching, true : forward, false : backward`
+    - returns: name of sewing group(wide string)
+- **`AddSeamlinePairGroupPartial`** [pattern]
+  - `int AddSeamlinePairGroupPartial(int _patternAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB)` — `PatternAPIInterface.h:1368`
+  - Add sewing between sub-segments of two pattern outline lines (pattern A line <-> pattern B line). Unlike AddSeamlinePairGroup, which always sews the whole line, each side here sews only the portion of its line between the given ratios, so a seam can cover part of an edge. The resulting stitch is identical to a manually created one and simulates the same way.
+    - param `_patternAIndex : A pattern index`
+    - param `_lineAIndex : The index of the line that belongs to the A pattern.`
+    - param `_startRatioA : Where the seam starts along the A line, normalized to the line length. 0.0 is the line start, 1.0 the line end.`
+    - param `_endRatioA : Where the seam ends along the A line. Must be strictly greater than _startRatioA.`
+    - param `_directionA : The direction of the stitching, true : forward, false : backward`
+    - param `_patternBIndex : B pattern index`
+    - param `_lineBIndex : The index of the line that belongs to the B pattern.`
+    - param `_startRatioB : Where the seam starts along the B line, normalized to the line length.`
+    - param `_endRatioB : Where the seam ends along the B line. Must be strictly greater than _startRatioB.`
+    - param `_directionB : The direction of the stitching, true : forward, false : backward`
+    - returns: Marvelous::SeamlinePairGroupResult - SEAMLINE_PAIR_SUCCESS (0) on success, a negative code on failure. Test against SEAMLINE_PAIR_SUCCESS rather than for truthiness, because 0 is falsy in Python.
+- **`AddSeamlinePairGroupPartial`** [pattern]
+  - `int AddSeamlinePairGroupPartial(int _patternAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _childBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB)` — `PatternAPIInterface.h:1388`
+  - Add sewing between a sub-segment of a pattern outline line and a sub-segment of an inner shape line (pattern A outline <-> pattern B inner shape).
+    - param `_patternAIndex : A pattern index`
+    - param `_lineAIndex : The index of the line that belongs to the A pattern.`
+    - param `_startRatioA : Where the seam starts along the A line, normalized to the line length.`
+    - param `_endRatioA : Where the seam ends along the A line. Must be strictly greater than _startRatioA.`
+    - param `_directionA : The direction of the stitching, true : forward, false : backward`
+    - param `_patternBIndex : B pattern index`
+    - param `_childBIndex : The index of the innershape that belongs to the B pattern.`
+    - param `_lineBIndex : The index of the line that belongs to the innerShape.`
+    - param `_startRatioB : Where the seam starts along the B line, normalized to the line length.`
+    - param `_endRatioB : Where the seam ends along the B line. Must be strictly greater than _startRatioB.`
+    - param `_directionB : The direction of the stitching, true : forward, false : backward`
+    - returns: Marvelous::SeamlinePairGroupResult - SEAMLINE_PAIR_SUCCESS (0) on success, a negative code on failure.
+- **`AddSeamlinePairGroupPartial`** [pattern]
+  - `int AddSeamlinePairGroupPartial(int _patternAIndex, int _childAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _childBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB)` — `PatternAPIInterface.h:1408`
+  - Add sewing between sub-segments of two inner shape lines (pattern A inner shape <-> pattern B inner shape).
+    - param `_patternAIndex : A pattern index`
+    - param `_childAIndex : The index of the innershape that belongs to the A pattern.`
+    - param `_lineAIndex : The index of the line that belongs to the innerShape.`
+    - param `_startRatioA : Where the seam starts along the A line, normalized to the line length.`
+    - param `_endRatioA : Where the seam ends along the A line. Must be strictly greater than _startRatioA.`
+    - param `_directionA : The direction of the stitching, true : forward, false : backward`
+    - param `_patternBIndex : B pattern index`
+    - param `_childBIndex : The index of the innershape that belongs to the B pattern.`
+    - param `_lineBIndex : The index of the line that belongs to the innerShape.`
+    - param `_startRatioB : Where the seam starts along the B line, normalized to the line length.`
+    - param `_endRatioB : Where the seam ends along the B line. Must be strictly greater than _startRatioB.`
+    - param `_directionB : The direction of the stitching, true : forward, false : backward`
+    - returns: Marvelous::SeamlinePairGroupResult - SEAMLINE_PAIR_SUCCESS (0) on success, a negative code on failure.
+- **`GetSelectedPattern`** [pattern]
+  - `std::vector<std::string> GetSelectedPattern()` — `PatternAPIInterface.h:1414`
+  - Get the selected pattern name
+    - returns: returns the selected pattern name
+- **`GetSelectedPatternViaIndex`** [pattern]
+  - `bool GetSelectedPatternViaIndex(unsigned int patternIndex)` — `PatternAPIInterface.h:1425`
+  - Check if the pattern is selected via pattern index
+    - param `patternIndex : The index of the pattern to select.`
+    - returns: returns true if the pattern is selected.
+- **`SelectPatternViaIndex`** [pattern]
+  - `void SelectPatternViaIndex(unsigned int patternIndex, bool keepPreviousSelection)` — `PatternAPIInterface.h:1432`
+  - Select patterns via name
+    - param `patternIndex : The index of the pattern to select.`
+    - param `keepPreviousSelection : True if you want to keep the previous selection. False will clear the previous selection.`
+- **`SelectPatternViaName`** [pattern]
+  - `void SelectPatternViaName(std::string _patternName, bool keepPreviousSelection)` — `PatternAPIInterface.h:1439`
+  - Select patterns via name
+    - param `_patternName : The name of the pattern to select.`
+    - param `keepPreviousSelection : True if you want to keep the previous selection. False will clear the previous selection.`
+- **`GetBackUVExpansion`** 
+  - `bool GetBackUVExpansion(int _patternIndex)` — `PatternAPIInterface.h:1446`
+  - Get the status of back face UV expansion using pattern index
+    - param `patternIndex: the pattern index to get the pattern back face UV expansion`
+    - returns: pattern state for back UV expansion
+- **`SetBackUVExpansion`** 
+  - `void SetBackUVExpansion(int _patternIndex, bool _bSet)` — `PatternAPIInterface.h:1453`
+  - Set back face UV expansion using pattern index
+    - param `patternIndex: the pattern index to set the pattern back face UV expansion`
+    - param `_bSet : The state for back UV expansion, true : Enable back UV expansion, false : Disable back UV expansion`
+- **`GetSideUVExpansion`** 
+  - `bool GetSideUVExpansion(int _patternIndex)` — `PatternAPIInterface.h:1460`
+  - Get the status of side face UV expansion using pattern index
+    - param `patternIndex: the pattern index to get the pattern side face UV expansion`
+    - returns: pattern state for side UV expansion
+- **`SetSideUVExpansion`** 
+  - `void SetSideUVExpansion(int _patternIndex, bool _bSet)` — `PatternAPIInterface.h:1467`
+  - Set side face UV expansion using pattern index
+    - param `patternIndex: the pattern index to set the pattern side face UV expansion`
+    - param `_bSet : The state for side UV expansion, true : Enable side UV expansion, false : Disable side UV expansion`
+- **`FitPatternUVToUDIM`** [pattern]
+  - `bool FitPatternUVToUDIM(int _patternIndex, int _udim, float _fillRatio = 1.0f)` — `PatternAPIInterface.h:1479`
+  - Scales and translates all UV dummies of the specified pattern to fill the given UDIM tile. UDIM 1001 is the base tile (col 0, row 0); each column increments by 1 and each row increments by 10 (e.g. 1002 = col 1 row 0, 1011 = col 0 row 1). The 2D window arrangement is not affected. The entire operation is a single undo step.
+    - param `_patternIndex: zero-based index of the pattern to fit`
+    - param `_udim: target UDIM tile number (must be >= 1001)`
+    - param `_fillRatio: fraction of the tile to occupy in 0-1 range (default 1.0 = full tile)`
+    - returns: true on success, false if any argument is invalid or no UV dummies were found
+- **`SetAddlThicknessCollision`** [simulate]
+  - `void SetAddlThicknessCollision(int _patternIndex, float _value)` — `PatternAPIInterface.h:1486`
+  - Set additional thickness collision using pattern index
+    - param `patternIndex: the pattern index to set the pattern`
+    - param `_value : The value for additional thickness collision)`
+- **`GetAddlThicknessCollisionValue`** [simulate]
+  - `float GetAddlThicknessCollisionValue(int _patternIndex)` — `PatternAPIInterface.h:1493`
+  - Get additional thickness collision value using pattern index
+    - param `patternIndex: the pattern index to get the pattern`
+    - returns: additional thickness collision value
+- **`MovePatternPoint`** · pure-virtual [pattern]
+  - `void MovePatternPoint(int _patternIndex, int _pointIndex, float _x, float _y)` — `PatternAPIInterface.h:1501`
+  - Move Pattern Point
+    - param `patternIndex: Index of the pattern.`
+    - param `pointIndex: Index of the point within the pattern.`
+    - param `X, Y : New 2D coordinates in pattern space.`
+- **`GetGradingSizeQuantityMix`** [grading]
+  - `std::map<std::string, int> GetGradingSizeQuantityMix(int _groupIndex)` — `PatternAPIInterface.h:1508`
+  - Get grading size/quantity mix for a specific grading rule group
+    - param `_groupIndex: Index of the grading rule group (0-based)`
+    - returns: Map of size names (as std::string) to quantity values (as int)
+- **`SetGradingSizeQuantityMix`** [grading]
+  - `bool SetGradingSizeQuantityMix(int _groupIndex, const std::map<std::string, int>& _sizeQuantityDict)` — `PatternAPIInterface.h:1516`
+  - Set grading size/quantity mix for a specific grading rule group
+    - param `_groupIndex: Index of the grading rule group (0-based)`
+    - param `_sizeQuantityDict: Map of size names to quantity values`
+    - returns: True if successful, false if group index is invalid
+- **`GetGradingSizeTotalQuantity`** [grading]
+  - `int GetGradingSizeTotalQuantity(int _groupIndex)` — `PatternAPIInterface.h:1523`
+  - Get total quantity for a specific grading rule group
+    - param `_groupIndex: Index of the grading rule group (0-based)`
+    - returns: Sum of all quantities in the group
+- **`AddGraphicStyleToPattern`** [pattern] [graphic]
+  - `bool AddGraphicStyleToPattern(int _patternIndex, int _graphicStyleIndex, const std::vector<float>& _positionRefFromBoundingBox, bool _positionRefTypeCenter, int _face, float _zOffset, float _fAngle)` — `PatternAPIInterface.h:1538`
+  - Places a graphic style onto a specific pattern piece using bounding-box-relative coordinates for current colorway.
+    - param `_patternIndex: Index of the pattern piece where the graphic will be placed.`
+    - param `_graphicStyleIndex: Index of the graphic style to place.`
+    - param `_positionRefFromBoundingBox: Vector of 4 floats [left, right, top, bottom] relative to the pattern bounding box.`
+    - param `When _positionRefTypeCenter is true, only [0] (left) and [2] (top) are used as the (X, Y) offset to the graphic center.`
+    - param `When _positionRefTypeCenter is false, width = right - left, height = bottom - top, and the graphic is sized and centered accordingly.`
+    - param `_positionRefTypeCenter: If true, position values refer to the center of the graphic bounding box. If false, values refer to the outline.`
+    - param `_face: Face side: 0 = front, 1 = back, 2 = both.`
+    - param `_zOffset: Z offset value for the graphic placement.`
+    - param `_fAngle: Rotation angle of the graphic in degrees.`
+    - returns: true if the graphic was successfully placed; otherwise false.
+- **`GetLinkedPatternLists`** [pattern]
+  - `std::string GetLinkedPatternLists()` — `PatternAPIInterface.h:1544`
+  - Get all linked pattern group lists (e.g., Layer Clone)
+    - returns: json string containing all linked pattern group information, If an error occurs or no linked patterns exist, return empty string
+- **`GetPatternGroupsBySeamlineConnectivity`** [pattern]
+  - `std::string GetPatternGroupsBySeamlineConnectivity(bool _bIncludeAttachments = false, bool _bIncludeComponents = false)` — `PatternAPIInterface.h:1607`
+  - Split the scene's pattern pieces into garment groups by connectivity, so e.g. a shirt and a pant loaded in one project come back as two separate groups. Pieces are treated as belonging to the same garment when they are joined by ANY of: a seamline (sewing), glue (a gluing shape copied from a shape on the other piece), a zipper (its two tapes), or a lacing (one lace threading holes on several pieces). Groups are the connected components of that combined graph.
+    - param `_bIncludeAttachments: when true, patterns fastened by a locked button-buttonhole pair are also merged.`
+    - param `This is opt-in because, unlike sewing/glue/zipper/lacing, a button can be unfastened by the wearer`
+    - param `and may join two garments that should stay separate (default false)`
+    - param `_bIncludeComponents: when true, each group also carries a "components" array with the non-fabric`
+    - param `component instances (buttons, buttonholes, graphics/prints, zippers, trims) applied to its patterns,`
+    - param `deduplicated by uid (a zipper spanning two patterns of the group is reported once). Same per-component`
+    - param `fields as GetNonFabricComponentsOnPattern. Default false.`
+    - returns: JSON: {"status","groupCount","groups":[{"groupIndex","patternIndices":[int...],"patternNames":[string...],"patterns":[{"index","name"}...],"components":[...]}]} "patterns" pairs each index with its piece name so callers can map one to the other directly; "patternIndices" stays a plain int list because MovePatternsToUVSpace / ExportGLTF take it as is. ("components" present only when _bIncludeComponents is true). Groups are ordered largest first. Indices are RealPatternList order (as used by GetPatternCount / MovePatternsToUVSpace). On failure: {"status":"failed","message"}.
+- **`GetPatternsAttachedToAvatarMeasures`** · pure-virtual [avatar] [measure] [pattern]
+  - `std::vector<std::map<std::string, std::string>> GetPatternsAttachedToAvatarMeasures()` — `PatternAPIInterface.h:1618`
+  - Retrieve all patterns that are currently attached (pinned/tacked) to avatar measures, grouped by avatar measure. Each entry in the returned vector represents one avatar measure and contains the following keys: "avatarMeasureName" - name of the avatar measure, "patternNames"      - comma-separated names of all patterns attached to that measure.
+    - returns: Vector of maps. Each map represents one avatar measure. Returns an empty vector when no patterns are attached to any avatar measure.
+- **`GetPatternArchiveState`** [pattern]
+  - `bool GetPatternArchiveState(int _patternIndex)` — `PatternAPIInterface.h:1624`
+  - Get the archive state of a pattern using the pattern index
+    - param `_patternIndex: the pattern index to get the archive state`
+    - returns: true if the pattern is archived, false otherwise
+- **`SetPatternArchiveState`** [pattern]
+  - `void SetPatternArchiveState(int _patternIndex, bool _archiveState)` — `PatternAPIInterface.h:1631`
+  - Set the archive state of a pattern using the pattern index
+    - param `_patternIndex: the pattern index to set the archive state`
+    - param `_archiveState: true to archive the pattern, false to unarchive`
+- **`GetPatternUVSpace`** [pattern]
+  - `std::string GetPatternUVSpace(int _patternIndex)` — `PatternAPIInterface.h:1644`
+  - Query which UV tile a pattern currently occupies (its origin tile).
+    - param `_patternIndex: target pattern index (RealPatternList order)`
+    - returns: JSON: {"status","patternIndex","uvSpace","tile":{"x","y"},"bbox":{"x","y","width","height"}} or {"status":"failed","message"}
+- **`MovePatternToUVSpace`** [pattern]
+  - `std::string MovePatternToUVSpace(int _patternIndex, int _uvTileX, int _uvTileY, float _offsetX = 0.0f, float _offsetY = 0.0f, bool _bAllowRotation = false, float _scale = 1.0f, float _padding = 0.0f)` — `PatternAPIInterface.h:1658`
+  - Pack a pattern into the target UV tile (via the nesting engine), with optional in-tile placement.
+    - param `_patternIndex: target pattern index (RealPatternList order)`
+    - param `_uvTileX: target UV tile column (>= 0)`
+    - param `_uvTileY: target UV tile row (>= 0)`
+    - param `_offsetX: post-pack X offset, normalized 0..1 of the tile (default 0)`
+    - param `_offsetY: post-pack Y offset, normalized 0..1 of the tile (default 0)`
+    - param `_bAllowRotation: allow the nester to rotate patterns to fit, like the UV Packing dialog Rotation option ({0,90,180,270} when true, {0} when false). Default false`
+    - param `_scale: uniform pre-scale about the pattern's UV center, must be > 0 (default 1)`
+    - param `_padding: spacing kept around each pattern while packing, normalized 0..1 of the tile (default 0)`
+    - returns: JSON: {"status","results":[{"patternIndex","ok","fromTile":{"x","y"},"toTile":{"x","y"},"bbox"}],"message"}
+- **`MovePatternsToUVSpace`** [pattern]
+  - `std::string MovePatternsToUVSpace(const std::vector<int>& _patternIndices, int _uvTileX, int _uvTileY, float _offsetX = 0.0f, float _offsetY = 0.0f, bool _bAllowRotation = false, float _scale = 1.0f, float _padding = 0.0f)` — `PatternAPIInterface.h:1672`
+  - Batch-pack multiple patterns into the target UV tile (one undo step; per-item success/failure reported).
+    - param `_patternIndices: target pattern indices (RealPatternList order)`
+    - param `_uvTileX: target UV tile column (>= 0)`
+    - param `_uvTileY: target UV tile row (>= 0)`
+    - param `_offsetX: post-pack X offset, normalized 0..1 of the tile (default 0)`
+    - param `_offsetY: post-pack Y offset, normalized 0..1 of the tile (default 0)`
+    - param `_bAllowRotation: allow the nester to rotate patterns to fit, like the UV Packing dialog Rotation option ({0,90,180,270} when true, {0} when false). Default false`
+    - param `_scale: uniform pre-scale about each pattern's UV center, must be > 0 (default 1)`
+    - param `_padding: spacing kept around each pattern while packing, normalized 0..1 of the tile (default 0)`
+    - returns: JSON: {"status","results":[{"patternIndex","ok","fromTile":{"x","y"},"toTile":{"x","y"},"bbox"}],"message"}
+- **`GetPatternOnBodyDetails`** [pattern]
+  - `std::string GetPatternOnBodyDetails()` — `PatternAPIInterface.h:1764`
+  - Get details of all patterns and their position on the human body with semantic labels and body region grouping. Returns a JSON string with two top-level arrays, "upperBody" and "lowerBody", each containing the pattern objects that belong to that body section. Each pattern object includes: - patternName: name of the pattern piece - patternIndex: index in the real pattern list - arrangementPosition: internal body region ID (e.g. "Arm_Front_2_L") - semanticLabel: fine-grained garment part label (e.g. "sleeve", "bodice_front") - bodyRegion: high-level anatomical region (e.g. "torso_front", "arm_full", "leg_back") - patternPosition: front/back orientation derived from bodyRegion ("front", "back", "full", "side", "center", or "unknown") Arrangement position naming convention: {Region}_{Facing}_{Zone}_{Side} Region : body area        (Arm, Body, Leg, Wrist, Ankle, Neck, Head, Shoulder) Facing : orientation       (Front, Back, Inside, Outside, Center, Skirt, Calf) Zone   : vertical segment (1 = closest to torso, 2 = mid, 3 = distal) Side   : laterality        (L = Left, R = Right; omitted for center-line positions) Supported semantic labels: "bodice_front"      - front torso patterns (set-in, raglan, legacy, Adidas) "bodice_back"       - back torso patterns (set-in, raglan, legacy, Adidas) "bodice_full"       - full wrap-around torso patterns "sleeve"            - arm/sleeve patterns (set-in, raglan, dummy) "cuff"              - wrist cuff patterns "collar"            - collar/neck patterns (set-in, raglan, Adidas) "hem"               - bottom hem band of the top "placket"           - front placket (button/zipper strip) "waistband"         - waist transition patterns "pants_front"       - front pants panels "pants_back"        - back pants panels "pants_left"        - outer left leg panels "pants_right"       - outer right leg panels "pants_front_left"  - front left leg panel "pants_front_right" - front right leg panel "pants_back_left"   - back left leg panel "pants_back_right"  - back right leg panel "pants_full"        - full leg panel "skirt_front"       - front skirt patterns "skirt_back"        - back skirt patterns "skirt_full"        - full skirt patterns "cuff_leg"          - ankle cuff patterns "pocket"            - pocket patterns "unknown"           - unrecognized or unassigned Supported body regions: "torso_front" - front bodice, placket, front jacket pocket blocks "torso_back"  - back bodice blocks (set-in, raglan, legacy) "torso_full"  - full wrap-around bodice, hem, Adidas full body, body dummy blocks "arm_front"   - sleeve blocks (set-in, raglan, dummy) "arm_full"    - wrist cuff blocks (wraps around) "leg_front"   - front pants, front-left/right pants, front skirt, pants pocket blocks "leg_back"    - back pants, back-left/right pants, back skirt blocks "leg_side"    - outer seam leg panels (left/right) "leg_full"    - full pants, full skirt, ankle cuff, pants dummy blocks "neck"        - all collar blocks "waist"       - waistband blocks Patterns connected through seamline pairs form a single garment piece; each piece is classified by majority vote (torso/arm/neck -> upper body, leg/waist -> lower body, ties default to upper body) and every member is placed in the matching array.
+    - returns: JSON string with two array keys, "upperBody" and "lowerBody", each containing the pattern detail objects for that section. On failure (no pattern editor), both arrays are empty so the response is always valid, parseable JSON.
+- **`GetPatternLineInfo`** [pattern]
+  - `std::string GetPatternLineInfo(int _patternIndex)` — `PatternAPIInterface.h:1777`
+  - List a pattern's outline lines to help pick the _lineIndex for AttachPatternToAvatarMeasure. lineIndex matches GetLineLength / DeleteLine ordering. Coordinates are 2D pattern-window units.
+    - param `_patternIndex: target pattern index (RealPatternList order)`
+    - returns: JSON: {"status","patternIndex","patternName","lineCount", "boundingBox":{"minX","minY","maxX","maxY","width","height"}, "lines":[{"lineIndex","length"(mm),"orientation"("horizontal"\|"vertical"\|"diagonal"), "location"("top"\|"bottom"\|"left"\|"right"\|"top-left"\|...\|"center"), "start":{x,y},"end":{x,y},"mid":{x,y},"midNorm":{x,y}(0..1 in bbox)}]}. On failure: {"status":"failed","message"}.
+- **`AttachPatternToAvatarMeasure`** [avatar] [measure] [pattern]
+  - `std::string AttachPatternToAvatarMeasure(int _patternIndex, int _lineIndex, const std::string& _avatarMeasureName)` — `PatternAPIInterface.h:1790`
+  - Attach a pattern line to an avatar measure (Line Pin) - the programmatic equivalent of the manual "Attach to Measure (Avatar)" workflow. Runs the cloth solver afterwards so the result is visible without a separate Simulate() call. Registered as one undo step.
+    - param `_patternIndex: target pattern index (RealPatternList order)`
+    - param `_lineIndex: outline line index to pin (see GetPatternLineInfo)`
+    - param `_avatarMeasureName: avatar measure name (height/linear measures are rejected)`
+    - returns: JSON: {"status","message","patternIndex","patternName","lineIndex","lineLength", "avatarMeasureIndex","avatarMeasureName","measureBasicLength","measureSurfaceLength"} (lengths in mm). On failure: {"status":"failed","message"}.
+- **`SetGradingPairedAvatar`** [avatar] [grading]
+  - `bool SetGradingPairedAvatar(unsigned int _gradingIndex, const std::string& _avatarName)` — `PatternAPIInterface.h:1799`
+  - Pair an avatar already loaded in the scene to a grading size — the API equivalent of the GUI 'Pair 3D Form' action in Object Browser - Grading. The avatar is looked up by name among the avatars currently in the scene (import it first via ImportAvatar; names via GetAvatarNameList). Pass an empty name to remove the pairing for that size — like the GUI, this also deletes the avatar from the scene (with undo) when no other grading size references it.
+    - param `_gradingIndex: grading size index (0-based, order of GetGradingSizeNameList)`
+    - param `_avatarName: name of a scene avatar to pair; an empty string removes the pairing`
+    - returns: true if the pairing (or removal) was applied; false when no grading table exists, the index is out of range, or no scene avatar matches the name
+- **`GetGraphicGradingScaleRatios`** [grading] [graphic]
+  - `std::vector<std::vector<float>> GetGraphicGradingScaleRatios(int _graphicStyleIndex, int _patternIndex)` — `PatternAPIInterface.h:1807`
+  - Get the per-size grading scale ratios of a graphic placed on a pattern — the values edited by the GUI 'Edit Grading' tool when clicking a graphic. Each entry is the [x, y] bounding-box scale of that size relative to the currently selected grading size (so the current size reads [1, 1]).
+    - param `_graphicStyleIndex: graphic style index (see GetGraphicStyleListWithIndex)`
+    - param `_patternIndex: index of the pattern piece the graphic instance is placed on, in the full pattern list order shared with AddGraphicStyleToPattern (0-based, buttons/bindings included) — this differs from the real-pattern-list order used by most pattern APIs`
+    - returns: one [x, y] ratio per grading size, ordered like GetGradingSizeNameList; empty when the graphic/pattern is not found, the pattern has no grading rule table, or the graphic's grading has not been initialized yet (this getter never modifies state; grading is initialized by the Set APIs or a GUI edit)
+- **`GetGraphicGradingPositionOffsets`** [grading] [graphic]
+  - `std::vector<std::vector<float>> GetGraphicGradingPositionOffsets(int _graphicStyleIndex, int _patternIndex)` — `PatternAPIInterface.h:1815`
+  - Get the per-size grading position offsets of a graphic placed on a pattern. Each entry is the [x, y] offset of that size's graphic center from the currently selected grading size's center, in 2D pattern-window units (mm; X to the right, Y downward).
+    - param `_graphicStyleIndex: graphic style index (see GetGraphicStyleListWithIndex)`
+    - param `_patternIndex: index of the pattern piece the graphic instance is placed on, in the full pattern list order shared with AddGraphicStyleToPattern (0-based, buttons/bindings included) — this differs from the real-pattern-list order used by most pattern APIs`
+    - returns: one [x, y] offset per grading size, ordered like GetGradingSizeNameList; empty when the graphic/pattern is not found, the pattern has no grading rule table, or the graphic's grading has not been initialized yet (this getter never modifies state; grading is initialized by the Set APIs or a GUI edit)
+- **`SetGraphicGradingScaleRatios`** [grading] [graphic]
+  - `bool SetGraphicGradingScaleRatios(int _graphicStyleIndex, int _patternIndex, const std::vector<std::vector<float>>& _scaleRatios)` — `PatternAPIInterface.h:1825`
+  - Grade the scale of a graphic per size — the API equivalent of grading a graphic's scale with the GUI 'Edit Grading' tool. Each entry is the target [x, y] scale of that size relative to the currently selected grading size (pass [1, 1] for the current size). The list length must equal the grading size count.
+    - param `_graphicStyleIndex: graphic style index (see GetGraphicStyleListWithIndex)`
+    - param `_patternIndex: index of the pattern piece the graphic instance is placed on, in the full pattern list order shared with AddGraphicStyleToPattern (0-based, buttons/bindings included) — this differs from the real-pattern-list order used by most pattern APIs`
+    - param `_scaleRatios: one [x, y] ratio per grading size, ordered like GetGradingSizeNameList`
+    - returns: true on success; false when the graphic/pattern is not found, the pattern has no grading rule table, or the list length does not match the grading size count
+- **`SetGraphicGradingPositionOffsets`** [grading] [graphic]
+  - `bool SetGraphicGradingPositionOffsets(int _graphicStyleIndex, int _patternIndex, const std::vector<std::vector<float>>& _offsets)` — `PatternAPIInterface.h:1835`
+  - Grade the position of a graphic per size — the API equivalent of grading a graphic's position with the GUI 'Edit Grading' tool. Each entry is the target [x, y] offset of that size's graphic center from the currently selected grading size's center, in 2D pattern-window units (mm; X to the right, Y downward; pass [0, 0] for the current size). The list length must equal the grading size count. Values are absolute targets — calling again with the same values leaves the result unchanged. Apply scale grading first (SetGraphicGradingScaleRatios), then position, mirroring the GUI workflow.
+    - param `_graphicStyleIndex: graphic style index (see GetGraphicStyleListWithIndex)`
+    - param `_patternIndex: index of the pattern piece the graphic instance is placed on, in the full pattern list order shared with AddGraphicStyleToPattern (0-based, buttons/bindings included) — this differs from the real-pattern-list order used by most pattern APIs`
+    - param `_offsets: one [x, y] offset per grading size, ordered like GetGradingSizeNameList`
+    - returns: true on success; false when the graphic/pattern is not found, the pattern has no grading rule table, or the list length does not match the grading size count
+- **`AddGradingSize`** [grading]
+  - `bool AddGradingSize(unsigned int _gradingSizeGroupIndex, const std::string& _newSizeName)` — `PatternAPIInterface.h:1844`
+  - Append a new grading size to a grading rule group — the API equivalent of the GUI 'Add Size' button in Object Browser - Grading. The size is propagated through the whole grading pipeline: rule table, every graded pattern's per-point size positions (extrapolated from the last sizes), attached trims, and the pair-avatar size-combination table.
+    - param `_gradingSizeGroupIndex: grading rule group index (0-based, see GetGradingSizeGroupCount)`
+    - param `_newSizeName: name of the new size; must not be empty or duplicate an existing size in the group`
+    - returns: true if the size was added; false when no grading table exists, the group index is out of range, or the name is empty/duplicated
+- **`AddGradingSizeGroup`** [grading]
+  - `int AddGradingSizeGroup(bool _bAssignToAllPatterns)` — `PatternAPIInterface.h:1853`
+  - Create a new grading rule group (rule table) holding a single default size — the API equivalent of the GUI 'Add (And Assign) Grading Rule Table' button in Object Browser - Grading. Use it to start grading on a garment that has none, then append sizes with AddGradingSize or load a .rul file with ImportGradeRuleToSizeGroup.
+    - param `_bAssignToAllPatterns: when true, assign every pattern piece to the new group (the headless equivalent of selecting all patterns before the GUI 'Add And Assign'); when false, only create the table`
+    - returns: the new grading size group index (0-based); -1 on failure (no pattern editor)
+- **`ImportGradeRuleToSizeGroup`** [grading] [import]
+  - `bool ImportGradeRuleToSizeGroup(unsigned int _gradingSizeGroupIndex, const std::string& _rulFilePath)` — `PatternAPIInterface.h:1862`
+  - Load a grade rule (.rul) file onto an existing grading size group — the API equivalent of the GUI 'Open Grade Rule File' action on a rule table in Object Browser - Grading. Unlike the File-Open .rul route, which only applies when the rule name inside the file matches the patterns' grading rule name, this loads the .rul onto the chosen group unconditionally, keeping the group's pattern assignments.
+    - param `_gradingSizeGroupIndex: grading rule group index to load onto (0-based, see GetGradingSizeGroupCount)`
+    - param `_rulFilePath: path to the .rul file`
+    - returns: true if the rule was loaded and swapped in; false when the group index is out of range, the file does not exist, or the .rul contains no valid size
+- **`SetGradingPairedAvatarSizing`** [avatar] [grading]
+  - `bool SetGradingPairedAvatarSizing(unsigned int _gradingIndex, const std::string& _avsFilePath)` — `PatternAPIInterface.h:1871`
+  - Load an Avatar Size (.avs) file and store it as the avatar sizing of a grading size — the API equivalent of the GUI 'Add Avatar Size' action in the Pair Avatar tab. Requires an avatar already paired to that size (SetGradingPairedAvatar) that is resizable; the .avs gender/avatar ID must match the paired avatar. When the target size is the currently selected grading size the sizing is applied to the avatar body immediately; otherwise it is stored and applied on the next switch to that size. 4.x-era .avs files (format v1/v2) are not supported.
+    - param `_gradingIndex: grading size index (0-based, order of GetGradingSizeNameList)`
+    - param `_avsFilePath: path to the .avs file`
+    - returns: true if the sizing was loaded and stored; false when no grading table/paired avatar exists, the index is out of range, the avatar is not resizable, the file is missing/empty/unsupported, the gender/avatar ID does not match, or the table currently suppresses resizing-status updates (the sizing would be silently dropped)
+- **`SetGradingPairedAvatarFromFile`** [avatar] [grading]
+  - `bool SetGradingPairedAvatarFromFile(unsigned int _gradingIndex, const std::string& _avtFilePath)` — `PatternAPIInterface.h:1880`
+  - Load an avatar file (.avt) and pair it to a grading size — the exact API equivalent of the GUI 'Pair 3D Form' action. Unlike ImportAvatar (which replaces the scene avatar), the file is loaded additively, so calling this with different files per size builds a size set where each grading size has its own avatar; the paired avatar activates automatically on switching to its size. An existing pairing on the size is replaced.
+    - param `_gradingIndex: grading size index (0-based, order of GetGradingSizeNameList)`
+    - param `_avtFilePath: path to the avatar file to load and pair`
+    - returns: true if the avatar was loaded and paired; false when no grading table exists, the index is out of range, or the file failed to load
+- **`CutPatternAlongInternalShapes`** [pattern]
+  - `bool CutPatternAlongInternalShapes(int _patternIndex, int _internalShapeIndex, bool _bCutAndSew)` — `PatternAPIInterface.h:1894`
+  - Cut a pattern piece along its internal shape lines — the API equivalent of selecting internal line(s) in the 2D window and using the GUI 'Cut' / 'Cut & Sew' context menu. Grading, sewing, and trims are propagated to the cut pieces the same way the GUI cut does. The internal lines must form a valid cutting path (reaching the pattern outline or forming a closed shape), or the cut is rejected like in the GUI.
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_internalShapeIndex: internal shape index on the pattern (0-based, order of the pattern's internal shape list — the same index space as GetPatternInternalShapePoints). NOT the child-shape index returned by CreateInternalShapeWithPoints / CreateBaseShapeWithPoints (that is m_children order); passing those return values here can cut a different shape. Pass -1 to cut along every internal shape of the pattern; -1 is the only accepted negative value — any other negative index fails. Note that -1 includes hole/binding shapes, so on a pattern with holes the whole-pattern cut fails (holes cannot be cut) — cut specific indices instead`
+    - param `_bCutAndSew: true = 'Cut & Sew' (the cut pieces stay sewn together along the cut line); false = plain 'Cut'`
+    - returns: true when the cut succeeded; false when the pattern/internal shape is not found, the index is negative (other than -1), the pattern has no internal shapes, no line of the target shape is selectable (e.g. protected after remeshing), or the cutting path is invalid
+- **`MergeSewnPatterns`** [pattern]
+  - `bool MergeSewnPatterns(int _patternIndexA, int _patternIndexB)` — `PatternAPIInterface.h:1903`
+  - Merge two pattern pieces joined by a 1:1 sewing into one pattern — the API equivalent of clicking the seam line between two sewn patterns and using the GUI 'Merge' context menu. The seam between the two patterns is removed and the outlines are joined; pattern A is the base (the merged pattern keeps A's placement). A sewing group that spans more than the two patterns or an M:N sewing cannot be merged (same as the GUI).
+    - param `_patternIndexA: index of the base pattern (0-based, real pattern list order)`
+    - param `_patternIndexB: index of the pattern to merge into the base`
+    - returns: true when the merge succeeded; false when either pattern is not found, no 1:1 sewing connects exactly these two patterns, more than one sewing group connects them (ambiguous — remove the extra sewing first), or the core merge validation rejects the pair
+- **`GetPatternInternalShapePoints`** [pattern]
+  - `std::vector<std::vector<float>> GetPatternInternalShapePoints(int _patternIndex, int _internalShapeIndex)` — `PatternAPIInterface.h:1913`
+  - Get the point positions of one internal shape (internal line/shape) of a pattern. Coordinates are millimeters with Y increasing downward, measured in the pattern's PSEUDO-bounding-box frame: the origin is derived from the pattern's mesh centroid minus half the bbox extents (the frame AddGraphicStyleToPattern has always used), which on asymmetric patterns can differ from the true bounding-box top-left corner by several millimeters. It is the SAME frame used by AddGraphicStyleToPattern, AddButtonToPattern, and AddButtonHoleToPattern, so the returned points can be passed straight back as placement positions (e.g. put a button on a marked internal baseline) — but do not treat them as absolute distances from the visual bbox corner. The placement APIs anchor at the item's CENTER: a button lands centered on the point, and for AddGraphicStyleToPattern pass the point with _positionRefTypeCenter=true so the graphic is centered on it (with false, the values describe the outline rectangle instead). Note that only the coordinate frame is shared: _patternIndex here is real-pattern-list order, while AddGraphicStyleToPattern indexes the full pattern list (buttons/bindings included).
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_internalShapeIndex: internal shape index on the pattern (0-based, order of the pattern's internal shape list — GetInnerShapeList order). NOT the child-shape index returned by CreateInternalShapeWithPoints / CreateBaseShapeWithPoints (that is m_children order); those return values do not round-trip into this index space`
+    - returns: one [x, y] per point of the internal shape, ordered along the shape; empty list when the pattern/internal shape is not found
+- **`GetPatternBaselinePoints`** [pattern]
+  - `std::vector<std::vector<float>> GetPatternBaselinePoints(int _patternIndex, int _baselineIndex)` — `PatternAPIInterface.h:1921`
+  - Get the point positions of one baseline (GUI 2D 'Baseline' tool shape, stored separately from internal shapes; only actual baseline-type shapes are enumerated — seam-allowance dummies and internal bookkeeping shapes such as link marks, symmetry reference lines, and DXF drill-hole/chalk shapes are excluded) of a pattern. Coordinates are millimeters with Y increasing downward in the same pseudo-bounding-box frame as GetPatternInternalShapePoints (see the frame note there), so the returned points can be passed straight back as placement positions (the placement APIs anchor at the item's center — for AddGraphicStyleToPattern use _positionRefTypeCenter=true). A punch-mark (cross-mark) entry returns its single [x, y] position.
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_baselineIndex: baseline index on the pattern (0-based, order of the pattern's baseline list; punch marks are numbered after the line baselines). NOT the index returned by CreateBaseShapeWithPoints (that is m_children order and does not round-trip into this index space)`
+    - returns: one [x, y] per point of the baseline, ordered along the shape (a punch mark yields exactly one [x, y]); empty list when the pattern/baseline is not found
+- **`AddButtonToPattern`** [pattern] [trim] [gui]
+  - `bool AddButtonToPattern(int _patternIndex, float _x, float _y, float _angleDegree)` — `PatternAPIInterface.h:1932`
+  - Create a button (button head) on a pattern at the given position — the API equivalent of the GUI 2D 'Button' creation tool. The button uses the current default button head style and, when the pattern is graded, inherits per-size grading positions from the adjacent pattern geometry (same as GUI creation). Not allowed on curved patterns.
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_x: X position in mm in the pattern's pseudo-bounding-box frame (see GetPatternInternalShapePoints — shared with the point getters and AddGraphicStyleToPattern)`
+    - param `_y: Y position in mm in the same frame (downward)`
+    - param `_angleDegree: button rotation angle in degrees (0 = default orientation)`
+    - returns: true when the button was created; false when the pattern is not found/curved, no default button head style exists, or the position does not land on the pattern
+- **`AddButtonHoleToPattern`** [pattern] [trim] [gui]
+  - `bool AddButtonHoleToPattern(int _patternIndex, float _x, float _y, float _angleDegree)` — `PatternAPIInterface.h:1943`
+  - Create a buttonhole on a pattern at the given position — the API equivalent of the GUI 2D 'Buttonhole' creation tool. The buttonhole uses the current default buttonhole style and, when the pattern is graded, inherits per-size grading positions from the adjacent pattern geometry (same as GUI creation). Not allowed on curved patterns.
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_x: X position in mm in the pattern's pseudo-bounding-box frame (see GetPatternInternalShapePoints — shared with the point getters and AddGraphicStyleToPattern)`
+    - param `_y: Y position in mm in the same frame (downward)`
+    - param `_angleDegree: buttonhole rotation angle in degrees (0 = default orientation)`
+    - returns: true when the buttonhole was created; false when the pattern is not found/curved, no default buttonhole style exists, or the position does not land on the pattern
+- **`TraceBaselineAsInternalShape`** [pattern]
+  - `bool TraceBaselineAsInternalShape(int _patternIndex, int _baselineIndex)` — `PatternAPIInterface.h:1954`
+  - Trace baseline(s) of a pattern into internal shapes — the API equivalent of selecting baseline lines in the GUI 2D 'Trace' tool and applying 'Trace as Internal Shape'. The traced internal lines inherit the baseline's per-size grading, so they follow the pattern's grading sizes. The original baseline is kept (same as the GUI).
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_baselineIndex: baseline index on the pattern (0-based, same order as GetPatternBaselinePoints); pass -1 to trace every baseline of the pattern (-1 is the only accepted negative value — any other negative index fails). Punch-mark (cross-mark) entries in that index space are position markers, not traceable shapes — they are skipped, and passing a punch-mark index returns false`
+    - returns: true when at least one internal shape was created; false when the pattern/baseline is not found, the index is negative (other than -1), no baseline line is selectable, or the trace failed
+- **`GetButtonGradingPositionOffsets`** [grading] [trim]
+  - `std::vector<std::vector<float>> GetButtonGradingPositionOffsets(int _buttonIndex)` — `PatternAPIInterface.h:1961`
+  - Get the per-size grading position offsets of a button (button head). Each entry is the [x, y] movement in millimeters of that grading size relative to the button's CURRENT position (the currently selected grading size reads [0, 0]), in the 2D window world axes. Buttons are indexed in scene order (creation order).
+    - param `_buttonIndex: button index (0-based, scene order)`
+    - returns: one [x, y] offset per grading size, ordered like GetGradingSizeNameList; empty list when the button is not found or has no grading
+- **`SetButtonGradingPositionOffsets`** [grading] [trim]
+  - `bool SetButtonGradingPositionOffsets(int _buttonIndex, const std::vector<std::vector<float>>& _offsets)` — `PatternAPIInterface.h:1970`
+  - Grade the position of a button (button head) per size — the API equivalent of moving a button per size with the GUI 'Edit Grading' tool. Each entry is the target [x, y] movement in millimeters of that size relative to the button's CURRENT position (pass [0, 0] for the currently selected size), in the 2D window world axes. The list length must equal the grading size count. The new positions are applied when the grading size is switched.
+    - param `_buttonIndex: button index (0-based, scene order)`
+    - param `_offsets: one [x, y] offset per grading size, ordered like GetGradingSizeNameList`
+    - returns: true on success; false when the button is not found, no grading rule table exists, or the list length does not match the grading size count
+- **`GetButtonHoleGradingPositionOffsets`** [grading] [trim]
+  - `std::vector<std::vector<float>> GetButtonHoleGradingPositionOffsets(int _buttonHoleIndex)` — `PatternAPIInterface.h:1977`
+  - Get the per-size grading position offsets of a buttonhole. Same semantics as GetButtonGradingPositionOffsets; buttonholes are indexed in scene order (creation order).
+    - param `_buttonHoleIndex: buttonhole index (0-based, scene order)`
+    - returns: one [x, y] offset per grading size, ordered like GetGradingSizeNameList; empty list when the buttonhole is not found or has no grading
+- **`SetButtonHoleGradingPositionOffsets`** [grading] [trim]
+  - `bool SetButtonHoleGradingPositionOffsets(int _buttonHoleIndex, const std::vector<std::vector<float>>& _offsets)` — `PatternAPIInterface.h:1986`
+  - Grade the position of a buttonhole per size — same semantics as SetButtonGradingPositionOffsets.
+    - param `_buttonHoleIndex: buttonhole index (0-based, scene order)`
+    - param `_offsets: one [x, y] offset per grading size, ordered like GetGradingSizeNameList`
+    - returns: true on success; false when the buttonhole is not found, no grading rule table exists, or the list length does not match the grading size count
+- **`ActivateAllPatterns`** [pattern]
+  - `bool ActivateAllPatterns(bool _bActivate, bool _bIncludeSewing)` — `PatternAPIInterface.h:1998`
+  - Activate or deactivate every pattern piece for simulation — the API equivalent of selecting all patterns and using the GUI 3D context menu 'Deactivate (Pattern & Sewing)' (_bActivate=false, _bIncludeSewing=true) or 'Activate' back. Deactivated patterns are excluded from simulation; with _bIncludeSewing the sewing (seam line pair groups) connected to the patterns is toggled together, like the GUI menu of the same name.
+    - param `_bActivate: true = activate, false = deactivate`
+    - param `_bIncludeSewing: true = also toggle the connected sewing (GUI 'Pattern & Sewing'); false = patterns only`
+    - returns: true when at least one pattern or sewing group changed state; false when nothing changed (already in the requested state) or no garment is loaded
+- **`GetPatternOutlinePoints`** [pattern]
+  - `std::vector<std::vector<float>> GetPatternOutlinePoints(int _patternIndex)` — `PatternAPIInterface.h:2007`
+  - Get the positions of a pattern's outline points (the segment endpoints of the pattern boundary; curve control points excluded). Coordinates are millimeters from the pattern bounding box TOP-LEFT with Y increasing downward — the same frame as GetPatternInternalShapePoints and the button/graphic placement APIs. Note that only the coordinate frame is shared with the graphic APIs: _patternIndex here is real-pattern-list order, while AddGraphicStyleToPattern indexes the full pattern list (buttons/bindings included). The returned order is the outline traversal order, and the indices identify points for SetPatternPointsGradingPositionOffsets / GetPatternPointGradingPositionOffsets.
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - returns: one [x, y] per outline point, ordered along the boundary; empty list when the pattern is not found
+- **`GetPatternPointGradingPositionOffsets`** [grading] [pattern]
+  - `std::vector<std::vector<float>> GetPatternPointGradingPositionOffsets(int _patternIndex, int _pointIndex)` — `PatternAPIInterface.h:2015`
+  - Get the per-size grading position offsets of one pattern outline point — the values shown in the GUI 'Edit Grading' Distance table. Each entry is the [x, y] movement in millimeters of that grading size relative to the point's CURRENT position (the currently selected grading size reads [0, 0]), in the 2D window world axes (Y up, so a hem graded downwards reads a negative Y).
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_pointIndex: outline point index (0-based, order of GetPatternOutlinePoints)`
+    - returns: one [x, y] offset per grading size, ordered like GetGradingSizeNameList; empty list when the pattern/point is not found, the pattern has no grading, or the point's per-size grading data does not match the grading size count (stale grading state)
+- **`SetPatternPointsGradingPositionOffsets`** [grading] [pattern]
+  - `bool SetPatternPointsGradingPositionOffsets(int _patternIndex, const std::vector<int>& _pointIndices, const std::vector<std::vector<float>>& _offsets)` — `PatternAPIInterface.h:2025`
+  - Grade the positions of selected pattern outline points per size — the API equivalent of selecting points with the GUI 'Edit Grading' tool and typing per-size values into the Distance table. Offsets are [x, y] millimeters per grading size relative to the points' CURRENT positions in the 2D window world axes (Y up); the entry for the currently selected grading size is the reference and is ignored (pass [0, 0]). Existing deviations of the edited points are REPLACED, matching the Distance-table semantics.
+    - param `_patternIndex: pattern index (0-based, real pattern list order)`
+    - param `_pointIndices: outline point indices to grade (0-based, order of GetPatternOutlinePoints)`
+    - param `_offsets: one [x, y] offset per grading size, ordered like GetGradingSizeNameList; length must equal the grading size count`
+    - returns: true on success; false when the pattern/point is not found, the pattern has no grading rule table, the offsets length does not match the grading size count, or any target point's per-size grading data does not match the grading size count (stale grading state — nothing is applied)
+- **`GetUnusedSinglePatterns`** [pattern]
+  - `std::string GetUnusedSinglePatterns()` — `PatternAPIInterface.h:2037`
+  - Identify "unused" single pattern pieces in the current project - garment pieces that are not connected to any other pattern by ANY assembly mechanism. A piece is flagged only when it is simultaneously unsewed AND unbonded/unglued AND unzipped AND unlaced. Trim pieces and internal/ linked helper pieces (already excluded by the real-pattern list) are not considered.
+    - returns: JSON array string: [{"patternIndex":<int>,"patternName":<string>}, ...], one entry per unused single pattern. patternIndex is the real-pattern-list index shared with the other pattern APIs (e.g. GetPatternPieceName). Returns an empty array [] when there is no open project / no match.
+- **`GetHiResTolerance`** 
+  - `std::vector<double> GetHiResTolerance(int _toleranceType)` — `PatternAPIInterface.h:2046`
+  - Get one Tolerance min/max range of the Hi-Res Properties window (3D Garment > Hi-Res Garment). The Tolerance range decides which pieces a Hi-Res apply touches: only patterns (or avatars, for Skin Offset) whose current value is inside [min, max] are changed. The values are the ones the window last stored, so this reads exactly what the window shows when it is opened next.
+    - param `_toleranceType: which Tolerance row to read, one of Marvelous::HI_RES_TOLERANCE_TYPE (0 = Particle Distance, 1 = Additional Thickness - Collision, 2 = Skin Offset)`
+    - returns: [min, max] of that Tolerance row in millimeters, as double - the type of the window's spin boxes (QDoubleSpinBox) and of the stored value. The window defaults are returned when it has never been used. Empty list when _toleranceType is not a valid HI_RES_TOLERANCE_TYPE.
+- **`SetHiResTolerance`** 
+  - `bool SetHiResTolerance(int _toleranceType, double _min, double _max)` — `PatternAPIInterface.h:2055`
+  - Set one Tolerance min/max range of the Hi-Res Properties window (3D Garment > Hi-Res Garment), so the next Hi-Res apply only touches pieces whose current value is inside [min, max]. Values are normalized the way the window's spin boxes normalize typed input - rounded to 1 decimal, then clamped to that row's spin box range (Particle Distance 1.0 to 700.0 on both bounds; Additional Thickness - Collision min 0.0 to 99.99, max 0.0 to 999999999.0; Skin Offset min 0.0 to 99.99, max 0.0 to 100.0) - so a later GetHiResTolerance returns exactly what the window will display. This writes the window's stored value only; it does not itself re-apply Hi-Res settings to the garment.
+    - param `_toleranceType: which Tolerance row to write, one of Marvelous::HI_RES_TOLERANCE_TYPE (0 = Particle Distance, 1 = Additional Thickness - Collision, 2 = Skin Offset)`
+    - param `_min: lower bound of the Tolerance range, in millimeters (double, matching the window's spin box)`
+    - param `_max: upper bound of the Tolerance range, in millimeters (double, matching the window's spin box)`
+    - returns: true when the range was stored; false when _toleranceType is not a valid HI_RES_TOLERANCE_TYPE or _min is greater than _max after normalization (nothing is written in that case)
+- **`GetAllPatternToAvatarMeasures`** [avatar] [measure] [pattern]
+  - `std::vector<std::pair<std::string, std::string>> GetAllPatternToAvatarMeasures()` — `PatternAPIInterface.h:2069`
+  - Retrieve every attached (pattern, avatar measure) pair in the project - the read companion to AttachPatternToAvatarMeasure. Both attachment kinds are reported: "Attach to Measure (Avatar)" Line Pins and TackOnAvatar point tacks.
+    - returns: one (patternName, avatarMeasureName) pair per attachment, de-duplicated and sorted by pattern name then measure name. Empty when no project is open, no avatar is loaded, or nothing is attached.
+- **`GetPatternToAvatarMeasureByAvatar`** [avatar] [measure] [pattern]
+  - `std::vector<std::pair<std::string, std::string>> GetPatternToAvatarMeasureByAvatar(int _avatarIndex)` — `PatternAPIInterface.h:2078`
+  - Retrieve the attached (pattern, avatar measure) pairs whose measure belongs to one avatar.
+    - param `_avatarIndex: avatar index (0-based, the avatar order of GetAvatarNameList / GetAvatarCount)`
+    - returns: the matching (patternName, avatarMeasureName) pairs, de-duplicated and sorted like GetAllPatternToAvatarMeasures. Empty when _avatarIndex is out of range, that avatar has no measures, or none of its measures has a pattern attached.
+- **`GetPatternToAvatarMeasureByPatterns`** [avatar] [measure] [pattern]
+  - `std::vector<std::pair<std::string, std::string>> GetPatternToAvatarMeasureByPatterns(const std::vector<std::string>& _patternList)` — `PatternAPIInterface.h:2088`
+  - Retrieve the attached (pattern, avatar measure) pairs for the named patterns only.
+    - param `_patternList: pattern names to keep (as returned by GetPatternPieceName). Names are matched`
+    - param `exactly; unknown names simply contribute nothing. An empty list selects nothing, so the result`
+    - param `is empty - it does NOT mean "all patterns".`
+    - returns: the matching (patternName, avatarMeasureName) pairs, de-duplicated and sorted like GetAllPatternToAvatarMeasures. Empty when none of the named patterns is attached.
+- **`GetPatternToAvatarMeasureByMeasures`** [avatar] [measure] [pattern]
+  - `std::vector<std::pair<std::string, std::string>> GetPatternToAvatarMeasureByMeasures(const std::vector<std::string>& _avatarMeasureList)` — `PatternAPIInterface.h:2099`
+  - Retrieve the attached (pattern, avatar measure) pairs for the named avatar measures only.
+    - param `_avatarMeasureList: avatar measure names to keep. Names are matched exactly across every loaded`
+    - param `avatar, so a measure name shared by two avatars reports the attachments of both. Unknown names`
+    - param `contribute nothing. An empty list selects nothing, so the result is empty - it does NOT mean`
+    - param `"all measures".`
+    - returns: the matching (patternName, avatarMeasureName) pairs, de-duplicated and sorted like GetAllPatternToAvatarMeasures. Empty when none of the named measures has a pattern attached.
+- **`SetPatternEdgeToAvatarMeasure`** [avatar] [measure] [pattern]
+  - `bool SetPatternEdgeToAvatarMeasure(int _patternIndex, int _lineIndex, const std::string& _avatarMeasure, bool _attach)` — `PatternAPIInterface.h:2111`
+  - Attach or detach a specific pattern edge (outline line) to/from an avatar measure (Line Pin) - the programmatic equivalent of the manual "Attach to Measure (Avatar)" / "Detach from Measure (Avatar)" workflow. Runs the cloth solver afterwards so the result is visible without a separate Simulate() call.
+    - param `_patternIndex: target pattern index (RealPatternList order)`
+    - param `_lineIndex: outline line index to attach/detach (same ordering as GetPatternLineInfo)`
+    - param `_avatarMeasure: avatar measure name, or its index given as a decimal string (height/linear measures are rejected)`
+    - param `_attach: true = attach the edge to the measure, false = detach the edge from the measure`
+    - returns: true on success; false when the pattern/line index is out of bounds, the avatar measure does not exist (or does not support attachment), or on detach the edge is not attached to that measure
+- **`GetPatternEdgeToAvatarMeasureAttachment`** [avatar] [measure] [pattern]
+  - `std::string GetPatternEdgeToAvatarMeasureAttachment(int _patternIndex, const std::string& _avatarMeasure)` — `PatternAPIInterface.h:2122`
+  - Query whether any edge (outline line) of a pattern is attached (Line Pin) to an avatar measure.
+    - param `_patternIndex: target pattern index (RealPatternList order)`
+    - param `_avatarMeasure: avatar measure name, or its index given as a decimal string`
+    - returns: JSON: {"is_attached":true,"line_index":N} when an attachment exists (N = lowest attached line index, same ordering as GetPatternLineInfo / SetPatternEdgeToAvatarMeasure); {"is_attached":false,"line_index":-1} when no attachment exists, the pattern index is out of bounds, or the avatar measure does not exist
+- **`FlipPatternNormal`** [pattern]
+  - `bool FlipPatternNormal(const std::vector<int>& _patternIndexList)` — `PatternAPIInterface.h:2132`
+  - Flip the mesh surface normal of the given pattern pieces - the API equivalent of the GUI 'Flip Normal' right-click menu (3D/2D). Each pattern is mirrored about its own vertical center axis and its mesh winding is reversed, so the fabric side that faced outwards now faces inwards (graphics and topstitches keep their visible side). Connected bindings are flipped together and the draping of connected sewing lines is reset, like the GUI.
+    - param `_patternIndexList: pattern indices to flip (0-based, real pattern list order - the same index space as the other pattern APIs). A duplicated index flips its pattern once.`
+    - returns: true when at least one pattern was flipped; false when no pattern editor is loaded, the list is empty, or any index is out of range
+- **`PlaceButtonPairsOnEdge`** [trim]
+  - `std::string PlaceButtonPairsOnEdge(int _buttonPatternIndex, int _buttonLineIndex, int _buttonholePatternIndex, int _buttonholeLineIndex, float _edgeOffset, const std::vector<float>& _distancesAlongEdge, const Marvelous::ButtonPairPlacementOption& _option)` — `PatternAPIInterface.h:2165`
+  - Place button / buttonhole pairs along the edges of two seam-paired patterns (e.g. the left and right placket of a shirt) at explicit positions - the API equivalent of creating each button with the GUI 2D 'Button' tool and each buttonhole with the 'Buttonhole' tool at matching distances from the edge. For every entry of _distancesAlongEdge one button head is created on the button pattern and one buttonhole on the buttonhole pattern. Each item sits _edgeOffset mm inside its own edge, measured perpendicular to the edge (curved edges use the local normal), at that arc-length distance from the edge corner selected by _option.edgeOrigin. Pick the line indices with GetPatternLineInfo. The two patterns must belong to the same sewn garment (connected through seamline pair groups), otherwise nothing is created. Validation is all-or-nothing: one bad distance fails the whole call. Re-running the same call is safe: a pair whose button or buttonhole would land within half a button width of an existing one on that pattern is reported as skipped instead of duplicated. The whole call is one undo step.
+    - param `_buttonPatternIndex: pattern that receives the button heads (0-based, real pattern list order)`
+    - param `_buttonLineIndex: outline line of that pattern to measure from (0-based, order of GetPatternLineInfo / GetLineLength)`
+    - param `_buttonholePatternIndex: pattern that receives the buttonholes (0-based, real pattern list order). Must differ from _buttonPatternIndex`
+    - param `_buttonholeLineIndex: outline line of the buttonhole pattern to measure from (0-based)`
+    - param `_edgeOffset: perpendicular distance in mm from each edge into its pattern. Must be greater than 0 and smaller than the pattern extent behind the edge`
+    - param `_distancesAlongEdge: one entry per pair - arc length in mm from the origin corner of the edge (see _option.edgeOrigin). Each must lie within both edge lengths`
+    - param `_option: styles, buttonhole size, rotation and the edge origin corner. Default-constructed = current styles, style size, no rotation, TOP origin`
+    - returns: JSON string {"status","reason","message","buttonPatternIndex","buttonLineIndex","buttonholePatternIndex","buttonholeLineIndex", "edgeOffset","edgeLength","buttonholeEdgeLength","createdCount","skippedCount","placements":[...]}. status is "success" or "failed". Each placements[] entry has index, distanceAlongEdge, status ("created" or "skipped"), button{x,y,worldX,worldY,buttonIndex} and buttonhole{x,y,worldX,worldY,buttonholeIndex}: x,y are mm from the pattern bounding-box top-left with Y down (the frame of GetPatternOutlinePoints / AddButtonToPattern), worldX,worldY are 2D-window coordinates (the frame of GetPatternComponents), and the indices are scene-order button / buttonhole indices for the grading APIs (-1 when skipped). On failure placements is empty, nothing is created, and reason is one of INVALID_PATTERN, SAME_PATTERN, CURVED_PATTERN_NOT_SUPPORTED, INVALID_LINE, NOT_SEAM_PAIRED, INVALID_STYLE_INDEX, NO_BUTTON_STYLE, INVALID_BUTTONHOLE_SIZE, EDGE_OFFSET_OUT_OF_BOUNDS, EMPTY_DISTANCE_LIST, DISTANCE_OUT_OF_RANGE, POSITION_OFF_PATTERN, NOT_FINITE_ARGUMENT, NO_EDITOR. On success reason is "OK".
+- **`DistributeButtonPairsOnEdge`** [trim]
+  - `std::string DistributeButtonPairsOnEdge(int _buttonPatternIndex, int _buttonLineIndex, int _buttonholePatternIndex, int _buttonholeLineIndex, float _edgeOffset, int _buttonCount, float _startMargin, float _endMargin, const Marvelous::ButtonPairPlacementOption& _option)` — `PatternAPIInterface.h:2188`
+  - Distribute _buttonCount button / buttonhole pairs evenly along the edges of two seam-paired patterns - the auto-spacing counterpart of PlaceButtonPairsOnEdge with the same placement rules, validation, duplicate skipping, undo behaviour and return payload. The positions are computed on the button pattern edge as spacing = (edgeLength - _startMargin - _endMargin) / (_buttonCount - 1), starting _startMargin from the origin corner; a single pair is placed at the midpoint of that span. The same distances are applied on the buttonhole edge, so both edges must be long enough for them.
+    - param `_buttonPatternIndex: pattern that receives the button heads (0-based, real pattern list order)`
+    - param `_buttonLineIndex: outline line of that pattern to measure from (0-based, order of GetPatternLineInfo / GetLineLength)`
+    - param `_buttonholePatternIndex: pattern that receives the buttonholes (0-based, real pattern list order). Must differ from _buttonPatternIndex`
+    - param `_buttonholeLineIndex: outline line of the buttonhole pattern to measure from (0-based)`
+    - param `_edgeOffset: perpendicular distance in mm from each edge into its pattern. Must be greater than 0 and smaller than the pattern extent behind the edge`
+    - param `_buttonCount: number of pairs to create. Must be 1 or more`
+    - param `_startMargin: padding in mm from the origin corner (see _option.edgeOrigin) before the first pair. 0 or more`
+    - param `_endMargin: padding in mm from the opposite corner after the last pair. 0 or more. _startMargin + _endMargin must be smaller than both edge lengths`
+    - param `_option: styles, buttonhole size, rotation and the edge origin corner. Default-constructed = current styles, style size, no rotation, TOP origin`
+    - returns: Same JSON payload as PlaceButtonPairsOnEdge; placements[].distanceAlongEdge reports the computed positions. Additional failure reasons: INVALID_BUTTON_COUNT (_buttonCount below 1) and MARGINS_EXCEED_EDGE (negative margin or _startMargin + _endMargin not smaller than an edge length).
+
+---
+
+## `FabricAPIInterface.h` — `FABRIC_API`
+
+Fabric objects: PBR appearance, texture maps, .jfab/.zfab/xtex I/O, assignment.
+
+284 declarations, 10 wired.
+
+- **`GetFabricCount`** [fabric]
+  - `unsigned int GetFabricCount(bool _bCurrentColorway = true)` — `FabricAPIInterface.h:19`
+  - Get the number of fabrics
+    - param `_bCurrentColorway: If this value is true, counting only Fabrics that are used in current Colorway (Default: true)`
+    - returns: the number of fabric in object browser for the current project.
+- **`GetFabricCount`** [fabric]
+  - `unsigned int GetFabricCount(int _colorwayIndex)` — `FabricAPIInterface.h:29`
+  - Get the number of fabrics
+    - param `_colorwayIndex:`
+    - param `_colorwayIndex = -2 : It counts all Fabrics for all the Colorways`
+    - param `_colorwayIndex = -1 : It counts the Fabrics of the current Colorway selected`
+    - param `_colorwayIndex >= 0 : It counts the Fabrics of the _colorwayIndex index given by parameter`
+    - returns: the number of fabric in object browser for the current project.
+- **`GetCurrentFabricIndex`** [fabric]
+  - `unsigned int GetCurrentFabricIndex()` — `FabricAPIInterface.h:35`
+  - Get the index of the selected Fabric
+    - returns: the index of selected fabric in object browser for the current project..
+- **`ExportZFab`** [fabric] [export]
+  - `std::string ExportZFab()` — `FabricAPIInterface.h:41`
+  - Export ZFab which cotains the fabric data selected in the object browser
+    - returns: Output file path;output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportZFab`** [fabric] [export]
+  - `std::string ExportZFab(const std::string& filePath)` — `FabricAPIInterface.h:48`
+  - Export Zfab which cotains the fabric data selected in the object browser
+    - param `filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportZFab`** [fabric] [export]
+  - `std::string ExportZFab(const std::string& filePath, const int& index)` — `FabricAPIInterface.h:56`
+  - Export ZFab which cotains the fabric data in the index of the object browser
+    - param `filePath: output file path`
+    - param `index: target fabric index on the object browser to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportZFab`** [fabric] [export]
+  - `std::string ExportZFab(const std::string& _filePath, const int& _colorwayIndex, const int& _fabricIndex)` — `FabricAPIInterface.h:65`
+  - Export ZFab which cotains the fabric data in the index of the object browser
+    - param `_filePath: output file path`
+    - param `_colorwayIndex: target Colorway index`
+    - param `_fabricIndex: target Fabric index on the Colorway Editor to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportZFabW`** [fabric] [export]
+  - `std::wstring ExportZFabW(const std::wstring& filePath, const int& index)` — `FabricAPIInterface.h:73`
+  - Export ZFab file which cotains the fabric data in the index of the object browser
+    - param `filePath: output file path`
+    - param `index: target fabric index on the object browser to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportZFabW`** [fabric] [export]
+  - `std::wstring ExportZFabW(const std::wstring& _filePath, const int& _colorwayIndex, const int& _fabricIndex)` — `FabricAPIInterface.h:82`
+  - Export ZFab file which cotains the fabric data in the index of the object browser
+    - param `_filePath: output file path`
+    - param `_colorwayIndex: target Colorway index`
+    - param `_fabricIndex: target Fabric index on the Colorway Editor to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportFabric`** [fabric] [export]
+  - `std::string ExportFabric(const std::string& filePath)` — `FabricAPIInterface.h:89`
+  - Export the selected fabric to the file(.jfab or .zfab)
+    - param `filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportFabric`** [fabric] [export]
+  - `std::string ExportFabric(const std::string& filePath, const int& index)` — `FabricAPIInterface.h:97`
+  - Export the selected fabric to the file(.jfab or .zfab)
+    - param `filePath: output file path`
+    - param `index: target fabric index on the object browser to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportFabric`** [fabric] [export]
+  - `std::string ExportFabric(const std::string& _filePath, const int& _colorwayIndex, const int& _fabricIndex)` — `FabricAPIInterface.h:106`
+  - Export the selected fabric to the file(.jfab or .zfab)
+    - param `_filePath: output file path`
+    - param `_colorwayIndex: target Colorway index`
+    - param `_fabricIndex: target Fabric index on the Colorway Editor to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportFabricW`** [fabric] [export]
+  - `std::wstring ExportFabricW(const std::wstring& filePath, const int& index)` — `FabricAPIInterface.h:114`
+  - Export the selected fabric to the file(.jfab or .zfab)
+    - param `filePath: output file path`
+    - param `index: target fabric index on the object browser to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportFabricW`** [fabric] [export]
+  - `std::wstring ExportFabricW(const std::wstring& _filePath, const int& _colorwayIndex, const int& _fabricIndex)` — `FabricAPIInterface.h:123`
+  - Export the selected fabric to the file(.jfab or .zfab)
+    - param `_filePath: output file path`
+    - param `_colorwayIndex: target Colorway index`
+    - param `_fabricIndex: target Fabric index on the Colorway Editor to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`AddFabric`** [fabric]
+  - `unsigned int AddFabric(const std::string& inputFilePath)` — `FabricAPIInterface.h:130`
+  - Add Fabric into the Object Browser
+    - param `inputFilePath: 'zfab'(CLO file) path or 'jfab'(json) path`
+    - returns: the index of added fabric in object browser for the current project. .
+- **`ReplaceFabric`** [fabric]
+  - `bool ReplaceFabric(const int& _fabricIndex, const std::string& _inputFilePath)` — `FabricAPIInterface.h:138`
+  - Replaces Fabric with provided index in the Object Browser
+    - param `fabricIndex: fabric index from the object browser`
+    - param `inputFilePath: 'zfab'(CLO file) path.`
+    - returns: if it succeeds, return true.
+- **`AddFabricW`** [fabric]
+  - `unsigned int AddFabricW(const std::wstring& inputFilePath)` — `FabricAPIInterface.h:145`
+  - Add Fabric into the Object Browser
+    - param `inputFilePath: 'zfab'(CLO file) path or 'jfab'(json) path`
+    - returns: the index of added fabric in object browser for the current project. .
+- **`GetFirstFabricTextureName`** [fabric]
+  - `std::string GetFirstFabricTextureName()` — `FabricAPIInterface.h:151`
+  - Get the main image file name for the first fabric in the object browser
+    - returns: the name of the image file name without folder path and extension.
+- **`GetFirstFabricTextureNameW`** [fabric]
+  - `std::wstring GetFirstFabricTextureNameW()` — `FabricAPIInterface.h:157`
+  - Get the main image file name for the first fabric in the object browser
+    - returns: the name of the image file name without folder path and extension.
+- **`GetFirstFabricTextureName`** [fabric]
+  - `std::string GetFirstFabricTextureName(unsigned int _colorwayIndex)` — `FabricAPIInterface.h:164`
+  - Get the main image file name for the first fabric in the object browser for a colorway index
+    - param `_colorwayIndex: colorway index`
+    - returns: the name of the image file name without folder path and extension.
+- **`GetFirstFabricTextureNameW`** [fabric]
+  - `std::wstring GetFirstFabricTextureNameW(unsigned int _colorwayIndex)` — `FabricAPIInterface.h:171`
+  - Get the main image file name for the first fabric in the object browser for a colorway index
+    - param `_colorwayIndex: colorway index`
+    - returns: the name of the image file name without folder path and extension.
+- **`ChangeFabricWithJson`** [fabric]
+  - `bool ChangeFabricWithJson(unsigned int fabricIndex, const std::string& inputJsonFilePath)` — `FabricAPIInterface.h:179`
+  - Overwrite all the properties of a fabric with json file(.jfab)
+    - param `fabricIndex: target fabric index in the object browser`
+    - param `inputJsonFilePath: the jfab file path to load on to the fabric in the fabricIndex`
+    - returns: if it succeeds, return true.
+- **`ChangeFabricWithJsonW`** [fabric]
+  - `bool ChangeFabricWithJsonW(unsigned int fabricIndex, const std::wstring& inputJsonFilePath)` — `FabricAPIInterface.h:187`
+  - Overwrite all the properties of a fabric with json file(.jfab)
+    - param `fabricIndex: target fabric index in the object browser`
+    - param `inputJsonFilePath: the jfab file path to load on to the fabric in the fabricIndex`
+    - returns: if it succeeds, return true.
+- **`ChangeFabricWithJson`** [fabric]
+  - `bool ChangeFabricWithJson(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _inputJsonFilePath)` — `FabricAPIInterface.h:196`
+  - Overwrite all the properties of a fabric with json file(.jfab)
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index in the Colorway Editor`
+    - param `_inputJsonFilePath: the jfab file path to load on to the fabric in the fabricIndex`
+    - returns: if it succeeds, return true.
+- **`ChangeFabricWithJsonW`** [fabric]
+  - `bool ChangeFabricWithJsonW(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::wstring& _inputJsonFilePath)` — `FabricAPIInterface.h:205`
+  - Overwrite all the properties of a fabric with json file(.jfab)
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index in the Colorway Editor`
+    - param `_inputJsonFilePath: the jfab file path to load on to the fabric in the fabricIndex`
+    - returns: if it succeeds, return true.
+- **`AssignFabricToPattern`** [fabric] [pattern]
+  - `bool AssignFabricToPattern(unsigned int _fabricIndex, unsigned int _patternIndex, int _assignOption)` — `FabricAPIInterface.h:217`
+  - Assign a fabric to a pattern.
+    - param `_fabricIndex: the source fabric index in the object browser to apply to the target pattern`
+    - param `_patternIndex: the tagert pattern index to apply the fabric in the fabricIndex`
+    - param `_assignOption:`
+    - param `_assignOption = 1 (Current Colorway): An item is only applied to the current colorway, while the other colorways retain the existing items.`
+    - param `_assignOption = 2 (All Colorways unlinked Materials): Each colorway is applied its own materials, such as textures and colors.`
+    - param `_assignOption = 3 (All Colorways linked): All colorways share the same item with linked properties, allowing any changes to be applied across all colorways simultaneously`
+    - returns: if it succeeds, return true.
+- **`AssignFabricToPattern`** [fabric] [pattern]
+  - `bool AssignFabricToPattern(unsigned int _colorwayIndex, unsigned int _fabricIndex, unsigned int _patternIndex, int _assignOption)` — `FabricAPIInterface.h:230`
+  - Assign a fabric to a pattern.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the source fabric index in the Colorway Editor to apply to the target pattern`
+    - param `_patternIndex: the tagert pattern index to apply the fabric in the fabricIndex`
+    - param `_assignOption:`
+    - param `_assignOption = 1 (Current Colorway): An item is only applied to the current colorway, while the other colorways retain the existing items.`
+    - param `_assignOption = 2 (All Colorways unlinked Materials): Each colorway is applied its own materials, such as textures and colors.`
+    - param `_assignOption = 3 (All Colorways linked): All colorways share the same item with linked properties, allowing any changes to be applied across all colorways simultaneously`
+    - returns: if it succeeds, return true.
+- **`ImportXtexFile`** [fabric] [import]
+  - `bool ImportXtexFile(unsigned int fabricIndex, const std::string& xTexFilePath)` — `FabricAPIInterface.h:238`
+  - Import xtex to a fabric. Overwrite all the values described in the xtex file into the Fabric
+    - param `fabricIndex: the target fabric index in the object browser to import xTex file onto`
+    - param `xTexFilePath: the xTex file path to import`
+    - returns: if it succeeds, return true.
+- **`ImportXtexFileW`** [fabric] [import]
+  - `bool ImportXtexFileW(unsigned int fabricIndex, const std::wstring& xTexFilePath)` — `FabricAPIInterface.h:246`
+  - Import xtex to a fabric. Overwrite all the values described in the xtex file into the Fabric
+    - param `fabricIndex: the target fabric index in the object browser to import xTex file onto`
+    - param `xTexFilePath: the xTex file path to import`
+    - returns: if it succeeds, return true.
+- **`ImportXtexFile`** [fabric] [import]
+  - `bool ImportXtexFile(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _xTexFilePath)` — `FabricAPIInterface.h:255`
+  - Import xtex to a fabric. Overwrite all the values described in the xtex file into the Fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor to import xTex file onto`
+    - param `_xTexFilePath: the xTex file path to import`
+    - returns: if it succeeds, return true.
+- **`ImportXtexFileW`** [fabric] [import]
+  - `bool ImportXtexFileW(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::wstring& _xTexFilePath)` — `FabricAPIInterface.h:264`
+  - Import xtex to a fabric. Overwrite all the values described in the xtex file into the Fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor to import xTex file onto`
+    - param `_xTexFilePath: the xTex file path to import`
+    - returns: if it succeeds, return true.
+- **`ApplyXtexFile`** [fabric]
+  - `bool ApplyXtexFile(unsigned int fabricIndex, const std::string& xTexFilePath)` — `FabricAPIInterface.h:272`
+  - Apply xtex to a fabric. Only set the values described in the xtex file into the Fabric.
+    - param `fabricIndex: the target fabric index in the object browser to apply xTex file onto`
+    - param `xTexFilePath: the xTex file path to apply`
+    - returns: if it succeeds, return true.
+- **`ApplyXtexFileW`** [fabric]
+  - `bool ApplyXtexFileW(unsigned int fabricIndex, const std::wstring& xTexFilePath)` — `FabricAPIInterface.h:280`
+  - Apply xtex to a fabric. Only set the values described in the xtex file into the Fabric.
+    - param `fabricIndex: the target fabric index in the object browser to apply xTex file onto`
+    - param `xTexFilePath: the xTex file path to apply`
+    - returns: if it succeeds, return true.
+- **`ApplyXtexFile`** [fabric]
+  - `bool ApplyXtexFile(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _xTexFilePath)` — `FabricAPIInterface.h:289`
+  - Apply xtex to a fabric. Only set the values described in the xtex file into the Fabric.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor to apply xTex file onto`
+    - param `_xTexFilePath: the xTex file path to apply`
+    - returns: if it succeeds, return true.
+- **`ApplyXtexFileW`** [fabric]
+  - `bool ApplyXtexFileW(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::wstring& _xTexFilePath)` — `FabricAPIInterface.h:298`
+  - Apply xtex to a fabric. Only set the values described in the xtex file into the Fabric.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor to apply xTex file onto`
+    - param `_xTexFilePath: the xTex file path to apply`
+    - returns: if it succeeds, return true.
+- **`DeleteFabric`** [fabric]
+  - `bool DeleteFabric(unsigned int fabricIndex)` — `FabricAPIInterface.h:305`
+  - Delete a fabric. If the fabric was assigned on Patterns, the patterns will have the default fabric
+    - param `fabricIndex: the target fabric index in the object browser to delete`
+    - returns: if it succeeds, return true.
+- **`DeleteFabric`** [fabric]
+  - `bool DeleteFabric(unsigned int _colorwayIndex, unsigned int _fabricIndex)` — `FabricAPIInterface.h:313`
+  - Delete a fabric. If the fabric was assigned on Patterns, the patterns will have the default fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor to delete`
+    - returns: if it succeeds, return true.
+- **`GetAPIMetaData`** 
+  - `std::string GetAPIMetaData(unsigned int fabricIndex)` — `FabricAPIInterface.h:320`
+  - Get API meta data for the fabric
+    - param `fabricIndex: target fabric index on the Object Browser`
+    - returns: json string for meta data [key - value] list
+- **`GetAPIMetaDataW`** 
+  - `std::wstring GetAPIMetaDataW(unsigned int fabricIndex)` — `FabricAPIInterface.h:327`
+  - Get API meta data for the fabric
+    - param `fabricIndex: target fabric index on the Object Browser`
+    - returns: json string for meta data [key - value] list
+- **`GetAPIMetaData`** 
+  - `std::string GetAPIMetaData(unsigned int _colorwayIndex, unsigned int _fabricIndex)` — `FabricAPIInterface.h:335`
+  - Get API meta data for the fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index on the Colorway Editor`
+    - returns: json string for meta data [key - value] list
+- **`GetAPIMetaDataW`** 
+  - `std::wstring GetAPIMetaDataW(unsigned int _colorwayIndex, unsigned int _fabricIndex)` — `FabricAPIInterface.h:343`
+  - Get API meta data for the fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index on the Colorway Editor`
+    - returns: json string for meta data [key - value] list
+- **`SetAPIMetaData`** 
+  - `bool SetAPIMetaData(unsigned int fabricIndex, std::string jsonStr)` — `FabricAPIInterface.h:351`
+  - Set API meta data for the fabric
+    - param `fabricIndex: target fabric index on the Object Browser`
+    - param `jsonStr: api meta data in string format`
+    - returns: if it succeeds, return true
+- **`SetAPIMetaDataW`** 
+  - `bool SetAPIMetaDataW(unsigned int fabricIndex, std::wstring jsonStr)` — `FabricAPIInterface.h:359`
+  - Set API meta data for the fabric
+    - param `fabricIndex: target fabric index on the Object Browser`
+    - param `jsonStr: api meta data in wstring format`
+    - returns: if it succeeds, return true
+- **`SetAPIMetaData`** 
+  - `bool SetAPIMetaData(unsigned int _colorwayIndex, unsigned int _fabricIndex, std::string _jsonStr)` — `FabricAPIInterface.h:368`
+  - Set API meta data for the fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index on the Colorway Editor`
+    - param `_jsonStr: api meta data in string format`
+    - returns: if it succeeds, return true
+- **`SetAPIMetaDataW`** 
+  - `bool SetAPIMetaDataW(unsigned int _colorwayIndex, unsigned int _fabricIndex, std::wstring _jsonStr)` — `FabricAPIInterface.h:377`
+  - Set API meta data for the fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index on the Colorway Editor`
+    - param `_jsonStr: api meta data in wstring format`
+    - returns: if it succeeds, return true
+- **`ChangeMetaDataValueForFabric`** [fabric]
+  - `void ChangeMetaDataValueForFabric(unsigned int fabricIndex, const std::string& metaDataKey, const std::string& metaDataValue)` — `FabricAPIInterface.h:385`
+  - Change or add Meta Data Value for the fabric with the index
+    - param `fabricIndex: target fabric index on the Object Browser`
+    - param `metaDataKey: target Key`
+    - param `metaDataValue: the new value for the key`
+- **`ChangeMetaDataValueForFabricW`** [fabric]
+  - `void ChangeMetaDataValueForFabricW(unsigned int fabricIndex, const std::wstring& metaDataKey, const std::wstring& metaDataValue)` — `FabricAPIInterface.h:393`
+  - Change or add Meta Data Value for the fabric with the index
+    - param `fabricIndex: target fabric index on the Object Browser`
+    - param `metaDataKey: target Key`
+    - param `metaDataValue: the new value for the key`
+- **`ChangeMetaDataValueForFabric`** [fabric]
+  - `void ChangeMetaDataValueForFabric(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _metaDataKey, const std::string& _metaDataValue)` — `FabricAPIInterface.h:402`
+  - Change or add Meta Data Value for the fabric with the index
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index on the Colorway Editor`
+    - param `_metaDataKey: target Key`
+    - param `_metaDataValue: the new value for the key`
+- **`ChangeMetaDataValueForFabricW`** [fabric]
+  - `void ChangeMetaDataValueForFabricW(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::wstring& _metaDataKey, const std::wstring& _metaDataValue)` — `FabricAPIInterface.h:411`
+  - Change or add Meta Data Value for the fabric with the index
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: target fabric index on the Colorway Editor`
+    - param `_metaDataKey: target Key`
+    - param `_metaDataValue: the new value for the key`
+- **`GetFabricIndexForPattern`** · **WIRED** [fabric] [pattern]
+  - `int GetFabricIndexForPattern(int patternIndex)` — `FabricAPIInterface.h:418`
+  - Get the fabric index which is assigned on the pattern with the pattern index
+    - param `patternIndex: the input pattern index to get the fabric index`
+    - returns: fabric index on the object browser for the pattern with the pattern index
+- **`GetFabricIndexForPattern`** · **WIRED** [fabric] [pattern]
+  - `int GetFabricIndexForPattern(int _patternIndex, int _colorwayIndex)` — `FabricAPIInterface.h:426`
+  - Get the fabric index which is assigned on the pattern with the pattern index
+    - param `_patternIndex: the input pattern index to get the fabric index`
+    - param `_colorwayIndex: the colorway index to get the fabric index`
+    - returns: fabric index on the object browser for the pattern with the pattern index and colorway index
+- **`GetFabricIndex`** [fabric]
+  - `int GetFabricIndex(const std::string& fabricName)` — `FabricAPIInterface.h:433`
+  - Get the fabric index which is using the fabric name
+    - param `fabricName: the fabric name to get the fabric index`
+    - returns: fabric index. If the fabric name is not found, return -1.
+- **`GetFabricIndex`** [fabric]
+  - `int GetFabricIndex(int _colorwayIndex, const std::string& _fabricName)` — `FabricAPIInterface.h:441`
+  - Get the fabric index which is using the fabric name
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricName: the fabric name to get the fabric index`
+    - returns: fabric index
+- **`GetFabricIndexW`** [fabric]
+  - `int GetFabricIndexW(const std::wstring& fabricName)` — `FabricAPIInterface.h:448`
+  - Get the fabric index which is using the fabric name
+    - param `fabricName: the fabric name to get the fabric index`
+    - returns: fabric index
+- **`GetFabricIndexW`** [fabric]
+  - `int GetFabricIndexW(int _colorwayIndex, const std::wstring& _fabricName)` — `FabricAPIInterface.h:456`
+  - Get the fabric index which is using the fabric name
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricName: the fabric name to get the fabric index`
+    - returns: fabric index
+- **`GetFabricName`** [fabric]
+  - `std::string GetFabricName(int fabricIndex)` — `FabricAPIInterface.h:463`
+  - Get the fabric name of the fabric in the fabricIndex on the object browser
+    - param `fabricIndex: the fabric index on the Object Browser to get the name`
+    - returns: fabric name
+- **`GetFabricNameW`** [fabric]
+  - `std::wstring GetFabricNameW(int fabricIndex)` — `FabricAPIInterface.h:470`
+  - Get the fabric name of the fabric in the fabricIndex on the object browser
+    - param `fabricIndex: the fabric index on the Object Browser to get the name`
+    - returns: fabric name
+- **`GetFabricName`** [fabric]
+  - `std::string GetFabricName(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:478`
+  - Get the fabric name of the fabric in the fabricIndex on the object browser
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabric index on the Colorway Editor to get the name`
+    - returns: fabric name
+- **`GetFabricNameW`** [fabric]
+  - `std::wstring GetFabricNameW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:486`
+  - Get the fabric name of the fabric in the fabricIndex on the object browser
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabric index on the Colorway Editor to get the name`
+    - returns: fabric name
+- **`GetFabricInfo`** [fabric]
+  - `std::string GetFabricInfo(int fabricIndex)` — `FabricAPIInterface.h:493`
+  - Get a fabric information
+    - param `fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - returns: json string for fabric information
+- **`GetFabricInfoW`** [fabric]
+  - `std::wstring GetFabricInfoW(int fabricIndex)` — `FabricAPIInterface.h:500`
+  - Get a fabric information
+    - param `fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - returns: json string for fabric information
+- **`GetColorwayFabricInfo`** [fabric] [render]
+  - `std::string GetColorwayFabricInfo(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:508`
+  - Get a fabric information for a colorway
+    - param `_colorwayIndex: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - returns: json string for fabric information
+- **`GetColorwayFabricInfoW`** [fabric] [render]
+  - `std::wstring GetColorwayFabricInfoW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:516`
+  - Get a fabric information for a colorway
+    - param `_colorwayIndex: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - returns: json string for fabric information
+- **`GetAPIMetaDataFromFile`** 
+  - `std::string GetAPIMetaDataFromFile(const std::string& filePath)` — `FabricAPIInterface.h:523`
+  - Get API meta data for the fabric
+    - param `filePath: filepath (.zfab / .jfab)`
+    - returns: json string for meta data [key - value] list
+- **`GetAPIMetaDataFromFileW`** 
+  - `std::wstring GetAPIMetaDataFromFileW(const std::wstring& filePath)` — `FabricAPIInterface.h:530`
+  - Get API meta data for the fabric
+    - param `filePath: filepath (.zfab / .jfab)`
+    - returns: json string for meta data [key - value] list
+- **`SetFabricInformation`** [fabric]
+  - `void SetFabricInformation(int _fabricIndex, const std::map<std::string, std::string> _infoMap)` — `FabricAPIInterface.h:537`
+  - Set Fabric Information to fabric
+    - param `_fabricIndex: the fabricIndex for the fabric to set the fabric info`
+    - param `_infoMap: Fabric Information (etc. Classification, Content, SupplierName, Owner)`
+- **`SetFabricInformationW`** [fabric]
+  - `void SetFabricInformationW(int _fabricIndex, const std::map<std::wstring, std::wstring>& _infoMap)` — `FabricAPIInterface.h:544`
+  - Set Fabric Information to fabric
+    - param `_fabricIndex: the fabricIndex for the fabric to set the fabric info`
+    - param `_infoMap: Fabric Information (etc. Classification, Content, SupplierName, Owner)`
+- **`SetFabricInformation`** [fabric]
+  - `void SetFabricInformation(int _colorwayIndex, int _fabricIndex, const std::map<std::string, std::string> _infoMap)` — `FabricAPIInterface.h:552`
+  - Set Fabric Information to fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabricIndex in the Colorway Editor for the fabric to set the fabric info`
+    - param `_infoMap: Fabric Information (etc. Classification, Content, SupplierName, Owner)`
+- **`SetFabricInformationW`** [fabric]
+  - `void SetFabricInformationW(int _colorwayIndex, int _fabricIndex, const std::map<std::wstring, std::wstring>& _infoMap)` — `FabricAPIInterface.h:560`
+  - Set Fabric Information to fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabricIndex in the Colorway Editor for the fabric to set the fabric info`
+    - param `_infoMap: Fabric Information (etc. Classification, Content, SupplierName, Owner)`
+- **`GetFabricInformation`** [fabric]
+  - `std::map<std::string, std::string> GetFabricInformation(int _fabricIndex)` — `FabricAPIInterface.h:567`
+  - Get Fabric Information for fabric
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - returns: Fabric Information
+- **`GetFabricInformationW`** [fabric]
+  - `std::map<std::wstring, std::wstring> GetFabricInformationW(int _fabricIndex)` — `FabricAPIInterface.h:578`
+  - Get Fabric Information for fabric
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - returns: Fabric Information
+- **`GetFabricInformation`** [fabric]
+  - `std::map<std::string, std::string> GetFabricInformation(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:590`
+  - Get Fabric Information for fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabricIndex in the Colorway Editor for the fabric to set the fabric info`
+    - returns: Fabric Information
+- **`GetFabricInformationW`** [fabric]
+  - `std::map<std::wstring, std::wstring> GetFabricInformationW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:602`
+  - Get Fabric Information for fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabricIndex in the Colorway Editor for the fabric to set the fabric info`
+    - returns: Fabric Information
+- **`SetCustomImage`** [render]
+  - `void SetCustomImage(int _fabricIndex, const std::string& _filePath)` — `FabricAPIInterface.h:613`
+  - Set Custom Image to fabric
+    - param `_fabricIndex: the fabricIndex for the fabric`
+    - param `_filePath: filepath  (.png / .jpeg)`
+- **`SetCustomImageW`** [render]
+  - `void SetCustomImageW(int _fabricIndex, const std::wstring& _filePath)` — `FabricAPIInterface.h:620`
+  - Set Custom Image to fabric
+    - param `_fabricIndex: the fabricIndex for the fabric`
+    - param `_filePath: filepath  (.png / .jpeg)`
+- **`SetCustomImage`** [render]
+  - `void SetCustomImage(int _colorwayIndex, int _fabricIndex, const std::string& _filePath)` — `FabricAPIInterface.h:628`
+  - Set Custom Image to fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabricIndex in the Colorway Editor for the fabric`
+    - param `_filePath: filepath  (.png / .jpeg)`
+- **`SetCustomImageW`** [render]
+  - `void SetCustomImageW(int _colorwayIndex, int _fabricIndex, const std::wstring& _filePath)` — `FabricAPIInterface.h:636`
+  - Set Custom Image to fabric
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabricIndex in the Colorway Editor for the fabric`
+    - param `_filePath: filepath  (.png / .jpeg)`
+- **`GetPrimaryFabric`** [fabric]
+  - `int GetPrimaryFabric()` — `FabricAPIInterface.h:641`
+  - Return the fabric index used for a major number of the patterns
+- **`SetFabricName`** [fabric]
+  - `void SetFabricName(unsigned int index, const std::string& str)` — `FabricAPIInterface.h:648`
+  - Change fabric name
+    - param `index: the target fabric index on the object browser to change the name`
+    - param `str: new name for the fabric`
+- **`SetFabricNameW`** [fabric]
+  - `void SetFabricNameW(unsigned int index, const std::wstring& wstr)` — `FabricAPIInterface.h:655`
+  - Change fabric name
+    - param `index: the target fabric index on the object browser to change the name`
+    - param `wstr: new name for the fabric`
+- **`SetFabricName`** [fabric]
+  - `void SetFabricName(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _str)` — `FabricAPIInterface.h:663`
+  - Change fabric name
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index on the object browser to change the name`
+    - param `str: new name for the fabric`
+- **`SetFabricNameW`** [fabric]
+  - `void SetFabricNameW(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::wstring& _wstr)` — `FabricAPIInterface.h:671`
+  - Change fabric name
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index on the object browser to change the name`
+    - param `_wstr: new name for the fabric`
+- **`SetFabricName`** [fabric]
+  - `void SetFabricName(unsigned int _index, const std::string& _str, bool _bRefreshTab)` — `FabricAPIInterface.h:679`
+  - Change fabric name
+    - param `index: the target fabric index on the object browser to change the name`
+    - param `str: new name for the fabric`
+    - param `refreshTab: refreshes the tab after setting the new name`
+- **`GetFabricStyleNameList`** [fabric]
+  - `std::vector<std::string> GetFabricStyleNameList()` — `FabricAPIInterface.h:684`
+  - Return all fabric style name
+- **`ImportSubstanceFile`** [fabric] [import]
+  - `bool ImportSubstanceFile(unsigned int fabricIndex, const std::string& substanceFilePath)` — `FabricAPIInterface.h:696`
+  - Import substance to a fabric.
+    - param `fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `substanceFilePath: the substance file path to import`
+    - returns: if it succeeds, return true.
+- **`ImportSubstanceFileW`** [fabric] [import]
+  - `bool ImportSubstanceFileW(unsigned int fabricIndex, const std::wstring& substanceFilePath)` — `FabricAPIInterface.h:704`
+  - Import substance to a fabric.
+    - param `fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `substanceFilePath: the substance file path to import`
+    - returns: if it succeeds, return true.
+- **`ImportSubstanceFile`** [fabric] [import]
+  - `bool ImportSubstanceFile(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _substanceFilePath)` — `FabricAPIInterface.h:713`
+  - Import substance to a fabric.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor to import substance file onto`
+    - param `_substanceFilePath: the substance file path to import`
+    - returns: if it succeeds, return true.
+- **`ImportSubstanceFileW`** [fabric] [import]
+  - `bool ImportSubstanceFileW(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::wstring& _substanceFilePath)` — `FabricAPIInterface.h:722`
+  - Import substance to a fabric.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor to import substance file onto`
+    - param `_substanceFilePath: the substance file path to import`
+    - returns: if it succeeds, return true.
+- **`GetFabricWidth`** [fabric]
+  - `float GetFabricWidth(int fabricIndex)` — `FabricAPIInterface.h:729`
+  - Get Fabric width (mm)
+    - param `fabricIndex: the target fabric index in the object browser`
+    - returns: fabric width
+- **`GetFabricWidth`** [fabric]
+  - `float GetFabricWidth(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:737`
+  - Get Fabric width (mm)
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: fabric width
+- **`SetFabricWidth`** [fabric]
+  - `void SetFabricWidth(int _fabricIndex, float mm)` — `FabricAPIInterface.h:745`
+  - Set Fabric width (mm)
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `mm: Fabric width`
+    - returns: void
+- **`SetFabricWidth`** [fabric]
+  - `void SetFabricWidth(int _colorwayIndex, int _fabricIndex, float _mm)` — `FabricAPIInterface.h:754`
+  - Set Fabric width (mm)
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_mm: Fabric width`
+    - returns: void
+- **`GetFabricLength`** [fabric]
+  - `float GetFabricLength(int fabricIndex)` — `FabricAPIInterface.h:761`
+  - Get Fabric Length (mm)
+    - param `fabricIndex: the target fabric index in the object browser`
+    - returns: Fabric Length
+- **`GetFabricLength`** [fabric]
+  - `float GetFabricLength(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:769`
+  - Get Fabric Length (mm)
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: Fabric Length
+- **`SetTextureMapping`** 
+  - `void SetTextureMapping(unsigned int fabricIndex, int mappingType)` — `FabricAPIInterface.h:776`
+  - Set Texture Mapping Type (Repeat or Unified)
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `mappingType: the target mapping type to set. 0: "Repeat", 1: "Unified"`
+- **`SetTextureMapping`** 
+  - `void SetTextureMapping(unsigned int _colorwayIndex, unsigned int _fabricIndex, int _mappingType)` — `FabricAPIInterface.h:784`
+  - Set Texture Mapping Type (Repeat or Unified)
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the ColorwayEditor`
+    - param `_mappingType: the target mapping type to set. 0: "Repeat", 1: "Unified"`
+- **`SetSubstancePreset`** [fabric]
+  - `void SetSubstancePreset(unsigned int fabricIndex, int materialFace, int presetIndex)` — `FabricAPIInterface.h:792`
+  - Set Substance Preset
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `presetIndex: the preset index to set`
+- **`SetSubstancePreset`** [fabric]
+  - `void SetSubstancePreset(unsigned int colorwayIndex, unsigned int fabricIndex, int materialFace, int presetIndex)` — `FabricAPIInterface.h:801`
+  - Set Substance Preset
+    - param `colorwayIndex: target colorway index in the Colorway Editor`
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `presetIndex: the preset index to set`
+- **`SetSubstanceResolution`** [fabric]
+  - `void SetSubstanceResolution(unsigned int fabricIndex, int materialFace, int resolutionIndex)` — `FabricAPIInterface.h:809`
+  - Set Substance Resolution
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `resolutionIndex: the resolution index to set`
+- **`SetSubstanceResolution`** [fabric]
+  - `void SetSubstanceResolution(unsigned int colorwayIndex, unsigned int fabricIndex, int materialFace, int resolutionIndex)` — `FabricAPIInterface.h:818`
+  - Set Substance Resolution
+    - param `colorwayIndex: target colorway index in the Colorway Editor`
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `resolutionIndex: the resolution index to set`
+- **`ImportSubstanceFileAsFaceType`** [fabric] [import]
+  - `bool ImportSubstanceFileAsFaceType(unsigned int _fabricIndex, const std::string& _substanceFilePath, const std::string& _faceType)` — `FabricAPIInterface.h:827`
+  - Import substance to a fabric as facetype.
+    - param `_fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `_substanceFilePath: the substance file path to import`
+    - param `_facetype :“Front”, “Back”, “Side”`
+    - returns: if it succeeds, return true.
+- **`ImportSubstanceFileAsFaceType`** [fabric] [import]
+  - `bool ImportSubstanceFileAsFaceType(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _substanceFilePath, const std::string& _faceType)` — `FabricAPIInterface.h:837`
+  - Import substance to a fabric as facetype.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `_substanceFilePath: the substance file path to import`
+    - param `_facetype :“Front”, “Back”, “Side”`
+    - returns: if it succeeds, return true.
+- **`ImportSubstanceFileAsFaceTypeW`** [fabric] [import]
+  - `bool ImportSubstanceFileAsFaceTypeW(unsigned int _fabricIndex, const std::wstring& _substanceFilePath, const std::string& _faceType)` — `FabricAPIInterface.h:846`
+  - Import substance to a fabric.
+    - param `_fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `_substanceFilePath: the substance file path to import`
+    - param `_facetype :“Front”, “Back”, “Side”`
+    - returns: if it succeeds, return true.
+- **`ImportSubstanceFileAsFaceTypeW`** [fabric] [import]
+  - `bool ImportSubstanceFileAsFaceTypeW(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::wstring& _substanceFilePath, const std::string& _faceType)` — `FabricAPIInterface.h:856`
+  - Import substance to a fabric.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `_substanceFilePath: the substance file path to import`
+    - param `_facetype :“Front”, “Back”, “Side”`
+    - returns: if it succeeds, return true.
+- **`SetUseSameMaterialAsFront`** 
+  - `void SetUseSameMaterialAsFront(unsigned int fabricIndex, int materialFace, bool _useSameMaterial)` — `FabricAPIInterface.h:865`
+  - Set use same material as front.
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - param `_useSameMaterial: use same material as front`
+    - returns: void
+- **`SetUseSameMaterialAsFront`** 
+  - `void SetUseSameMaterialAsFront(unsigned int colorwayIndex, unsigned int fabricIndex, int materialFace, bool _useSameMaterial)` — `FabricAPIInterface.h:875`
+  - Set use same material as front.
+    - param `colorwayIndex: target colorway index in the Colorway Editor`
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - param `_useSameMaterial: use same material as front`
+    - returns: void
+- **`GetUseSameMaterialAsFront`** · pure-virtual 
+  - `bool GetUseSameMaterialAsFront(unsigned int fabricIndex, int materialFace)` — `FabricAPIInterface.h:883`
+  - Get use same material as front.
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - returns: It returns True if the UseSameMaterialAsFront option is enabled.
+- **`GetUseSameMaterialAsFront`** · pure-virtual 
+  - `bool GetUseSameMaterialAsFront(unsigned int colorwayIndex, unsigned int fabricIndex, int materialFace)` — `FabricAPIInterface.h:892`
+  - Get use same material as front.
+    - param `colorwayIndex: target colorway index in the Colorway Editor`
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - returns: It returns True if the UseSameMaterialAsFront option is enabled.
+- **`SetUseSameColorAsFront`** 
+  - `void SetUseSameColorAsFront(unsigned int fabricIndex, int materialFace, bool _useSameColor)` — `FabricAPIInterface.h:900`
+  - Set use same color as front.
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - param `_useSameColor: use same color as front`
+- **`SetUseSameColorAsFront`** 
+  - `void SetUseSameColorAsFront(unsigned int colorwayIndex, unsigned int fabricIndex, int materialFace, bool _useSameColor)` — `FabricAPIInterface.h:909`
+  - Set use same color as front.
+    - param `colorwayIndex: target colorway index in the Colorway Editor`
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - param `_useSameColor: use same color as front`
+- **`GetUseSameColorAsFront`** · pure-virtual 
+  - `bool GetUseSameColorAsFront(unsigned int fabricIndex, int materialFace)` — `FabricAPIInterface.h:917`
+  - Get use same color as front.
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - returns: It returns True if the UseSameColorAsFront option is enabled.
+- **`GetUseSameColorAsFront`** · pure-virtual 
+  - `bool GetUseSameColorAsFront(unsigned int colorwayIndex, unsigned int fabricIndex, int materialFace)` — `FabricAPIInterface.h:926`
+  - Get use same color as front.
+    - param `colorwayIndex: target colorway index in the Colorway Editor`
+    - param `fabricIndex: the target fabric index in the object browser`
+    - param `materialFace: the target material index in the property editor. 1: "Back", 2: "Side"`
+    - returns: It returns True if the UseSameColorAsFront option is enabled.
+- **`SetFabricPBRMaterialBaseColor`** · **WIRED**, doc, pure-virtual [fabric]
+  - `bool SetFabricPBRMaterialBaseColor(unsigned int fabricIndex, unsigned int materialFace, float r, float g, float b, float a)` — `FabricAPIInterface.h:942`
+  - Set a base color of PBR material in a fabric using given RGBA values.
+    - param `fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `materialFace :"Front", "Back", "Side"`
+    - param `r : To be set as red value`
+    - param `g : To be set as green value`
+    - param `b : To be set as blue value`
+    - param `a : To be set as alpha value`
+    - returns: if it succeeds, return true.
+- **`SetFabricPBRMaterialBaseColor`** · **WIRED**, doc, pure-virtual [fabric]
+  - `bool SetFabricPBRMaterialBaseColor(unsigned int _colorwayIndex, unsigned int _fabricIndex, unsigned int _materialFace, float _r, float _g, float _b, float _a)` — `FabricAPIInterface.h:959`
+  - Set a base color of PBR material in a fabric using given RGBA values.
+    - param `_colorwayIndex: the target colorway index`
+    - param `_fabricIndex: the target fabric index in the object browser(Fabric index calculated assuming that the "Show All Colorways" option is turned off)`
+    - param `_materialFace :“Front”, “Back”, “Side”`
+    - param `_r : To be set as red value`
+    - param `_g : To be set as green value`
+    - param `_b : To be set as blue value`
+    - param `_a : To be set as alpha value`
+    - returns: if it succeeds, return true.
+- **`SetFabricPBRMaterialBaseColor`** · **WIRED**, doc, pure-virtual [fabric]
+  - `bool SetFabricPBRMaterialBaseColor(unsigned int fabricIndex, unsigned int materialFace, const std::string& _colorName)` — `FabricAPIInterface.h:972`
+  - Set a base color of PBR material in a fabric using given name of color.
+    - param `fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `materialFace :“Front”, “Back”, “Side”`
+    - param `_colorName: Name of color`
+    - returns: if it succeeds, return true.
+- **`SetFabricPBRMaterialBaseColor`** · **WIRED**, doc, pure-virtual [fabric]
+  - `bool SetFabricPBRMaterialBaseColor(unsigned int _colorwayIndex, unsigned int _fabricIndex, unsigned int _materialFace, const std::string& _colorName)` — `FabricAPIInterface.h:986`
+  - Set a base color of PBR material in a fabric using given name of color.
+    - param `_colorwayIndex: the target colorway index`
+    - param `_fabricIndex: the target fabric index in the object browser(Fabric index calculated assuming that the "Show All Colorways" option is turned off)`
+    - param `_materialFace :“Front”, “Back”, “Side”`
+    - param `_colorName: Name of color`
+    - returns: if it succeeds, return true.
+- **`GetFabricPBRMaterialBaseColor`** · pure-virtual [fabric]
+  - `std::tuple<float, float, float, float> GetFabricPBRMaterialBaseColor(unsigned int fabricIndex, unsigned int materialFace)` — `FabricAPIInterface.h:994`
+  - Get a base color of PBR material in a fabric.
+    - param `fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `materialFace :“Front”, “Back”, “Side”`
+    - returns: RGBA float tuple
+- **`GetFabricPBRMaterialBaseColor`** · pure-virtual [fabric]
+  - `std::tuple<float, float, float, float> GetFabricPBRMaterialBaseColor(unsigned int _colorwayIndex, unsigned int _fabricIndex, unsigned int _materialFace)` — `FabricAPIInterface.h:1003`
+  - Get a base color of PBR material in a fabric.
+    - param `_colorwayIndex: the target colorway index`
+    - param `_fabricIndex: the target fabric index in the object browser to import substance file onto`
+    - param `_materialFace :“Front”, “Back”, “Side”`
+    - returns: RGBA float tuple
+- **`SetCurrentFabricIndex`** [fabric]
+  - `bool SetCurrentFabricIndex(int _index)` — `FabricAPIInterface.h:1010`
+  - Set Current Fabric Index
+    - param `_index: Fabric Index`
+    - returns: Fabric setting success or failure return
+- **`SetCurrentFabricIndex`** [fabric]
+  - `bool SetCurrentFabricIndex(unsigned int _colorwayIndex, int _index)` — `FabricAPIInterface.h:1018`
+  - Set Current Fabric Index
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index`
+    - returns: Fabric setting success or failure return
+- **`CreateZfabFromTextures`** [fabric]
+  - `bool CreateZfabFromTextures(const std::string& _filePath, const std::string& _baseTexturePath, const std::string& _normalTexturePath, const std::string& _disPlacementTexturePath, const std::string& _opacityTexturePath, const std::string& _roughnessTexturePath, const std::string& _metalnessTexturePath)` — `FabricAPIInterface.h:1031`
+  - Create Zfab From Textures
+    - param `_filePath: created filepath (.zfab)`
+    - param `_baseTexturePath: the baseTexture file path to create zfab`
+    - param `_normalTexturePath: the normalTexturePath file path to create zfab`
+    - param `_disPlacementTexturePath :the disPlacementTexturePath file path to create zfab`
+    - param `_opacityTexturePath :the opacityTexturePath file path to create zfab`
+    - param `_roughnessTexturePath :the roughnessTexturePath file path to create zfab`
+    - param `_metalnessTexturePath :the metalnessTexturePath file path to create zfab`
+    - returns: zfab file creating success or failure return
+- **`CombineZfab`** [fabric]
+  - `void CombineZfab(const std::string& _filePath, const std::string& _baseZfabPath, const std::string& _targetZfabPath)` — `FabricAPIInterface.h:1039`
+  - Combining two zfab files into one
+    - param `_filePath: created filepath (.zfab)`
+    - param `_baseZfabPath: the Path to the zfab file on which the physical properties will be based`
+    - param `_targetZfabPath: the path to the zfab file on which the image will be based`
+- **`GetRoughnessType`** · pure-virtual [fabric]
+  - `int GetRoughnessType(int _index, int _materialFace)` — `FabricAPIInterface.h:1047`
+  - Get Material RoughnessType
+    - param `_index: Fabric Index, _materialFace : Fabric Material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - returns: Return fabric's material Roughness Type. ( 0 : Intensity, 1 : Map )
+- **`GetRoughnessType`** · pure-virtual [fabric]
+  - `int GetRoughnessType(unsigned int _colorwayIndex, int _index, int _materialFace)` — `FabricAPIInterface.h:1055`
+  - Get Material RoughnessType
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index, _materialFace : Fabric Material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - returns: Return fabric's material Roughness Type. ( 0 : Intensity, 1 : Map )
+- **`SetRoughnessType`** · pure-virtual [fabric]
+  - `void SetRoughnessType(int _index, int _materialFace, int _roughnessType)` — `FabricAPIInterface.h:1062`
+  - Set Current Fabric's material roughnessType
+    - param `_index: Fabric Index, _materialFace : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE), _roughnessType : roughnessType to be set ( 0 : Intensity, 1 : Map )`
+    - returns: Fabric setting success or failure return
+- **`SetRoughnessType`** · pure-virtual [fabric]
+  - `void SetRoughnessType(unsigned int _colorwayIndex, int _index, int _materialFace, int _roughnessType)` — `FabricAPIInterface.h:1070`
+  - Set Current Fabric's material roughnessType
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index, _materialFace : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE), _roughnessType : roughnessType to be set ( 0 : Intensity, 1 : Map )`
+    - returns: Fabric setting success or failure return
+- **`GetRoughnessValueIntensity`** · pure-virtual [fabric]
+  - `int GetRoughnessValueIntensity(int _index, int _face)` — `FabricAPIInterface.h:1077`
+  - Get fabric material's Roughness Intensity values.
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - returns: Fabric material's Roughness Intensity values.
+- **`GetRoughnessValueIntensity`** · pure-virtual [fabric]
+  - `int GetRoughnessValueIntensity(unsigned int _colorwayIndex, int _index, int _face)` — `FabricAPIInterface.h:1085`
+  - Get fabric material's Roughness Intensity values.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - returns: Fabric material's Roughness Intensity values.
+- **`SetRoughnessValueIntensity`** · pure-virtual [fabric]
+  - `void SetRoughnessValueIntensity(int _fabricIndex, int _face, int _value)` — `FabricAPIInterface.h:1094`
+  - Set fabric material's Roughness Intensity values.
+    - param `_fabricIndex: Fabric Index`
+    - param `_face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - param `_value : roughness value`
+    - returns: Fabric material's Roughness Intensity values.
+- **`SetRoughnessValueIntensity`** · pure-virtual [fabric]
+  - `void SetRoughnessValueIntensity(unsigned int _colorwayIndex, int _fabricIndex, int _face, int _value)` — `FabricAPIInterface.h:1105`
+  - Set fabric material's Roughness Intensity values.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the fabricIndex in the Colorway Editor for the fabric to set the fabric info`
+    - param `_face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - param `_value : roughness value`
+    - returns: Fabric material's Rough Fabric material's Roughness Intensity values.
+- **`GetRoughnessValueMapIntensity`** · pure-virtual [fabric]
+  - `int GetRoughnessValueMapIntensity(int _index, int _face)` — `FabricAPIInterface.h:1113`
+  - Get fabric material's map type roughness intensity values.
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - returns: Fabric material's map type roughness Intensity values.
+- **`GetRoughnessValueMapIntensity`** · pure-virtual [fabric]
+  - `int GetRoughnessValueMapIntensity(unsigned int _colorwayIndex, int _index, int _face)` — `FabricAPIInterface.h:1121`
+  - Get fabric material's map type roughness intensity values.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+    - returns: Fabric material's map type roughness Intensity values.
+- **`SetRoughnessValueMapIntensity`** · pure-virtual [fabric]
+  - `void SetRoughnessValueMapIntensity(int _index, int _face, int _value)` — `FabricAPIInterface.h:1127`
+  - Set fabric material's map type roughness intensity values.
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE), _value : intensity value to be set.`
+- **`SetRoughnessValueMapIntensity`** · pure-virtual [fabric]
+  - `void SetRoughnessValueMapIntensity(unsigned int _colorwayIndex, int _index, int _face, int _value)` — `FabricAPIInterface.h:1134`
+  - Set fabric material's map type roughness intensity values.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE), _value : intensity value to be set.`
+- **`IsRoughnessValueMapInvert`** · pure-virtual [fabric]
+  - `bool IsRoughnessValueMapInvert(int _index, int _face)` — `FabricAPIInterface.h:1141`
+  - Return whether roughness map is inverted.
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+- **`IsRoughnessValueMapInvert`** · pure-virtual [fabric]
+  - `bool IsRoughnessValueMapInvert(unsigned int _colorwayIndex, int _index, int _face)` — `FabricAPIInterface.h:1149`
+  - Return whether roughness map is inverted.
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE)`
+- **`SetRoughnessValueMapInvert`** · pure-virtual [fabric]
+  - `void SetRoughnessValueMapInvert(int _index, int _face, bool _bInvert)` — `FabricAPIInterface.h:1155`
+  - Set whether roughness map is inverted
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE), bInvert : Whether roughness map is inverted.`
+- **`SetRoughnessValueMapInvert`** · pure-virtual [fabric]
+  - `void SetRoughnessValueMapInvert(unsigned int _colorwayIndex, int _index, int _face, bool _bInvert)` — `FabricAPIInterface.h:1162`
+  - Set whether roughness map is inverted
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_index: Fabric Index, _face : target material Face Type (0 : Front , 1 : BACK , 2 : SIDE), bInvert : Whether roughness map is inverted.`
+- **`SetPBRMaterialDisplacementMap`** · pure-virtual [fabric]
+  - `bool SetPBRMaterialDisplacementMap(unsigned int _fabricIndex, const std::string &_path)` — `FabricAPIInterface.h:1170`
+  - Set fabric's displacement map using given image path.
+    - param `_fabricIndex: index of fabric`
+    - param `_path: path of the image file`
+- **`SetPBRMaterialDisplacementMap`** · pure-virtual [fabric]
+  - `bool SetPBRMaterialDisplacementMap(unsigned int _colorwayIndex, unsigned int _fabricIndex, const std::string& _path)` — `FabricAPIInterface.h:1179`
+  - Set fabric's displacement map using given image path.
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: index of fabric`
+    - param `_path: path of the image file`
+- **`GetPBRMaterialDisplacementMapValue`** · pure-virtual [fabric]
+  - `std::tuple<float, float, float, float, bool> GetPBRMaterialDisplacementMapValue(unsigned int _fabricIndex)` — `FabricAPIInterface.h:1186`
+  - Get fabric's displacement map values.
+    - param `_fabricIndex: index of fabric`
+- **`GetPBRMaterialDisplacementMapValue`** · pure-virtual [fabric]
+  - `std::tuple<float, float, float, float, bool> GetPBRMaterialDisplacementMapValue(unsigned int _colorwayIndex, unsigned int _fabricIndex)` — `FabricAPIInterface.h:1194`
+  - Get fabric's displacement map values.
+    - param `_colorwayIndex: _colorwayIndex: index of colorway`
+    - param `_fabricIndex: index of fabric`
+- **`SetPBRMaterialDisplacementMapValue`** · pure-virtual [fabric]
+  - `bool SetPBRMaterialDisplacementMapValue(unsigned int _fabricIndex, float _amount, float _shift, float _clipping, float _particleDist, bool _keep)` — `FabricAPIInterface.h:1206`
+  - Set fabric's displacement map values.
+    - param `_fabricIndex: index of fabric`
+    - param `_amount: Amount value to be set (mm)`
+    - param `_shift: Shift value to be set (mm)`
+    - param `_clipping: Clipping value to be set (mm)`
+    - param `_particleDist: Particle distance value to be set (mm)`
+    - param `_keep: Keep Continuity value to be set`
+- **`SetPBRMaterialDisplacementMapValue`** · pure-virtual [fabric]
+  - `bool SetPBRMaterialDisplacementMapValue(unsigned int _colorwayIndex, unsigned int _fabricIndex, float _amount, float _shift, float _clipping, float _particleDist, bool _keep)` — `FabricAPIInterface.h:1219`
+  - Set fabric's displacement map values.
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: index of fabric`
+    - param `_amount: Amount value to be set (mm)`
+    - param `_shift: Shift value to be set (mm)`
+    - param `_clipping: Clipping value to be set (mm)`
+    - param `_particleDist: Particle distance value to be set (mm)`
+    - param `_keep: Keep Continuity value to be set`
+- **`GetReflectionRoughness`** [fabric]
+  - `float GetReflectionRoughness(int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1227`
+  - Get reflection roughness value
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: reflection roughness value
+- **`GetReflectionRoughness`** [fabric]
+  - `float GetReflectionRoughness(unsigned int _colorwayIndex, int fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1236`
+  - Get reflection roughness value
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: reflection roughness value
+- **`SetReflectionRoughness`** [fabric]
+  - `void SetReflectionRoughness(int _fabricIndex, int _materialFace, float _reflectionRoughness)` — `FabricAPIInterface.h:1245`
+  - Set reflection roughness value
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_reflectionRoughness roughness value`
+    - returns: void
+- **`SetReflectionRoughness`** [fabric]
+  - `void SetReflectionRoughness(unsigned int _colorwayIndex, int fabricIndex, int _materialFace, float _reflectionRoughness)` — `FabricAPIInterface.h:1255`
+  - Set reflection roughness value
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_reflectionRoughness roughness value`
+    - returns: void
+- **`GetReflectionIntensity`** 
+  - `float GetReflectionIntensity(int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1263`
+  - Get reflection intensity
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: reflection intensity value
+- **`GetReflectionIntensity`** 
+  - `float GetReflectionIntensity(unsigned int _colorwayIndex, int fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1272`
+  - Get reflection intensity
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: reflection intensity value
+- **`SetReflectionIntensity`** 
+  - `void SetReflectionIntensity(int _fabricIndex, int _materialFace, float _reflectionIntensity)` — `FabricAPIInterface.h:1281`
+  - Set reflection intensity
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_reflectionIntensity: reflection intensity value`
+    - returns: void
+- **`SetReflectionIntensity`** 
+  - `void SetReflectionIntensity(unsigned int _colorwayIndex, int fabricIndex, int _materialFace, float _reflectionIntensity)` — `FabricAPIInterface.h:1291`
+  - Set reflection intensity
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_reflectionIntensity: reflection intensity value`
+    - returns: void
+- **`GetMetalness`** [fabric]
+  - `float GetMetalness(int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1299`
+  - Get metalness
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: metalness value
+- **`GetMetalness`** [fabric]
+  - `float GetMetalness(unsigned int _colorwayIndex, int fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1308`
+  - Get metalness
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: metalness value
+- **`SetMetalness`** [fabric]
+  - `void SetMetalness(int _fabricIndex, int _materialFace, float _metalness)` — `FabricAPIInterface.h:1317`
+  - Set metalness
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_metalness: metalness value`
+    - returns: void
+- **`SetMetalness`** [fabric]
+  - `void SetMetalness(unsigned int _colorwayIndex, int fabricIndex, int _materialFace, float _metalness)` — `FabricAPIInterface.h:1327`
+  - Set metalness
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_metalness: metalness value`
+    - returns: void
+- **`GetNormalMapIntensity`** [fabric]
+  - `float GetNormalMapIntensity(int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1335`
+  - Get normal map intensity in percent
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: normal map intensity value
+- **`GetNormalMapIntensity`** [fabric]
+  - `float GetNormalMapIntensity(unsigned int _colorwayIndex, int fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1344`
+  - Get normal map intensity in percent
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: normal map intensity value
+- **`SetNormalMapIntensity`** [fabric]
+  - `void SetNormalMapIntensity(int _fabricIndex, int _materialFace, float _normalMapIntensity)` — `FabricAPIInterface.h:1353`
+  - Set normal map intensity in percent
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_normalMapIntensity: normal map intensity value`
+    - returns: void
+- **`SetNormalMapIntensity`** [fabric]
+  - `void SetNormalMapIntensity(unsigned int _colorwayIndex, int fabricIndex, int _materialFace, float _normalMapIntensity)` — `FabricAPIInterface.h:1363`
+  - Set normal map intensity in percent
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_normalMapIntensity: normal map intensity value`
+    - returns: void
+- **`GetMaterialType`** 
+  - `int GetMaterialType(int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1371`
+  - Get material type
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: material type
+- **`GetMaterialType`** 
+  - `int GetMaterialType(int _colorwayIndex, int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1380`
+  - Get material type
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: material type
+- **`SetMaterialType`** 
+  - `void SetMaterialType(int _fabricIndex, int _materialFace, int _materialType)` — `FabricAPIInterface.h:1388`
+  - Set material type
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_materialType: material type value`
+- **`SetMaterialType`** 
+  - `void SetMaterialType(int _colorwayIndex, int _fabricIndex, int _materialFace, int _materialType)` — `FabricAPIInterface.h:1397`
+  - Set material type
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_materialType: material type value`
+- **`GetOpacityIntensity`** [fabric]
+  - `float GetOpacityIntensity(int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1405`
+  - Get opacity intensity in percent
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: opacity intensity value
+- **`GetOpacityIntensity`** [fabric]
+  - `float GetOpacityIntensity(int _colorwayIndex, int _fabricIndex, int _materialFace)` — `FabricAPIInterface.h:1414`
+  - Get opacity intensity in percent
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - returns: opacity intensity value
+- **`SetOpacityIntensity`** [fabric]
+  - `void SetOpacityIntensity(int _fabricIndex, int _materialFace, float _opacityIntensity)` — `FabricAPIInterface.h:1422`
+  - Set opacity intensity in percent
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_opacityIntensity: opacity intensity value`
+- **`SetOpacityIntensity`** [fabric]
+  - `void SetOpacityIntensity(int _colorwayIndex, int _fabricIndex, int _materialFace, float _opacityIntensity)` — `FabricAPIInterface.h:1432`
+  - Set opacity intensity in percent
+    - param `_colorwayIndex: index of colorway`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_opacityIntensity: opacity intensity value`
+    - returns: void
+- **`GetBaseTextureMapImageFilePath`** · pure-virtual [render]
+  - `std::string GetBaseTextureMapImageFilePath()` — `FabricAPIInterface.h:1439`
+  - Get base texture map image file path of current selected fabric
+    - returns: image file path string
+- **`GetNormalMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetNormalMapImageFilePath()` — `FabricAPIInterface.h:1445`
+  - Get normal map image file path of current selected fabric
+    - returns: image file path string
+- **`GetDisplacementMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetDisplacementMapImageFilePath()` — `FabricAPIInterface.h:1451`
+  - Get displacement map image file path of current selected fabric
+    - returns: image file path string
+- **`GetOpacityMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetOpacityMapImageFilePath()` — `FabricAPIInterface.h:1457`
+  - Get opacity map image file path of current selected fabric
+    - returns: image file path string
+- **`GetRoughnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetRoughnessMapImageFilePath()` — `FabricAPIInterface.h:1463`
+  - Get roughness map image file path of current selected fabric
+    - returns: image file path string
+- **`GetMetalnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetMetalnessMapImageFilePath()` — `FabricAPIInterface.h:1469`
+  - Get metalness map image file path of current selected fabric
+    - returns: image file path string
+- **`GetBaseTextureMapImageFilePathW`** · pure-virtual [render]
+  - `std::wstring GetBaseTextureMapImageFilePathW()` — `FabricAPIInterface.h:1475`
+  - Get base texture map image file path of current selected fabric
+    - returns: image file path wstring
+- **`GetNormalMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetNormalMapImageFilePathW()` — `FabricAPIInterface.h:1481`
+  - Get normal map image file path of current selected fabric
+    - returns: image file path wstring
+- **`GetDisplacementMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetDisplacementMapImageFilePathW()` — `FabricAPIInterface.h:1487`
+  - Get displacement map image file path of current selected fabric
+    - returns: image file path wstring
+- **`GetOpacityMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetOpacityMapImageFilePathW()` — `FabricAPIInterface.h:1493`
+  - Get opacity map image file path of current selected fabric
+    - returns: image file path wstring
+- **`GetRoughnessMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetRoughnessMapImageFilePathW()` — `FabricAPIInterface.h:1499`
+  - Get roughness map image file path of current selected fabric
+    - returns: image file path wstring
+- **`GetMetalnessMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetMetalnessMapImageFilePathW()` — `FabricAPIInterface.h:1505`
+  - Get metalness map image file path of current selected fabric
+    - returns: image file path wstring
+- **`GetBaseTextureMapImageFilePath`** · pure-virtual [render]
+  - `std::string GetBaseTextureMapImageFilePath(int _fabricIndex)` — `FabricAPIInterface.h:1512`
+  - Get base texture map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path string
+- **`GetBaseTextureMapImageFilePath`** · pure-virtual [render]
+  - `std::string GetBaseTextureMapImageFilePath(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1520`
+  - Get base texture map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path string
+- **`GetNormalMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetNormalMapImageFilePath(int _fabricIndex)` — `FabricAPIInterface.h:1527`
+  - Get normal map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path string
+- **`GetNormalMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetNormalMapImageFilePath(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1535`
+  - Get normal map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path string
+- **`GetDisplacementMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetDisplacementMapImageFilePath(int _fabricIndex)` — `FabricAPIInterface.h:1542`
+  - Get displacement map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path string
+- **`GetDisplacementMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetDisplacementMapImageFilePath(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1550`
+  - Get displacement map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path string
+- **`GetOpacityMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetOpacityMapImageFilePath(int _fabricIndex)` — `FabricAPIInterface.h:1557`
+  - Get opacity map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path string
+- **`GetOpacityMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetOpacityMapImageFilePath(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1565`
+  - Get opacity map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path string
+- **`GetRoughnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetRoughnessMapImageFilePath(int _fabricIndex)` — `FabricAPIInterface.h:1572`
+  - Get roughness map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path string
+- **`GetRoughnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetRoughnessMapImageFilePath(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1580`
+  - Get roughness map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path string
+- **`GetMetalnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetMetalnessMapImageFilePath(int _fabricIndex)` — `FabricAPIInterface.h:1587`
+  - Get metalness map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path string
+- **`GetMetalnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetMetalnessMapImageFilePath(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1595`
+  - Get metalness map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path string
+- **`GetBaseTextureMapImageFilePathW`** · pure-virtual [render]
+  - `std::wstring GetBaseTextureMapImageFilePathW(int _fabricIndex)` — `FabricAPIInterface.h:1602`
+  - Get base texture map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path wstring
+- **`GetBaseTextureMapImageFilePathW`** · pure-virtual [render]
+  - `std::wstring GetBaseTextureMapImageFilePathW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1610`
+  - Get base texture map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path wstring
+- **`GetNormalMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetNormalMapImageFilePathW(int _fabricIndex)` — `FabricAPIInterface.h:1617`
+  - Get normal map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path wstring
+- **`GetNormalMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetNormalMapImageFilePathW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1625`
+  - Get normal map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path wstring
+- **`GetDisplacementMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetDisplacementMapImageFilePathW(int _fabricIndex)` — `FabricAPIInterface.h:1632`
+  - Get displacement map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path wstring
+- **`GetDisplacementMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetDisplacementMapImageFilePathW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1640`
+  - Get displacement map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path wstring
+- **`GetOpacityMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetOpacityMapImageFilePathW(int _fabricIndex)` — `FabricAPIInterface.h:1647`
+  - Get opacity map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path wstring
+- **`GetOpacityMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetOpacityMapImageFilePathW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1655`
+  - Get opacity map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path wstring
+- **`GetRoughnessMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetRoughnessMapImageFilePathW(int _fabricIndex)` — `FabricAPIInterface.h:1662`
+  - Get roughness map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path wstring
+- **`GetRoughnessMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetRoughnessMapImageFilePathW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1670`
+  - Get roughness map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path wstring
+- **`GetMetalnessMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetMetalnessMapImageFilePathW(int _fabricIndex)` — `FabricAPIInterface.h:1677`
+  - Get metalness map image file path of specified fabric
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: image file path wstring
+- **`GetMetalnessMapImageFilePathW`** · pure-virtual [fabric] [render]
+  - `std::wstring GetMetalnessMapImageFilePathW(int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1685`
+  - Get metalness map image file path of specified fabric in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: image file path wstring
+- **`SetBaseTextureMapImageGivenFilePath`** · **WIRED**, doc, py, pure-virtual [render]
+  - `void SetBaseTextureMapImageGivenFilePath(const std::string _imageFilePath)` — `FabricAPIInterface.h:1692`
+  - Set base texture map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetNormalMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetNormalMapImageGivenFilePath(const std::string _imageFilePath)` — `FabricAPIInterface.h:1699`
+  - Set normal map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetDisplacementMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetDisplacementMapImageGivenFilePath(const std::string _imageFilePath)` — `FabricAPIInterface.h:1706`
+  - Set displacement map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetOpacityMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetOpacityMapImageGivenFilePath(const std::string _imageFilePath)` — `FabricAPIInterface.h:1713`
+  - Set opacity map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetRoughnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetRoughnessMapImageGivenFilePath(const std::string _imageFilePath)` — `FabricAPIInterface.h:1720`
+  - Set roughness map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetMetalnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetMetalnessMapImageGivenFilePath(const std::string _imageFilePath)` — `FabricAPIInterface.h:1727`
+  - Set metalness map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetBaseTextureMapImageGivenFilePathW`** · pure-virtual [render]
+  - `void SetBaseTextureMapImageGivenFilePathW(const std::wstring _imageFilePath)` — `FabricAPIInterface.h:1734`
+  - Set base texture map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetNormalMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetNormalMapImageGivenFilePathW(const std::wstring _imageFilePath)` — `FabricAPIInterface.h:1741`
+  - Set normal map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetDisplacementMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetDisplacementMapImageGivenFilePathW(const std::wstring _imageFilePath)` — `FabricAPIInterface.h:1748`
+  - Set displacement map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetOpacityMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetOpacityMapImageGivenFilePathW(const std::wstring _imageFilePath)` — `FabricAPIInterface.h:1755`
+  - Set opacity map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetRoughnessMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetRoughnessMapImageGivenFilePathW(const std::wstring _imageFilePath)` — `FabricAPIInterface.h:1762`
+  - Set roughness map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetMetalnessMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetMetalnessMapImageGivenFilePathW(const std::wstring _imageFilePath)` — `FabricAPIInterface.h:1769`
+  - Set metalness map image for current selected fabric
+    - param `_imageFilePath: image file path to set`
+    - returns: void
+- **`SetBaseTextureMapImageGivenFilePath`** · **WIRED**, doc, py, pure-virtual [render]
+  - `void SetBaseTextureMapImageGivenFilePath(const std::string _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1777`
+  - Set base texture map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetBaseTextureMapImageGivenFilePath`** · **WIRED**, doc, py, pure-virtual [render]
+  - `void SetBaseTextureMapImageGivenFilePath(const std::string _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1786`
+  - Set base texture map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetNormalMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetNormalMapImageGivenFilePath(const std::string _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1794`
+  - Set normal map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetNormalMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetNormalMapImageGivenFilePath(const std::string _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1803`
+  - Set normal map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetDisplacementMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetDisplacementMapImageGivenFilePath(const std::string _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1811`
+  - Set displacement map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetDisplacementMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetDisplacementMapImageGivenFilePath(const std::string _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1820`
+  - Set displacement map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetOpacityMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetOpacityMapImageGivenFilePath(const std::string _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1828`
+  - Set opacity map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetOpacityMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetOpacityMapImageGivenFilePath(const std::string _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1837`
+  - Set opacity map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetRoughnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetRoughnessMapImageGivenFilePath(const std::string _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1845`
+  - Set roughness map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetRoughnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetRoughnessMapImageGivenFilePath(const std::string _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1854`
+  - Set roughness map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetMetalnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetMetalnessMapImageGivenFilePath(const std::string _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1862`
+  - Set metalness map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetMetalnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `void SetMetalnessMapImageGivenFilePath(const std::string _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1871`
+  - Set metalness map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetBaseTextureMapImageGivenFilePathW`** · pure-virtual [render]
+  - `void SetBaseTextureMapImageGivenFilePathW(const std::wstring _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1879`
+  - Set base texture map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetBaseTextureMapImageGivenFilePathW`** · pure-virtual [render]
+  - `void SetBaseTextureMapImageGivenFilePathW(const std::wstring _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1888`
+  - Set base texture map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetNormalMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetNormalMapImageGivenFilePathW(const std::wstring _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1896`
+  - Set normal map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetNormalMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetNormalMapImageGivenFilePathW(const std::wstring _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1905`
+  - Set normal map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetDisplacementMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetDisplacementMapImageGivenFilePathW(const std::wstring _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1913`
+  - Set displacement map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetDisplacementMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetDisplacementMapImageGivenFilePathW(const std::wstring _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1922`
+  - Set displacement map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetOpacityMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetOpacityMapImageGivenFilePathW(const std::wstring _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1930`
+  - Set opacity map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetOpacityMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetOpacityMapImageGivenFilePathW(const std::wstring _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1939`
+  - Set opacity map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetRoughnessMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetRoughnessMapImageGivenFilePathW(const std::wstring _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1947`
+  - Set roughness map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetRoughnessMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetRoughnessMapImageGivenFilePathW(const std::wstring _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1956`
+  - Set roughness map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`SetMetalnessMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetMetalnessMapImageGivenFilePathW(const std::wstring _imageFilePath, int _fabricIndex)` — `FabricAPIInterface.h:1964`
+  - Set metalness map image for specified fabric
+    - param `_imageFilePath: image file path to set`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: void
+- **`SetMetalnessMapImageGivenFilePathW`** · pure-virtual [fabric] [render]
+  - `void SetMetalnessMapImageGivenFilePathW(const std::wstring _imageFilePath, int _colorwayIndex, int _fabricIndex)` — `FabricAPIInterface.h:1973`
+  - Set metalness map image for specified fabric in colorway
+    - param `_imageFilePath: image file path to set`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - returns: void
+- **`GetBaseTextureMapImageFilePath`** · pure-virtual [render]
+  - `std::string GetBaseTextureMapImageFilePath(int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:1983`
+  - Get base texture map image file path of specified fabric and material face in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: target style chip index used to resolve exact linked fabric/colorway applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: image file path string. Returns empty string if parameters are invalid.
+- **`GetNormalMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetNormalMapImageFilePath(int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:1993`
+  - Get normal map image file path of specified fabric and material face in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: target style chip index used to resolve exact linked fabric/colorway applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: image file path string. Returns empty string if parameters are invalid.
+- **`GetDisplacementMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetDisplacementMapImageFilePath(int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2003`
+  - Get displacement map image file path of specified fabric and material face in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: target style chip index used to resolve exact linked fabric/colorway applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: image file path string. Returns empty string if parameters are invalid.
+- **`GetOpacityMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetOpacityMapImageFilePath(int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2013`
+  - Get opacity map image file path of specified fabric and material face in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: target style chip index used to resolve exact linked fabric/colorway applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: image file path string. Returns empty string if parameters are invalid.
+- **`GetRoughnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetRoughnessMapImageFilePath(int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2023`
+  - Get roughness map image file path of specified fabric and material face in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: target style chip index used to resolve exact linked fabric/colorway applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: image file path string. Returns empty string if parameters are invalid.
+- **`GetMetalnessMapImageFilePath`** · pure-virtual [fabric] [render]
+  - `std::string GetMetalnessMapImageFilePath(int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2033`
+  - Get metalness map image file path of specified fabric and material face in colorway
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: target style chip index used to resolve exact linked fabric/colorway applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: image file path string. Returns empty string if parameters are invalid.
+- **`SetBaseTextureMapImageGivenFilePath`** · **WIRED**, doc, py, pure-virtual [render]
+  - `std::string SetBaseTextureMapImageGivenFilePath(const std::string& _imageFilePath, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2044`
+  - Set base texture map image for specified fabric and material face in colorway. If an empty string is passed, the existing texture will be removed.
+    - param `_imageFilePath: image file path to set. If empty, the applied texture map will be removed from the material face.`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: the target style chip index in the Colorway Editor applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: Names of other colorways that share this fabric, comma-separated. Empty string if none.
+- **`SetNormalMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `std::string SetNormalMapImageGivenFilePath(const std::string& _imageFilePath, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2055`
+  - Set normal map image for specified fabric and material face in colorway. If an empty string is passed, the existing texture will be removed.
+    - param `_imageFilePath: image file path to set. If empty, the applied texture map will be removed from the material face.`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: the target style chip index in the Colorway Editor applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: Names of other colorways that share this fabric, comma-separated. Empty string if none.
+- **`SetDisplacementMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `std::string SetDisplacementMapImageGivenFilePath(const std::string& _imageFilePath, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2066`
+  - Set displacement map image for specified fabric and material face in colorway. If an empty string is passed, the existing texture will be removed.
+    - param `_imageFilePath: image file path to set. If empty, the applied texture map will be removed from the material face.`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: the target style chip index in the Colorway Editor applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: Names of other colorways that share this fabric, comma-separated. Empty string if none.
+- **`SetOpacityMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `std::string SetOpacityMapImageGivenFilePath(const std::string& _imageFilePath, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2077`
+  - Set opacity map image for specified fabric and material face in colorway. If an empty string is passed, the existing texture will be removed.
+    - param `_imageFilePath: image file path to set. If empty, the applied texture map will be removed from the material face.`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: the target style chip index in the Colorway Editor applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: Names of other colorways that share this fabric, comma-separated. Empty string if none.
+- **`SetRoughnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `std::string SetRoughnessMapImageGivenFilePath(const std::string& _imageFilePath, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2088`
+  - Set roughness map image for specified fabric and material face in colorway. If an empty string is passed, the existing texture will be removed.
+    - param `_imageFilePath: image file path to set. If empty, the applied texture map will be removed from the material face.`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: the target style chip index in the Colorway Editor applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: Names of other colorways that share this fabric, comma-separated. Empty string if none.
+- **`SetMetalnessMapImageGivenFilePath`** · pure-virtual [fabric] [render]
+  - `std::string SetMetalnessMapImageGivenFilePath(const std::string& _imageFilePath, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _materialFace)` — `FabricAPIInterface.h:2099`
+  - Set metalness map image for specified fabric and material face in colorway. If an empty string is passed, the existing texture will be removed.
+    - param `_imageFilePath: image file path to set. If empty, the applied texture map will be removed from the material face.`
+    - param `_colorwayIndex: target colorway index in the Colorway Editor`
+    - param `_fabricIndex: the target fabric index in the Colorway Editor`
+    - param `_styleChipIndex: the target style chip index in the Colorway Editor applicable if _colorwayIndex = -1, otherwise can be ignored`
+    - param `_materialFace: target material face (0: Front, 1: Back, 2: Side)`
+    - returns: Names of other colorways that share this fabric, comma-separated. Empty string if none.
+- **`ExportGLTFAsFabric`** · doc [fabric] [export]
+  - `std::vector<std::string> ExportGLTFAsFabric()` — `FabricAPIInterface.h:2104`
+  - Export gltf/glb which contains the fabric data selected in the object browser
+    - returns: Output file path;output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportGLTFAsFabric`** · doc [fabric] [export]
+  - `std::vector<std::string> ExportGLTFAsFabric(const std::string& _filePath)` — `FabricAPIInterface.h:2115`
+  - Export gltf/glb which contains the fabric data selected in the object browser
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportGLTFAsFabric`** · doc [fabric] [export]
+  - `std::vector<std::string> ExportGLTFAsFabric(const std::string& _filePath, int index)` — `FabricAPIInterface.h:2127`
+  - Export gltf/glb which contains the fabric data in the index of the object browser
+    - param `_filePath: output file path`
+    - param `index: target fabric index on the object browser to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportGLTFAsFabricW`** [fabric] [export]
+  - `std::vector<std::wstring> ExportGLTFAsFabricW(const std::wstring& _filePath, int index)` — `FabricAPIInterface.h:2139`
+  - Export gltf/glb file which contains the fabric data in the index of the object browser
+    - param `_filePath: output file path`
+    - param `index: target fabric index on the object browser to export`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ImportGLTFAsFabric`** [fabric] [import]
+  - `std::vector<int> ImportGLTFAsFabric(const std::string& _filePath)` — `FabricAPIInterface.h:2150`
+  - Import gltf/glb as Fabrics into the Object Browser
+    - param `_filePath: input file path`
+    - returns: the index list of added fabric in object browser for the current project
+- **`ImportGLTFAsFabric`** [fabric] [import]
+  - `int ImportGLTFAsFabric(const std::string& _filePath, int _index)` — `FabricAPIInterface.h:2162`
+  - Import gltf/glb as a Fabric into the Object Browser
+    - param `_filePath: input file path`
+    - param `_index: target material index on the gltf/glb file to import as a fabric`
+    - returns: the index of added fabric in object browser for the current project
+- **`ImportGLTFAsFabricW`** [fabric] [import]
+  - `std::vector<int> ImportGLTFAsFabricW(const std::wstring& _filePath)` — `FabricAPIInterface.h:2169`
+  - Import gltf/glb as Fabrics into the Object Browser
+    - param `_filePath: input file path`
+    - returns: the index list of added fabric in object browser for the current project
+- **`ImportGLTFAsFabricW`** [fabric] [import]
+  - `int ImportGLTFAsFabricW(const std::wstring& _filePath, int _index)` — `FabricAPIInterface.h:2181`
+  - Import gltf/glb as a Fabric into the Object Browser
+    - param `_filePath: input file path`
+    - param `_index: target material index on the gltf/glb file to import as a fabric`
+    - returns: the index of added fabric in object browser for the current project
+- **`GetSpecificColorwayFabricInfo`** [fabric] [render]
+  - `std::string GetSpecificColorwayFabricInfo(int _fabricIndex, int _colorwayIndexForStyleChip)` — `FabricAPIInterface.h:2189`
+  - Get a fabric information for a colorway
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - param `_colorwayIndexForStyleChip: the colorway index that you want to get StyleChip information`
+    - returns: json string for fabric information
+- **`GetSpecificColorwayFabricInfoW`** [fabric] [render]
+  - `std::wstring GetSpecificColorwayFabricInfoW(int _fabricIndex, int _colorwayIndexForStyleChip)` — `FabricAPIInterface.h:2197`
+  - Get a fabric information for a colorway
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info`
+    - param `_colorwayIndexForStyleChip: the colorway index that you want to get StyleChip information`
+    - returns: json string for fabric information
+- **`GetSpecificColorwayFabricInfo`** [fabric] [render]
+  - `std::string GetSpecificColorwayFabricInfo(int _colorwayIndexForFabric, int _fabricIndex, int _colorwayIndexForStyleChip)` — `FabricAPIInterface.h:2206`
+  - Get a fabric information for a colorway
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Colorway Editor`
+    - param `_colorwayIndexForStyleChip: the colorway index that you want to get StyleChip information`
+    - returns: json string for fabric information
+- **`GetSpecificColorwayFabricInfoW`** [fabric] [render]
+  - `std::wstring GetSpecificColorwayFabricInfoW(int _colorwayIndexForFabric, int _fabricIndex, int _colorwayIndexForStyleChip)` — `FabricAPIInterface.h:2215`
+  - Get a fabric information for a colorway
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Colorway Editor`
+    - param `_colorwayIndexForStyleChip: the colorway index that you want to get StyleChip information`
+    - returns: json string for fabric information that only includes 1 StyleChip information in (_colorwayIndexForStyleChip)
+- **`GetFabricItemNo`** [fabric]
+  - `std::string GetFabricItemNo(int _fabricIndex)` — `FabricAPIInterface.h:2223`
+  - Get a fabric information for a colorway
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Object Browser`
+    - returns: Item No string
+- **`GetFabricItemNo`** [fabric]
+  - `std::string GetFabricItemNo(int _colorwayIndexForFabric, int _fabricIndex)` — `FabricAPIInterface.h:2231`
+  - Get a Fabric item NO
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Colorway Editor`
+    - returns: Item No string
+- **`GetFabricItemNoW`** [fabric]
+  - `std::wstring GetFabricItemNoW(int _fabricIndex)` — `FabricAPIInterface.h:2239`
+  - Get a Fabric item NO
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Object Browser`
+    - returns: Item No string
+- **`GetFabricItemNoW`** [fabric]
+  - `std::wstring GetFabricItemNoW(int _colorwayIndexForFabric, int _fabricIndex)` — `FabricAPIInterface.h:2247`
+  - Get a Fabric item NO
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Colorway Editor`
+    - returns: Item No string
+- **`SetFabricItemNo`** [fabric]
+  - `bool SetFabricItemNo(int _fabricIndex, const std::string& _itemNo)` — `FabricAPIInterface.h:2255`
+  - Set a Fabric item NO
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Object Browser`
+    - returns: if it succeeds, return true.
+- **`SetFabricItemNo`** [fabric]
+  - `bool SetFabricItemNo(int _colorwayIndexForFabric, int _fabricIndex, const std::string& _itemNo)` — `FabricAPIInterface.h:2263`
+  - Set a Fabric item NO
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Colorway Editor`
+    - returns: if it succeeds, return true.
+- **`SetFabricItemNoW`** [fabric]
+  - `bool SetFabricItemNoW(int _fabricIndex, const std::wstring& _itemNo)` — `FabricAPIInterface.h:2271`
+  - Set a Fabric item NO
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Object Browser`
+    - returns: if it succeeds, return true.
+- **`SetFabricItemNoW`** [fabric]
+  - `bool SetFabricItemNoW(int _colorwayIndexForFabric, int _fabricIndex, const std::wstring& _itemNo)` — `FabricAPIInterface.h:2279`
+  - Set a Fabric item NO
+    - param `_colorwayIndexForFabric: the colorway index for the fabric to get the fabric info`
+    - param `_fabricIndex: the fabricIndex for the fabric to get the fabric info in Colorway Editor`
+    - returns: if it succeeds, return true.
+- **`ExtractSBSARInputToJson`** 
+  - `std::string ExtractSBSARInputToJson(int _fabricIndex, int _colorwayIndex, int materialFace, const std::wstring& _savePath)` — `FabricAPIInterface.h:2289`
+  - Extract SBSAR InputData to Json (Only Headless)
+    - param `_fabricIndex : Fabric Index`
+    - param `_colorwayIndex : Colorway Index`
+    - param `materialFace: the target material index in the property editor. 0: "Front", 1: "Back", 2: "Side"`
+    - param `_savePath : Save path`
+    - returns: the index of added fabric in object browser for the current project
+- **`GetFabricTextureMappingType`** [fabric]
+  - `int GetFabricTextureMappingType(const int& _fabricIndex)` — `FabricAPIInterface.h:2295`
+    - param `_fabricIndex: the target fabric index in the object browser`
+    - returns: it return 0: "Repeat" or 1: "Unified".
+- **`AutoGenerateFabricNormalMap`** · pure-virtual [fabric]
+  - `void AutoGenerateFabricNormalMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2304`
+  - Auto-generates a normal map from the base color texture of the fabric's front material. Uses the bump effect algorithm (MV_BUMP_EFFECT mode) to create the normal map. If no base color texture exists, this operation has no effect.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`DeleteFabricNormalMap`** · pure-virtual [fabric]
+  - `void DeleteFabricNormalMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2311`
+  - Deletes the normal map texture from the fabric's front material and resets the bump mode.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`AutoGenerateFabricOpacityMap`** · pure-virtual [fabric]
+  - `void AutoGenerateFabricOpacityMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2319`
+  - Auto-generates an opacity map by copying the base color texture of the fabric's front material. If no base color texture exists, this operation has no effect.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`DeleteFabricOpacityMap`** · pure-virtual [fabric]
+  - `void DeleteFabricOpacityMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2326`
+  - Deletes the opacity map texture from the fabric's front material.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`AutoGenerateFabricRoughnessMap`** · pure-virtual [fabric]
+  - `void AutoGenerateFabricRoughnessMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2334`
+  - Auto-generates a roughness map by copying the base color texture of the fabric's front material. If no base color texture exists, this operation has no effect.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`DeleteFabricRoughnessMap`** · pure-virtual [fabric]
+  - `void DeleteFabricRoughnessMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2341`
+  - Deletes the roughness map texture from the fabric's front material.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`AutoGenerateFabricDisplacementMap`** · pure-virtual [fabric]
+  - `void AutoGenerateFabricDisplacementMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2349`
+  - Auto-generates a displacement map by copying the base color texture of the fabric's front material. If no base color texture exists, this operation has no effect.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`DeleteFabricDisplacementMap`** · pure-virtual [fabric]
+  - `void DeleteFabricDisplacementMap(int _fabricIndex, int _colorwayIndex)` — `FabricAPIInterface.h:2356`
+  - Deletes the displacement map texture from the fabric's front material.
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_colorwayIndex: target colorway index`
+- **`TransformAOPOnFabric`** · pure-virtual [fabric]
+  - `std::string TransformAOPOnFabric(int _aopMode, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, const Marvelous::TransformOptions& _transformOptions, int _materialSide = 0)` — `FabricAPIInterface.h:2368`
+  - Transform (rotate, scale, translate) an AOP texture on a fabric. Works for both Print and BaseColorMap modes.
+    - param `_aopMode: texture application mode: 0=Print, 1=BaseColorMap`
+    - param `_colorwayIndex: target colorway index (0 to n-1 for specific colorway, -1 to apply to all colorways when "Show all Colorways" is on)`
+    - param `_fabricIndex: target fabric index in the object browser`
+    - param `_styleChipIndex: target AOP style chip index (>= 0 for specific style chip, -1 for all applicable style chips). Only used in Print mode (_aopMode=0)`
+    - param `_transformOptions: transformation options containing angle, width/height (mm/percent), position, and aspect ratio settings`
+    - param `_materialSide: which material face: 0=Front (default), 1=Back, 2=Side`
+    - returns: JSON string with "status" (success/failure) and "description" (details about the operation)
+- **`AddTextureToPatterns`** · pure-virtual [pattern] [gui]
+  - `std::string AddTextureToPatterns(const std::string& _imageFilePath, int _colorwayIndex, int _fabricIndex, int _styleChipIndex, int _aopMode = 0, int _materialSide = 0)` — `FabricAPIInterface.h:2380`
+  - Apply an AOP texture to a specific fabric and style chip for a given colorway.
+    - param `_imageFilePath: path to the AOP texture image file (.png, .jpg, .sbsar, etc.)`
+    - param `_colorwayIndex: target colorway index. Use -1 to apply to the current colorway.`
+    - param `_fabricIndex: target fabric index in the object browser.`
+    - param `_styleChipIndex: target AOP style chip index within the fabric's style chip list. Use -1 to target all style chips.`
+    - param `_aopMode: how to apply the texture: 0=Print (default), 1=BaseColorMap`
+    - param `_materialSide: which material face to apply to: 0=Front (default), 1=Back, 2=Side`
+    - returns: A JSON string with format: {\"status\": \"done\"\|\"error\", \"description\": \"message\"}. Status is \"done\" on success, \"error\" on failure.
+
+---
+
+## `ExportAPIInterface.h` — `EXPORT_API`
+
+All file/image/video export. Historically the SEH-crash-prone family.
+
+123 declarations, 9 wired.
+
+- **`ExportZPac`** [export] [project]
+  - `std::string ExportZPac()` — `ExportAPIInterface.h:23`
+  - Export ZPac file in the CLO temporary folder
+    - returns: Output file path. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportZPac`** [export] [project]
+  - `std::string ExportZPac(const std::string& _filePath)` — `ExportAPIInterface.h:30`
+  - Export ZPac file
+    - param `string _filePath : target file path in ASCII`
+    - returns: Output file path. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportZPacW`** [export] [project]
+  - `std::wstring ExportZPacW(const std::wstring& _filePath)` — `ExportAPIInterface.h:37`
+  - Export ZPac file
+    - param `wstring _filePath : target file path in UNICODE`
+    - returns: Output file path. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportZPrj`** · **WIRED**, doc [export] [project]
+  - `std::string ExportZPrj()` — `ExportAPIInterface.h:43`
+  - Export ZPrj file
+    - returns: Output file path; output files will be created in CLO temporary folder.
+- **`ExportZPrj`** · **WIRED**, doc [export] [project]
+  - `std::string ExportZPrj(const std::string& _filePath)` — `ExportAPIInterface.h:50`
+  - Export ZPrj file
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportZPrj`** · **WIRED**, doc [export] [project]
+  - `std::string ExportZPrj(const std::string& _filePath, bool _bCreateThumbnail)` — `ExportAPIInterface.h:58`
+  - Export ZPrj file
+    - param `_filePath: output file path`
+    - param `_bCreateThumbnail: if _bCreateThumbnail is true, 'png' file will be created along 'zprj' file.`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportZPrjW`** [export] [project]
+  - `std::wstring ExportZPrjW(const std::wstring& _filePath, bool _bCreateThumbnail)` — `ExportAPIInterface.h:66`
+  - Export ZPrj file
+    - param `_filePath: output file path`
+    - param `_bCreateThumbnail: if _bCreateThumbnail is true, 'png' file will be created along 'zprj' file.`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportOBJ`** [export]
+  - `std::vector<std::string> ExportOBJ()` — `ExportAPIInterface.h:73`
+  - Export OBJ file
+    - param `options If "options" is given, it exports OBJ according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths. It outputs the file paths of an OBJ file and multiple MTL files for colorways. If the value "bSaveInZip" in ImportExportOption is true, it outputs a file path of a zipped file. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportOBJ`** [export]
+  - `std::vector<std::string> ExportOBJ(const std::string& _filePath)` — `ExportAPIInterface.h:84`
+  - Export OBJ file
+    - param `_filePath: output file path`
+    - returns: Output file paths. It outputs the file paths of an OBJ file and multiple MTL files for colorways. If the value "bSaveInZip" in ImportExportOption is true, it outputs a file path of a zipped file. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportOBJ`** [export]
+  - `std::vector<std::string> ExportOBJ(const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:95`
+  - Export OBJ file
+    - param `options: If "options" is given, it exports OBJ according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths. It outputs the file paths of an OBJ file and multiple MTL files for colorways. If the value "bSaveInZip" in ImportExportOption is true, it outputs a file path of a zipped file. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportOBJ`** [export]
+  - `std::vector<std::string> ExportOBJ(const std::string& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:107`
+  - Export OBJ file
+    - param `_filePath: output file path`
+    - param `options: If "options" is given, it exports OBJ according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths. It outputs the file paths of an OBJ file and multiple MTL files for colorways. If the value "bSaveInZip" in ImportExportOption is true, it outputs a file path of a zipped file. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportOBJW`** · doc [export]
+  - `std::vector<std::wstring> ExportOBJW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:119`
+  - Export OBJ file
+    - param `_filePath: output file path`
+    - param `options: If "options" is given, it exports OBJ according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths. It outputs the file paths of an OBJ file and multiple MTL files for colorways. If the value "bSaveInZip" in ImportExportOption is true, it outputs a file path of a zipped file. If an error occurs, return empty wstring. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportGLTF`** · **WIRED**, doc, py [export]
+  - `std::vector<std::string> ExportGLTF(const std::string& _filePath, const Marvelous::ImportExportOption& _options, bool _bGLBinary)` — `ExportAPIInterface.h:134`
+  - Export GLTF. The export can be restricted to specific components through the component selection lists on _options (patternList / buttonList / graphicList / zipperList): when at least one of them is set, ONLY the listed components are written, so a project holding several garments can be exported one file per garment. With every list empty (the default) the whole scene is exported, as before.
+    - param `options: If "options" is given, it exports GLTF according to options, not allowing user for selecting options in Export Dialog.`
+    - param `_bGLBinary: if true, export binary glTF (.glb); otherwise text glTF.`
+    - returns: Output file paths.
+- **`ExportGLTFW`** · doc [export]
+  - `std::vector<std::wstring> ExportGLTFW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options, bool _bGLBinary)` — `ExportAPIInterface.h:146`
+  - Wide-char variant of ExportGLTF. Honours the same component selection lists on _options (all empty = whole scene).
+    - param `options: If "options" is given, it exports GLTF according to options, not allowing user for selecting options in Export Dialog.`
+    - param `_bGLBinary: if true, export binary glTF (.glb); otherwise text glTF.`
+    - returns: Output file paths.
+- **`ExportAlembic`** [export]
+  - `std::vector<std::string> ExportAlembic(const std::string& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:157`
+  - Export Alembic
+    - param `options: If "options" is given, it exports Alembic according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths.
+- **`ExportAlembicW`** [export]
+  - `std::vector<std::wstring> ExportAlembicW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:168`
+  - Export Alembic W
+    - param `options: If "options" is given, it exports Alembic according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths.
+- **`ExportDXF`** [export]
+  - `std::string ExportDXF()` — `ExportAPIInterface.h:178`
+  - Export DXF file. This api call will display the dialog to set options
+    - returns: Output file path. If an error occurs, return empty string. Output files will be created in CLO temporary folder.
+- **`ExportDXF`** [export]
+  - `std::string ExportDXF(const std::string& _filePath)` — `ExportAPIInterface.h:185`
+  - Export DXF file. This api call will display the dialog to set options
+    - param `_filePath: output file path to export dxf`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportDXF`** [export]
+  - `std::string ExportDXF(const std::string& _filePath, const Marvelous::ExportDxfOption& _exportOption)` — `ExportAPIInterface.h:193`
+  - Export DXF file without the option dialog. Param ExportDxfOption is applicable for the options.
+    - param `_filePath: output file path to export dxf`
+    - param `_exportOption: options to export dxf file`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportDXFW`** [export]
+  - `std::wstring ExportDXFW(const std::wstring& _filePath, const Marvelous::ExportDxfOption& _exportOption)` — `ExportAPIInterface.h:201`
+  - Export DXF file without the option dialog. Param ExportDxfOption is applicable for the options.
+    - param `_filePath: output file path`
+    - param `_exportOption: options to export dxf file`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportTechPack`** [export] [techpack]
+  - `void ExportTechPack(const std::string& _filePath, const Marvelous::ExportTechpackOption& _exportOption)` — `ExportAPIInterface.h:208`
+  - Export Tech Pack data in json file and associated image files.
+    - param `_filePath: output filepath; the filePath Should be given in "*.json" format`
+    - param `_exportOption: options to export techpack(.json) file`
+- **`ExportTechPackW`** [export] [techpack]
+  - `void ExportTechPackW(const std::wstring& _filepath, const Marvelous::ExportTechpackOption& _exportOption)` — `ExportAPIInterface.h:215`
+  - Export Tech Pack data in json file and associated image files.
+    - param `_filePath: output filepath; the filePath Should be given in "*.json" format`
+    - param `_exportOption: options to export techpack(.json) file`
+- **`ExportTechPackToStream`** [export] [techpack]
+  - `std::string ExportTechPackToStream(std::string& _outputImageFolderPath)` — `ExportAPIInterface.h:222`
+  - Export Tech Pack data in string and associated image files.
+    - param `_outputImageFolderPath: get output folder path where the image files are located by ExportTechpack`
+    - returns: Output stream for JSON data with the output folder path at the first line. If an error occurs, return empty string.
+- **`ExportTechPackToStreamW`** [export] [techpack]
+  - `std::wstring ExportTechPackToStreamW(std::wstring& _outputImageFolderPath)` — `ExportAPIInterface.h:229`
+  - Export Tech Pack data in string and associated image files.
+    - param `_outputImageFolderPath: get output folder path where the image files are located by ExportTechpack`
+    - returns: Output stream for JSON data with the output folder path at the first line. If an error occurs, return empty wstring.
+- **`ExportThumbnail3D`** [export] [render]
+  - `std::string ExportThumbnail3D()` — `ExportAPIInterface.h:235`
+  - Export thumbnail of the current scene
+    - returns: Output file path: output files will be created in CLO temporary folder.
+- **`ExportThumbnail3D`** [export] [render]
+  - `std::string ExportThumbnail3D(const std::string& _filePath)` — `ExportAPIInterface.h:242`
+  - Export thumbnail of the current scene in the 3D Windows
+    - param `_filePath: output file path to save the screenshot`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportThumbnail3DW`** [export] [render]
+  - `std::wstring ExportThumbnail3DW(const std::wstring& _filePath)` — `ExportAPIInterface.h:249`
+  - Export thumbnail of the current scene in the 3D Windows
+    - param `_filePath: output file path to save the screenshot`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportThumbnail2D`** [export] [render]
+  - `std::string ExportThumbnail2D(const std::string& _filePath)` — `ExportAPIInterface.h:256`
+  - Capture the 2D window exactly as it is displayed (current camera, zoom and view size) and save it as an image. Unlike ExportSnapshot2D it does not enter the snapshot mode and does not re-frame the patterns, so the image matches what the user sees.
+    - param `_filePath: output file path to save the screenshot (PNG or JPEG chosen by the extension)`
+    - returns: Output file path. If an error occurs, return empty string. Needs the 2D window, so it returns an empty string in headless mode.
+- **`ExportMaskSnapshot3D`** [export] [render]
+  - `std::vector< std::vector < std::string> > ExportMaskSnapshot3D(const std::string& _filePath, const Marvelous::ExportTechpackOption& _exportOption)` — `ExportAPIInterface.h:263`
+  - Export mask snapshot of the current scene in the 3D windows. only for H&M.
+    - param `_filePath: output file path to save the screenshot.`
+    - param `_exportOption: export option include autentication key.`
+- **`ExportSnapshot3D`** [export] [render]
+  - `std::vector< std::vector < std::string > > ExportSnapshot3D(const std::string& _filePath)` — `ExportAPIInterface.h:274`
+  - Export snapshot images. This function displays the same dialog as CLO so that users can configure the snapshots. If user turns on the option "Save Separate Images", then series of images will be saved with the name followed by the postfix "_01", "_02", ...
+    - param `_filePath: output file path to save the screenshot`
+    - returns: Return the list of the path of output files per colorway. The first item of each array is the file path of the unified image. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportSnapshot3D`** [export] [render]
+  - `std::vector< std::vector < std::string > > ExportSnapshot3D()` — `ExportAPIInterface.h:284`
+  - Export snapshot images. This function displays the same dialog as CLO so that users can configure the snapshots. If user turns on the option "Save Separate Images", then series of images will be saved with the name followed by the postfix "_01", "_02", ...
+    - returns: Return the list of the path of output files per colorway. The first item of each array is the file path of the unified image. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportSnapshot3DW`** [export] [render]
+  - `std::vector< std::vector < std::wstring > > ExportSnapshot3DW(const std::wstring& _filePath)` — `ExportAPIInterface.h:295`
+  - Export snapshot images. This function displays the same dialog as CLO so that users can configure the snapshots. If user turns on the option "Save Separate Images", then series of images will be saved with the name followed by the postfix "_01", "_02", ...
+    - param `_filePath: output file path to save the screenshot`
+    - returns: Return the list of the path of output files per colorway. The first item of each array is the file path of the unified image. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportCustomViewSnapshot`** [export] [render]
+  - `std::vector < std::string > ExportCustomViewSnapshot(const std::string& _targetFolderPath, unsigned int _width, unsigned int _height, std::string _outputPrefix = "")` — `ExportAPIInterface.h:309`
+  - Export snapshot images of Custom View.
+    - param `_targetFolderPath: output folder path`
+    - param `_width: image width for the snapshots`
+    - param `_height: image height for the snapshots`
+    - param `_outputPrefix: If you set the 'outputPrefix' as empty value - "", then the saved file names will start with the index in the custom view; or if you set the 'outputPrefix' as some letters, the saved file names will have it as the first letters.`
+    - returns: Return the list of the path of output files
+- **`ExportCustomViewSnapshotW`** [export] [render]
+  - `std::vector < std::wstring > ExportCustomViewSnapshotW(const std::wstring& _targetFolderPath, unsigned int _width, unsigned int _height, std::wstring _outputPrefix = L"")` — `ExportAPIInterface.h:323`
+  - Export snapshot images of Custom View.
+    - param `_targetFolderPath: output folder path`
+    - param `_width: image width for the snapshots`
+    - param `_height: image height for the snapshots`
+    - param `_outputPrefix: If you set the 'outputPrefix' as empty value - "", then the saved file names will start with the index in the custom view; or if you set the 'outputPrefix' as some letters, the saved file names will have it as the first letters.`
+    - returns: Return the list of the path of output files
+- **`ExportRenderingImage`** · doc [export] [render]
+  - `std::vector< std::vector < std::string > > ExportRenderingImage(const std::string& _filePath, bool _bRenderAllColorways, int _startIndex = 0)` — `ExportAPIInterface.h:336`
+  - Export Rendering Image.
+    - param `_filePath: output file path`
+    - param `_bRenderAllColorways: If true, output the images for all colorways. Otherwise, it returns the images for the current colorway specified by CLO user.`
+    - param `_startIndex : Specifies the starting index for turntable rendering.`
+    - returns: Return the list of the path of output files per colorway.
+- **`ExportRenderingImage`** · doc [export] [render]
+  - `std::vector< std::vector < std::string > > ExportRenderingImage(const std::string& _filePath, int _startIndex = 0)` — `ExportAPIInterface.h:348`
+  - Export Rendering Image.
+    - param `_filePath: output file path`
+    - param `_startIndex : Specifies the starting index for turntable rendering.`
+    - returns: Return the list of the path of output files per colorway.
+- **`ExportRenderingImage`** · doc [export] [render]
+  - `std::vector< std::vector < std::string > > ExportRenderingImage(bool _bRenderAllColorways, int _startIndex = 0)` — `ExportAPIInterface.h:360`
+  - Export Rendering Image.
+    - param `_bRenderAllColorways: If true, output the images for all colorways. Otherwise, it returns the images for the current colorway specified by CLO user.`
+    - param `_startIndex : Specifies the starting index for turntable rendering.`
+    - returns: Return the list of the path of output files per colorway.
+- **`ExportRenderingImageW`** [export] [render]
+  - `std::vector< std::vector < std::wstring > > ExportRenderingImageW(const std::wstring& _filePath, bool _bRenderAllColorways, int _startIndex = 0)` — `ExportAPIInterface.h:373`
+  - Export Rendering Image.
+    - param `_filePath: output file path`
+    - param `_bRenderAllColorways: If true, output the images for all colorways. Otherwise, it returns the images for the current colorway specified by CLO user.`
+    - param `_startIndex : Specifies the starting index for turntable rendering.`
+    - returns: Return the list of the path of output files per colorway.
+- **`ExportSingleColorwayRenderingImage`** [export] [render]
+  - `std::vector < std::string > ExportSingleColorwayRenderingImage(const std::string& _filePath, unsigned int _colorwayIndex, int _startIndex = 0)` — `ExportAPIInterface.h:386`
+  - Export Rendering Image for the colorway
+    - param `_filePath: output file path`
+    - param `_colorwayIndex: colorway index to render the image`
+    - param `_startIndex : Specifies the starting index for turntable rendering.`
+    - returns: Return the list of the path of output files
+- **`ExportSingleColorwayRenderingImage`** [export] [render]
+  - `std::vector < std::string > ExportSingleColorwayRenderingImage(unsigned int _colorwayIndex, int _startIndex = 0)` — `ExportAPIInterface.h:398`
+  - Export Rendering Image for the colorway
+    - param `_colorwayIndex: colorway index to render the image`
+    - param `_startIndex : Specifies the starting index for turntable rendering.`
+    - returns: Return the list of the path of output files; output files will be created in CLO temporary folder.
+- **`ExportSingleColorwayRenderingImageW`** [export] [render]
+  - `std::vector < std::wstring > ExportSingleColorwayRenderingImageW(const std::wstring& _filePath, unsigned int _colorwayIndex, int _startIndex = 0)` — `ExportAPIInterface.h:411`
+  - Export Rendering Image for the colorway
+    - param `_filePath: output file path`
+    - param `_colorwayIndex: colorway index to render the image`
+    - param `/// @param _startIndex : Specifies the starting index for turntable rendering.`
+    - returns: Return the list of the path of output files
+- **`GetTotalRenderImagePaths`** [render]
+  - `std::vector < std::string > GetTotalRenderImagePaths()` — `ExportAPIInterface.h:421`
+  - Get File name list for all the exported rendering images
+    - returns: all the rendered image file paths
+- **`GetTotalRenderImagePathsW`** [render]
+  - `std::vector < std::wstring > GetTotalRenderImagePathsW()` — `ExportAPIInterface.h:431`
+  - Get File name list for all the exported rendering images
+    - returns: all the rendered image file paths
+- **`GetCurrentRenderImagePaths`** [render]
+  - `std::vector < std::string > GetCurrentRenderImagePaths()` — `ExportAPIInterface.h:441`
+  - Current Render Image paths
+    - returns: all current renderded image files paths per colorways
+- **`GetCurrentRenderImagePathsW`** [render]
+  - `std::vector < std::wstring > GetCurrentRenderImagePathsW()` — `ExportAPIInterface.h:451`
+  - Current Render Image paths
+    - returns: all current renderded image files paths per colorways
+- **`GetFileNameOnRenderingProperty`** [render]
+  - `std::string GetFileNameOnRenderingProperty()` — `ExportAPIInterface.h:460`
+    - returns: the output file names set on the Rendering Property in CLO
+- **`GetFileNameOnRenderingPropertyW`** [render]
+  - `std::wstring GetFileNameOnRenderingPropertyW()` — `ExportAPIInterface.h:469`
+    - returns: the output file names set on the Rendering Property in CLO
+- **`ExportGarmentInformation`** [export] [techpack]
+  - `std::string ExportGarmentInformation()` — `ExportAPIInterface.h:479`
+  - Export garment information in json file. The information is the same as given in Garment Information Dialog in CLO (you can see this dialog by clicking File > Information > Garment menu in CLO)
+    - returns: Output file path. If an error occurs, return empty string; output files will be created in CLO temporary folder.
+- **`ExportGarmentInformation`** [export] [techpack]
+  - `std::string ExportGarmentInformation(const std::string& _filePath)` — `ExportAPIInterface.h:486`
+  - Export garment information in json file. The information is the same as given in Garment Information Dialog in CLO (you can see this dialog by clicking File > Information > Garment menu in CLO)
+    - param `_filePath output file path to export the garment information`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportGarmentInformationW`** [export] [techpack]
+  - `std::wstring ExportGarmentInformationW(const std::wstring& _filePath)` — `ExportAPIInterface.h:493`
+  - Export garment information in json file. The information is the same as given in Garment Information Dialog in CLO (you can see this dialog by clicking File > Information > Garment menu in CLO)
+    - param `_filePath output file path to export the garment information`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportGarmentInformationToStream`** [export] [techpack]
+  - `std::string ExportGarmentInformationToStream()` — `ExportAPIInterface.h:499`
+  - Export garment information in string
+    - returns: Garment Information stream in sstring
+- **`ExportGarmentInformationToStreamW`** [export] [techpack]
+  - `std::wstring ExportGarmentInformationToStreamW()` — `ExportAPIInterface.h:505`
+  - Export garment information in string as well as json file
+    - returns: Garment Information stream in wstring
+- **`ExportGarmentInformationConfigData`** [export] [techpack]
+  - `std::string ExportGarmentInformationConfigData()` — `ExportAPIInterface.h:511`
+  - Export garment information config data in json file. The information is the same as given in "Conf_Garment_Information.json" file via Preference
+    - returns: Output file path; the output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportGarmentInformationConfigData`** [export] [techpack]
+  - `std::string ExportGarmentInformationConfigData(const std::string& _filePath)` — `ExportAPIInterface.h:518`
+  - Export garment information config data in json file. The information is the same as given in "Conf_Garment_Information.json" file via Preference
+    - param `_filePath output file path to export the garment information configuration data`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportGarmentInformationConfigDataW`** [export] [techpack]
+  - `std::wstring ExportGarmentInformationConfigDataW(const std::wstring& _filePath)` — `ExportAPIInterface.h:525`
+  - Export garment information config data in json file. The information is the same as given in "Conf_Garment_Information.json" file via Preference
+    - param `_filePath output file path to export the garment information configuration data`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportGarmentInformationConfigDataToStream`** [export] [techpack]
+  - `std::string ExportGarmentInformationConfigDataToStream()` — `ExportAPIInterface.h:531`
+    - returns: Output stream for JSON data. If an error occurs, return empty string.
+- **`ExportGarmentInformationConfigDataToStreamW`** [export] [techpack]
+  - `std::wstring ExportGarmentInformationConfigDataToStreamW()` — `ExportAPIInterface.h:537`
+    - returns: Output stream for JSON data. If an error occurs, return empty string.
+- **`ExportTurntableVideo`** [animation] [export]
+  - `std::string ExportTurntableVideo()` — `ExportAPIInterface.h:543`
+  - Export turntable video. This function requires XVid Mpeg-4 codec installed on user's computer.
+    - returns: Output file path; output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportTurntableVideo`** [animation] [export]
+  - `std::string ExportTurntableVideo(const std::string& _filePath)` — `ExportAPIInterface.h:550`
+  - Export turntable video. This function requires XVid Mpeg-4 codec installed on user's computer.
+    - param `_filePath`
+    - returns: Output file path; output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportTurntableVideoW`** [animation] [export]
+  - `std::wstring ExportTurntableVideoW(const std::wstring& _filePath)` — `ExportAPIInterface.h:556`
+  - Export turntable video. This function requires XVid Mpeg-4 codec installed on user's computer.
+    - returns: Output file path; output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportAnimationVideo`** · doc [animation] [export]
+  - `std::string ExportAnimationVideo()` — `ExportAPIInterface.h:562`
+  - Export animation video. This function requires XVid Mpeg-4 codec installed on user's computer.
+    - returns: Output file path. If an error occurs, return empty string. If filePath parameter is not given, output files will be created in CLO temporary folder.
+- **`ExportAnimationVideo`** · doc [animation] [export]
+  - `std::string ExportAnimationVideo(const std::string& _filePath)` — `ExportAPIInterface.h:569`
+  - Export animation video. This function requires XVid Mpeg-4 codec installed on user's computer.
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportAnimationVideoW`** [animation] [export]
+  - `std::wstring ExportAnimationVideoW(const std::wstring& _filePath)` — `ExportAPIInterface.h:576`
+  - Export animation video. This function requires XVid Mpeg-4 codec installed on user's computer.
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportAnimationVideo`** · doc, pure-virtual [animation] [export]
+  - `std::string ExportAnimationVideo(const Marvelous::VideoExportOption& _options)` — `ExportAPIInterface.h:582`
+  - Export animation video without showing any UI dialog.
+    - param `_options: Export options controlling video dimensions, frame range, and FPS.`
+    - returns: Output file path. If an error occurs, return empty string. Output files will be created in CLO temporary folder.
+- **`ExportAnimationVideo`** · doc, pure-virtual [animation] [export]
+  - `std::string ExportAnimationVideo(const std::string& _filePath, const Marvelous::VideoExportOption& _options)` — `ExportAPIInterface.h:589`
+  - Export animation video without showing any UI dialog.
+    - param `_filePath: output file path`
+    - param `_options: Export options controlling video dimensions, frame range, and FPS.`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportAnimationVideoW`** · pure-virtual [animation] [export]
+  - `std::wstring ExportAnimationVideoW(const std::wstring& _filePath, const Marvelous::VideoExportOption& _options)` — `ExportAPIInterface.h:596`
+  - Export animation video without showing any UI dialog.
+    - param `_filePath: output file path`
+    - param `_options: Export options controlling video dimensions, frame range, and FPS.`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`GetColorwayCount`** [render]
+  - `unsigned int GetColorwayCount()` — `ExportAPIInterface.h:605`
+  - Get the number of colorways in the current garment loaded in CLO
+    - returns: total count of colorways
+- **`GetCurrentColorwayIndex`** [render]
+  - `unsigned int GetCurrentColorwayIndex()` — `ExportAPIInterface.h:611`
+  - Get the index of the current colorway in CLO
+    - returns: the current colorway index
+- **`GetColorwayNameList`** [render]
+  - `std::vector<std::string> GetColorwayNameList()` — `ExportAPIInterface.h:617`
+  - Get all the colorway names for the current garment
+    - returns: the list of name of all colorways
+- **`GetColorwayNameListW`** [render]
+  - `std::vector<std::wstring> GetColorwayNameListW()` — `ExportAPIInterface.h:627`
+  - Get all the colorway names for the current garment
+    - returns: the list of name of all colorways
+- **`GetAvatarCount`** · **WIRED**, doc, py [avatar]
+  - `unsigned int GetAvatarCount()` — `ExportAPIInterface.h:637`
+  - Get the number of avatars loaded in CLO
+    - returns: total count of avatars
+- **`GetAvatarNameList`** · **WIRED**, doc [avatar]
+  - `std::vector<std::string> GetAvatarNameList()` — `ExportAPIInterface.h:643`
+  - Get all the names of avatars loaded in CLO
+    - returns: the list of name of all avatars
+- **`GetAvatarNameListW`** · doc [avatar]
+  - `std::vector<std::wstring> GetAvatarNameListW()` — `ExportAPIInterface.h:653`
+  - Get all the names of avatars loaded in CLO
+    - returns: the list of name of all avatars
+- **`GetAvatarGenderList`** · **WIRED**, doc [avatar]
+  - `std::vector<int> GetAvatarGenderList()` — `ExportAPIInterface.h:663`
+  - Get all the genders of avatars loaded in CLO repectively
+    - returns: the list of gender of all avatars. 0 : male, 1 : female, -1: unknown
+- **`ExportTurntableImages`** [animation] [export] [render]
+  - `std::vector<std::string> ExportTurntableImages(int _numberOfImages)` — `ExportAPIInterface.h:674`
+  - Export turntable images for current colorway.
+    - param `_numberOfImages: the number of images in 360 turn table. The turn table will turn by (360 / _numberOfImages) per an image each by each.`
+    - returns: Output file path list; output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportTurntableImages`** [animation] [export] [render]
+  - `std::vector<std::string> ExportTurntableImages(const std::string& _filePath, int _numberOfImages, int _width = 2500, int _height = 2500, int _startIndex = 0)` — `ExportAPIInterface.h:689`
+  - Export turntable images for current colorway.
+    - param `_filePath: the output file path to export the turntable snapshots`
+    - param `_numberOfImages: the number of images in 360 turn table. The turn table will turn by (360 / _numberOfImages) per an image each by each.`
+    - param `_width: image width for the snapshots`
+    - param `_height: image height for the snapshots`
+    - param `_startIndex: specifies the starting index position of the turntable.`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`ExportTurntableImagesW`** [animation] [export] [render]
+  - `std::vector<std::wstring> ExportTurntableImagesW(const std::wstring& _filePath, int _numberOfImages, int _width = 2500, int _height = 2500, int _startIndex = 0)` — `ExportAPIInterface.h:704`
+  - Export turntable images for current colorway.
+    - param `_filePath: the output file path to export the turntable snapshots`
+    - param `_numberOfImages: the number of images in 360 turn table. The turn table will turn by (360 / _numberOfImages) per an image each by each.`
+    - param `_width: image width for the snapshots`
+    - param `_height: image height for the snapshots`
+    - param `_startIndex: specifies the starting index position of the turntable.`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`ExportGLB`** · **WIRED**, doc, py [export]
+  - `std::vector<std::string> ExportGLB(const std::string& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:715`
+  - Export GLB
+    - param `options: If "options" is given, it exports GLB according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths.
+- **`ExportGLBW`** · doc [export]
+  - `std::vector<std::wstring> ExportGLBW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:726`
+  - Export GLBW
+    - param `options: If "options" is given, it exports GLB according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths.
+- **`ExportPOM`** [measure] [export]
+  - `std::string ExportPOM()` — `ExportAPIInterface.h:736`
+  - Export POM
+    - returns: Output file path;output file will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportPOM`** [measure] [export]
+  - `std::string ExportPOM(const std::string& _filePath)` — `ExportAPIInterface.h:743`
+  - Export POM
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportPOMW`** [export]
+  - `std::wstring ExportPOMW(const std::wstring& _filePath)` — `ExportAPIInterface.h:750`
+  - Export POM
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportPOM`** [measure] [export]
+  - `std::string ExportPOM(bool _bInclude3DLength)` — `ExportAPIInterface.h:757`
+  - Export POM
+    - param `_bInclude3DLength: true: include 3D info, false: exclude 3D info`
+    - returns: Output file path;output file will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportPOM`** [measure] [export]
+  - `std::string ExportPOM(bool _bInclude3DLength, const std::string& _filePath)` — `ExportAPIInterface.h:765`
+  - Export POM
+    - param `_bInclude3DLength: true: include 3D info, false: exclude 3D info`
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportPOMW`** [export]
+  - `std::wstring ExportPOMW(bool _bInclude3DLength, const std::wstring& _filePath)` — `ExportAPIInterface.h:773`
+  - Export POM
+    - param `_bInclude3DLength: true: include 3D info, false: exclude 3D info`
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportBOM`** [export] [techpack]
+  - `bool ExportBOM(const std::string& _filePath)` — `ExportAPIInterface.h:780`
+  - Export BOM
+    - param `_filePath: output file path`
+    - returns: If an error occurs, return false.
+- **`ExportBOMW`** · doc [export] [techpack]
+  - `bool ExportBOMW(const std::wstring& _filePath)` — `ExportAPIInterface.h:787`
+  - Export BOM
+    - param `_filePath: output file path`
+    - returns: If an error occurs, return false.
+- **`ExportGLTFWithDialog`** · doc [export] [gui]
+  - `std::vector<std::string> ExportGLTFWithDialog(const std::string& _filePath, bool _bGLBinary)` — `ExportAPIInterface.h:794`
+  - Export GLTF with Dialog
+    - param `_filePath: output file path`
+    - returns: Output file paths.
+- **`ExportGLBWithDialog`** · doc [export] [gui]
+  - `std::vector<std::string> ExportGLBWithDialog(const std::string& _filePath)` — `ExportAPIInterface.h:805`
+  - Export GLB with Dialog
+    - param `_filePath: output file path`
+    - returns: Output file paths.
+- **`ExportThumbnail3DByColorwayIndex`** [export] [render]
+  - `std::string ExportThumbnail3DByColorwayIndex(unsigned int _colorwayIndex)` — `ExportAPIInterface.h:816`
+  - Export thumbnail of the current scene
+    - param `_colorwayIndex: colorway index to render the image`
+    - returns: Output file path: output files will be created in CLO temporary folder.
+- **`ExportThumbnail3DByColorwayIndex`** [export] [render]
+  - `std::string ExportThumbnail3DByColorwayIndex(const std::string& _filePath, unsigned int _colorwayIndex)` — `ExportAPIInterface.h:824`
+  - Export thumbnail of the current scene in the 3D Windows
+    - param `_filePath: output file path to save the screenshot`
+    - param `_colorwayIndex: colorway index to render the image`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportThumbnail3DWByColorwayIndexW`** [export] [render]
+  - `std::wstring ExportThumbnail3DWByColorwayIndexW(const std::wstring& _filePath, unsigned int _colorwayIndex)` — `ExportAPIInterface.h:832`
+  - Export thumbnail of the current scene in the 3D Windows
+    - param `_filePath: output file path to save the screenshot`
+    - param `_colorwayIndex: colorway index to render the image`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportTurntableImagesByColorwayIndex`** [animation] [export] [render]
+  - `std::vector<std::string> ExportTurntableImagesByColorwayIndex(int _numberOfImages, unsigned int _colorwayIndex)` — `ExportAPIInterface.h:840`
+  - Export turntable images for colorway.
+    - param `_numberOfImages: the number of images in 360 turn table. The turn table will turn by (360 / _numberOfImages) per an image each by each.`
+    - param `_colorwayIndex: colorway index to render the image`
+    - returns: Output file path list; output files will be created in CLO temporary folder. If an error occurs, return empty string.
+- **`ExportTurntableImagesByColorwayIndex`** [animation] [export] [render]
+  - `std::vector<std::string> ExportTurntableImagesByColorwayIndex(const std::string& _filePath, int _numberOfImages, unsigned int _colorwayIndex, int _width = 2500, int _height = 2500)` — `ExportAPIInterface.h:855`
+  - Export turntable images for colorway.
+    - param `_filePath: the output file path to export the turntable snapshots`
+    - param `_numberOfImages: the number of images in 360 turn table. The turn table will turn by (360 / _numberOfImages) per an image each by each.`
+    - param `_colorwayIndex: colorway index to render the image`
+    - param `_width: image width for the snapshots`
+    - param `_height: image height for the snapshots`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`ExportTurntableImagesByColorwayIndexW`** [animation] [export] [render]
+  - `std::vector<std::wstring> ExportTurntableImagesByColorwayIndexW(const std::wstring& _filePath, int _numberOfImages, unsigned int _colorwayIndex, int _width = 2500, int _height = 2500)` — `ExportAPIInterface.h:870`
+  - Export turntable images for colorway.
+    - param `_filePath: the output file path to export the turntable snapshots`
+    - param `_numberOfImages: the number of images in 360 turn table. The turn table will turn by (360 / _numberOfImages) per an image each by each.`
+    - param `_colorwayIndex: colorway index to render the image`
+    - param `_width: image width for the snapshots`
+    - param `_height: image height for the snapshots`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`ExportPose`** [animation] [export]
+  - `std::string ExportPose()` — `ExportAPIInterface.h:880`
+  - Export Pose file in the CLO temporary folder
+    - returns: Output file path. If an error occurs, return empty string. Output files will be created in CLO temporary folder.
+- **`ExportPose`** [animation] [export]
+  - `std::string ExportPose(const std::string& _filePath)` — `ExportAPIInterface.h:887`
+  - Export Pose file
+    - param `string _filePath : target file path in ASCII`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportPoseW`** [animation] [export]
+  - `std::wstring ExportPoseW(const std::wstring& _filePath)` — `ExportAPIInterface.h:894`
+  - Export Pose file
+    - param `wstring _filePath : target file path in UNICODE`
+    - returns: Output file path. If an error occurs, return empty wstring.
+- **`ExportFBX`** · doc [export]
+  - `std::vector<std::string> ExportFBX(const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:901`
+  - Export FBX file
+    - param `_options: It exports FBX according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths. Output files will be created in CLO temporary folder.
+- **`ExportFBX`** · doc [export]
+  - `std::vector<std::string> ExportFBX(const std::string& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:913`
+  - Export FBX file
+    - param `_filePath: target file path in ASCII`
+    - param `_options: It exports FBX according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths.
+- **`ExportFBXW`** [export]
+  - `std::vector<std::wstring> ExportFBXW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options)` — `ExportAPIInterface.h:925`
+  - Export FBX file
+    - param `_filePath: target file path in UNICODE`
+    - param `_options: It exports FBX according to options, not allowing user for selecting options in Export Dialog.`
+    - returns: Output file paths.
+- **`ExportAVT`** · **WIRED**, doc, py [export]
+  - `std::string ExportAVT(const std::string& _filePath)` — `ExportAPIInterface.h:936`
+  - Export AVT
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportAVTW`** [export]
+  - `std::wstring ExportAVTW(const std::wstring& _filePath)` — `ExportAPIInterface.h:943`
+  - Export AVT
+    - param `_filePath: output file path`
+    - returns: Output file path. If an error occurs, return empty string.
+- **`ExportTrim`** [trim] [export]
+  - `std::string ExportTrim(const std::string& _filePath, unsigned int _trimStyleIndex)` — `ExportAPIInterface.h:951`
+  - Export trim file
+    - param `_filePath: the output file path to export trim`
+    - param `_trimStyleIndex: trimstyle index to export trim style`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`ExportStdViewImage`** [export] [render]
+  - `std::string ExportStdViewImage(int _viewIndex, const std::string& _outputFolderPath, int _colorwayIndex, int _width, int _height)` — `ExportAPIInterface.h:958`
+  - ExportStdViewImage : Exports The Image based on the given Standard image view index for selected colorway.
+    - param `:`
+    - returns: Output file path along with the selected colorway name. If an error occurs, return error message string.
+- **`ExportStdViewImage`** [export] [render]
+  - `std::string ExportStdViewImage(int _viewIndex, const std::string& _outputFolderPath, int _colorwayIndex, int _width, int _height, bool _bFitAllObjects)` — `ExportAPIInterface.h:970`
+  - ExportStdViewImage : Exports the image for the given standard view index with a framing choice. By default (and in the 5-argument overload) the camera is fitted to the garment patterns only; pass _bFitAllObjects=true to fit the whole scene including the avatar. Standard view indexes: 0=Bottom, 1=FrontRight, 2=Front, 3=FrontLeft, 4=Right, 5=Top, 6=Left, 7=Custom, 8=Back.
+    - param `_viewIndex: standard view index (0=Bottom, 1=FrontRight, 2=Front, 3=FrontLeft, 4=Right, 5=Top, 6=Left, 7=Custom, 8=Back)`
+    - param `_outputFolderPath: output file path including the image extension`
+    - param `_colorwayIndex: colorway index to export`
+    - param `_width: image width for the snapshot`
+    - param `_height: image height for the snapshot`
+    - param `_bFitAllObjects: true = frame the whole scene (avatar + garment); false = frame the garment patterns only (same as the 5-argument overload)`
+    - returns: Output file path along with the selected colorway name. If an error occurs, return error message string.
+- **`ExportStdViewImageForAllColorways`** [export] [render]
+  - `std::string ExportStdViewImageForAllColorways(int _viewIndex, const std::string& _outputFolderPath, int _width, int _height)` — `ExportAPIInterface.h:977`
+  - ExportStdViewImageForAllColorways : Exports The Image based on the given Standard image view index for all Colorways.
+    - param `:`
+    - returns: Output file paths along with the colorway names. If an error occurs, return error message string.
+- **`ExportCustomViewImage`** [export] [render]
+  - `std::string ExportCustomViewImage(const std::string& _zcmrFileUrl, const std::string& _outputFolderPath, int _colorwayIndex, int _width, int _height)` — `ExportAPIInterface.h:984`
+  - ExportCustomViewImage : Exports The Custom image based on the given custom angles in ZCMR file for selected Colorway.
+    - param `:`
+    - returns: Output file path along with the selected colorway name. If an error occurs, return error message string.
+- **`ExportCustomViewImageForAllColorways`** [export] [render]
+  - `std::string ExportCustomViewImageForAllColorways(const std::string& _zcmrFileUrl, const std::string& _outputFolderPath, int _width, int _height)` — `ExportAPIInterface.h:991`
+  - ExportCustomViewImageForAllColorways : Exports The Custom image based on the given custom angles in ZCMR file for all Colorways.
+    - param `:`
+    - returns: Output file path along with the colorway names. If an error occurs, return error message string.
+- **`ExportMultiViewImages`** [export] [render]
+  - `std::string ExportMultiViewImages(const std::string& _mvsFilePath, const std::string& _outputFilePath, int _colorwayIndex, int _width, int _height)` — `ExportAPIInterface.h:998`
+  - ExportMultiViewImages : Exports The Multi View Images based on the given MVS File for selected Colorway.
+    - param `:`
+    - returns: Output file path along with the selected colorway name. If an error occurs, return error message string.
+- **`ExportMultiViewImagesForAllColorways`** [export] [render]
+  - `std::string ExportMultiViewImagesForAllColorways(const std::string& _mvsFilePath, const std::string& _outputFilePath, int _width, int _height)` — `ExportAPIInterface.h:1005`
+  - ExportMultiViewImagesForAllColorways : Exports The Multi View Images based on the given MVS File for all Colorways.
+    - param `:`
+    - returns: Output file path along with the colorway names. If an error occurs, return error message string.
+- **`ConvertZblcToZmod`** 
+  - `std::vector<std::wstring> ConvertZblcToZmod(const std::vector<std::wstring>& _zblcFilePathList, const std::wstring& _saveDirPath, const std::wstring& _categoryName, const std::wstring& _styleName, const std::wstring& _lineName = L"")` — `ExportAPIInterface.h:1016`
+  - Convert .zblc file to .zmod file
+    - param `_zblcFilePathList: The path of the ZBLC files you want to convert`
+    - param `_saveDirPath: Where to save the converted file`
+    - param `_categoryName : Category name`
+    - param `_styleName : Style name`
+    - param `_lineName : Line Name (This is not mandatory data. By default, an empty string is set.)`
+    - returns: Returns the path list of failed files. Returns an empty list if all files are successful.
+- **`ExportMVSData`** [export]
+  - `std::string ExportMVSData(const std::string& _mvsFilePath)` — `ExportAPIInterface.h:1023`
+  - ExportMVSData : Exports The MVS File data without creating any Images.
+    - param `:`
+    - returns: MVS file data and with custom angles. If an error occurs, return error message string.
+- **`ExportUSD`** [export]
+  - `std::vector<std::string> ExportUSD(const Marvelous::ImportExportOption& _options, const Marvelous::ExportUSDOption& _usdOptions)` — `ExportAPIInterface.h:1031`
+  - Export USD file
+    - param `_options: It exports USD according to options, not allowing user for selecting options in Export Dialog.`
+    - param `_usdOptions: USD-specific export options.`
+    - returns: Output file paths. Output files will be created in CLO temporary folder.
+- **`ExportUSD`** [export]
+  - `std::vector<std::string> ExportUSD(const std::string& _filePath, const Marvelous::ImportExportOption& _options, const Marvelous::ExportUSDOption& _usdOptions)` — `ExportAPIInterface.h:1044`
+  - Export USD file
+    - param `_filePath: target file path in ASCII`
+    - param `_options: It exports USD according to options, not allowing user for selecting options in Export Dialog.`
+    - param `_usdOptions: USD-specific export options.`
+    - returns: Output file paths.
+- **`ExportUSDW`** [export]
+  - `std::vector<std::wstring> ExportUSDW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options, const Marvelous::ExportUSDOption& _usdOptions)` — `ExportAPIInterface.h:1057`
+  - Export USD file
+    - param `_filePath: target file path in UNICODE`
+    - param `_options: It exports USD according to options, not allowing user for selecting options in Export Dialog.`
+    - param `_usdOptions: USD-specific export options.`
+    - returns: Output file paths.
+- **`ExportZCMR`** [export]
+  - `std::vector<std::string> ExportZCMR(const std::string& _folderPath)` — `ExportAPIInterface.h:1068`
+  - Export ZCMR files
+    - param `_folderPath: folder path to store the output files`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`GenerateZcmrFrom3DWindow`** [gui]
+  - `std::vector<std::string> GenerateZcmrFrom3DWindow(const std::string& _filePath, bool _addToList)` — `ExportAPIInterface.h:1080`
+  - Load and export custom view from 3D window
+    - param `_filePath: file path to export the custom view from 3D window`
+    - param `_addToList: true to add the custom view to the existing Custom View list, false to not add`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`ExportSnapshot2D`** · pure-virtual [export] [render]
+  - `std::vector<std::string> ExportSnapshot2D(const std::string& _filePath, int SnapShotMode)` — `ExportAPIInterface.h:1092`
+  - Captures and exports a snapshot of the 2D Window.
+    - param `_filePath: The file path where the snapshot image will be saved (including file name and extension).`
+    - param `SnapShotMode: Specifies the capture mode (0: Captures the 2D Window in Simulation Mode, 1: Captures the 2D Window in Print Layout Mode).`
+    - returns: A list of the exported image file paths. Returns an empty vector if an error occurs.
+- **`ExportTopStitchStyle`** · pure-virtual [topstitch] [export]
+  - `std::string ExportTopStitchStyle(const std::string& _filePath, unsigned int _topStitchIndex)` — `ExportAPIInterface.h:1100`
+  - Export topstitch style file
+    - param `_filePath: the output file path to export topstitch style`
+    - param `_topStitchIndex: topstitch style index to export topstitch style`
+    - returns: Output file path list. If an error occurs, return empty string.
+- **`ExportRenderingImageForCustomView`** [export] [render]
+  - `std::string ExportRenderingImageForCustomView(const std::string& _filePath, int _customViewIndex, int _colorwayIndex)` — `ExportAPIInterface.h:1126`
+  - Renders and exports exactly ONE Custom View - addressed by its index in the project's Custom View list - for exactly ONE colorway. No other configured output view of the project is rendered and no other file is written.
+    - param `_filePath: output image path including the extension (.png / .jpg), e.g. "C:/out/front.png".`
+    - param `_customViewIndex: Custom View index, 0 to (number of Custom Views - 1). See GetCustomViewInformation().`
+    - param `_colorwayIndex: colorway index (0 to n-1). -1, or any out-of-range index, uses the current colorway.`
+    - returns: The written image path, or an empty string on failure - index out of range, no Custom View exists, no colorway, a render already in progress, or a build without the V-Ray renderer. Nothing is rendered and no file is written in any of those cases.
+- **`ExportRenderingImageForCustomView`** [export] [render]
+  - `std::string ExportRenderingImageForCustomView(const std::string& _filePath, const std::string& _customViewName, int _colorwayIndex)` — `ExportAPIInterface.h:1137`
+  - Overload of ExportRenderingImageForCustomView that addresses the Custom View by NAME instead of by index. The first view whose name matches exactly (case-sensitive) is rendered; everything else is identical to the index overload.
+    - param `_filePath: output image path including the extension (.png / .jpg).`
+    - param `_customViewName: Custom View name as reported by GetCustomViewInformation(), e.g. "Custom_View_2".`
+    - param `_colorwayIndex: colorway index (0 to n-1). -1, or any out-of-range index, uses the current colorway.`
+    - returns: The written image path, or an empty string when no Custom View carries that name (or on render failure).
+- **`ExportRenderingImageForZcmrFile`** [export] [render]
+  - `std::string ExportRenderingImageForZcmrFile(const std::string& _filePath, const std::string& _zcmrFilePath, int _colorwayIndex)` — `ExportAPIInterface.h:1153`
+  - Renders and exports one view taken from an external .zcmr camera file, for exactly ONE colorway. The .zcmr does not have to correspond to any Custom View saved in the project, so this also works on a project that has no Custom Views at all. As with ExportRenderingImageForCustomView, no other configured output view is rendered and no other file is written.
+    - param `_filePath: output image path including the extension (.png / .jpg).`
+    - param `_zcmrFilePath: path to the .zcmr camera file.`
+    - param `_colorwayIndex: colorway index (0 to n-1). -1, or any out-of-range index, uses the current colorway.`
+    - returns: The written image path, or an empty string when the .zcmr is missing or unreadable (or on render failure).
+
+---
+
+## `ImportAPIInterface.h` — `IMPORT_API`
+
+All file import: avatars, patterns, poses, measurements, meshes.
+
+44 declarations, 5 wired.
+
+- **`ImportFile`** · doc [import]
+  - `bool ImportFile(const std::string& filePath)` — `ImportAPIInterface.h:27`
+  - Load File (zprj, zpac, avt, obj, fbx, zcmr). This function will show up the dialog per the file type.
+    - param `filePath: the input file path to load`
+    - returns: if it succeeds, return true.
+- **`ImportFileW`** [import]
+  - `bool ImportFileW(const std::wstring& filePath)` — `ImportAPIInterface.h:34`
+  - Load File (zprj, zpac, avt, obj, fbx, zcmr). This function will show up the dialog per the file type.
+    - param `filePath: the input file path to load`
+    - returns: if it succeeds, return true.
+- **`ImportZprj`** · doc [import] [project]
+  - `bool ImportZprj(const std::string& filePath, const Marvelous::ImportZPRJOption& loadOption)` — `ImportAPIInterface.h:42`
+  - Load zprj File without the dialog but the loadOption
+    - param `filePath: the input file path to load`
+    - param `loadOption: the options to load the file`
+    - returns: if it succeeds, return true.
+- **`ImportZprjW`** [import] [project]
+  - `bool ImportZprjW(const std::wstring& filePath, const Marvelous::ImportZPRJOption& loadOption)` — `ImportAPIInterface.h:50`
+  - Load zprj File without the dialog but the loadOption
+    - param `filePath: the input file path to load`
+    - param `loadOption: the options to load the file`
+    - returns: if it succeeds, return true.
+- **`ImportGarmentInformation`** [import] [techpack]
+  - `bool ImportGarmentInformation(const std::string& filePath)` — `ImportAPIInterface.h:57`
+  - Load Garment Information (json)
+    - param `filePath: the input file to load the garment information (.json)`
+    - returns: if it succeeds, return true.
+- **`ImportGarmentInformationW`** [import] [techpack]
+  - `bool ImportGarmentInformationW(const std::wstring& filePath)` — `ImportAPIInterface.h:64`
+  - Load Garment Information (json)
+    - param `filePath: the input file to load the garment information (.json)`
+    - returns: if it succeeds, return true.
+- **`ImportGarmentInformationConfigData`** [import] [techpack]
+  - `bool ImportGarmentInformationConfigData(const std::string& filePath)` — `ImportAPIInterface.h:71`
+  - Load Garment Information Configuration (json)
+    - param `filePath: the input file to load the garment information configuration data(.json)`
+    - returns: if it succeeds, return true.
+- **`ImportGarmentInformationConfigDataW`** [import] [techpack]
+  - `bool ImportGarmentInformationConfigDataW(const std::wstring& filePath)` — `ImportAPIInterface.h:78`
+  - Load Garment Information Configuration (json)
+    - param `filePath: the input file to load the garment information configuration data(.json)`
+    - returns: if it succeeds, return true.
+- **`ImportOBJ`** · **WIRED**, doc [import]
+  - `bool ImportOBJ(const std::string& _filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:86`
+  - Import OBJ file
+    - param `_filePath: input file path`
+    - param `options: If "options" is given, it imports OBJ according to options, not allowing user for selecting options in Import Dialog.`
+    - returns: if it succeeds, return true.
+- **`ImportOBJW`** [import]
+  - `bool ImportOBJW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:97`
+  - Import OBJ file
+    - param `_filePath: input file path`
+    - param `options: If "options" is given, it imports OBJ according to options, not allowing user for selecting options in Import Dialog.`
+    - returns: if it succeeds, return true.
+- **`ImportVMP`** [import]
+  - `bool ImportVMP(const std::string& _filePath)` — `ImportAPIInterface.h:107`
+  - Import VMP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportVMPW`** [import]
+  - `bool ImportVMPW(const std::wstring& _filePath)` — `ImportAPIInterface.h:117`
+  - Import VMP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportCPT`** [import]
+  - `bool ImportCPT(const std::string& _filePath)` — `ImportAPIInterface.h:127`
+  - Import CPT file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportCPTW`** [import]
+  - `bool ImportCPTW(const std::wstring& _filePath)` — `ImportAPIInterface.h:137`
+  - Import CPT file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportVLP`** [import]
+  - `bool ImportVLP(const std::string& _filePath)` — `ImportAPIInterface.h:147`
+  - Import VLP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportVLPW`** [import]
+  - `bool ImportVLPW(const std::wstring& _filePath)` — `ImportAPIInterface.h:157`
+  - Import VLP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportVRP`** [import]
+  - `bool ImportVRP(const std::string& _filePath)` — `ImportAPIInterface.h:167`
+  - Import VRP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportVRPW`** [import]
+  - `bool ImportVRPW(const std::wstring& _filePath)` — `ImportAPIInterface.h:177`
+  - Import VRP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportDXF`** · **WIRED**, doc, py [import]
+  - `bool ImportDXF(const std::string& _filePath, const Marvelous::ImportDxfOption& loadOption)` — `ImportAPIInterface.h:188`
+  - Import DXF file
+    - param `_filePath: input file path`
+    - param `loadOption: the options to load the file`
+    - returns: if it succeeds, return true.
+- **`ImportDXFW`** · doc [import]
+  - `bool ImportDXFW(const std::wstring& _filePath, const Marvelous::ImportDxfOption& loadOption)` — `ImportAPIInterface.h:197`
+  - Import DXF file
+    - param `_filePath: input file path`
+    - param `loadOption: the options to load the file`
+    - returns: if it succeeds, return true.
+- **`ImportGraphicStyleFromImage`** [import] [render] [graphic]
+  - `bool ImportGraphicStyleFromImage(const std::string& _filePath)` — `ImportAPIInterface.h:205`
+  - Import image file as graphic style
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportGraphicStyleFromImage`** [import] [render] [graphic]
+  - `bool ImportGraphicStyleFromImage(const std::wstring& _filePath)` — `ImportAPIInterface.h:212`
+  - Import image file as graphic style
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportAVAC`** [import]
+  - `bool ImportAVAC(const std::wstring& _filePath, const std::wstring& _apfFilePath)` — `ImportAPIInterface.h:220`
+  - Import avac avatar file
+    - param `_filePath: input avatar file path`
+    - param `_apfFilePath: input apf File path`
+    - returns: if it succeeds, return true.
+- **`ImportAVAC`** [import]
+  - `bool ImportAVAC(const std::string& _filePath, const std::string& _apfFilePath)` — `ImportAPIInterface.h:228`
+  - Import avac avatar file
+    - param `_filePath: input avatar file path`
+    - param `_apfFilePath: input apf File path`
+    - returns: if it succeeds, return true.
+- **`ImportFile`** · doc [import]
+  - `bool ImportFile(const std::string& filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:235`
+  - Load File(obj, fbx, gltf) by obj type . This function will show up the dialog per the file type.
+    - param `filePath: the input file path to load, ImportExportOption - loadObjectType 0 : avater, 1 : trim`
+    - returns: if it succeeds, return true.
+- **`ImportFileW`** [import]
+  - `bool ImportFileW(const std::wstring& filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:242`
+  - Load File(obj, fbx, gltf) by obj type. This function will show up the dialog per the file type.
+    - param `filePath: the input file path to load, ImportExportOption - loadObjectType 0 : avater, 1 : trim`
+    - returns: if it succeeds, return true.
+- **`ImportFBX`** · doc [import]
+  - `bool ImportFBX(const std::string& _filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:250`
+  - Import FBX file
+    - param `_filePath: input file path`
+    - param `options: If "options" is given, it imports FBX according to options, not allowing user for selecting options in Import Dialog.`
+    - returns: if it succeeds, return true.
+- **`ImportFBXW`** [import]
+  - `bool ImportFBXW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:261`
+  - Import FBX file
+    - param `_filePath: input file path`
+    - param `options: If "options" is given, it imports FBX according to options, not allowing user for selecting options in Import Dialog.`
+    - returns: if it succeeds, return true.
+- **`ImportGLTF`** · doc [import]
+  - `bool ImportGLTF(const std::string& _filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:272`
+  - Import GLTF file
+    - param `_filePath: input file path`
+    - param `options: If "options" is given, it imports GLTF according to options, not allowing user for selecting options in Import Dialog.`
+    - returns: if it succeeds, return true.
+- **`ImportGLTFW`** [import]
+  - `bool ImportGLTFW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options)` — `ImportAPIInterface.h:283`
+  - Import GLTF file
+    - param `_filePath: input file path`
+    - param `options: If "options" is given, it imports GLTF according to options, not allowing user for selecting options in Import Dialog.`
+    - returns: if it succeeds, return true.
+- **`ImportSMP`** [import]
+  - `bool ImportSMP(const std::string& _filePath)` — `ImportAPIInterface.h:293`
+  - Import SMP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportSMPW`** [import]
+  - `bool ImportSMPW(const std::wstring& _filePath)` — `ImportAPIInterface.h:303`
+  - Import SMP file
+    - param `_filePath: input file path`
+    - returns: if it succeeds, return true.
+- **`ImportAsGraphic`** [import] [graphic]
+  - `void ImportAsGraphic(const std::string& _filePath)` — `ImportAPIInterface.h:312`
+  - Import an image file as Graphic.
+    - param `_filePath: input file path`
+- **`ImportAsGraphicW`** [import] [graphic]
+  - `void ImportAsGraphicW(const std::wstring& _filePath)` — `ImportAPIInterface.h:320`
+  - Import an image file as Graphic.
+    - param `_filePath: input file path`
+- **`ImportTrim`** [trim] [import]
+  - `void ImportTrim(const std::string& _filePath, const bool _bTranslateToOrigin)` — `ImportAPIInterface.h:331`
+  - Import a trim
+    - param `_filePath			: input file path`
+    - param `_bTranslateToOrigin  : option to translate the position of the imported trim`
+    - param `true: move trim to the pos(0,0)`
+    - param `false: move trim to original pos`
+- **`ImportAvatarMeasurement`** · **WIRED**, doc, py [avatar] [measure] [import]
+  - `bool ImportAvatarMeasurement(std::string _csvPath, std::string _avtPath, Marvelous::ImportExportOption _opt)` — `ImportAPIInterface.h:339`
+  - Import Avatar Measurement CSV file
+    - param `_csvPath: input CSV file path, _avtPath : input Avatar file path, _opt : input load options`
+- **`ImportAvatar`** · **WIRED**, doc, py [avatar] [import]
+  - `bool ImportAvatar(std::string _avtPath, Marvelous::ImportExportOption _opt)` — `ImportAPIInterface.h:348`
+  - Import Avatar
+    - param `_avtPath : input Avatar file path, _opt : input load options`
+- **`ImportMeasurement`** · **WIRED**, doc [measure] [import]
+  - `bool ImportMeasurement(std::string _csvPath)` — `ImportAPIInterface.h:357`
+  - Import Avatar Measurement CSV file
+    - param `_csvPath: input CSV file path`
+- **`ImportPose`** [animation] [import]
+  - `bool ImportPose(const std::string& _filePath)` — `ImportAPIInterface.h:366`
+  - Import a pose/hand pose file.
+    - param `_filePath: input file path`
+- **`ImportPoseW`** [animation] [import]
+  - `bool ImportPoseW(const std::wstring& _filePath)` — `ImportAPIInterface.h:375`
+  - Import a pose/hand pose file.
+    - param `_filePath: input file path`
+- **`ImportPose`** [animation] [import]
+  - `bool ImportPose(const std::string& _filePath, bool _bPoseAndTranslation, bool _bBottomToGround)` — `ImportAPIInterface.h:386`
+  - Import a pose/hand pose file with options.
+    - param `_filePath: input file path`
+    - param `_bPoseAndTranslation: if true, import both pose and translation; if false, import only pose`
+    - param `_bBottomToGround: if true, adjust the bottom of the avatar to ground level`
+- **`ImportPoseW`** [animation] [import]
+  - `bool ImportPoseW(const std::wstring& _filePath, bool _bPoseAndTranslation, bool _bBottomToGround)` — `ImportAPIInterface.h:394`
+  - Import a pose/hand pose file with options.
+    - param `_filePath: input file path`
+    - param `_bPoseAndTranslation: if true, import both pose and translation; if false, import only pose`
+    - param `_bBottomToGround: if true, adjust the bottom of the avatar to ground level`
+- **`ImportAlembic`** [import]
+  - `bool ImportAlembic(const std::string& filePath, const Marvelous::ImportAlembicOption& option)` — `ImportAPIInterface.h:401`
+  - Import an alembic (.abc) file.
+    - param `filePath: input file path`
+    - param `option: alembic import options`
+- **`ImportZpac`** · doc [import] [project]
+  - `bool ImportZpac(const std::string& filePath, const Marvelous::ImportExportOption& loadOption)` — `ImportAPIInterface.h:412`
+  - Import Zpac file
+    - param `filePath: input file path`
+    - param `loadOption: If "loadOption" is given, it imports zpac according to options, not allowing user for selecting options in Import Dialog.`
+    - returns: if it succeeds, return true.
+
+---
+
+## `GuiAPIInterface.h` — `GUI_API`
+
+Native CLO dialogs, tool windows, dock panels, widgets.
+
+39 declarations, 0 wired.
+
+- **`IsGuiAvailable`** 
+  - `bool IsGuiAvailable()` — `GuiAPIInterface.h:42`
+  - Check whether native GUI commands can be used in the current session.
+    - returns: true when CLO runs with a GUI and the call comes from the main thread, false in headless mode.
+- **`AskConfirm`** [gui]
+  - `bool AskConfirm(const std::string& _title, const std::string& _message, const std::string& _okLabel = "OK", const std::string& _cancelLabel = "Cancel")` — `GuiAPIInterface.h:52`
+  - Show a modal confirmation dialog with two buttons and block until the user answers.
+    - param `_title: Dialog title.`
+    - param `_message: Message text shown in the dialog body.`
+    - param `_okLabel: Caption of the accept button.`
+    - param `_cancelLabel: Caption of the reject button.`
+    - returns: true when the user pressed the accept button, false when rejected, closed or in headless mode.
+- **`AskText`** [gui]
+  - `Marvelous::CloApiGuiTextResult AskText(const std::string& _title, const std::string& _label, const std::string& _defaultValue = "", const std::string& _placeholder = "")` — `GuiAPIInterface.h:62`
+  - Show a modal dialog with a single-line text input and block until the user answers.
+    - param `_title: Dialog title.`
+    - param `_label: Label shown next to the input field.`
+    - param `_defaultValue: Initial text of the input field.`
+    - param `_placeholder: Hint text shown while the field is empty.`
+    - returns: CloApiGuiTextResult. accepted is true only when the user pressed OK, value holds the entered text.
+- **`AskChoice`** [gui]
+  - `Marvelous::CloApiGuiChoiceResult AskChoice(const std::string& _title, const std::string& _label, const std::vector<std::string>& _options, int _defaultIndex = 0)` — `GuiAPIInterface.h:72`
+  - Show a modal dialog that lets the user pick exactly one option from a list and block until answered.
+    - param `_title: Dialog title.`
+    - param `_label: Label shown above the option list.`
+    - param `_options: Option captions. Must not be empty.`
+    - param `_defaultIndex: Index of the option selected initially. Out-of-range values select the first option.`
+    - returns: CloApiGuiChoiceResult. accepted is true only when the user pressed OK, selectedIndex and selectedValue hold the choice.
+- **`AskMultiChoice`** [gui]
+  - `Marvelous::CloApiGuiChoiceResult AskMultiChoice(const std::string& _title, const std::string& _label, const std::vector<std::string>& _options, const std::vector<int>& _defaultIndices = std::vector<int>())` — `GuiAPIInterface.h:82`
+  - Show a modal dialog that lets the user check any number of options and block until answered.
+    - param `_title: Dialog title.`
+    - param `_label: Label shown above the option list.`
+    - param `_options: Option captions. Must not be empty.`
+    - param `_defaultIndices: Indices of the options checked initially. Out-of-range values are ignored.`
+    - returns: CloApiGuiChoiceResult. accepted is true only when the user pressed OK, selectedIndices holds every checked index in ascending order.
+- **`AskForm`** [gui]
+  - `Marvelous::CloApiGuiFormResult AskForm(const std::string& _title, const std::vector<Marvelous::CloApiGuiFormField>& _fields)` — `GuiAPIInterface.h:90`
+  - Show a modal form built from a field list and block until the user answers.
+    - param `_title: Dialog title.`
+    - param `_fields: Field descriptions, one row per field, in display order. Each key must be unique and non-empty.`
+    - returns: CloApiGuiFormResult. accepted is true only when the user pressed OK, values maps each field key to its text value (choice: option caption, check: true or false, number: decimal text).
+- **`CreateToolWindow`** [gui]
+  - `int CreateToolWindow(const std::string& _title, int _width = 400, int _height = 300)` — `GuiAPIInterface.h:99`
+  - Create a non-modal tool window owned by CLO. The window is parented to the CLO main window so it stays in front of CLO. Call ShowWindow to display it.
+    - param `_title: Window title.`
+    - param `_width: Initial width in pixels. Values below 1 use a default size.`
+    - param `_height: Initial height in pixels. Values below 1 use a default size.`
+    - returns: Window handle (greater than 0) on success, 0 on failure or in headless mode.
+- **`CreateDockPanel`** 
+  - `int CreateDockPanel(const std::string& _title, const std::string& _side = "right", const std::string& _name = "")` — `GuiAPIInterface.h:108`
+  - Create a dockable panel owned by CLO, like the Library or History panels: it docks into the main window, can be dragged to another side or floated, and has the CLO title bar. Use it as the parent of Add* calls and show it with ShowWindow. ShowWindow, CloseWindow, CloseAllWindows, SetWindowCloseCallback and SetWidgetText accept the panel handle.
+    - param `_title: Panel title shown in its title bar.`
+    - param `_side: Initial docking side, one of left, right or bottom. Anything else fails.`
+    - param `_name: Stable identifier (letters, digits, underscore). Panels with the same name keep their docking position across mode switches and sessions. Empty generates a name from the handle.`
+    - returns: Panel handle (greater than 0) on success, 0 on failure or in headless mode.
+- **`AddLabel`** [gui]
+  - `int AddLabel(int _parentHandle, const std::string& _text)` — `GuiAPIInterface.h:116`
+  - Append a text label to a window created by CreateToolWindow.
+    - param `_parentHandle: Handle of the parent window.`
+    - param `_text: Label text.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddButton`** [trim] [gui]
+  - `int AddButton(int _parentHandle, const std::string& _text, const std::function<void()>& _onClick)` — `GuiAPIInterface.h:125`
+  - Append a push button to a window created by CreateToolWindow. The Python callable runs on the main thread every time the button is clicked, also after the creating script has finished. Exceptions raised inside the callable are logged and do not close the window.
+    - param `_parentHandle: Handle of the parent window.`
+    - param `_text: Button caption.`
+    - param `_onClick: Python callable taking no arguments.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`SetWidgetText`** [gui]
+  - `bool SetWidgetText(int _handle, const std::string& _text)` — `GuiAPIInterface.h:133`
+  - Replace the text of a label, a button or the title of a window.
+    - param `_handle: Handle returned by CreateToolWindow, AddLabel or AddButton.`
+    - param `_text: New text.`
+    - returns: true on success, false when the handle is invalid or in headless mode.
+- **`ShowWindow`** [gui]
+  - `bool ShowWindow(int _windowHandle)` — `GuiAPIInterface.h:140`
+  - Show a window created by CreateToolWindow and raise it in front of CLO. The script may return afterwards, the window stays open until the user closes it or CloseWindow is called.
+    - param `_windowHandle: Handle returned by CreateToolWindow.`
+    - returns: true on success, false when the handle is invalid or in headless mode.
+- **`CloseWindow`** [gui]
+  - `bool CloseWindow(int _windowHandle)` — `GuiAPIInterface.h:147`
+  - Close and destroy a window created by CreateToolWindow together with every widget added to it. All handles that belonged to the window become invalid.
+    - param `_windowHandle: Handle returned by CreateToolWindow.`
+    - returns: true on success, false when the handle is invalid or in headless mode.
+- **`CloseAllWindows`** [gui]
+  - `int CloseAllWindows()` — `GuiAPIInterface.h:153`
+  - Close and destroy every window created through gui_api. Useful at the start of a script so a re-run does not leave the previous window open.
+    - returns: Number of windows that were closed, 0 in headless mode.
+- **`SetWindowCloseCallback`** [gui]
+  - `bool SetWindowCloseCallback(int _windowHandle, const std::function<void()>& _onClose)` — `GuiAPIInterface.h:161`
+  - Register a Python callable that runs when the window closes, either by the user pressing the close button or by CloseWindow / CloseAllWindows.
+    - param `_windowHandle: Handle returned by CreateToolWindow.`
+    - param `_onClose: Python callable taking no arguments.`
+    - returns: true on success, false when the handle is invalid or in headless mode.
+- **`AddRow`** [gui]
+  - `int AddRow(int _parentHandle)` — `GuiAPIInterface.h:168`
+  - Append a horizontal container to a window, group or row. Widgets added to the returned handle are laid out left to right.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - returns: Container handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddGroup`** [gui]
+  - `int AddGroup(int _parentHandle, const std::string& _title)` — `GuiAPIInterface.h:176`
+  - Append a titled group box to a window, group or row. Widgets added to the returned handle are laid out top to bottom inside the box.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_title: Group title.`
+    - returns: Container handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddSeparator`** [gui]
+  - `int AddSeparator(int _parentHandle)` — `GuiAPIInterface.h:183`
+  - Append a thin separator line to a window, group or row.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddTextInput`** [gui]
+  - `int AddTextInput(int _parentHandle, const std::string& _defaultValue = "", const std::string& _placeholder = "", const std::function<void(std::string)>& _onChanged = nullptr)` — `GuiAPIInterface.h:193`
+  - Append a single-line text input. Read the current text with GetWidgetValue, write it with SetWidgetValue.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_defaultValue: Initial text.`
+    - param `_placeholder: Hint text shown while the field is empty.`
+    - param `_onChanged: Python callable taking the new text (str). Called on user edits only, not on SetWidgetValue.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddTextArea`** [gui]
+  - `int AddTextArea(int _parentHandle, const std::string& _text = "", bool _readOnly = false)` — `GuiAPIInterface.h:202`
+  - Append a multi-line text box. Read the text with GetWidgetValue, write it with SetWidgetValue.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_text: Initial text.`
+    - param `_readOnly: true shows the text without allowing edits, for logs and reports.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddCheckBox`** [gui]
+  - `int AddCheckBox(int _parentHandle, const std::string& _text, bool _checked = false, const std::function<void(bool)>& _onChanged = nullptr)` — `GuiAPIInterface.h:212`
+  - Append a check box. GetWidgetValue returns true or false as text, SetWidgetValue accepts true, false, 1 or 0.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_text: Caption shown next to the box.`
+    - param `_checked: Initial state.`
+    - param `_onChanged: Python callable taking the new state (bool). Called on user clicks only.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddDropdown`** [gui]
+  - `int AddDropdown(int _parentHandle, const std::vector<std::string>& _options, int _defaultIndex = 0, const std::function<void(int)>& _onChanged = nullptr)` — `GuiAPIInterface.h:222`
+  - Append a drop-down list. GetWidgetSelectedIndex / SetWidgetSelectedIndex work with the index, GetWidgetValue returns the selected caption, SetWidgetItems replaces the options.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_options: Option captions.`
+    - param `_defaultIndex: Index selected initially. Out-of-range values select the first option.`
+    - param `_onChanged: Python callable taking the new index (int). Called on user selection only.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddRadioGroup`** [gui]
+  - `int AddRadioGroup(int _parentHandle, const std::vector<std::string>& _options, int _defaultIndex = 0, const std::function<void(int)>& _onChanged = nullptr)` — `GuiAPIInterface.h:232`
+  - Append a vertical group of radio buttons where exactly one option is checked. Same value functions as AddDropdown.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_options: Option captions. Must not be empty.`
+    - param `_defaultIndex: Index checked initially. Out-of-range values check the first option.`
+    - param `_onChanged: Python callable taking the new index (int). Called on user clicks only.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid, the options are empty or in headless mode.
+- **`AddNumberInput`** [gui]
+  - `int AddNumberInput(int _parentHandle, double _defaultValue = 0.0, double _minimum = -1000000.0, double _maximum = 1000000.0, int _decimals = 2, const std::function<void(double)>& _onChanged = nullptr)` — `GuiAPIInterface.h:244`
+  - Append a decimal number input with spin buttons. GetWidgetValue returns the number as decimal text, SetWidgetValue accepts decimal text.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_defaultValue: Initial value.`
+    - param `_minimum: Smallest accepted value.`
+    - param `_maximum: Largest accepted value.`
+    - param `_decimals: Number of decimal places shown.`
+    - param `_onChanged: Python callable taking the new value (float). Called on user edits only.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddSlider`** [trim] [gui]
+  - `int AddSlider(int _parentHandle, int _defaultValue = 0, int _minimum = 0, int _maximum = 100, const std::function<void(int)>& _onChanged = nullptr)` — `GuiAPIInterface.h:255`
+  - Append a horizontal integer slider. GetWidgetValue returns the value as text, SetWidgetValue accepts integer text.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_defaultValue: Initial value.`
+    - param `_minimum: Smallest value.`
+    - param `_maximum: Largest value.`
+    - param `_onChanged: Python callable taking the new value (int). Called on user drags only.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddList`** [gui]
+  - `int AddList(int _parentHandle, const std::vector<std::string>& _items, int _defaultIndex = -1, const std::function<void(int)>& _onSelected = nullptr, const std::function<void(int)>& _onDoubleClicked = nullptr)` — `GuiAPIInterface.h:266`
+  - Append a single-selection list. GetWidgetSelectedIndex / SetWidgetSelectedIndex work with the row, GetWidgetValue returns the selected caption, SetWidgetItems replaces the rows.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_items: Row captions.`
+    - param `_defaultIndex: Row selected initially, -1 for no selection.`
+    - param `_onSelected: Python callable taking the new row (int). Called on user selection only.`
+    - param `_onDoubleClicked: Python callable taking the double-clicked row (int).`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddTable`** [gui]
+  - `int AddTable(int _parentHandle, const std::vector<std::string>& _columns, const std::vector<std::vector<std::string>>& _rows, const std::function<void(int)>& _onSelected = nullptr)` — `GuiAPIInterface.h:276`
+  - Append a read-only table with a header row and whole-row selection. GetWidgetSelectedIndex returns the selected row, GetWidgetValue returns the first cell of the selected row, SetTableRows replaces the rows.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_columns: Column captions.`
+    - param `_rows: Cell texts, one inner list per row. Missing cells are shown empty.`
+    - param `_onSelected: Python callable taking the new row (int). Called on user selection only.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddImage`** [render] [gui]
+  - `int AddImage(int _parentHandle, const std::string& _imageFilePath, int _maxWidth = 0, int _maxHeight = 0)` — `GuiAPIInterface.h:286`
+  - Append an image loaded from a file. SetWidgetValue with a file path replaces the image. Very large files such as 2D window snapshots are supported and decoded straight to the requested size.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_imageFilePath: Path of a PNG or JPEG file.`
+    - param `_maxWidth: Scale the image down to this width if it is wider. 0 keeps the original width.`
+    - param `_maxHeight: Scale the image down to this height if it is taller. 0 keeps the original height. When both limits are 0 an image wider or taller than 4096 px is scaled down to 4096 px.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid, the file cannot be loaded or in headless mode.
+- **`AddProgressBar`** [gui]
+  - `int AddProgressBar(int _parentHandle, int _value = 0)` — `GuiAPIInterface.h:294`
+  - Append a progress bar from 0 to 100. SetWidgetValue with integer text updates it.
+    - param `_parentHandle: Handle of a window, group or row.`
+    - param `_value: Initial value from 0 to 100.`
+    - returns: Widget handle (greater than 0) on success, 0 when the parent handle is invalid or in headless mode.
+- **`AddMenu`** [gui]
+  - `int AddMenu(int _windowHandle, const std::string& _title)` — `GuiAPIInterface.h:302`
+  - Add a menu to the menu bar of a window. The menu bar is created on the first call.
+    - param `_windowHandle: Handle returned by CreateToolWindow.`
+    - param `_title: Menu title shown in the menu bar.`
+    - returns: Menu handle (greater than 0) on success, 0 when the handle is not a window or in headless mode.
+- **`AddMenuItem`** [gui]
+  - `int AddMenuItem(int _menuHandle, const std::string& _text, const std::function<void()>& _onClick)` — `GuiAPIInterface.h:311`
+  - Add a clickable item to a menu created by AddMenu.
+    - param `_menuHandle: Handle returned by AddMenu.`
+    - param `_text: Item caption.`
+    - param `_onClick: Python callable taking no arguments.`
+    - returns: Item handle (greater than 0) on success, 0 when the handle is not a menu or in headless mode.
+- **`SetWidgetEnabled`** [gui]
+  - `bool SetWidgetEnabled(int _handle, bool _enabled)` — `GuiAPIInterface.h:319`
+  - Enable or disable any widget, container or menu item.
+    - param `_handle: Any handle except a window.`
+    - param `_enabled: false greys the widget out.`
+    - returns: true on success, false when the handle is invalid or in headless mode.
+- **`SetWidgetVisible`** [gui]
+  - `bool SetWidgetVisible(int _handle, bool _visible)` — `GuiAPIInterface.h:327`
+  - Show or hide any widget, container or menu item without destroying it.
+    - param `_handle: Any handle except a window. Use ShowWindow / CloseWindow for windows.`
+    - param `_visible: false hides the widget.`
+    - returns: true on success, false when the handle is invalid or in headless mode.
+- **`GetWidgetValue`** [gui]
+  - `std::string GetWidgetValue(int _handle)` — `GuiAPIInterface.h:334`
+  - Read the current value of a widget as text: the text of inputs, labels and buttons, true or false for check boxes, the selected caption for drop-downs, radio groups and lists, the first cell of the selected row for tables, decimal text for numbers, sliders and progress bars.
+    - param `_handle: Widget handle.`
+    - returns: The value as text, empty when the handle is invalid, nothing is selected or in headless mode.
+- **`SetWidgetValue`** [gui]
+  - `bool SetWidgetValue(int _handle, const std::string& _value)` — `GuiAPIInterface.h:342`
+  - Write the value of a widget as text, using the same encoding GetWidgetValue returns. For drop-downs, radio groups and lists the caption must exist. For images the value is a file path. Change callbacks are not triggered.
+    - param `_handle: Widget handle.`
+    - param `_value: New value as text.`
+    - returns: true on success, false when the handle is invalid, the value cannot be applied or in headless mode.
+- **`GetWidgetSelectedIndex`** [gui]
+  - `int GetWidgetSelectedIndex(int _handle)` — `GuiAPIInterface.h:349`
+  - Read the selected index of a drop-down, radio group, list or table.
+    - param `_handle: Widget handle.`
+    - returns: The selected index, -1 when nothing is selected, the handle is not a selection widget or in headless mode.
+- **`SetWidgetSelectedIndex`** [gui]
+  - `bool SetWidgetSelectedIndex(int _handle, int _index)` — `GuiAPIInterface.h:357`
+  - Select an index in a drop-down, radio group, list or table. Change callbacks are not triggered.
+    - param `_handle: Widget handle.`
+    - param `_index: Index to select. -1 clears the selection of a list or table.`
+    - returns: true on success, false when the handle is invalid, the index is out of range or in headless mode.
+- **`SetWidgetItems`** [gui]
+  - `bool SetWidgetItems(int _handle, const std::vector<std::string>& _items)` — `GuiAPIInterface.h:365`
+  - Replace the options of a drop-down or radio group, or the rows of a list. The selection is reset.
+    - param `_handle: Widget handle.`
+    - param `_items: New captions.`
+    - returns: true on success, false when the handle is invalid or in headless mode.
+- **`SetTableRows`** 
+  - `bool SetTableRows(int _handle, const std::vector<std::vector<std::string>>& _rows)` — `GuiAPIInterface.h:373`
+  - Replace every row of a table created by AddTable. The selection is reset.
+    - param `_handle: Table handle.`
+    - param `_rows: Cell texts, one inner list per row.`
+    - returns: true on success, false when the handle is not a table or in headless mode.
+
+---
+
+## `RestAPIInterface.h` — `REST_API`
+
+CLO making OUTBOUND HTTP calls. Not our inbound plugin server.
+
+9 declarations, 0 wired.
+
+- **`CallRESTGet`** [rest]
+  - `std::string CallRESTGet(const std::string& url, const std::vector<std::pair<std::string, std::string>>& headerNameAndValueList, const std::string& progressBarText)` — `RestAPIInterface.h:41`
+  - HTTP GET Method
+    - param `url : e.g. https://api.clo3d.com/customers?version=2.5.9999.299999&userid=clo`
+    - param `headerNameAndValueList : pair list of input HTTP request header parameters`
+    - param `progressBarText : text for the progress bar`
+    - returns: string = HTTP Response header + "\r\n\r\n" + HTTP Response body
+- **`CallRESTPost`** [rest]
+  - `std::string CallRESTPost(const std::string& url, std::string *postField, const std::vector<std::pair<std::string, std::string>>& headerNameAndValueList, const std::string& progressBarText)` — `RestAPIInterface.h:69`
+  - HTTP POST Method
+    - param `url : the full URL for REST API call`
+    - param `postField HTTP Post Body parameter	e.g. "{"parameter1":20,"parameter2":100,"date":"2017-12-13T00:00:00"}"`
+    - param `headerNameAndValueList : pair list of input HTTP request header parameters`
+    - param `progressBarText : text for the progress bar`
+    - returns: string = HTTP Response header + "\r\n\r\n" + HTTP Response body
+- **`CallRESTPost2`** [rest]
+  - `std::string CallRESTPost2(const std::string& url, unsigned char *postField, unsigned int& sizeInByte, const std::vector<std::pair<std::string, std::string>>& headerNameAndValueList, const std::string& progressBarText)` — `RestAPIInterface.h:81`
+- **`CallRESTPostWithMultipartFormData`** [rest]
+  - `std::string CallRESTPostWithMultipartFormData(const std::string& url, const std::string& filePath, const std::vector<std::pair<std::string, std::string>>& headerNameAndValueList, const std::string& progressBarText)` — `RestAPIInterface.h:113`
+  - HTTP POST with multipart/form-data Method
+    - param `url : the full URL for REST API call`
+    - param `filePath : path of file to send via REST API`
+    - param `headerNameAndValueList : pair list of input HTTP request header parameters`
+    - param `progressBarText : text for the progress bar`
+    - returns: string = HTTP Response header + "\r\n\r\n" + HTTP Response body
+- **`CallRESTPostWithMultipartFormData`** [rest]
+  - `std::string CallRESTPostWithMultipartFormData(const std::string& url, const std::vector<std::string>& filePathList, const std::vector<std::pair<std::string, std::string>>& headerNameAndValueList, const std::string& progressBarText)` — `RestAPIInterface.h:124`
+  - HTTP POST with multipart/form-data Method
+    - param `url : the full URL for REST API call`
+    - param `filePathList : path list of files to send via REST API`
+    - param `headerNameAndValueList : pair list of input HTTP request header parameters`
+    - param `progressBarText : text for the progress bar`
+    - returns: string = HTTP Response header + "\r\n\r\n" + HTTP Response body
+- **`GetByteArrayFromStream`** 
+  - `bool GetByteArrayFromStream(const std::string& stream, unsigned char*& buf, unsigned int& bufSize)` — `RestAPIInterface.h:133`
+  - Copy data from stream to char* buffer with the data size
+    - param `stream: the full string data from REST API`
+    - param `buf*: the pointer which will allocated and returned by this function to point the memory address of the copied data`
+    - param `bufSize: the size of the copied data which is saved in the (*buf)`
+    - returns: true if this functino succeeds to allocate the buf pointer and copies the data from stream to buf
+- **`CallbackRestRequest`** [rest]
+  - `void CallbackRestRequest(const Marvelous::CloApiRestRequest& restRequest, const std::function<void (Marvelous::CloApiRestResponse)>& callbackFunc)` — `RestAPIInterface.h:140`
+  - It makes an Http request with a CloApiRestRequest structure and then triggers a callbackFunc when the server responds
+    - param `restRequest : It is the request with header, body, url and attachements`
+    - param `callbackFunc : When the server responds, a callback function is called with CloApiRestResponse.`
+- **`CallbackRestMultiRequest`** [rest]
+  - `void CallbackRestMultiRequest(const std::vector<Marvelous::CloApiRestRequest>& restRequests, const std::function<void (Marvelous::CloApiRestResponse)>& callbackFunc, const std::function<void()>& callbackFinished)` — `RestAPIInterface.h:148`
+  - It uses the CloApiRestRequest structure to make multiple Http requests and then trigger each callbackFunc when each server responds. The callbackFinished is trrigered after all requests have been responded to.
+    - param `restRequests : Request list with header, body, url and attachements`
+    - param `callbackFunc : When the server responds, a callback function is called with CloApiRestResponse.`
+    - param `callbackFinished : The callbackFinished function is called last after all requests have been responded to.`
+- **`CallRESTPut`** [rest]
+  - `std::string CallRESTPut(const Marvelous::CloApiRestRequest& restReq, const std::string& progressBarText)` — `RestAPIInterface.h:156`
+  - HTTP PUT Method
+    - param `restRequests : Request list with header, body, url and attachements`
+    - param `progressBarText : text for the progress bar`
+    - returns: string = HTTP Response header + "\r\n\r\n" + HTTP Response body
+
+---
+
