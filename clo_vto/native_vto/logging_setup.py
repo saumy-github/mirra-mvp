@@ -74,3 +74,31 @@ class RunLog:
             self._handle.close()
             self._handle = None
         return False
+
+
+def ensure_utf8_stdout() -> bool:
+    """Make stdout and stderr able to carry the characters this pipeline prints.
+
+    The pipeline's own output uses arrows and box-drawing characters. On Windows a piped
+    or redirected stdout defaults to cp1252, which cannot encode them, and the *print*
+    raises `UnicodeEncodeError` - so a cosmetic banner aborts the run before step 1.
+    Encountered 2026-11-10 running the pipeline with its output captured; it would do the
+    same under the RQ worker, where stdout is never a console.
+
+    Reconfiguring is preferred over stripping the characters because it fixes every print
+    at once, including ones in steps that have not been written yet. `errors='replace'`
+    so that an encoding this does not anticipate degrades to a question mark instead of
+    killing a try-on.
+    """
+    changed = False
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is None:
+            continue
+        try:
+            if (getattr(stream, 'encoding', '') or '').lower().replace('-', '') != 'utf8':
+                reconfigure(encoding='utf-8', errors='replace')
+                changed = True
+        except Exception:  # noqa: BLE001 - a closed or exotic stream is not fatal here
+            continue
+    return changed

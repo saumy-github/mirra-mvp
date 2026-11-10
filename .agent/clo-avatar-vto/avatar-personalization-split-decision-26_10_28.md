@@ -44,6 +44,8 @@ Face texture is handled. Hair is where we got stuck. So which of these three do 
 
 ---
 
+> **Current state and route live in `master-plan-26_11_10.md`.** This document stays as the record of *why* each decision was taken; the status board below is kept in sync but the master plan is authoritative.
+
 ## Part 1 — What is actually inside the two formats
 
 Everything in this part was measured on `clo_avatar_generation/input/base-1.avt` and on
@@ -129,14 +131,49 @@ says otherwise:
 | **`hair_cap_alpha.jpg`** | 2048² | 25.5 | **Which parts of the cap are visible** |
 | `hair_main_Normal`, `hair_main_Roughness`, `hair_cap_Normal` | 2048² | — | Shading |
 
-And the exported GLB keeps all three hair materials at `alphaMode = BLEND`, so alpha is
-respected end to end. Consequence: **hair colour, perceived density, hairline position
+And the exported GLB keeps all three hair materials at `alphaMode = BLEND`, but see the measured correction
+below: BLEND alone is not enough to carry alpha. Consequence: **hair colour, perceived density, hairline position
 and a receding/faded look are all reachable today** by the same mechanism as the face —
 no geometry, no vendor, no CLO change. What is *not* reachable this way is length, curl,
 parting direction and volume. Those are genuinely `first.dan`.
 
-For reference, eye colour is `MV2_Jinho_01_eye.jpg` at **256²** — a trivially cheap win
-we have not taken.
+For reference, eye colour is `MV2_Jinho_01_eye.jpg` at **256²** — a trivially cheap win,
+now taken: `face_runtime/eye_fit.py`, verified in CLO per the correction below.
+
+> **Correction, 2026-11-10 - "so alpha is respected end to end" was wrong.** Measured by
+> `face_fitting/verify_in_clo.py` against plugin 1.3.2: CLO imports a patched `.avt`,
+> exports a GLB, and each texture that comes back is compared against both the stock and
+> the patched version of itself.
+>
+> | Entry | Nearest image in the export | Verdict |
+> |---|---|---|
+> | `MV2_Jinho_01_face.jpg` | 0.00 from ours, 18.22 from stock | CLO read the embedded entry |
+> | `hair_main.jpg` | 0.00 from ours, 17.54 from stock | CLO read the embedded entry |
+> | `hair_cap.jpg` | 0.00 from ours, 21.47 from stock | CLO read the embedded entry |
+> | `MV2_Jinho_01_eye.jpg` | 0.00 from ours, 6.32 from stock (iris region) | CLO read the embedded entry |
+> | `hair_main_alpha.jpg` | 62.18 from ours, 57.86 from stock | **not in the export** |
+> | `hair_cap_alpha.jpg` | 73.02 from ours, 73.16 from stock | **not in the export** |
+>
+> The three albedos and the eye are exact matches, which settles 1.2 for every texture we
+> patch rather than for the face alone. The two alpha maps have no counterpart in the GLB
+> at any distance. The materials say why: the hair materials really are
+> `alphaMode = BLEND`, but their `baseColorTexture` images are **three-channel JPEGs**, and
+> glTF takes opacity from the base colour's alpha channel. BLEND over a texture with no
+> alpha channel is opaque hair. CLO exports no separate opacity image either.
+>
+> So the honest statement is **colour survives to the GLB; density does not**.
+>
+> **Follow-up, same day: CLO does honour the alpha on import.** Both avatars were loaded
+> in the GUI and screenshotted; aligning the two renders on their eye/mouth anchors and
+> counting hair pixels gives 24,349 for the 0.50-thinned avatar against 27,257 for the
+> untouched one - **10.7% less hair**, lost almost entirely at the temples, which is
+> exactly where eroding a strand-card alpha thins first. The effect is real; only the
+> export path drops it.
+>
+> Because the GLB is what reaches a shopper (Part 7 phases 3-4), the delivery fix is to
+> compose the alpha into the base colour's fourth channel during GLB packing -
+> `step_12_export_glb.py` already rewrites that file - not to change anything in
+> `hair_fit.py`.
 
 ### 1.5 The exported GLB is fully rigged and cleanly separated
 
@@ -472,9 +509,9 @@ decided about geometry.
 
 | # | Work | Depends on | Rough size |
 |---|---|---|---|
-| 0 | **Fix `_discover_default_native_avatar()`** — see Part 8 | — | 1–2 days |
-| 1 | Eye colour + hair colour + hair alpha into the face job (5.1) | — | 3–4 days |
-| 2 | Reorder to Step 1 → face job → VTO (3.3); wire `/export-avatar-avt` | 1 | 2–3 days |
+| 0 | ~~**Fix `_discover_default_native_avatar()`**~~ — see Part 8 | — | **DONE 11-10.** `clo_vto/native_vto/avatar_resolution.py`, 19 tests; the old function now raises |
+| 1 | ~~Eye colour + hair colour + hair alpha into the face job (5.1)~~ | — | **DONE 11-10.** Colour and eye verified in CLO; alpha built but not carried by the GLB (1.4) |
+| 2 | Reorder to Step 1 → face job → VTO (3.3); wire `/export-avatar-avt` | 1 | 2–3 days — **resolver half done by Phase 0**; the worker-side job ordering is what remains |
 | 3 | `step_13_personalize_glb.py` — hair node splice, never blocks | 2 | 3–4 days |
 | 4 | GLB delivery: Draco/meshopt, texture budget, size target (5.2) | 3 | 3–4 days |
 | 5 | Hair library v1, 20–40 styles + classifier + user override (5.2) | 3 | 3–4 weeks |
@@ -501,6 +538,24 @@ Replace it with the explicit resolution rule from
 `face-pipeline-architecture-26_10_28.md`: `faced.glb → faced.avt → avatar.avt → base
 template`, keyed by user and run. It is Phase 0 above because everything else in this
 document makes the consequence worse.
+
+> **Done, 2026-11-10.** `clo_vto/native_vto/avatar_resolution.py`. The safety property is
+> structural rather than a check after the fact: candidate paths are *built* from the user
+> id (`output/<user_id>-face-<run>/…`), so another user's directory is never enumerated and
+> cannot be returned by accident. There is no glob over a shared directory left in the
+> module. `create_context()` calls it, records the chosen rung on the context as
+> `avatar_resolution`, and prints which rung was used so a silent fall back to the stock
+> template is visible in the run log. `_discover_default_native_avatar()` now raises rather
+> than guessing, so any caller still on the old path fails loudly.
+>
+> Two traps the tests pin down, both of which the obvious implementation gets wrong:
+> `u_001-face-001` must not parse as Step 1 run 001 of a user called `u_001-face`, and
+> `u_1` must not match `u_12`'s runs. A third - run `009` sorting after `012` under a
+> string comparison - would quietly serve a stale avatar rather than a stranger's, so it
+> is a correctness bug rather than a privacy one, and is also covered.
+>
+> A named user never receives the development fixture. They get their own avatar or the
+> stock template, and nothing in between.
 
 ---
 
@@ -540,6 +595,7 @@ shared buffer instead of a subset:
 | 4 | What hair does CLO's **online** Library actually offer? | Needs a human in the CLO GUI: Library → Avatar → Male → Accessory → Hair. The local folder is empty | ~15 min |
 | 5 | What is the real neckline y for each garment in our catalogue? | Measure from post-sim GLBs; builds the 3.2 exception set | ~half day |
 | 6 | Is 39 MB reducible to a mobile-sane budget without visible loss? | Draco + meshopt + texture budget, eyeball at phone size | ~1 day |
+| 7 | ~~Does CLO honour a patched `hair_*_alpha.jpg` on import at all?~~ | **RESOLVED 11-10 - yes.** Both avatars rendered in the CLO GUI, screenshots aligned on their eye/mouth anchors and hair mass measured: the 0.50-thinned avatar carries **10.7% less hair** (24,349 vs 27,257 px), lost almost entirely at the temples. So alpha thinning is real inside CLO and only the GLB export drops it | done |
 
 Questions 2 and 3 only matter if we keep the 3.3 ordering, and they are cheap enough to
 run before committing to it. Question 4 is the only one that needs a person rather than a

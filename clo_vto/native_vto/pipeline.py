@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .context import create_context
 from .helpers import step_header, step_footer
+from .logging_setup import ensure_utf8_stdout
 from .logging_setup import RunLog
 from .step_01_health import run as step_01_health
 from .step_02_new_project import run as step_02_new_project
@@ -21,6 +22,8 @@ from .step_10_simulate import run as step_10_simulate
 from .step_10b_save_project import run as step_10b_save_project
 from .step_11_export_note import run as step_11_export_glb
 from .step_12_texture_glb import run as step_12_texture_glb
+from .step_13_hair_opacity import run as step_13_hair_opacity
+from .step_14_glb_budget import run as step_14_glb_budget
 
 
 # Human-readable name for each step module.
@@ -38,6 +41,8 @@ _STEP_NAMES = {
     "step_10b_save_project":      "Save Project",
     "step_11_export_note":         "Export GLB",
     "step_12_texture_glb":         "GLB Texture Inject",
+    "step_13_hair_opacity":        "Hair Opacity",
+    "step_14_glb_budget":          "GLB Texture Budget",
 }
 
 
@@ -273,6 +278,10 @@ def run_pipeline(
 
 def _run_steps(ctx, csv_path, report_path, use_default_panels, ingestion_output_dir):
     pipeline_start = time.monotonic()
+    # The banners and step headers below use arrows and box-drawing characters, which a
+    # cp1252 stdout cannot encode - that raises inside print() and kills the run before
+    # step 1. See ensure_utf8_stdout().
+    ensure_utf8_stdout()
     setattr(ctx, "native_measurement_csv", Path(csv_path) if csv_path else None)
 
     # Resolve texture artifact paths.
@@ -319,6 +328,8 @@ def _run_steps(ctx, csv_path, report_path, use_default_panels, ingestion_output_
         (11, step_10b_save_project),
         (12, step_11_export_glb),
         (13, step_12_texture_glb),
+        (14, step_13_hair_opacity),
+        (15, step_14_glb_budget),
     ]
 
     step_results = []

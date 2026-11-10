@@ -77,3 +77,24 @@ docs/
 # they are the ground truth the parametric block was fitted to, and the
 # fixture that validate_against_reference.py runs against.
 !product_ingestion/clo_block/reference_dxf/*.dxf
+
+# Face-fitting runs. Every run writes a ~31 MB .avt plus a GLB and debug overlays, so the
+# run tree is disposable by default and nothing in it is committed unless it is deliberately
+# curated into baseline/. That folder holds the measured evidence the docs quote - the
+# familiarity chart and its reference renders, the CLO texture-verification result, the GLB
+# size reports - which are small, and worth keeping because they are what a later change
+# gets compared against.
+face_fitting/output/**
+!face_fitting/output/.gitkeep
+!face_fitting/output/README.md
+!face_fitting/output/baseline/
+!face_fitting/output/baseline/**
+
+# Same rule for the other pipelines' run trees, which were already untracked in practice
+# but had nothing stopping a large artifact being committed by accident.
+clo_vto/output/**
+!clo_vto/output/.gitkeep
+clo_avatar_generation/output/**
+!clo_avatar_generation/output/.gitkeep
+product_ingestion/output/**
+!product_ingestion/output/.gitkeep

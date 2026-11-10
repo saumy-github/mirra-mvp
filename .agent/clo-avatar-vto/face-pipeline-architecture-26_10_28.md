@@ -17,6 +17,8 @@ build-vs-buy decision in Part 6.
 
 ## 0. Status board
 
+> **Current state and route live in `master-plan-26_11_10.md`.** This document stays as the record of *why* each decision was taken; the status board below is kept in sync but the master plan is authoritative.
+
 | Item | State |
 |---|---|
 | `.avt` container read/write, byte-faithful | **Built and proven** — `face_fitting/io/avt_container.py` |
@@ -26,8 +28,11 @@ build-vs-buy decision in Part 6.
 | Is the head UV mirrored or full? | **RESOLVED — FULL** (§1.3) |
 | Does the avatar mesh reach the GLB export? | **RESOLVED — yes** (§1.4) |
 | Does CLO accept a 4096² head map? | **Still unverified** — cheap to test now (§8) |
-| Wiring into the live VTO job | **Not started** — Part 4 is the plan |
-| Hair | **Not solvable by texture.** Part 5 |
+| Wiring into the live VTO job | **Resolver done** (`clo_vto/native_vto/avatar_resolution.py`, §3.3 rule, 19 tests). Worker-side job ordering still to do — Part 4 |
+| Hair colour (Tier A) | **Built and verified in CLO** — `face_runtime/hair_fit.py`; superseded the line below |
+| Hair density / alpha (Tier A) | **Built and confirmed in the CLO GUI** (10.7% less hair at 0.50 thinning). Not carried by the GLB export — fix belongs in GLB packing, see split-decision 1.4 |
+| Eye colour | **Built and verified in CLO** — `face_runtime/eye_fit.py` |
+| ~~Hair~~ ~~Not solvable by texture~~ | **WRONG, corrected 10-28 by `avatar-personalization-split-decision-26_10_28.md` 1.4.** Colour, density and hairline are textures in the container; only length, curl, parting and volume are geometry |
 | Head geometry (Phase 2) | **Not started.** Part 6 |
 
 ---

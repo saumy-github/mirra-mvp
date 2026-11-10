@@ -13,6 +13,9 @@ if str(workspace_root) not in sys.path:
 
 from .client import CLORestClient
 from .helpers import resolve_patterns_dir
+from .avatar_resolution import describe as describe_avatar_resolution
+from .logging_setup import ensure_utf8_stdout
+from .avatar_resolution import resolve_avatar
 from .run_manifest import build_vto_run_id, get_next_vto_run_dir
 from .seams import DEFAULT_SEAMS, SeamManifestError, load_seams_from_manifest
 
@@ -90,6 +93,9 @@ class PipelineContext:
     # skip_glb_postprocess=True disables step_12 entirely.
     glb_path: Optional[Path] = None
     textured_glb_path: Optional[Path] = None
+    # Set by step_13 once hair opacity is composed in. Left unset on every failure path,
+    # so a cosmetic problem falls back to step_12's output instead of losing the try-on.
+    final_glb_path: Optional[Path] = None
     skip_glb_postprocess: bool = False
     # Run identity. output_dir is <output>/<user>/<cloth>/<size>/<NNN>/.
     user_id: str = FALLBACK_USER_ID
@@ -97,6 +103,10 @@ class PipelineContext:
     size_id: str = FALLBACK_SIZE_ID
     run_number: int = 0
     run_id: str = ""
+    # How avatar_path was chosen, from avatar_resolution.resolve_avatar(). Recorded so a
+    # run that silently fell back to the stock template is visible in the run output
+    # rather than only in the console.
+    avatar_resolution: dict = field(default_factory=dict)
     # Set by step_10b once the project is saved.
     zprj_path: Optional[Path] = None
     project_avatars: list[str] = field(default_factory=list)
@@ -118,30 +128,20 @@ def _load_manifest(patterns_dir: Path) -> dict:
 
 
 def _discover_default_native_avatar() -> Path:
-    output_root = package_root / "output"
-    preferred = output_root / "clo_test.avt"
-    if preferred.exists():
-        return preferred
+    """Deprecated: globbed a shared directory and was user-agnostic.
 
-    output_candidates = sorted(output_root.glob("*.avt"))
-    if len(output_candidates) == 1:
-        return output_candidates[0]
+    It could hand a shopper another user's avatar, which with real faces on those avatars
+    is a privacy incident rather than a mix-up. `avatar_resolution.resolve_avatar()`
+    replaced it on the live path; this remains only so that an old caller fails loudly
+    instead of silently picking a stranger's face.
 
-    template_root = package_root / "avt_templates"
-    template_candidates = sorted(template_root.glob("*.avt"))
-    if len(template_candidates) == 1:
-        return template_candidates[0]
-
-    default_input_avatar = workspace_root / "clo_avatar_generation" / "input" / "base-1.avt"
-    if default_input_avatar.exists():
-        return default_input_avatar
-
-    if output_candidates:
-        return output_candidates[0]
-    if template_candidates:
-        return template_candidates[0]
-
-    return output_root / "clo_test.avt"
+    See `.agent/clo-avatar-vto/avatar-personalization-split-decision-26_10_28.md` Part 8.
+    """
+    raise RuntimeError(
+        "_discover_default_native_avatar() is retired - it globbed clo_vto/output/*.avt and "
+        "was user-agnostic. Pass user_id (or an explicit avatar_path) to create_context(), "
+        "which resolves through avatar_resolution.resolve_avatar()."
+    )
 
 
 _DEFAULT_PANELS_DIR = Path(__file__).resolve().parents[1] / "default_panels"
@@ -194,12 +194,25 @@ def create_context(
     run_number = int(output_dir.name)
     run_id = build_vto_run_id(user_id, cloth_id, size_id, run_number)
 
-    if avatar_path:
-        avatar_path = Path(avatar_path).resolve()
-    else:
-        avatar_path = _discover_default_native_avatar().resolve()
+    # One rule for every consumer: faced.glb -> faced.avt -> avatar.avt -> base template,
+    # each rung keyed by this user. Never a glob over a shared directory.
+    avatar_choice = resolve_avatar(
+        None if user_id == FALLBACK_USER_ID else user_id,
+        explicit=avatar_path,
+    )
+    if avatar_choice.path is None:
+        raise RuntimeError(
+            f"No avatar could be resolved for {user_id!r}, and the base template is missing."
+        )
+    avatar_path = avatar_choice.path
+    print(f"  {describe_avatar_resolution(avatar_choice)}")
+    for _warning in avatar_choice.warnings:
+        print(f"  ! {_warning}")
 
     if use_default_panels:
+        # This print carries a non-ASCII arrow and runs before the pipeline's own setup,
+        # so the stream fix has to happen here too.
+        ensure_utf8_stdout()
         patterns_dir = (_DEFAULT_PANELS_DIR / "dxf").resolve()
         print(f"  [DEFAULT PANELS MODE] patterns_dir → {patterns_dir}")
     elif patterns_dir:
@@ -268,6 +281,7 @@ def create_context(
         user_id=user_id,
         cloth_id=cloth_id,
         size_id=size_id,
+        avatar_resolution=avatar_choice.as_dict(),
         run_number=run_number,
         run_id=run_id,
     )

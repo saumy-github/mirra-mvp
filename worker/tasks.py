@@ -37,6 +37,9 @@ from clo_avatar_generation.avatar_runtime.context import Step1Context  # noqa: E
 from clo_avatar_generation.avatar_runtime.field_contract import get_default_base_avatar  # noqa: E402
 from clo_avatar_generation.avatar_runtime.pipeline import run_pipeline as run_avatar_pipeline  # noqa: E402
 from clo_avatar_generation.avatar_runtime.run_manifest import get_next_run_number  # noqa: E402
+from clo_vto.native_vto.avatar_resolution import describe as describe_avatar  # noqa: E402
+from face_fitting.face_job import run_for_version_dir as run_face_fitting  # noqa: E402
+from clo_vto.native_vto.avatar_resolution import resolve_avatar  # noqa: E402
 from clo_vto.native_vto.pipeline import run_pipeline as run_vto_pipeline  # noqa: E402
 from src.avatars import service as avatars_service  # noqa: E402
 from src.avatars.models import AvatarJobDocument  # noqa: E402
@@ -173,6 +176,85 @@ async def _fail_job(job_id: str, reason: str) -> None:
     logger.warning("run_avatar_job %s: failed — %s", job_id, reason)
 
 
+# --- Face job ----------------------------------------------------------------
+#
+# Deliberately its own job rather than a twelfth step of avatar generation. A
+# re-shot photo must not trigger a full avatar rebuild, measurement accuracy and
+# face accuracy are different failure domains, and this never touches CLO so it
+# cannot contend for the single-threaded plugin. Roughly 2.3 s of CPU.
+#
+# See .agent/clo-avatar-vto/master-plan-26_11_10.md Part 4.
+
+
+def run_face_job(avatar_profile_id: str, photo_path: str) -> None:
+    """RQ entrypoint. Synchronous for the same reason run_avatar_job is."""
+    _get_loop().run_until_complete(_run_face_job(avatar_profile_id, photo_path))
+
+
+async def _set_face_status(profile_id: str, **fields) -> None:
+    fields["updated_at"] = _now()
+    await avatar_profiles_col().update_one({"_id": profile_id}, {"$set": fields})
+
+
+async def _run_face_job(avatar_profile_id: str, photo_path: str) -> None:
+    profile_raw = await avatar_profiles_col().find_one({"_id": avatar_profile_id})
+    if not profile_raw:
+        logger.error("run_face_job: avatar profile %s not found, nothing to do", avatar_profile_id)
+        return
+
+    photo = Path(photo_path)
+    if not photo.exists():
+        await _set_face_status(avatar_profile_id, face_status="failed",
+                               face_error=f"Photo not found on disk: {photo}")
+        logger.error("run_face_job %s: photo missing (%s)", avatar_profile_id, photo)
+        return
+
+    avt_path_str = profile_raw.get("clo_avatar_avt_path")
+    if not avt_path_str or not Path(avt_path_str).exists():
+        await _set_face_status(
+            avatar_profile_id, face_status="failed",
+            face_error="No CLO-generated avatar to personalise — generate the avatar first.")
+        logger.error("run_face_job %s: no usable avatar.avt (%s)", avatar_profile_id, avt_path_str)
+        return
+
+    await _set_face_status(avatar_profile_id, face_status="processing", face_error=None)
+
+    try:
+        result = run_face_fitting(profile_raw.get("user_id", avatar_profile_id), photo,
+                                  Path(avt_path_str))
+    except Exception as exc:  # noqa: BLE001 - a face failure must never poison the profile
+        logger.exception("run_face_job %s: unhandled error", avatar_profile_id)
+        await _set_face_status(avatar_profile_id, face_status="failed", face_error=str(exc))
+        return
+
+    if not result.ok:
+        # A refused photo is a normal outcome, not an error: the reason is written for a
+        # user to read and act on, which is why it is stored rather than only logged.
+        await _set_face_status(avatar_profile_id, face_status="rejected",
+                               face_error=result.reason,
+                               face_capture_grade=(result.capture.grade if result.capture
+                                                   else None))
+        logger.info("run_face_job %s: photo rejected - %s", avatar_profile_id, result.reason)
+        return
+
+    await _set_face_status(
+        avatar_profile_id,
+        face_status="ready",
+        face_error=None,
+        faced_avatar_path=str(result.out_avatar),
+        face_quality_score=result.quality_score,
+        face_capture_grade=result.capture.grade if result.capture else None,
+        face_generated_at=_now(),
+    )
+    logger.info(
+        "run_face_job %s: ready (faced=%s, capture=%s, quality=%s)",
+        avatar_profile_id,
+        result.out_avatar,
+        result.capture.grade if result.capture else "unknown",
+        result.quality_score,
+    )
+
+
 # --- Try-on render -------------------------------------------------------------
 
 
@@ -202,6 +284,21 @@ async def _run_tryon_render(render_id: str) -> None:
     if not avt_path.exists():
         await _fail_render(render_id, f"Avatar file no longer exists on disk ({avt_path}) — regenerate your avatar.")
         return
+
+    # Prefer this user's faced avatar when the face job has produced one, and fall back
+    # down the same ladder every other consumer uses. The profile path goes in as the
+    # `avatar_avt` rung rather than as `explicit`, because `explicit` would skip the faced
+    # rungs entirely and the shopper would keep getting the stock head.
+    avatar_choice = resolve_avatar(
+        render.user_id,
+        faced_avatar=(profile_raw or {}).get("faced_avatar_path"),
+        profile_avatar=avt_path,
+    )
+    if avatar_choice.path is not None:
+        avt_path = avatar_choice.path
+    logger.info("run_tryon_render %s: %s", render_id, describe_avatar(avatar_choice))
+    for _warning in avatar_choice.warnings:
+        logger.warning("run_tryon_render %s: %s", render_id, _warning)
 
     if not render.cloth_id:
         await _fail_render(
@@ -268,8 +365,14 @@ async def _run_tryon_render(render_id: str) -> None:
         )
         return
 
-    # Prefer the textured GLB; step_12 leaves it unset when it had nothing to inject.
-    shipped_glb = getattr(ctx, "textured_glb_path", None) or getattr(ctx, "glb_path", None)
+    # Newest first down the post-processing chain. Each step leaves its attribute unset
+    # when it had nothing to do or failed, so this is also the degradation ladder:
+    # hair opacity -> textures -> raw export.
+    shipped_glb = (
+        getattr(ctx, "final_glb_path", None)
+        or getattr(ctx, "textured_glb_path", None)
+        or getattr(ctx, "glb_path", None)
+    )
     saved = save_render_version(
         render.user_id,
         render_id,
