@@ -70,6 +70,24 @@ def get_next_run_number(user_id: str) -> int:
     return max_number + 1
 
 
+def reserve_run_number(user_id: str) -> int:
+    """Claim the next run number for user_id by creating its run folder.
+
+    get_next_run_number alone is check-then-use: two parallel workers can read
+    the same maximum and both write into <user_id>-<n>. mkdir without
+    exist_ok either creates the folder or raises, so exactly one caller wins
+    each number; the loser moves on to the next one.
+    """
+    get_output_root().mkdir(parents=True, exist_ok=True)
+    number = get_next_run_number(user_id)
+    while True:
+        try:
+            get_run_dir(RunIdentity(user_id=user_id, number=number)).mkdir()
+            return number
+        except FileExistsError:
+            number += 1
+
+
 def get_latest_user_id() -> str | None:
     latest_identity: RunIdentity | None = None
     for path in list_run_dirs():

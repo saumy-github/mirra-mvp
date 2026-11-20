@@ -1,0 +1,87 @@
+1460AC160  mov      qword ptr [rsp+8],rbx                    ; 
+1460AC165  mov      qword ptr [rsp+10h],rsi                  ; 
+1460AC16A  push     rdi                                      ; 
+1460AC16B  sub      rsp,40h                                  ; 
+1460AC16F  mov      ebx,r8d                                  ; 
+1460AC172  mov      rsi,rdx                                  ; 
+1460AC175  xor      edi,edi                                  ; 
+1460AC177  call     0000000141C22C90                         ; call 0x1c22c90
+1460AC17C  mov      r8d,ebx                                  ; 
+1460AC17F  lea      rdx,[rsp+28h]                            ; 
+1460AC184  mov      rcx,rax                                  ; 
+1460AC187  call     0000000145CFBB00                         ; call 0x5cfbb00
+1460AC18C  nop                                               ; 
+1460AC18D  xor      edx,edx                                  ; 
+1460AC18F  lea      rcx,[rsp+28h]                            ; 
+1460AC194  call     0000000141C09820                         ; call 0x1c09820
+1460AC199  test     al,al                                    ; 
+1460AC19B  je       00000001460AC1C5                         ; 
+1460AC19D  mov      qword ptr [rsi],rdi                      ; 
+1460AC1A0  mov      qword ptr [rsi+8],rdi                    ; 
+1460AC1A4  mov      rdi,qword ptr [rsp+30h]                  ; 
+1460AC1A9  test     rdi,rdi                                  ; 
+1460AC1AC  je       00000001460AC1B7                         ; 
+1460AC1AE  lock     inc    dword ptr [rdi+8]                 ; 
+1460AC1B2  mov      rdi,qword ptr [rsp+30h]                  ; 
+1460AC1B7  mov      rax,qword ptr [rsp+28h]                  ; 
+1460AC1BC  mov      qword ptr [rsi],rax                      ; 
+1460AC1BF  mov      qword ptr [rsi+8],rdi                    ; 
+1460AC1C3  jmp      00000001460AC228                         ; 
+1460AC1C5  xor      edx,edx                                  ; 
+1460AC1C7  lea      rcx,[rsp+28h]                            ; 
+1460AC1CC  call     0000000141C096A0                         ; call 0x1c096a0
+1460AC1D1  test     al,al                                    ; 
+1460AC1D3  je       00000001460AC1F4                         ; 
+1460AC1D5  call     0000000141C22C90                         ; call 0x1c22c90
+1460AC1DA  mov      rcx,qword ptr [rax+18h]                  ; 
+1460AC1DE  sub      rcx,qword ptr [rax+10h]                  ; 
+1460AC1E2  sar      rcx,4                                    ; 
+1460AC1E6  cmp      rcx,rbx                                  ; 
+1460AC1E9  ja       00000001460AC1F4                         ; 
+1460AC1EB  mov      qword ptr [rsi],rdi                      ; 
+1460AC1EE  mov      qword ptr [rsi+8],rdi                    ; 
+1460AC1F2  jmp      00000001460AC223                         ; 
+1460AC1F4  call     0000000141C22C90                         ; call 0x1c22c90
+1460AC1F9  shl      rbx,4                                    ; 
+1460AC1FD  add      rbx,qword ptr [rax+10h]                  ; 
+1460AC201  mov      qword ptr [rsi],rdi                      ; 
+1460AC204  mov      qword ptr [rsi+8],rdi                    ; 
+1460AC208  mov      rax,qword ptr [rbx+8]                    ; 
+1460AC20C  test     rax,rax                                  ; 
+1460AC20F  je       00000001460AC215                         ; 
+1460AC211  lock     inc    dword ptr [rax+8]                 ; 
+1460AC215  mov      rax,qword ptr [rbx]                      ; 
+1460AC218  mov      qword ptr [rsi],rax                      ; 
+1460AC21B  mov      rax,qword ptr [rbx+8]                    ; 
+1460AC21F  mov      qword ptr [rsi+8],rax                    ; 
+1460AC223  mov      rdi,qword ptr [rsp+30h]                  ; 
+1460AC228  test     rdi,rdi                                  ; 
+1460AC22B  je       00000001460AC259                         ; 
+1460AC22D  mov      ebx,0FFFFFFFFh                           ; 
+1460AC232  mov      eax,ebx                                  ; 
+1460AC234  lock     xadd   dword ptr [rdi+8],eax             ; 
+1460AC239  cmp      eax,1                                    ; 
+1460AC23C  jne      00000001460AC259                         ; 
+1460AC23E  mov      rax,qword ptr [rdi]                      ; 
+1460AC241  mov      rcx,rdi                                  ; 
+1460AC244  call     qword ptr [rax]                          ; 
+1460AC246  lock     xadd   dword ptr [rdi+0Ch],ebx           ; 
+1460AC24B  cmp      ebx,1                                    ; 
+1460AC24E  jne      00000001460AC259                         ; 
+1460AC250  mov      rax,qword ptr [rdi]                      ; 
+1460AC253  mov      rcx,rdi                                  ; 
+1460AC256  call     qword ptr [rax+8]                        ; 
+1460AC259  mov      rax,rsi                                  ; 
+1460AC25C  mov      rbx,qword ptr [rsp+50h]                  ; 
+1460AC261  mov      rsi,qword ptr [rsp+58h]                  ; 
+1460AC266  add      rsp,40h                                  ; 
+1460AC26A  pop      rdi                                      ; 
+1460AC26B  ret                                               ; 
+== 79 instructions, ends 1460AC26B
+== strings
+== calls (rva: count, thunk)
+  1c096a0: x1 
+  1c09820: x1 
+  1c22c90: x3 
+  5cfbb00: x1 
+== data refs

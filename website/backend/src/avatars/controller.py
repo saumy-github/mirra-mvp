@@ -1,6 +1,6 @@
 """HTTP ↔ domain translation for avatars."""
 
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 from . import service
 from .models import STAGE_LABELS, AvatarJobDocument, AvatarProfileDocument
@@ -33,8 +33,8 @@ def shape_profile(profile: AvatarProfileDocument | None) -> dict | None:
     }
 
 
-async def start_generation(user_id: str) -> dict:
-    job = await service.start_generation(user_id)
+async def start_generation(user_id: str, force: bool = False) -> dict:
+    job = await service.start_generation(user_id, force=force)
     return {"job": shape_job(job)}
 
 
@@ -53,16 +53,20 @@ async def delete_profile(user_id: str) -> dict:
     return {"ok": True}
 
 
-async def get_profile_glb(user_id: str) -> FileResponse:
+async def get_profile_glb(user_id: str, if_none_match: str | None = None) -> Response:
     resolved = await service.get_profile_glb(user_id)
+    etag = f'"{resolved.etag}"'
     headers = {
-        # Version-scoped path, never overwritten in place.
-        "Cache-Control": "public, max-age=31536000, immutable",
+        # The URL never changes across regenerations, so revalidate by ETag instead of caching blindly.
+        "Cache-Control": "private, no-cache",
+        "ETag": etag,
         # "unknown" when the source version was never recorded.
         "X-Avatar-Measurements-Stale": (
             "unknown" if resolved.is_stale is None else str(resolved.is_stale).lower()
         ),
     }
+    if if_none_match and etag in {tag.strip() for tag in if_none_match.split(",")}:
+        return Response(status_code=304, headers=headers)
     return FileResponse(
         path=resolved.path,
         media_type="model/gltf-binary",

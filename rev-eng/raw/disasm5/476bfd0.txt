@@ -1,0 +1,575 @@
+14476BFD0  mov      rax,rsp                                  ; 
+14476BFD3  mov      qword ptr [rax+8],rbx                    ; 
+14476BFD7  mov      qword ptr [rax+18h],rsi                  ; 
+14476BFDB  mov      qword ptr [rax+20h],rdi                  ; 
+14476BFDF  mov      qword ptr [rax+10h],rdx                  ; 
+14476BFE3  push     rbp                                      ; 
+14476BFE4  push     r12                                      ; 
+14476BFE6  push     r13                                      ; 
+14476BFE8  push     r14                                      ; 
+14476BFEA  push     r15                                      ; 
+14476BFEC  lea      rbp,[rax+FFFFFFFFFFFFFF08h]              ; 
+14476BFF3  sub      rsp,1D0h                                 ; 
+14476BFFA  movaps   xmmword ptr [rax-38h],xmm6               ; 
+14476BFFE  movaps   xmmword ptr [rax-48h],xmm7               ; 
+14476C002  mov      rdi,r9                                   ; 
+14476C005  mov      r15,r8                                   ; 
+14476C008  mov      dword ptr [rsp+38h],0                    ; 
+14476C010  lea      rdx,[000000014884E140h]                  ; .rdata 884e140 -> 'A:rul'
+14476C017  lea      rcx,[rbp+10h]                            ; 
+14476C01B  call     0000000146664F70                         ; call 0x6664f70
+14476C020  nop                                               ; 
+14476C021  lea      rdx,[rbp+30h]                            ; 
+14476C025  mov      rcx,r15                                  ; 
+14476C028  call     0000000144091DF0                         ; call 0x4091df0
+14476C02D  nop                                               ; 
+14476C02E  lea      r8,[rbp+10h]                             ; 
+14476C032  mov      rdx,rax                                  ; 
+14476C035  lea      rcx,[rbp-20h]                            ; 
+14476C039  call     00000001440EAFC0                         ; call 0x40eafc0
+14476C03E  nop                                               ; 
+14476C03F  lea      rcx,[rbp+30h]                            ; 
+14476C043  call     0000000146665040                         ; call 0x6665040
+14476C048  nop                                               ; 
+14476C049  lea      rcx,[rbp+10h]                            ; 
+14476C04D  call     0000000146665040                         ; call 0x6665040
+14476C052  lea      rcx,[rbp-20h]                            ; 
+14476C056  call     0000000146676040                         ; call 0x6676040
+14476C05B  test     al,al                                    ; 
+14476C05D  jne      000000014476C097                         ; 
+14476C05F  lea      rcx,[r15+50h]                            ; 
+14476C063  call     0000000146667E30                         ; call 0x6667e30
+14476C068  test     eax,eax                                  ; 
+14476C06A  je       000000014476C097                         ; 
+14476C06C  lea      r8,[000000014889206Ch]                   ; .rdata 889206c -> 'A:.rul'
+14476C073  lea      rdx,[r15+50h]                            ; 
+14476C077  lea      rcx,[rbp+50h]                            ; 
+14476C07B  call     00000001466655A0                         ; call 0x66655a0
+14476C080  nop                                               ; 
+14476C081  mov      rdx,rax                                  ; 
+14476C084  lea      rcx,[rbp-20h]                            ; 
+14476C088  call     00000001466650B0                         ; call 0x66650b0
+14476C08D  nop                                               ; 
+14476C08E  lea      rcx,[rbp+50h]                            ; 
+14476C092  call     0000000146665040                         ; call 0x6665040
+14476C097  mov      rcx,r15                                  ; 
+14476C09A  call     0000000144095E40                         ; call 0x4095e40
+14476C09F  mov      esi,0FFFFFFFFh                           ; 
+14476C0A4  test     al,al                                    ; 
+14476C0A6  je       000000014476C1D4                         ; 
+14476C0AC  mov      ecx,2B8h                                 ; 
+14476C0B1  call     00000001470D91B8                         ; call 0x70d91b8
+14476C0B6  mov      qword ptr [rsp+30h],rax                  ; 
+14476C0BB  test     rax,rax                                  ; 
+14476C0BE  je       000000014476C0D0                         ; 
+14476C0C0  lea      r8d,[rsi+2]                              ; 
+14476C0C4  mov      rdx,r15                                  ; 
+14476C0C7  mov      rcx,rax                                  ; 
+14476C0CA  call     0000000144EB0D20                         ; call 0x4eb0d20
+14476C0CF  nop                                               ; 
+14476C0D0  mov      rdx,rax                                  ; 
+14476C0D3  lea      rcx,[rbp-70h]                            ; 
+14476C0D7  call     000000014469D970                         ; call 0x469d970
+14476C0DC  mov      dword ptr [rsp+38h],1                    ; 
+14476C0E4  lea      rdx,[rbp-70h]                            ; 
+14476C0E8  lea      rcx,[rsp+20h]                            ; 
+14476C0ED  call     0000000142E94B20                         ; call 0x2e94b20
+14476C0F2  nop                                               ; 
+14476C0F3  xor      edx,edx                                  ; 
+14476C0F5  lea      rcx,[rsp+20h]                            ; 
+14476C0FA  call     0000000141C09870                         ; call 0x1c09870
+14476C0FF  test     al,al                                    ; 
+14476C101  je       000000014476C10E                         ; 
+14476C103  mov      rcx,qword ptr [rsp+20h]                  ; 
+14476C108  mov      rax,qword ptr [rcx]                      ; 
+14476C10B  call     qword ptr [rax]                          ; 
+14476C10D  nop                                               ; 
+14476C10E  mov      rcx,qword ptr [rsp+28h]                  ; 
+14476C113  test     rcx,rcx                                  ; 
+14476C116  je       000000014476C148                         ; 
+14476C118  mov      eax,esi                                  ; 
+14476C11A  lock     xadd   dword ptr [rcx+8],eax             ; 
+14476C11F  cmp      eax,1                                    ; 
+14476C122  jne      000000014476C148                         ; 
+14476C124  mov      rbx,qword ptr [rsp+28h]                  ; 
+14476C129  mov      rax,qword ptr [rbx]                      ; 
+14476C12C  mov      rcx,rbx                                  ; 
+14476C12F  call     qword ptr [rax]                          ; 
+14476C131  mov      eax,esi                                  ; 
+14476C133  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+14476C138  cmp      eax,1                                    ; 
+14476C13B  jne      000000014476C148                         ; 
+14476C13D  mov      rcx,qword ptr [rsp+28h]                  ; 
+14476C142  mov      rax,qword ptr [rcx]                      ; 
+14476C145  call     qword ptr [rax+8]                        ; 
+14476C148  lea      rdx,[rbp-70h]                            ; 
+14476C14C  mov      rcx,rdi                                  ; 
+14476C14F  call     00000001442F7D70                         ; call 0x42f7d70
+14476C154  nop                                               ; 
+14476C155  mov      rbx,qword ptr [rbp-68h]                  ; 
+14476C159  test     rbx,rbx                                  ; 
+14476C15C  je       000000014476C187                         ; 
+14476C15E  mov      eax,esi                                  ; 
+14476C160  lock     xadd   dword ptr [rbx+8],eax             ; 
+14476C165  cmp      eax,1                                    ; 
+14476C168  jne      000000014476C187                         ; 
+14476C16A  mov      rax,qword ptr [rbx]                      ; 
+14476C16D  mov      rcx,rbx                                  ; 
+14476C170  call     qword ptr [rax]                          ; 
+14476C172  mov      eax,esi                                  ; 
+14476C174  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+14476C179  cmp      eax,1                                    ; 
+14476C17C  jne      000000014476C187                         ; 
+14476C17E  mov      rax,qword ptr [rbx]                      ; 
+14476C181  mov      rcx,rbx                                  ; 
+14476C184  call     qword ptr [rax+8]                        ; 
+14476C187  mov      rcx,r15                                  ; 
+14476C18A  call     00000001440965D0                         ; call 0x40965d0
+14476C18F  movzx    r8d,al                                   ; 
+14476C193  xorps    xmm0,xmm0                                ; 
+14476C196  movdqu   xmmword ptr [rsp+58h],xmm0               ; 
+14476C19C  mov      rcx,qword ptr [rdi+8]                    ; 
+14476C1A0  test     rcx,rcx                                  ; 
+14476C1A3  je       000000014476C1A9                         ; 
+14476C1A5  lock     inc    dword ptr [rcx+8]                 ; 
+14476C1A9  mov      rax,qword ptr [rdi]                      ; 
+14476C1AC  mov      qword ptr [rsp+58h],rax                  ; 
+14476C1B1  mov      rax,qword ptr [rdi+8]                    ; 
+14476C1B5  mov      qword ptr [rsp+60h],rax                  ; 
+14476C1BA  lea      rdx,[rsp+58h]                            ; 
+14476C1BF  mov      rcx,r15                                  ; 
+14476C1C2  call     0000000144097E90                         ; call 0x4097e90
+14476C1C7  mov      rcx,r15                                  ; 
+14476C1CA  call     00000001440A3BB0                         ; call 0x40a3bb0
+14476C1CF  jmp      000000014476C526                         ; 
+14476C1D4  mov      rcx,r15                                  ; 
+14476C1D7  call     0000000144095E40                         ; call 0x4095e40
+14476C1DC  test     al,al                                    ; 
+14476C1DE  jne      000000014476C38B                         ; 
+14476C1E4  lea      rcx,[rbp-20h]                            ; 
+14476C1E8  call     0000000146676040                         ; call 0x6676040
+14476C1ED  test     al,al                                    ; 
+14476C1EF  je       000000014476C38B                         ; 
+14476C1F5  mov      ecx,2B8h                                 ; 
+14476C1FA  call     00000001470D91B8                         ; call 0x70d91b8
+14476C1FF  mov      qword ptr [rsp+30h],rax                  ; 
+14476C204  test     rax,rax                                  ; 
+14476C207  je       000000014476C217                         ; 
+14476C209  mov      edx,1                                    ; 
+14476C20E  mov      rcx,rax                                  ; 
+14476C211  call     0000000144EB0E70                         ; call 0x4eb0e70
+14476C216  nop                                               ; 
+14476C217  mov      rdx,rax                                  ; 
+14476C21A  lea      rcx,[rbp-60h]                            ; 
+14476C21E  call     000000014469D970                         ; call 0x469d970
+14476C223  mov      dword ptr [rsp+38h],4                    ; 
+14476C22B  lea      rdx,[rbp-60h]                            ; 
+14476C22F  lea      rcx,[rsp+20h]                            ; 
+14476C234  call     0000000142E94B20                         ; call 0x2e94b20
+14476C239  nop                                               ; 
+14476C23A  xor      edx,edx                                  ; 
+14476C23C  lea      rcx,[rsp+20h]                            ; 
+14476C241  call     0000000141C09870                         ; call 0x1c09870
+14476C246  test     al,al                                    ; 
+14476C248  je       000000014476C255                         ; 
+14476C24A  mov      rcx,qword ptr [rsp+20h]                  ; 
+14476C24F  mov      rax,qword ptr [rcx]                      ; 
+14476C252  call     qword ptr [rax]                          ; 
+14476C254  nop                                               ; 
+14476C255  mov      rcx,qword ptr [rsp+28h]                  ; 
+14476C25A  test     rcx,rcx                                  ; 
+14476C25D  je       000000014476C28F                         ; 
+14476C25F  mov      eax,esi                                  ; 
+14476C261  lock     xadd   dword ptr [rcx+8],eax             ; 
+14476C266  cmp      eax,1                                    ; 
+14476C269  jne      000000014476C28F                         ; 
+14476C26B  mov      rbx,qword ptr [rsp+28h]                  ; 
+14476C270  mov      rax,qword ptr [rbx]                      ; 
+14476C273  mov      rcx,rbx                                  ; 
+14476C276  call     qword ptr [rax]                          ; 
+14476C278  mov      eax,esi                                  ; 
+14476C27A  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+14476C27F  cmp      eax,1                                    ; 
+14476C282  jne      000000014476C28F                         ; 
+14476C284  mov      rcx,qword ptr [rsp+28h]                  ; 
+14476C289  mov      rax,qword ptr [rcx]                      ; 
+14476C28C  call     qword ptr [rax+8]                        ; 
+14476C28F  lea      rdx,[rbp-60h]                            ; 
+14476C293  mov      rcx,rdi                                  ; 
+14476C296  call     00000001442F7D70                         ; call 0x42f7d70
+14476C29B  nop                                               ; 
+14476C29C  mov      rbx,qword ptr [rbp-58h]                  ; 
+14476C2A0  test     rbx,rbx                                  ; 
+14476C2A3  je       000000014476C2CE                         ; 
+14476C2A5  mov      eax,esi                                  ; 
+14476C2A7  lock     xadd   dword ptr [rbx+8],eax             ; 
+14476C2AC  cmp      eax,1                                    ; 
+14476C2AF  jne      000000014476C2CE                         ; 
+14476C2B1  mov      rax,qword ptr [rbx]                      ; 
+14476C2B4  mov      rcx,rbx                                  ; 
+14476C2B7  call     qword ptr [rax]                          ; 
+14476C2B9  mov      eax,esi                                  ; 
+14476C2BB  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+14476C2C0  cmp      eax,1                                    ; 
+14476C2C3  jne      000000014476C2CE                         ; 
+14476C2C5  mov      rax,qword ptr [rbx]                      ; 
+14476C2C8  mov      rcx,rbx                                  ; 
+14476C2CB  call     qword ptr [rax+8]                        ; 
+14476C2CE  xorps    xmm0,xmm0                                ; 
+14476C2D1  movdqu   xmmword ptr [rsp+68h],xmm0               ; 
+14476C2D7  mov      rax,qword ptr [rdi+8]                    ; 
+14476C2DB  test     rax,rax                                  ; 
+14476C2DE  je       000000014476C2E4                         ; 
+14476C2E0  lock     inc    dword ptr [rax+8]                 ; 
+14476C2E4  mov      rax,qword ptr [rdi]                      ; 
+14476C2E7  mov      qword ptr [rsp+68h],rax                  ; 
+14476C2EC  mov      rax,qword ptr [rdi+8]                    ; 
+14476C2F0  mov      qword ptr [rsp+70h],rax                  ; 
+14476C2F5  lea      rdx,[rsp+68h]                            ; 
+14476C2FA  lea      rcx,[rbp-50h]                            ; 
+14476C2FE  call     000000014407E920                         ; call 0x407e920
+14476C303  nop                                               ; 
+14476C304  mov      rcx,r15                                  ; 
+14476C307  call     00000001440958B0                         ; call 0x40958b0
+14476C30C  movzx    r8d,al                                   ; 
+14476C310  lea      rdx,[rbp-20h]                            ; 
+14476C314  lea      rcx,[rbp-50h]                            ; 
+14476C318  call     0000000144096C80                         ; call 0x4096c80
+14476C31D  mov      rcx,r15                                  ; 
+14476C320  call     00000001440958B0                         ; call 0x40958b0
+14476C325  test     al,al                                    ; 
+14476C327  jne      000000014476C33D                         ; 
+14476C329  mov      rcx,r15                                  ; 
+14476C32C  call     0000000144092AB0                         ; call 0x4092ab0
+14476C331  movaps   xmm1,xmm0                                ; 
+14476C334  lea      rcx,[rbp-50h]                            ; 
+14476C338  call     00000001440A1AC0                         ; call 0x40a1ac0
+14476C33D  mov      rcx,r15                                  ; 
+14476C340  call     00000001440965D0                         ; call 0x40965d0
+14476C345  movzx    r8d,al                                   ; 
+14476C349  xorps    xmm0,xmm0                                ; 
+14476C34C  movdqu   xmmword ptr [rsp+78h],xmm0               ; 
+14476C352  mov      rcx,qword ptr [rdi+8]                    ; 
+14476C356  test     rcx,rcx                                  ; 
+14476C359  je       000000014476C35F                         ; 
+14476C35B  lock     inc    dword ptr [rcx+8]                 ; 
+14476C35F  mov      rcx,qword ptr [rdi]                      ; 
+14476C362  mov      qword ptr [rsp+78h],rcx                  ; 
+14476C367  mov      rax,qword ptr [rdi+8]                    ; 
+14476C36B  mov      qword ptr [rbp-80h],rax                  ; 
+14476C36F  lea      rdx,[rsp+78h]                            ; 
+14476C374  mov      rcx,r15                                  ; 
+14476C377  call     0000000144097E90                         ; call 0x4097e90
+14476C37C  nop                                               ; 
+14476C37D  lea      rcx,[rbp-50h]                            ; 
+14476C381  call     00000001440810F0                         ; call 0x40810f0
+14476C386  jmp      000000014476C526                         ; 
+14476C38B  lea      rdx,[rbp+70h]                            ; 
+14476C38F  mov      rcx,r15                                  ; 
+14476C392  call     0000000144091F50                         ; call 0x4091f50
+14476C397  mov      rcx,rax                                  ; 
+14476C39A  call     0000000146667120                         ; call 0x6667120
+14476C39F  movzx    ebx,al                                   ; 
+14476C3A2  lea      rcx,[rbp+70h]                            ; 
+14476C3A6  call     0000000146665040                         ; call 0x6665040
+14476C3AB  mov      rcx,r15                                  ; 
+14476C3AE  test     bl,bl                                    ; 
+14476C3B0  jne      000000014476C507                         ; 
+14476C3B6  lea      rdx,[rbp+0000000000000090h]              ; 
+14476C3BD  call     0000000144091F50                         ; call 0x4091f50
+14476C3C2  mov      rbx,rax                                  ; 
+14476C3C5  mov      ecx,2B8h                                 ; 
+14476C3CA  call     00000001470D91B8                         ; call 0x70d91b8
+14476C3CF  mov      qword ptr [rsp+30h],rax                  ; 
+14476C3D4  test     rax,rax                                  ; 
+14476C3D7  je       000000014476C3EB                         ; 
+14476C3D9  mov      r8d,1                                    ; 
+14476C3DF  mov      rdx,rbx                                  ; 
+14476C3E2  mov      rcx,rax                                  ; 
+14476C3E5  call     0000000144EB0AD0                         ; call 0x4eb0ad0
+14476C3EA  nop                                               ; 
+14476C3EB  mov      rdx,rax                                  ; 
+14476C3EE  lea      rcx,[rbp-40h]                            ; 
+14476C3F2  call     000000014469D970                         ; call 0x469d970
+14476C3F7  mov      dword ptr [rsp+38h],2                    ; 
+14476C3FF  lea      rdx,[rbp-40h]                            ; 
+14476C403  lea      rcx,[rsp+20h]                            ; 
+14476C408  call     0000000142E94B20                         ; call 0x2e94b20
+14476C40D  nop                                               ; 
+14476C40E  xor      edx,edx                                  ; 
+14476C410  lea      rcx,[rsp+20h]                            ; 
+14476C415  call     0000000141C09870                         ; call 0x1c09870
+14476C41A  test     al,al                                    ; 
+14476C41C  je       000000014476C429                         ; 
+14476C41E  mov      rcx,qword ptr [rsp+20h]                  ; 
+14476C423  mov      rax,qword ptr [rcx]                      ; 
+14476C426  call     qword ptr [rax]                          ; 
+14476C428  nop                                               ; 
+14476C429  mov      rcx,qword ptr [rsp+28h]                  ; 
+14476C42E  test     rcx,rcx                                  ; 
+14476C431  je       000000014476C463                         ; 
+14476C433  mov      eax,esi                                  ; 
+14476C435  lock     xadd   dword ptr [rcx+8],eax             ; 
+14476C43A  cmp      eax,1                                    ; 
+14476C43D  jne      000000014476C463                         ; 
+14476C43F  mov      rbx,qword ptr [rsp+28h]                  ; 
+14476C444  mov      rax,qword ptr [rbx]                      ; 
+14476C447  mov      rcx,rbx                                  ; 
+14476C44A  call     qword ptr [rax]                          ; 
+14476C44C  mov      eax,esi                                  ; 
+14476C44E  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+14476C453  cmp      eax,1                                    ; 
+14476C456  jne      000000014476C463                         ; 
+14476C458  mov      rcx,qword ptr [rsp+28h]                  ; 
+14476C45D  mov      rax,qword ptr [rcx]                      ; 
+14476C460  call     qword ptr [rax+8]                        ; 
+14476C463  lea      rdx,[rbp-40h]                            ; 
+14476C467  mov      rcx,rdi                                  ; 
+14476C46A  call     00000001442F7D70                         ; call 0x42f7d70
+14476C46F  nop                                               ; 
+14476C470  mov      rbx,qword ptr [rbp-38h]                  ; 
+14476C474  test     rbx,rbx                                  ; 
+14476C477  je       000000014476C4A3                         ; 
+14476C479  mov      eax,esi                                  ; 
+14476C47B  lock     xadd   dword ptr [rbx+8],eax             ; 
+14476C480  cmp      eax,1                                    ; 
+14476C483  jne      000000014476C4A3                         ; 
+14476C485  mov      rax,qword ptr [rbx]                      ; 
+14476C488  mov      rcx,rbx                                  ; 
+14476C48B  call     qword ptr [rax]                          ; 
+14476C48D  mov      eax,esi                                  ; 
+14476C48F  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+14476C494  cmp      eax,1                                    ; 
+14476C497  jne      000000014476C4A3                         ; 
+14476C499  mov      rax,qword ptr [rbx]                      ; 
+14476C49C  mov      rcx,rbx                                  ; 
+14476C49F  call     qword ptr [rax+8]                        ; 
+14476C4A2  nop                                               ; 
+14476C4A3  lea      rcx,[rbp+0000000000000090h]              ; 
+14476C4AA  call     0000000146665040                         ; call 0x6665040
+14476C4AF  lea      r8,[r15+30h]                             ; 
+14476C4B3  lea      rdx,[rbp]                                ; 
+14476C4B7  mov      rcx,qword ptr [rdi]                      ; 
+14476C4BA  call     0000000144EB33F0                         ; call 0x4eb33f0
+14476C4BF  mov      rbx,qword ptr [rbp+8]                    ; 
+14476C4C3  test     rbx,rbx                                  ; 
+14476C4C6  je       000000014476C4F1                         ; 
+14476C4C8  mov      eax,esi                                  ; 
+14476C4CA  lock     xadd   dword ptr [rbx+8],eax             ; 
+14476C4CF  cmp      eax,1                                    ; 
+14476C4D2  jne      000000014476C4F1                         ; 
+14476C4D4  mov      rax,qword ptr [rbx]                      ; 
+14476C4D7  mov      rcx,rbx                                  ; 
+14476C4DA  call     qword ptr [rax]                          ; 
+14476C4DC  mov      eax,esi                                  ; 
+14476C4DE  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+14476C4E3  cmp      eax,1                                    ; 
+14476C4E6  jne      000000014476C4F1                         ; 
+14476C4E8  mov      rax,qword ptr [rbx]                      ; 
+14476C4EB  mov      rcx,rbx                                  ; 
+14476C4EE  call     qword ptr [rax+8]                        ; 
+14476C4F1  mov      rcx,r15                                  ; 
+14476C4F4  call     00000001440965D0                         ; call 0x40965d0
+14476C4F9  xorps    xmm0,xmm0                                ; 
+14476C4FC  movdqu   xmmword ptr [rbp-30h],xmm0               ; 
+14476C501  lea      rdx,[rbp-30h]                            ; 
+14476C505  jmp      000000014476C51A                         ; 
+14476C507  call     00000001440965D0                         ; call 0x40965d0
+14476C50C  xorps    xmm0,xmm0                                ; 
+14476C50F  movdqu   xmmword ptr [rsp+20h],xmm0               ; 
+14476C515  lea      rdx,[rsp+20h]                            ; 
+14476C51A  movzx    r8d,al                                   ; 
+14476C51E  mov      rcx,r15                                  ; 
+14476C521  call     0000000144097E90                         ; call 0x4097e90
+14476C526  mov      rcx,r15                                  ; 
+14476C529  call     0000000144092740                         ; call 0x4092740
+14476C52E  mov      rdi,rax                                  ; 
+14476C531  mov      qword ptr [rsp+30h],rax                  ; 
+14476C536  xor      ebx,ebx                                  ; 
+14476C538  mov      qword ptr [rsp+48h],rbx                  ; 
+14476C53D  mov      rdx,qword ptr [rax]                      ; 
+14476C540  mov      rcx,qword ptr [rax+8]                    ; 
+14476C544  sub      rcx,rdx                                  ; 
+14476C547  sar      rcx,6                                    ; 
+14476C54B  test     rcx,rcx                                  ; 
+14476C54E  je       000000014476C724                         ; 
+14476C554  xor      ecx,ecx                                  ; 
+14476C556  mov      qword ptr [rsp+50h],rcx                  ; 
+14476C55B  mov      rsi,8888888888888889h                    ; 
+14476C565  mov      r12,3759F22983759F23h                    ; 
+14476C56F  movss    xmm6,dword ptr [0000000148270488h]       ; .rdata 8270488
+14476C577  xorps    xmm7,xmm7                                ; 
+14476C57A  nop      word ptr [rax+rax]                       ; 
+14476C580  add      rcx,rdx                                  ; 
+14476C583  call     0000000144091420                         ; call 0x4091420
+14476C588  mov      r14,rax                                  ; 
+14476C58B  xor      r13d,r13d                                ; 
+14476C58E  mov      qword ptr [rsp+40h],r13                  ; 
+14476C593  mov      r8,qword ptr [rax]                       ; 
+14476C596  mov      rcx,qword ptr [rax+8]                    ; 
+14476C59A  sub      rcx,r8                                   ; 
+14476C59D  mov      rax,r12                                  ; 
+14476C5A0  imul     rcx                                      ; 
+14476C5A3  sar      rdx,7                                    ; 
+14476C5A7  mov      rcx,rdx                                  ; 
+14476C5AA  shr      rcx,3Fh                                  ; 
+14476C5AE  add      rdx,rcx                                  ; 
+14476C5B1  je       000000014476C6F2                         ; 
+14476C5B7  xor      edi,edi                                  ; 
+14476C5B9  nop      dword ptr [rax+0000000000000000h]        ; 
+14476C5C0  lea      rbx,[rdi+r8]                             ; 
+14476C5C4  mov      rcx,r15                                  ; 
+14476C5C7  call     0000000144092A60                         ; call 0x4092a60
+14476C5CC  mov      edx,168h                                 ; 
+14476C5D1  sub      edx,eax                                  ; 
+14476C5D3  mov      rcx,rbx                                  ; 
+14476C5D6  call     0000000144099980                         ; call 0x4099980
+14476C5DB  xor      r12d,r12d                                ; 
+14476C5DE  mov      r8,qword ptr [r14]                       ; 
+14476C5E1  mov      rcx,qword ptr [rdi+r8+00000000000000A8h] ; 
+14476C5E9  sub      rcx,qword ptr [rdi+r8+00000000000000A0h] ; 
+14476C5F1  mov      rax,rsi                                  ; 
+14476C5F4  imul     rcx                                      ; 
+14476C5F7  add      rdx,rcx                                  ; 
+14476C5FA  sar      rdx,6                                    ; 
+14476C5FE  mov      rax,rdx                                  ; 
+14476C601  shr      rax,3Fh                                  ; 
+14476C605  add      rdx,rax                                  ; 
+14476C608  je       000000014476C6AB                         ; 
+14476C60E  xor      esi,esi                                  ; 
+14476C610  mov      r13,8888888888888889h                    ; 
+14476C61A  nop      word ptr [rax+rax]                       ; 
+14476C620  mov      rbx,qword ptr [rdi+r8+00000000000000A0h] ; 
+14476C628  mov      rcx,r15                                  ; 
+14476C62B  call     0000000144092A60                         ; call 0x4092a60
+14476C630  movd     xmm1,eax                                 ; 
+14476C634  cvtdq2ps xmm1,xmm1                                ; 
+14476C637  movaps   xmm0,xmm6                                ; 
+14476C63A  subss    xmm0,xmm1                                ; 
+14476C63E  addss    xmm0,dword ptr [rsi+rbx+50h]             ; 
+14476C644  movaps   xmm1,xmm6                                ; 
+14476C647  call     00000001470DECCC                         ; call 0x70deccc (jmp[iat 1482372c8]->9fb4d7a)
+14476C64C  comiss   xmm7,xmm0                                ; 
+14476C64F  jbe      000000014476C655                         ; 
+14476C651  addss    xmm0,xmm6                                ; 
+14476C655  mov      rax,qword ptr [r14]                      ; 
+14476C658  mov      rax,qword ptr [rdi+rax+00000000000000A0h] ; 
+14476C660  movss    dword ptr [rsi+rax+50h],xmm0             ; 
+14476C666  inc      r12                                      ; 
+14476C669  add      rsi,78h                                  ; 
+14476C66D  mov      r8,qword ptr [r14]                       ; 
+14476C670  mov      rcx,qword ptr [rdi+r8+00000000000000A8h] ; 
+14476C678  sub      rcx,qword ptr [rdi+r8+00000000000000A0h] ; 
+14476C680  mov      rax,r13                                  ; 
+14476C683  imul     rcx                                      ; 
+14476C686  add      rdx,rcx                                  ; 
+14476C689  sar      rdx,6                                    ; 
+14476C68D  mov      rax,rdx                                  ; 
+14476C690  shr      rax,3Fh                                  ; 
+14476C694  add      rdx,rax                                  ; 
+14476C697  cmp      r12,rdx                                  ; 
+14476C69A  jb       000000014476C620                         ; 
+14476C69C  mov      r13,qword ptr [rsp+40h]                  ; 
+14476C6A1  mov      rsi,8888888888888889h                    ; 
+14476C6AB  inc      r13                                      ; 
+14476C6AE  mov      qword ptr [rsp+40h],r13                  ; 
+14476C6B3  add      rdi,250h                                 ; 
+14476C6BA  mov      rcx,qword ptr [r14+8]                    ; 
+14476C6BE  sub      rcx,r8                                   ; 
+14476C6C1  mov      r12,3759F22983759F23h                    ; 
+14476C6CB  mov      rax,r12                                  ; 
+14476C6CE  imul     rcx                                      ; 
+14476C6D1  sar      rdx,7                                    ; 
+14476C6D5  mov      rax,rdx                                  ; 
+14476C6D8  shr      rax,3Fh                                  ; 
+14476C6DC  add      rdx,rax                                  ; 
+14476C6DF  cmp      r13,rdx                                  ; 
+14476C6E2  jb       000000014476C5C0                         ; 
+14476C6E8  mov      rbx,qword ptr [rsp+48h]                  ; 
+14476C6ED  mov      rdi,qword ptr [rsp+30h]                  ; 
+14476C6F2  inc      rbx                                      ; 
+14476C6F5  mov      qword ptr [rsp+48h],rbx                  ; 
+14476C6FA  mov      rcx,qword ptr [rsp+50h]                  ; 
+14476C6FF  add      rcx,40h                                  ; 
+14476C703  mov      qword ptr [rsp+50h],rcx                  ; 
+14476C708  mov      rdx,qword ptr [rdi]                      ; 
+14476C70B  mov      rax,qword ptr [rdi+8]                    ; 
+14476C70F  sub      rax,rdx                                  ; 
+14476C712  sar      rax,6                                    ; 
+14476C716  cmp      rbx,rax                                  ; 
+14476C719  jb       000000014476C580                         ; 
+14476C71F  mov      esi,0FFFFFFFFh                           ; 
+14476C724  lea      rcx,[rbp-20h]                            ; 
+14476C728  call     0000000146665040                         ; call 0x6665040
+14476C72D  nop                                               ; 
+14476C72E  mov      rbx,qword ptr [rbp+0000000000000108h]    ; 
+14476C735  mov      rbx,qword ptr [rbx+8]                    ; 
+14476C739  test     rbx,rbx                                  ; 
+14476C73C  je       000000014476C765                         ; 
+14476C73E  mov      eax,esi                                  ; 
+14476C740  lock     xadd   dword ptr [rbx+8],eax             ; 
+14476C745  cmp      eax,1                                    ; 
+14476C748  jne      000000014476C765                         ; 
+14476C74A  mov      rax,qword ptr [rbx]                      ; 
+14476C74D  mov      rcx,rbx                                  ; 
+14476C750  call     qword ptr [rax]                          ; 
+14476C752  lock     xadd   dword ptr [rbx+0Ch],esi           ; 
+14476C757  cmp      esi,1                                    ; 
+14476C75A  jne      000000014476C765                         ; 
+14476C75C  mov      rax,qword ptr [rbx]                      ; 
+14476C75F  mov      rcx,rbx                                  ; 
+14476C762  call     qword ptr [rax+8]                        ; 
+14476C765  lea      r11,[rsp+00000000000001D0h]              ; 
+14476C76D  mov      rbx,qword ptr [r11+30h]                  ; 
+14476C771  mov      rsi,qword ptr [r11+40h]                  ; 
+14476C775  mov      rdi,qword ptr [r11+48h]                  ; 
+14476C779  movaps   xmm6,xmmword ptr [r11-10h]               ; 
+14476C77E  movaps   xmm7,xmmword ptr [r11-20h]               ; 
+14476C783  mov      rsp,r11                                  ; 
+14476C786  pop      r15                                      ; 
+14476C788  pop      r14                                      ; 
+14476C78A  pop      r13                                      ; 
+14476C78C  pop      r12                                      ; 
+14476C78E  pop      rbp                                      ; 
+14476C78F  ret                                               ; 
+== 534 instructions, ends 14476C78F
+== strings
+  14476C010  ref 884e140  A:rul
+  14476C06C  ref 889206c  A:.rul
+== calls (rva: count, thunk)
+  1c09870: x3 
+  2e94b20: x3 
+  407e920: x1 
+  40810f0: x1 
+  4091420: x1 
+  4091df0: x1 
+  4091f50: x2 
+  4092740: x1 
+  4092a60: x2 
+  4092ab0: x1 
+  40958b0: x2 
+  4095e40: x2 
+  40965d0: x4 
+  4096c80: x1 
+  4097e90: x3 
+  4099980: x1 
+  40a1ac0: x1 
+  40a3bb0: x1 
+  40eafc0: x1 
+  42f7d70: x3 
+  469d970: x3 
+  4eb0ad0: x1 
+  4eb0d20: x1 
+  4eb0e70: x1 
+  4eb33f0: x1 
+  6664f70: x1 
+  6665040: x6 
+  66650b0: x1 
+  66655a0: x1 
+  6667120: x1 
+  6667e30: x1 
+  6676040: x2 
+  70d91b8: x3 
+  70deccc: x1 jmp[iat 1482372c8]->9fb4d7a
+== data refs
+  8270488 .rdata x1

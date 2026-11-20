@@ -2,9 +2,14 @@
 
 from __future__ import annotations
 
+import time
+
 from .apply_mode import resolve_apply_mode
+from .avs_patch import TEMPLATE_PATH as AVS_TEMPLATE_PATH, build_avs
 from .avt_patch import build_patched_avatar
 from .context import Step1Context
+
+AVS_APPLY_SETTLE_SECONDS = 2.0
 
 
 def _last_result_for(status: dict, command_type: str) -> dict:
@@ -195,12 +200,80 @@ def _apply_via_avt_patch(ctx: Step1Context) -> dict:
     }
 
 
+def _apply_via_avs(ctx: Step1Context) -> dict:
+    # ImportFile reports success even when it does nothing; step 12's GLB height check is the real proof.
+    patch_payload = ctx.clo_payload_avt_patch_json
+    patch_targets = {
+        field_name: float(value)
+        for field_name, value in (patch_payload.get("field_values", {}) or {}).items()
+    }
+    patch_indexes = {
+        field_name: int(value)
+        for field_name, value in (patch_payload.get("field_indexes", {}) or {}).items()
+    }
+    if not patch_targets:
+        raise RuntimeError(
+            "avs apply mode was selected, but there are no avatar-feature fields in the current payload. "
+            "Adjust the field filter or use a different apply mode."
+        )
+
+    avs_path = ctx.require_run_dir() / "clo_payload.avs"
+    avs_report = build_avs(AVS_TEMPLATE_PATH, avs_path, patch_targets, patch_indexes)
+
+    status_before = ctx.client.get_status()
+    native_debug_before = ctx.client.get_native_avatar_debug()
+    request_result = ctx.client.import_avatar_avt(avs_path, method="import_file")
+    queue_status = ctx.client.wait_for_queue(timeout=30)
+    time.sleep(AVS_APPLY_SETTLE_SECONDS)
+
+    native_debug = ctx.client.get_native_avatar_debug()
+    status = ctx.client.get_status()
+    queue_result = _last_result_for(queue_status, "import-avatar-avt")
+
+    notes: list[str] = []
+    unsupported_fields = list(avs_report.get("unsupported_requested_fields", []))
+    if unsupported_fields:
+        notes.append(
+            "The avs route skips requested fields without verified feature indexes: "
+            + ", ".join(unsupported_fields)
+        )
+    if not avs_report.get("derived_model_used"):
+        notes.append("Derived .avs floats were left at the template defaults (no derived model found).")
+
+    return {
+        "measurement_source": ctx.measurement_source,
+        "measurement_source_path": str(ctx.measurement_source_path) if ctx.measurement_source_path else None,
+        "active_field_filter": list(ctx.normalized_targets.get("active_field_filter", [])),
+        "measurement_apply_mode_requested": ctx.measurement_apply_mode_input,
+        "measurement_apply_mode_resolved": "avs",
+        "request_mode": "import-file(avs)",
+        "template_path_used": str(AVS_TEMPLATE_PATH),
+        "status_before": status_before,
+        "native_debug_before": native_debug_before,
+        "request_result": request_result,
+        "queue_status": queue_status,
+        "queue_result": queue_result,
+        "native_debug": native_debug,
+        "status": status,
+        "avs_path": str(avs_path),
+        "avs_report": avs_report,
+        "notes": notes,
+        "success": (
+            bool(request_result.get("success"))
+            and bool(queue_result.get("success"))
+            and bool(avs_report.get("supported_requested_fields"))
+        ),
+    }
+
+
 def run(ctx: Step1Context) -> bool:
     apply_mode = ctx.resolved_measurement_apply_mode or resolve_apply_mode(ctx)
     ctx.resolved_measurement_apply_mode = apply_mode
     ctx.logger.info("Applying measurements via %s route", apply_mode)
 
-    if apply_mode == "avt_patch":
+    if apply_mode == "avs":
+        ctx.apply_result = _apply_via_avs(ctx)
+    elif apply_mode == "avt_patch":
         ctx.apply_result = _apply_via_avt_patch(ctx)
     elif apply_mode == "avatar_properties":
         ctx.apply_result = _apply_via_avatar_properties(ctx)

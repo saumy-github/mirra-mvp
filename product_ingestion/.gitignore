@@ -3,3 +3,17 @@ input/*
 
 output/*
 !output/.gitkeep
+
+# CV course project (product_ingestion/CV)
+# Downloaded datasets: DeepFashion and VITON-HD are research-only licences and
+# must not be republished. INDEX.md lists the sources so they can be re-downloaded.
+CV/data/
+
+# Raw experiment outputs (about 36,500 files: masks, overlays, caches, training
+# runs, demo photos from DeepFashion). Only each plan's REPORT.md and the
+# reference labels used by scripts/evaluate.py are kept.
+CV/out/**
+!CV/out/**/
+!CV/out/**/REPORT.md
+!CV/out/p00_baseline/reference/labels.json
+!CV/out/p00_baseline/reference/*/garment_mask.png

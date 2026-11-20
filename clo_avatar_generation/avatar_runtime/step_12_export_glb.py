@@ -79,11 +79,63 @@ def _pack_self_contained_glb(raw_path: Path, packed_path: Path, logger) -> bool:
 
 GLB_MAGIC = b"glTF"
 
+# Base avatar: 187.96 cm, hair top at 1.9078 m in the GLB; seven .avs sizes landed within 0.6 cm of the proportional prediction.
+BASE_AVATAR_HEIGHT_CM = 187.96
+BASE_AVATAR_GLB_TOP_M = 1.9078
+GLB_HEIGHT_TOLERANCE_CM = 1.5
+
 
 def _is_binary_glb(path: Path) -> bool:
     """True if the file really is binary GLB rather than JSON named .glb."""
     with path.open("rb") as handle:
         return handle.read(4) == GLB_MAGIC
+
+
+def _glb_top_m(path: Path) -> float | None:
+    """Highest Y of any mesh in a binary GLB (from the POSITION accessor maxima)."""
+    import json
+    import struct
+
+    data = path.read_bytes()
+    if data[:4] != GLB_MAGIC or len(data) < 20:
+        return None
+    json_length = struct.unpack_from("<I", data, 12)[0]
+    gltf = json.loads(data[20:20 + json_length])
+    tops = []
+    for mesh in gltf.get("meshes", []):
+        for primitive in mesh.get("primitives", []):
+            position = primitive.get("attributes", {}).get("POSITION")
+            if position is None:
+                continue
+            maximum = gltf["accessors"][position].get("max")
+            if maximum:
+                tops.append(float(maximum[1]))
+    return max(tops) if tops else None
+
+
+def _check_glb_height(ctx: Step1Context, glb_path: Path) -> dict:
+    requested = ctx.normalized_targets.get("flat_requested_fields", {}).get("Total Height")
+    result: dict = {"checked": False}
+    if requested is None:
+        result["reason"] = "No Total Height was requested for this run."
+        return result
+    actual_top = _glb_top_m(glb_path)
+    if actual_top is None:
+        result["reason"] = "Could not read the body height from the exported GLB."
+        return result
+    expected_top = BASE_AVATAR_GLB_TOP_M * float(requested) / BASE_AVATAR_HEIGHT_CM
+    delta_cm = (actual_top - expected_top) * 100.0
+    ok = abs(delta_cm) <= GLB_HEIGHT_TOLERANCE_CM
+    result.update({
+        "checked": True,
+        "requested_height_cm": float(requested),
+        "expected_top_m": round(expected_top, 4),
+        "actual_top_m": round(actual_top, 4),
+        "delta_cm": round(delta_cm, 2),
+        "tolerance_cm": GLB_HEIGHT_TOLERANCE_CM,
+        "ok": ok,
+    })
+    return result
 
 
 def run(ctx: Step1Context) -> bool:
@@ -137,12 +189,14 @@ def run(ctx: Step1Context) -> bool:
     # Packing only runs when CLO fell back to glTF-separate (JSON + .bin + textures).
     if _is_binary_glb(raw_glb_path):
         ctx.avatar_glb_path = raw_glb_path
+        height_check = _check_glb_height(ctx, raw_glb_path)
         payload = {
             "exported": True,
             "packed": False,
             "reason": "ExportGLB produced binary GLB directly; no packing needed.",
             "glb_path": str(raw_glb_path),
             "glb_size_bytes": size_bytes,
+            "height_check": height_check,
         }
         ctx.log_json("export_glb", payload)
         ctx.logger.info(
@@ -150,6 +204,22 @@ def run(ctx: Step1Context) -> bool:
             raw_glb_path,
             size_bytes / (1024 * 1024),
         )
+        if height_check.get("checked"):
+            if height_check["ok"]:
+                ctx.logger.info(
+                    "GLB height check passed: top %.4f m vs expected %.4f m (%+.2f cm)",
+                    height_check["actual_top_m"], height_check["expected_top_m"], height_check["delta_cm"],
+                )
+            else:
+                message = (
+                    f"GLB height check FAILED: body top {height_check['actual_top_m']:.4f} m vs expected "
+                    f"{height_check['expected_top_m']:.4f} m for height {height_check['requested_height_cm']} cm "
+                    f"({height_check['delta_cm']:+.2f} cm, tolerance ±{GLB_HEIGHT_TOLERANCE_CM} cm) - the avatar "
+                    f"body in CLO was not resized, whatever the saved measurement floats say."
+                )
+                ctx.warnings.append(message)
+                ctx.logger.error(message)
+                return False
         return True
 
     ctx.warnings.append(

@@ -37,7 +37,7 @@ def _load_base_color(colors_json: Path) -> Optional[tuple[int, int, int]]:
     try:
         data = json.loads(colors_json.read_text(encoding="utf-8"))
 
-        # 1. Hex string (primary format from colour_extraction.py)
+        # 1. Hex string (primary format from step_03_0_colour_extraction.py)
         hex_val = data.get("base_colour_hex") or data.get("base_color_hex")
         if hex_val:
             h = str(hex_val).lstrip("#")

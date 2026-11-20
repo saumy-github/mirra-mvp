@@ -1,0 +1,64 @@
+--- /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.224_Win/CLOAPIInterface/include/UtilityAPIInterface.h	2026-09-12 19:23:49.929396300 +0530
++++ /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.336_Win/CLOAPIInterface/include/UtilityAPIInterface.h	2026-10-29 15:05:00.408566300 +0530
+@@ -53,6 +53,18 @@
+ 		virtual std::wstring GetProjectNameW() { return L""; }
+ 
+ 		/// @ingroup UTILITY_API
++		/// @fn GetActiveWorkspaceFileName()
++		/// @brief Get the name of the file currently active in the CLO workspace, of any file type
++		/// @return The active file's name with extension, e.g. "test.zprj", "test.zpac" or "test.avt". Returns "NULL" if no file is active.
++		virtual std::string GetActiveWorkspaceFileName() { return ""; }
++
++		/// @ingroup UTILITY_API
++		/// @fn GetActiveWorkspaceFileNameW()
++		/// @brief Get the name of the file currently active in the CLO workspace, of any file type
++		/// @return The active file's name with extension, e.g. "test.zprj", "test.zpac" or "test.avt". Returns "NULL" if no file is active.
++		virtual std::wstring GetActiveWorkspaceFileNameW() { return L""; }
++
++		/// @ingroup UTILITY_API
+ 		/// @fn GetProjectFilePath()
+ 		/// @brief Get the current profile file path
+ 		/// @return The current project file path. If you load a project file saved in "c://download/default.zprj", this function returns the full path - "c://download/default.zprj". If you never load project files, then it returns "NULL".
+@@ -2458,6 +2470,42 @@
+ 		virtual std::string GetTrimStyleName(int _trimStyleIndex) = 0;
+ 
+ 		/// @ingroup UTILITY_API
++		/// @fn ConvertTrimsToButtons(int _trimStyleIndex, bool _bButtonHead)
++		/// @brief Convert placed trim objects into real Button-tool items (button heads or buttonholes) at each trim's position on its glued pattern, then delete the source trims. Use this to migrate "fake buttons" that were built with the trim/sewing tools into proper Button-tool objects, so the FDT trim library stays clean.
++		/// @param _trimStyleIndex: Index of the trim style whose instances to convert. Pass -1 to convert every trim object in the scene. Trim indices match GetTrimStyleListWithIndex().
++		/// @param _bButtonHead: true creates Button heads; false creates Buttonholes. The project's current button-head / buttonhole style is used for the new items.
++		/// @return The number of trim objects successfully converted.
++		virtual int ConvertTrimsToButtons(int _trimStyleIndex, bool _bButtonHead) { return 0; }
++
++		/// @ingroup UTILITY_API
++		/// @fn CreateButtonholesForButtonHeads()
++		/// @brief For every button head in the scene, ray-cast through the placket (in the direction the head is attached) to find the underlap layer and create a buttonhole there (the "find the pattern itself" step). Uses the project's current buttonhole style.
++		/// @note Safe to call more than once: it will not add a second hole to a head that already has one. A button head is skipped when (a) it has no second layer beneath it, (b) it is already fastened to a buttonhole, or (c) a buttonhole already sits within half a buttonhole width of the point where this call would place one.
++		/// @return The number of buttonholes created. Heads skipped by any of the rules above are not counted, so a second call on an unchanged garment returns 0.
++		virtual int CreateButtonholesForButtonHeads() { return 0; }
++
++		/// @ingroup UTILITY_API
++		/// @fn FastenButtons(float _maxDistance)
++		/// @brief Fasten button heads into buttonholes: each unfastened buttonhole is paired with the nearest unfastened button head (by 3D distance) and a fastener is created, which also pulls the head onto the hole. Buttons already fastened are left untouched.
++		/// @param _maxDistance: Maximum 3D distance (in CLO units) allowed between a head and a hole to pair them. Pass 0 or a negative value for no distance limit.
++		/// @return The number of head/hole pairs fastened.
++		virtual int FastenButtons(float _maxDistance) { return 0; }
++
++		/// @ingroup UTILITY_API
++		/// @fn UnfastenAllButtons()
++		/// @brief Remove every button fastener in the scene and spring the freed button heads back to their resting position. Inverse of FastenButtons. The button heads and holes themselves are kept.
++		/// @return The number of fasteners removed.
++		virtual int UnfastenAllButtons() { return 0; }
++
++		/// @ingroup UTILITY_API
++		/// @fn GetButtonPairInfoAsJson(float _maxDistance, float _misalignmentTolerance)
++		/// @brief Return a JSON report of every Button head / Buttonhole pair in the current garment: whether each pair is fastened, whether FastenButtons would fasten it, each item's distance from its pattern edge, and whether a pair is misaligned relative to the majority (median) edge distance. Intended for QC validation of button placement. Read-only; does not modify the scene.
++		/// @param _maxDistance: The same distance gate FastenButtons uses. A pair is reported fastenable only when its 3D separation is below this value. Pass 0 or negative for no distance limit.
++		/// @param _misalignmentTolerance: Maximum allowed deviation (in CLO units) of a pair's edge distance from the median before it is flagged misaligned. Pass 0 or negative to use a relative default (25% of the median).
++		/// @return JSON string: { status, reason, buttonHeadCount, buttonHoleCount, maxDistance, standardEdgeDistance, misalignmentTolerance, pairs[], unpairedHeads[], unpairedHoles[] }. Top-level status is one of "NO_PAIRS_AVAILABLE", "MISALIGNED", "PAIRS_NOT_FASTENABLE", "OK". Each pairs[] entry has headUid, headName, holeUid, holeName, fastened, fastenable, reason, separation, headEdgeDistance, holeEdgeDistance, deviation, misaligned. Per-pair reason is one of "OK", "ALREADY_FASTENED", "TOO_FAR". unpairedHeads[] and unpairedHoles[] entries have uid and name. Reported maxDistance is -1 when no distance limit was requested.
++		virtual std::string GetButtonPairInfoAsJson(float _maxDistance, float _misalignmentTolerance) { return ""; }
++
++		/// @ingroup UTILITY_API
+ 		/// @fn GetTopStitchName(int _stitchIndex)
+ 		/// @brief Get the name of a Top Stitch Style by its index
+ 		/// @param _stitchIndex: The index of the Top Stitch Style to retrieve the name for.

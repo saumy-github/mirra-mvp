@@ -1,0 +1,422 @@
+146260840  mov      qword ptr [rsp+10h],rbx                  ; 
+146260845  mov      qword ptr [rsp+18h],rsi                  ; 
+14626084A  mov      qword ptr [rsp+8],rcx                    ; 
+14626084F  push     rbp                                      ; 
+146260850  push     rdi                                      ; 
+146260851  push     r12                                      ; 
+146260853  push     r14                                      ; 
+146260855  push     r15                                      ; 
+146260857  lea      rbp,[rsp-1Fh]                            ; 
+14626085C  sub      rsp,0B0h                                 ; 
+146260863  mov      rbx,r8                                   ; 
+146260866  mov      r12d,edx                                 ; 
+146260869  mov      rsi,rcx                                  ; 
+14626086C  xor      edi,edi                                  ; 
+14626086E  mov      rdx,rcx                                  ; 
+146260871  mov      r14,qword ptr [rbp+6Fh]                  ; 
+146260875  mov      rcx,r14                                  ; 
+146260878  call     00000001466650B0                         ; call 0x66650b0
+14626087D  mov      rcx,rsi                                  ; 
+146260880  call     000000014625DF70                         ; call 0x625df70
+146260885  test     al,al                                    ; 
+146260887  jne      00000001462608E3                         ; 
+146260889  lea      rdx,[00000001489D9548h]                  ; .rdata 89d9548 -> 'A:[Not exist=%1],'
+146260890  lea      rcx,[rbp-39h]                            ; 
+146260894  call     0000000146664F70                         ; call 0x6664f70
+146260899  mov      rbx,rax                                  ; 
+14626089C  lea      edx,[rdi+20h]                            ; 
+14626089F  lea      rcx,[rbp-61h]                            ; 
+1462608A3  call     0000000146671C80                         ; call 0x6671c80
+1462608A8  movzx    ecx,word ptr [rax]                       ; 
+1462608AB  mov      word ptr [rsp+20h],cx                    ; 
+1462608B0  xor      r9d,r9d                                  ; 
+1462608B3  mov      r8,rsi                                   ; 
+1462608B6  lea      rdx,[rbp-59h]                            ; 
+1462608BA  mov      rcx,rbx                                  ; 
+1462608BD  call     0000000146665AE0                         ; call 0x6665ae0
+1462608C2  nop                                               ; 
+1462608C3  mov      rdx,rax                                  ; 
+1462608C6  mov      rcx,qword ptr [rbp+7Fh]                  ; 
+1462608CA  call     0000000146665900                         ; call 0x6665900
+1462608CF  nop                                               ; 
+1462608D0  lea      rcx,[rbp-59h]                            ; 
+1462608D4  call     0000000146665040                         ; call 0x6665040
+1462608D9  nop                                               ; 
+1462608DA  lea      rcx,[rbp-39h]                            ; 
+1462608DE  jmp      0000000146260D72                         ; 
+1462608E3  mov      rdx,rsi                                  ; 
+1462608E6  lea      rcx,[rbp-59h]                            ; 
+1462608EA  call     0000000146664E10                         ; call 0x6664e10
+1462608EF  mov      r15,qword ptr [rbp+7Fh]                  ; 
+1462608F3  mov      rdx,r15                                  ; 
+1462608F6  mov      rcx,rax                                  ; 
+1462608F9  call     0000000146268F40                         ; call 0x6268f40
+1462608FE  test     al,al                                    ; 
+146260900  je       0000000146260D1C                         ; 
+146260906  mov      ecx,3A0h                                 ; 
+14626090B  call     00000001470D91B8                         ; call 0x70d91b8
+146260910  mov      qword ptr [rbp-61h],rax                  ; 
+146260914  test     rax,rax                                  ; 
+146260917  je       000000014626092D                         ; 
+146260919  mov      r9,rbx                                   ; 
+14626091C  mov      r8d,r12d                                 ; 
+14626091F  mov      rdx,rsi                                  ; 
+146260922  mov      rcx,rax                                  ; 
+146260925  call     0000000143BA17A0                         ; call 0x3ba17a0
+14626092A  mov      rdi,rax                                  ; 
+14626092D  mov      qword ptr [rbp+0Fh],rdi                  ; 
+146260931  mov      rdx,rsi                                  ; 
+146260934  lea      rcx,[rbp-59h]                            ; 
+146260938  call     0000000146262A50                         ; call 0x6262a50
+14626093D  nop                                               ; 
+14626093E  mov      rdx,rax                                  ; 
+146260941  mov      rcx,r14                                  ; 
+146260944  call     00000001466650B0                         ; call 0x66650b0
+146260949  nop                                               ; 
+14626094A  lea      rcx,[rbp-59h]                            ; 
+14626094E  call     0000000146665040                         ; call 0x6665040
+146260953  mov      rcx,r14                                  ; 
+146260956  call     0000000146667120                         ; call 0x6667120
+14626095B  test     al,al                                    ; 
+14626095D  jne      0000000146260CA6                         ; 
+146260963  mov      rcx,r14                                  ; 
+146260966  call     0000000146667130                         ; call 0x6667130
+14626096B  test     al,al                                    ; 
+14626096D  jne      0000000146260CA6                         ; 
+146260973  mov      rdx,r14                                  ; 
+146260976  lea      rcx,[rbp-19h]                            ; 
+14626097A  call     0000000146671FC0                         ; call 0x6671fc0
+14626097F  nop                                               ; 
+146260980  mov      rcx,rax                                  ; 
+146260983  call     0000000146672730                         ; call 0x6672730
+146260988  movzx    ebx,al                                   ; 
+14626098B  lea      rcx,[rbp-19h]                            ; 
+14626098F  call     0000000146672040                         ; call 0x6672040
+146260994  test     bl,bl                                    ; 
+146260996  je       0000000146260A0F                         ; 
+146260998  mov      rdx,r14                                  ; 
+14626099B  lea      rcx,[rbp-59h]                            ; 
+14626099F  call     0000000146664E10                         ; call 0x6664e10
+1462609A4  mov      rcx,rax                                  ; 
+1462609A7  call     0000000146269920                         ; call 0x6269920
+1462609AC  test     al,al                                    ; 
+1462609AE  jne      0000000146260A8C                         ; 
+1462609B4  lea      rdx,[00000001489D9588h]                  ; .rdata 89d9588 -> 'A:[IsWritableFilePath fail #1=%1],'
+1462609BB  lea      rcx,[rbp-19h]                            ; 
+1462609BF  call     0000000146664F70                         ; call 0x6664f70
+1462609C4  mov      rbx,rax                                  ; 
+1462609C7  mov      edx,20h                                  ; 
+1462609CC  lea      rcx,[rbp-61h]                            ; 
+1462609D0  call     0000000146671C80                         ; call 0x6671c80
+1462609D5  movzx    edx,word ptr [rax]                       ; 
+1462609D8  mov      word ptr [rsp+20h],dx                    ; 
+1462609DD  xor      r9d,r9d                                  ; 
+1462609E0  mov      r8,r14                                   ; 
+1462609E3  lea      rdx,[rbp-39h]                            ; 
+1462609E7  mov      rcx,rbx                                  ; 
+1462609EA  call     0000000146665AE0                         ; call 0x6665ae0
+1462609EF  nop                                               ; 
+1462609F0  mov      rdx,rax                                  ; 
+1462609F3  mov      rcx,r15                                  ; 
+1462609F6  call     0000000146665900                         ; call 0x6665900
+1462609FB  nop                                               ; 
+1462609FC  lea      rcx,[rbp-39h]                            ; 
+146260A00  call     0000000146665040                         ; call 0x6665040
+146260A05  nop                                               ; 
+146260A06  lea      rcx,[rbp-19h]                            ; 
+146260A0A  jmp      0000000146260CFC                         ; 
+146260A0F  lea      rcx,[rbp-39h]                            ; 
+146260A13  call     0000000146665010                         ; call 0x6665010
+146260A18  nop                                               ; 
+146260A19  mov      rdx,r14                                  ; 
+146260A1C  lea      rcx,[rbp-59h]                            ; 
+146260A20  call     00000001440EDE20                         ; call 0x40ede20
+146260A25  nop                                               ; 
+146260A26  lea      rdx,[rbp-39h]                            ; 
+146260A2A  lea      rcx,[rbp-59h]                            ; 
+146260A2E  call     000000014625BFA0                         ; call 0x625bfa0
+146260A33  test     al,al                                    ; 
+146260A35  jne      0000000146260A79                         ; 
+146260A37  lea      rdx,[rbp-39h]                            ; 
+146260A3B  mov      rcx,r15                                  ; 
+146260A3E  call     0000000146665900                         ; call 0x6665900
+146260A43  mov      rax,qword ptr [rbp+77h]                  ; 
+146260A47  mov      byte ptr [rax],0                         ; 
+146260A4A  lea      rcx,[rbp-59h]                            ; 
+146260A4E  call     0000000146665040                         ; call 0x6665040
+146260A53  nop                                               ; 
+146260A54  lea      rcx,[rbp-39h]                            ; 
+146260A58  call     0000000146665040                         ; call 0x6665040
+146260A5D  nop                                               ; 
+146260A5E  test     rdi,rdi                                  ; 
+146260A61  je       0000000146260D7E                         ; 
+146260A67  mov      rax,qword ptr [rdi]                      ; 
+146260A6A  mov      edx,1                                    ; 
+146260A6F  mov      rcx,rdi                                  ; 
+146260A72  call     qword ptr [rax]                          ; 
+146260A74  jmp      0000000146260D7E                         ; 
+146260A79  lea      rcx,[rbp-59h]                            ; 
+146260A7D  call     0000000146665040                         ; call 0x6665040
+146260A82  nop                                               ; 
+146260A83  lea      rcx,[rbp-39h]                            ; 
+146260A87  call     0000000146665040                         ; call 0x6665040
+146260A8C  mov      rcx,rdi                                  ; 
+146260A8F  call     0000000143BDE140                         ; call 0x3bde140
+146260A94  test     al,al                                    ; 
+146260A96  je       0000000146260C4C                         ; 
+146260A9C  mov      rdx,r14                                  ; 
+146260A9F  lea      rcx,[rbp-39h]                            ; 
+146260AA3  call     0000000146675BD0                         ; call 0x6675bd0
+146260AA8  nop                                               ; 
+146260AA9  mov      edx,2                                    ; 
+146260AAE  lea      rcx,[rbp-39h]                            ; 
+146260AB2  call     0000000146676400                         ; call 0x6676400
+146260AB7  lea      rcx,[rbp-39h]                            ; 
+146260ABB  call     00000001466761A0                         ; call 0x66761a0
+146260AC0  test     al,al                                    ; 
+146260AC2  jne      0000000146260B63                         ; 
+146260AC8  lea      rdx,[00000001489D95B0h]                  ; .rdata 89d95b0 -> 'A:[isOpen fail=%1],'
+146260ACF  lea      rcx,[rbp-59h]                            ; 
+146260AD3  call     0000000146664F70                         ; call 0x6664f70
+146260AD8  mov      rbx,rax                                  ; 
+146260ADB  mov      edx,20h                                  ; 
+146260AE0  lea      rcx,[rbp-61h]                            ; 
+146260AE4  call     0000000146671C80                         ; call 0x6671c80
+146260AE9  movzx    ecx,word ptr [rax]                       ; 
+146260AEC  mov      word ptr [rsp+20h],cx                    ; 
+146260AF1  xor      r9d,r9d                                  ; 
+146260AF4  mov      r8,r14                                   ; 
+146260AF7  lea      rdx,[rbp-19h]                            ; 
+146260AFB  mov      rcx,rbx                                  ; 
+146260AFE  call     0000000146665AE0                         ; call 0x6665ae0
+146260B03  nop                                               ; 
+146260B04  mov      rdx,rax                                  ; 
+146260B07  mov      rcx,r15                                  ; 
+146260B0A  call     0000000146665900                         ; call 0x6665900
+146260B0F  nop                                               ; 
+146260B10  lea      rcx,[rbp-19h]                            ; 
+146260B14  call     0000000146665040                         ; call 0x6665040
+146260B19  nop                                               ; 
+146260B1A  lea      rcx,[rbp-59h]                            ; 
+146260B1E  call     0000000146665040                         ; call 0x6665040
+146260B23  mov      rdx,r14                                  ; 
+146260B26  lea      rcx,[rbp-19h]                            ; 
+146260B2A  call     0000000146664E10                         ; call 0x6664e10
+146260B2F  mov      rcx,rax                                  ; 
+146260B32  call     0000000146269F60                         ; call 0x6269f60
+146260B37  mov      rax,qword ptr [rbp+77h]                  ; 
+146260B3B  mov      byte ptr [rax],0                         ; 
+146260B3E  lea      rcx,[rbp-39h]                            ; 
+146260B42  call     0000000146675D90                         ; call 0x6675d90
+146260B47  nop                                               ; 
+146260B48  test     rdi,rdi                                  ; 
+146260B4B  je       0000000146260D7E                         ; 
+146260B51  mov      rax,qword ptr [rdi]                      ; 
+146260B54  mov      edx,1                                    ; 
+146260B59  mov      rcx,rdi                                  ; 
+146260B5C  call     qword ptr [rax]                          ; 
+146260B5E  jmp      0000000146260D7E                         ; 
+146260B63  cmp      byte ptr [rdi+00000000000001C0h],0       ; 
+146260B6A  je       0000000146260C0A                         ; 
+146260B70  lea      rcx,[rbp-39h]                            ; 
+146260B74  call     0000000146675E00                         ; call 0x6675e00
+146260B79  mov      rdx,r14                                  ; 
+146260B7C  mov      rcx,rdi                                  ; 
+146260B7F  call     0000000143BCC0E0                         ; call 0x3bcc0e0
+146260B84  test     al,al                                    ; 
+146260B86  jne      0000000146260C41                         ; 
+146260B8C  lea      rdx,[00000001489D95C8h]                  ; .rdata 89d95c8 -> 'A:[ExtractContentToFile fail=%1],'
+146260B93  lea      rcx,[rbp-59h]                            ; 
+146260B97  call     0000000146664F70                         ; call 0x6664f70
+146260B9C  mov      rbx,rax                                  ; 
+146260B9F  mov      edx,20h                                  ; 
+146260BA4  lea      rcx,[rbp-61h]                            ; 
+146260BA8  call     0000000146671C80                         ; call 0x6671c80
+146260BAD  movzx    ecx,word ptr [rax]                       ; 
+146260BB0  mov      word ptr [rsp+20h],cx                    ; 
+146260BB5  xor      r9d,r9d                                  ; 
+146260BB8  mov      r8,r14                                   ; 
+146260BBB  lea      rdx,[rbp-19h]                            ; 
+146260BBF  mov      rcx,rbx                                  ; 
+146260BC2  call     0000000146665AE0                         ; call 0x6665ae0
+146260BC7  nop                                               ; 
+146260BC8  mov      rdx,rax                                  ; 
+146260BCB  mov      rcx,r15                                  ; 
+146260BCE  call     0000000146665900                         ; call 0x6665900
+146260BD3  nop                                               ; 
+146260BD4  lea      rcx,[rbp-19h]                            ; 
+146260BD8  call     0000000146665040                         ; call 0x6665040
+146260BDD  nop                                               ; 
+146260BDE  lea      rcx,[rbp-59h]                            ; 
+146260BE2  call     0000000146665040                         ; call 0x6665040
+146260BE7  mov      rax,qword ptr [rbp+77h]                  ; 
+146260BEB  mov      byte ptr [rax],0                         ; 
+146260BEE  lea      rcx,[rbp-39h]                            ; 
+146260BF2  call     0000000146675D90                         ; call 0x6675d90
+146260BF7  nop                                               ; 
+146260BF8  mov      rax,qword ptr [rdi]                      ; 
+146260BFB  mov      edx,1                                    ; 
+146260C00  mov      rcx,rdi                                  ; 
+146260C03  call     qword ptr [rax]                          ; 
+146260C05  jmp      0000000146260D7E                         ; 
+146260C0A  lea      rcx,[rbp-59h]                            ; 
+146260C0E  call     0000000146668B60                         ; call 0x6668b60
+146260C13  nop                                               ; 
+146260C14  lea      rdx,[rbp-59h]                            ; 
+146260C18  mov      rcx,rdi                                  ; 
+146260C1B  call     0000000143BD1220                         ; call 0x3bd1220
+146260C20  lea      rdx,[rbp-59h]                            ; 
+146260C24  lea      rcx,[rbp-39h]                            ; 
+146260C28  call     0000000146676CC0                         ; call 0x6676cc0
+146260C2D  lea      rcx,[rbp-39h]                            ; 
+146260C31  call     0000000146675E00                         ; call 0x6675e00
+146260C36  nop                                               ; 
+146260C37  lea      rcx,[rbp-59h]                            ; 
+146260C3B  call     0000000146668B90                         ; call 0x6668b90
+146260C40  nop                                               ; 
+146260C41  lea      rcx,[rbp-39h]                            ; 
+146260C45  call     0000000146675D90                         ; call 0x6675d90
+146260C4A  jmp      0000000146260C7D                         ; 
+146260C4C  lea      rdx,[00000001489D95E8h]                  ; .rdata 89d95e8 -> 'A:[old version file],'
+146260C53  lea      rcx,[rbp-19h]                            ; 
+146260C57  call     0000000146664F70                         ; call 0x6664f70
+146260C5C  nop                                               ; 
+146260C5D  mov      rdx,rax                                  ; 
+146260C60  mov      rcx,r15                                  ; 
+146260C63  call     0000000146665900                         ; call 0x6665900
+146260C68  nop                                               ; 
+146260C69  lea      rcx,[rbp-19h]                            ; 
+146260C6D  call     0000000146665040                         ; call 0x6665040
+146260C72  mov      rdx,r14                                  ; 
+146260C75  mov      rcx,rsi                                  ; 
+146260C78  call     0000000146675FA0                         ; call 0x6675fa0
+146260C7D  mov      rax,qword ptr [rbp+77h]                  ; 
+146260C81  mov      byte ptr [rax],1                         ; 
+146260C84  test     rdi,rdi                                  ; 
+146260C87  je       0000000146260C97                         ; 
+146260C89  mov      rax,qword ptr [rdi]                      ; 
+146260C8C  mov      edx,1                                    ; 
+146260C91  mov      rcx,rdi                                  ; 
+146260C94  call     qword ptr [rax]                          ; 
+146260C96  nop                                               ; 
+146260C97  mov      rcx,rsi                                  ; 
+146260C9A  call     0000000146665040                         ; call 0x6665040
+146260C9F  mov      al,1                                     ; 
+146260CA1  jmp      0000000146260D88                         ; 
+146260CA6  lea      rdx,[00000001489D9558h]                  ; .rdata 89d9558 -> 'A:[GetFilePathForMakeContentToFile fail=%1],'
+146260CAD  lea      rcx,[rbp-59h]                            ; 
+146260CB1  call     0000000146664F70                         ; call 0x6664f70
+146260CB6  mov      rbx,rax                                  ; 
+146260CB9  mov      edx,20h                                  ; 
+146260CBE  lea      rcx,[rbp-61h]                            ; 
+146260CC2  call     0000000146671C80                         ; call 0x6671c80
+146260CC7  movzx    ecx,word ptr [rax]                       ; 
+146260CCA  mov      word ptr [rsp+20h],cx                    ; 
+146260CCF  xor      r9d,r9d                                  ; 
+146260CD2  mov      r8,r14                                   ; 
+146260CD5  lea      rdx,[rbp-19h]                            ; 
+146260CD9  mov      rcx,rbx                                  ; 
+146260CDC  call     0000000146665AE0                         ; call 0x6665ae0
+146260CE1  nop                                               ; 
+146260CE2  mov      rdx,rax                                  ; 
+146260CE5  mov      rcx,r15                                  ; 
+146260CE8  call     0000000146665900                         ; call 0x6665900
+146260CED  nop                                               ; 
+146260CEE  lea      rcx,[rbp-19h]                            ; 
+146260CF2  call     0000000146665040                         ; call 0x6665040
+146260CF7  nop                                               ; 
+146260CF8  lea      rcx,[rbp-59h]                            ; 
+146260CFC  call     0000000146665040                         ; call 0x6665040
+146260D01  mov      rax,qword ptr [rbp+77h]                  ; 
+146260D05  mov      byte ptr [rax],0                         ; 
+146260D08  test     rdi,rdi                                  ; 
+146260D0B  je       0000000146260D7E                         ; 
+146260D0D  mov      rax,qword ptr [rdi]                      ; 
+146260D10  mov      edx,1                                    ; 
+146260D15  mov      rcx,rdi                                  ; 
+146260D18  call     qword ptr [rax]                          ; 
+146260D1A  jmp      0000000146260D7E                         ; 
+146260D1C  lea      rdx,[00000001489D9600h]                  ; .rdata 89d9600 -> 'A:[IsReadableFilePath fail=%1],'
+146260D23  lea      rcx,[rbp-59h]                            ; 
+146260D27  call     0000000146664F70                         ; call 0x6664f70
+146260D2C  mov      rbx,rax                                  ; 
+146260D2F  mov      edx,20h                                  ; 
+146260D34  lea      rcx,[rbp-61h]                            ; 
+146260D38  call     0000000146671C80                         ; call 0x6671c80
+146260D3D  movzx    ecx,word ptr [rax]                       ; 
+146260D40  mov      word ptr [rsp+20h],cx                    ; 
+146260D45  xor      r9d,r9d                                  ; 
+146260D48  mov      r8,rsi                                   ; 
+146260D4B  lea      rdx,[rbp-19h]                            ; 
+146260D4F  mov      rcx,rbx                                  ; 
+146260D52  call     0000000146665AE0                         ; call 0x6665ae0
+146260D57  nop                                               ; 
+146260D58  mov      rdx,rax                                  ; 
+146260D5B  mov      rcx,r15                                  ; 
+146260D5E  call     0000000146665900                         ; call 0x6665900
+146260D63  nop                                               ; 
+146260D64  lea      rcx,[rbp-19h]                            ; 
+146260D68  call     0000000146665040                         ; call 0x6665040
+146260D6D  nop                                               ; 
+146260D6E  lea      rcx,[rbp-59h]                            ; 
+146260D72  call     0000000146665040                         ; call 0x6665040
+146260D77  mov      rax,qword ptr [rbp+77h]                  ; 
+146260D7B  mov      byte ptr [rax],0                         ; 
+146260D7E  mov      rcx,rsi                                  ; 
+146260D81  call     0000000146665040                         ; call 0x6665040
+146260D86  xor      al,al                                    ; 
+146260D88  lea      r11,[rsp+00000000000000B0h]              ; 
+146260D90  mov      rbx,qword ptr [r11+38h]                  ; 
+146260D94  mov      rsi,qword ptr [r11+40h]                  ; 
+146260D98  mov      rsp,r11                                  ; 
+146260D9B  pop      r15                                      ; 
+146260D9D  pop      r14                                      ; 
+146260D9F  pop      r12                                      ; 
+146260DA1  pop      rdi                                      ; 
+146260DA2  pop      rbp                                      ; 
+146260DA3  ret                                               ; 
+== 377 instructions, ends 146260DA3
+== strings
+  146260889  ref 89d9548  A:[Not exist=%1],
+  1462609B4  ref 89d9588  A:[IsWritableFilePath fail #1=%1],
+  146260AC8  ref 89d95b0  A:[isOpen fail=%1],
+  146260B8C  ref 89d95c8  A:[ExtractContentToFile fail=%1],
+  146260C4C  ref 89d95e8  A:[old version file],
+  146260CA6  ref 89d9558  A:[GetFilePathForMakeContentToFile fail=%1],
+  146260D1C  ref 89d9600  A:[IsReadableFilePath fail=%1],
+== calls (rva: count, thunk)
+  3ba17a0: x1 
+  3bcc0e0: x1 
+  3bd1220: x1 
+  3bde140: x1 
+  40ede20: x1 
+  625bfa0: x1 
+  625df70: x1 
+  6262a50: x1 
+  6268f40: x1 
+  6269920: x1 
+  6269f60: x1 
+  6664e10: x3 
+  6664f70: x7 
+  6665010: x1 
+  6665040: x18 
+  66650b0: x2 
+  6665900: x8 
+  6665ae0: x6 
+  6667120: x1 
+  6667130: x1 
+  6668b60: x1 
+  6668b90: x1 
+  6671c80: x6 
+  6671fc0: x1 
+  6672040: x1 
+  6672730: x1 
+  6675bd0: x1 
+  6675d90: x3 
+  6675e00: x2 
+  6675fa0: x1 
+  66761a0: x1 
+  6676400: x1 
+  6676cc0: x1 
+  70d91b8: x1 
+== data refs

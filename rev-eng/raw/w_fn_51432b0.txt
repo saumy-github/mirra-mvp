@@ -1,0 +1,48 @@
+﻿1451432B0  mov      qword ptr [rsp+8],rbx                    ; 
+1451432B5  mov      qword ptr [rsp+10h],rbp                  ; 
+1451432BA  mov      qword ptr [rsp+18h],rsi                  ; 
+1451432BF  mov      qword ptr [rsp+20h],rdi                  ; 
+1451432C4  push     r14                                      ; 
+1451432C6  sub      rsp,20h                                  ; 
+1451432CA  xor      ebx,ebx                                  ; 
+1451432CC  mov      byte ptr [rcx+0000000000008C04h],1       ; 
+1451432D3  mov      ebp,edx                                  ; 
+1451432D5  lea      rdi,[rcx+00000000000001E4h]              ; 
+1451432DC  mov      rsi,rcx                                  ; 
+1451432DF  lea      r14d,[rbx+7]                             ; 
+1451432E3  cmp      byte ptr [rdi],0                         ; 
+1451432E6  je       0000000145143309                         ; 
+1451432E8  cmp      ebx,r14d                                 ; 
+1451432EB  jne      00000001451432F4                         ; 
+1451432ED  mov      edx,8                                    ; 
+1451432F2  jmp      00000001451432FD                         ; 
+1451432F4  cmp      ebx,8                                    ; 
+1451432F7  mov      edx,ebx                                  ; 
+1451432F9  cmove    edx,r14d                                 ; 
+1451432FD  mov      rcx,rsi                                  ; 
+145143300  call     0000000145143350                         ; call 0x5143350
+145143305  test     al,al                                    ; 
+145143307  je       000000014514333E                         ; 
+145143309  inc      ebx                                      ; 
+14514330B  add      rdi,210h                                 ; 
+145143312  cmp      ebx,43h                                  ; 
+145143315  jl       00000001451432E3                         ; 
+145143317  mov      edx,ebp                                  ; 
+145143319  mov      rcx,rsi                                  ; 
+14514331C  call     0000000145195B50                         ; call 0x5195b50
+145143321  mov      al,1                                     ; 
+145143323  mov      rbx,qword ptr [rsp+30h]                  ; 
+145143328  mov      rbp,qword ptr [rsp+38h]                  ; 
+14514332D  mov      rsi,qword ptr [rsp+40h]                  ; 
+145143332  mov      rdi,qword ptr [rsp+48h]                  ; 
+145143337  add      rsp,20h                                  ; 
+14514333B  pop      r14                                      ; 
+14514333D  ret                                               ; 
+14514333E  xor      al,al                                    ; 
+145143340  jmp      0000000145143323                         ; 
+== 42 instructions, ends 145143340
+== strings
+== calls (rva: count, thunk)
+  5143350: x1 
+  5195b50: x1 
+== data refs

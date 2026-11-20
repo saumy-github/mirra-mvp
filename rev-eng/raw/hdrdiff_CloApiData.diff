@@ -1,0 +1,249 @@
+--- /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.224_Win/CLOAPIInterface/include/CloApiData.h	2026-09-12 19:23:49.877994600 +0530
++++ /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.336_Win/CLOAPIInterface/include/CloApiData.h	2026-10-29 15:05:00.345774000 +0530
+@@ -251,6 +251,15 @@
+ 		EXPORT_PYTHON bool bClothUnifiedUVCoordinates;   	  /// flag for Cloth Unified UV Coordinates
+ 		EXPORT_PYTHON bool bAvatarUnifiedUVCoordinates;   	  /// flag for Avatar Unified UV Coordinates
+ 
++		/////////////////////////
++		// Component selection (glTF/GLB export). When every list is empty the whole scene is exported, which is the
++		// default. Setting at least one list restricts the export to ONLY the listed components, so a project holding
++		// several garments can be written out one file per garment.
++		EXPORT_PYTHON std::vector<int> patternList;			/// pattern indices to export (RealPatternList order, as used by the Pattern API)
++		EXPORT_PYTHON std::vector<unsigned int> buttonList;	/// uid values of buttons/buttonholes to export, as returned in the "uid" field by GetNonFabricComponentsOnPattern / GetAllNonFabricComponents
++		EXPORT_PYTHON std::vector<unsigned int> graphicList;	/// uid values of graphics/prints to export, from the same "uid" field
++		EXPORT_PYTHON std::vector<unsigned int> zipperList;	/// uid values of zippers to export, from the same "uid" field; each is expanded to its tapes and slider/puller/stopper hardware
++
+ 		ImportExportOption()
+ 		{
+ 			bExportGarment = true;
+@@ -342,6 +351,12 @@
+ 
+ 			bClothUnifiedUVCoordinates = false;
+ 			bAvatarUnifiedUVCoordinates = false;
++
++			// Empty = no component filtering, i.e. export the whole scene.
++			patternList.clear();
++			buttonList.clear();
++			graphicList.clear();
++			zipperList.clear();
+ 		}
+ 		virtual ~ImportExportOption()
+ 		{
+@@ -438,6 +453,11 @@
+ 
+ 			bClothUnifiedUVCoordinates = _rhs.bClothUnifiedUVCoordinates;
+ 			bAvatarUnifiedUVCoordinates = _rhs.bAvatarUnifiedUVCoordinates;
++
++			patternList = _rhs.patternList;
++			buttonList = _rhs.buttonList;
++			graphicList = _rhs.graphicList;
++			zipperList = _rhs.zipperList;
+ 		}
+ 
+ 		ImportExportOption(const ImportExportOption& _rhs)
+@@ -725,7 +745,7 @@
+ 	/// @brief Options for ExportDxf as parameters without dialogs in CLO API
+ 	struct ExportDxfOption
+ 	{
+-		EXPORT_PYTHON bool m_bDuplicateNotch;			    /// if true, remove duplicate notches
++		EXPORT_PYTHON bool m_bDuplicateNotch;			    /// if true, duplicate sewing-line notches on the seam allowance (default: true)
+ 		EXPORT_PYTHON bool m_bCheckedConvertCtoS;		    /// if true, convert curve points to straight points to export
+ 		EXPORT_PYTHON bool m_bExportWithoutGrading;	    /// if true, export without grading information
+ 		EXPORT_PYTHON bool m_bOptimizeCurvePoints;	    /// if true, optimize curve points with removing the points close to some points
+@@ -737,7 +757,8 @@
+ 		EXPORT_PYTHON float m_RotateAngle;				/// Rotation angle for patterns
+ 		EXPORT_PYTHON bool m_bMetric;						/// Measurement unit shown on DXF, true: Metric, false: English
+ 
+-		ExportDxfOption() : m_bCheckedConvertCtoS(false),
++		ExportDxfOption() : m_bDuplicateNotch(true),
++			m_bCheckedConvertCtoS(false),
+ 			m_bExportWithoutGrading(false),
+ 			m_bOptimizeCurvePoints(false),
+ 			m_bExportWithoutBaselines(false),
+@@ -1075,6 +1096,21 @@
+ 		EXPORT_PYTHON CLOAPI_ANCHOR_LEFT_UP = 8,
+ 	};
+ 
++	/// @brief Status code returned by the AddSeamlinePairGroupPartial family of APIs.
++	/// SEAMLINE_PAIR_SUCCESS is 0 and every failure is negative, so test the result with
++	/// '== SEAMLINE_PAIR_SUCCESS' rather than for truthiness (0 is falsy in Python).
++	enum SeamlinePairGroupResult
++	{
++		EXPORT_PYTHON SEAMLINE_PAIR_SUCCESS = 0,	/// The stitch was created.
++		EXPORT_PYTHON SEAMLINE_PAIR_ERROR_NO_PATTERN_EDITOR = -1,	/// No pattern editor is available in the current scene.
++		EXPORT_PYTHON SEAMLINE_PAIR_ERROR_INVALID_PATTERN = -2,	/// A pattern index does not refer to an existing pattern.
++		EXPORT_PYTHON SEAMLINE_PAIR_ERROR_INVALID_INNER_SHAPE = -3,	/// An inner shape (child) index does not refer to an existing inner shape.
++		EXPORT_PYTHON SEAMLINE_PAIR_ERROR_INVALID_LINE = -4,	/// A line index does not refer to an existing line on the given shape.
++		EXPORT_PYTHON SEAMLINE_PAIR_ERROR_RATIO_OUT_OF_RANGE = -5,	/// A start/end ratio lies outside the closed range [0.0, 1.0].
++		EXPORT_PYTHON SEAMLINE_PAIR_ERROR_EMPTY_SEGMENT = -6,	/// A start ratio is not strictly less than its end ratio, so the segment is empty or inverted.
++		EXPORT_PYTHON SEAMLINE_PAIR_ERROR_CREATE_FAILED = -7	/// The stitch passed validation but the pattern editor rejected it.
++	};
++
+ 	/// @struct CloApiPoint
+ 	/// @brief A 2D coordinate in the pattern 2D space. Used by the internal-line geometry APIs.
+ 	struct CloApiPoint
+@@ -1478,11 +1514,12 @@
+ 		EXPORT_PYTHON OB_TYPE_BUTTON = 3,   /// Button head style (subItemIndex: 0=Button body, 1=Thread)
+ 		EXPORT_PYTHON OB_TYPE_BUTTON_HOLE = 4,   /// Buttonhole style
+ 		EXPORT_PYTHON OB_TYPE_PUCKERING = 5,   /// Puckering style
+-		EXPORT_PYTHON OB_TYPE_ZIPPER = 6,   /// Zipper style (subItemIndex selects the component)
++		EXPORT_PYTHON OB_TYPE_ZIPPER = 6,   /// Zipper style. subItemIndex selects the component: 0=Tape, 1=Teeth, 2=Slider, 3=Puller, 4=Bottom Slider, 5=Bottom Puller, 6=Top Stopper, 7=Bottom Stopper. targetComponent must be COMPONENT_NONE. Each index reports ONE representative material; a component built from several meshes (stoppers) exposes only the first, which need not be the one the Object Browser shows
+ 		EXPORT_PYTHON OB_TYPE_POM = 7,   /// Points of Measure (POM) tab
+ 		EXPORT_PYTHON OB_TYPE_GRADING = 8,   /// Grading tab
+ 		EXPORT_PYTHON OB_TYPE_PATTERN = 9,   /// Pattern / Scene tree tab (maps to GUI_SCENEGRAPH)
+-		EXPORT_PYTHON OB_TYPE_TOPSTITCH = 10   /// Topstitch style tab
++		EXPORT_PYTHON OB_TYPE_TOPSTITCH = 10,   /// Top-stitch style (subItemIndex = stitch line index)
++		EXPORT_PYTHON OB_TYPE_AVATAR = 11   /// Avatar material (objectIndex = avatar index, subItemIndex = mesh index over the avatar's non-accessory meshes)
+ 	};
+ 
+ 	/// @struct ObjectBrowserContextOptions
+@@ -1492,7 +1529,7 @@
+ 		EXPORT_PYTHON ObjectBrowserType type;       /// object category (see ObjectBrowserType)
+ 		EXPORT_PYTHON bool targetPrint;             /// FABRIC only: target the print/AOP texture (true) vs base color (false)
+ 		EXPORT_PYTHON int  styleChipIndex;          /// AOP/style-chip index. -1 = first/default
+-		EXPORT_PYTHON int  subItemIndex;            /// sub-item/mesh index: button material tab (0=Button body, 1=Thread), trim mesh index, or zipper component. Default 0
++		EXPORT_PYTHON int  subItemIndex;            /// sub-item/mesh index: button material tab (0=Button body, 1=Thread), trim mesh index, zipper component, top-stitch line index, or avatar mesh index. Default 0
+ 		EXPORT_PYTHON std::string folderName;       /// Object Browser folder this object's context is scoped to. Empty ("") = root directory. GetObjectBrowserItems (FABRIC): folder to fetch from (non-empty = that named folder; empty result if not found)
+ 
+ 		// --- GetObjectBrowserItems context (single object type per call; uses 'type' above) ---
+@@ -1980,7 +2017,7 @@
+ 
+ 	/// @enum MaterialTargetComponent
+ 	/// @brief The sub-component tab a material operation targets. Fabric objects expose Front/Back/Side; Button
+-	///        objects expose Button/Thread; Graphics have no tabs (COMPONENT_NONE).
++	///        objects expose Button/Thread; Graphics and Avatars have no tabs (COMPONENT_NONE).
+ 	enum MaterialTargetComponent
+ 	{
+ 		EXPORT_PYTHON COMPONENT_FRONT = 0,   /// Fabric front face
+@@ -1988,7 +2025,7 @@
+ 		EXPORT_PYTHON COMPONENT_SIDE = 2,   /// Fabric side face
+ 		EXPORT_PYTHON COMPONENT_BUTTON = 3,   /// Button body
+ 		EXPORT_PYTHON COMPONENT_THREAD = 4,   /// Button thread
+-		EXPORT_PYTHON COMPONENT_NONE = -1   /// Graphics (no component tabs)
++		EXPORT_PYTHON COMPONENT_NONE = -1   /// Graphics, Avatar (no component tabs)
+ 	};
+ 
+ 	/// @struct MaterialContextOptions
+@@ -2077,4 +2114,120 @@
+ 			surfaceLength = 0.0f;
+ 		}
+ 	};
+-}
+\ No newline at end of file
++
++	/// @enum HI_RES_TOLERANCE_TYPE
++	/// @brief Property row of the Hi-Res Properties window (3D Garment > Hi-Res Garment) that owns a
++	/// Tolerance min/max range. Used by PatternAPI::GetHiResTolerance / SetHiResTolerance to select
++	/// which of the three Tolerance ranges is read or written.
++	enum HI_RES_TOLERANCE_TYPE
++	{
++		EXPORT_PYTHON HI_RES_TOLERANCE_PARTICLE_DISTANCE = 0,	/// Particle Distance tolerance range
++		EXPORT_PYTHON HI_RES_TOLERANCE_COLLISION_THICKNESS = 1,	/// Additional Thickness - Collision tolerance range
++		EXPORT_PYTHON HI_RES_TOLERANCE_SKIN_OFFSET = 2			/// Skin Offset tolerance range
++	};
++
++	/// @enum ButtonPairEdgeOrigin
++	/// @brief Corner of the placement edge that the along-edge distances are measured from. Used by
++	/// PatternAPI::PlaceButtonPairsOnEdge / DistributeButtonPairsOnEdge through ButtonPairPlacementOption.
++	/// The 2D window Y axis points up, so TOP is the edge endpoint with the greater Y.
++	enum ButtonPairEdgeOrigin
++	{
++		EXPORT_PYTHON BUTTON_PAIR_EDGE_ORIGIN_TOP = 0,		/// Distances start at the upper corner of the edge (greater 2D-window Y)
++		EXPORT_PYTHON BUTTON_PAIR_EDGE_ORIGIN_BOTTOM = 1	/// Distances start at the lower corner of the edge (smaller 2D-window Y)
++	};
++
++	/// @struct ButtonPairPlacementOption
++	/// @brief Optional settings for PatternAPI::PlaceButtonPairsOnEdge / DistributeButtonPairsOnEdge. The default
++	/// constructor is a safe configuration: distances measured from the TOP corner, the project's current button head
++	/// and buttonhole styles, style-default buttonhole size and unrotated items.
++	struct ButtonPairPlacementOption
++	{
++		EXPORT_PYTHON ButtonPairEdgeOrigin edgeOrigin;	/// Corner the along-edge distances are measured from. Default BUTTON_PAIR_EDGE_ORIGIN_TOP
++		EXPORT_PYTHON int buttonHeadStyleIndex;			/// Button head style index (order of GetButtonHeadStyleListWithIndex). -1 (default) = the current default button head style
++		EXPORT_PYTHON int buttonholeStyleIndex;			/// Buttonhole style index. -1 (default) = the current default buttonhole style
++		EXPORT_PYTHON float buttonholeWidth;			/// Per-instance buttonhole width in mm. 0 (default) keeps the style size. Set together with buttonholeHeight
++		EXPORT_PYTHON float buttonholeHeight;			/// Per-instance buttonhole height in mm. 0 (default) keeps the style size. Set together with buttonholeWidth
++		EXPORT_PYTHON float buttonAngleDegree;			/// Rotation applied to every created button head, in degrees. Default 0
++		EXPORT_PYTHON float buttonholeAngleDegree;		/// Rotation applied to every created buttonhole, in degrees. Default 0
++
++		ButtonPairPlacementOption()
++		{
++			edgeOrigin = BUTTON_PAIR_EDGE_ORIGIN_TOP;
++			buttonHeadStyleIndex = -1;
++			buttonholeStyleIndex = -1;
++			buttonholeWidth = 0.0f;
++			buttonholeHeight = 0.0f;
++			buttonAngleDegree = 0.0f;
++			buttonholeAngleDegree = 0.0f;
++		}
++	};
++
++	/// @enum CloApiGuiFormFieldType
++	/// @brief Kind of input row in gui_api.AskForm. The value of every field is reported as text in CloApiGuiFormResult.values
++	enum CloApiGuiFormFieldType
++	{
++		EXPORT_PYTHON GUI_FIELD_TEXT = 0,	/// Single-line text input. Value is the entered text
++		EXPORT_PYTHON GUI_FIELD_CHOICE = 1,	/// Drop-down list built from options. Value is the selected option caption
++		EXPORT_PYTHON GUI_FIELD_CHECK = 2,	/// Check box. Value is true or false
++		EXPORT_PYTHON GUI_FIELD_NUMBER = 3	/// Decimal number input. Value is the number as decimal text
++	};
++
++	/// @struct CloApiGuiFormField
++	/// @brief One row of a gui_api.AskForm dialog. key must be unique inside the form and is the key of CloApiGuiFormResult.values
++	struct CloApiGuiFormField
++	{
++		EXPORT_PYTHON std::string key;						/// Result key. Required and unique inside one form
++		EXPORT_PYTHON std::string label;					/// Caption shown next to the input
++		EXPORT_PYTHON CloApiGuiFormFieldType type;			/// Input kind. Default GUI_FIELD_TEXT
++		EXPORT_PYTHON std::string defaultValue;				/// Initial value as text. Choice: option caption. Check: true or false. Number: decimal text
++		EXPORT_PYTHON std::vector<std::string> options;		/// Option captions for GUI_FIELD_CHOICE. Ignored by the other kinds
++
++		CloApiGuiFormField()
++		{
++			type = GUI_FIELD_TEXT;
++		}
++	};
++
++	/// @struct CloApiGuiTextResult
++	/// @brief Answer of gui_api.AskText
++	struct CloApiGuiTextResult
++	{
++		EXPORT_PYTHON bool accepted;			/// true only when the user pressed OK. false on cancel, close or headless mode
++		EXPORT_PYTHON std::string value;		/// Entered text. Empty unless accepted
++
++		CloApiGuiTextResult()
++		{
++			accepted = false;
++		}
++	};
++
++	/// @struct CloApiGuiChoiceResult
++	/// @brief Answer of gui_api.AskChoice and gui_api.AskMultiChoice
++	struct CloApiGuiChoiceResult
++	{
++		EXPORT_PYTHON bool accepted;					/// true only when the user pressed OK. false on cancel, close or headless mode
++		EXPORT_PYTHON int selectedIndex;				/// AskChoice: index of the picked option. AskMultiChoice: first checked index. -1 unless accepted
++		EXPORT_PYTHON std::string selectedValue;		/// AskChoice: caption of the picked option. AskMultiChoice: caption of the first checked option. Empty unless accepted
++		EXPORT_PYTHON std::vector<int> selectedIndices;	/// Every selected index in ascending order. Empty unless accepted
++
++		CloApiGuiChoiceResult()
++		{
++			accepted = false;
++			selectedIndex = -1;
++		}
++	};
++
++	/// @struct CloApiGuiFormResult
++	/// @brief Answer of gui_api.AskForm
++	struct CloApiGuiFormResult
++	{
++		EXPORT_PYTHON bool accepted;							/// true only when the user pressed OK. false on cancel, close or headless mode
++		EXPORT_PYTHON std::map<std::string, std::string> values;	/// Field key to value as text. Empty unless accepted
++
++		CloApiGuiFormResult()
++		{
++			accepted = false;
++		}
++	};
++
++}

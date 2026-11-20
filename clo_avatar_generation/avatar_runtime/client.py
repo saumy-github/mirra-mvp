@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import time
 import requests
@@ -9,8 +10,10 @@ import requests
 
 class CLORestClient:
     """Small JSON client for the local CLO REST plugin."""
-    def __init__(self, base_url: str = "http://localhost:50505", timeout: int = 30) -> None:
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, base_url: str | None = None, timeout: int = 30) -> None:
+        # CLO_BASE_URL lets each worker process target its own CLO session
+        # (one plugin port per session); unset keeps the single-session default.
+        self.base_url = (base_url or os.environ.get("CLO_BASE_URL") or "http://localhost:50505").rstrip("/")
         self.timeout = timeout
 
     def _post(self, endpoint: str, payload: dict) -> dict:
@@ -68,9 +71,13 @@ class CLORestClient:
     def get_avatar_state(self) -> dict:
         return self._get("/avatars/state")
 
-    def import_avatar_avt(self, avt_path: str | Path) -> dict:
+    def import_avatar_avt(self, avt_path: str | Path, *, method: str | None = None) -> dict:
+        # method="import_file" runs ImportFile, which applies an .avs to the loaded avatar.
         path = str(Path(avt_path).as_posix())
-        return self._post("/import-avatar-avt", {"path": path})
+        payload: dict[str, object] = {"path": path}
+        if method:
+            payload["method"] = method
+        return self._post("/import-avatar-avt", payload)
 
     def import_avatar_measurements(
         self,
@@ -116,6 +123,26 @@ class CLORestClient:
         payload = {"path": str(Path(output_path).as_posix()), "format": "glb"}
         return self._post("/export", payload)
 
+    def _wait_for_event_or_sleep(self, status: dict, poll_interval: float) -> None:
+        """Wake as soon as the plugin reports any completion event.
+
+        Plugins with the event feed put `event_seq` in /status; /events is a
+        long-poll that returns the moment something newer than that happens
+        (command_done, queue_idle). Older plugins just get the fixed sleep.
+        """
+        seq = status.get("event_seq")
+        if seq is None:
+            time.sleep(poll_interval)
+            return
+        try:
+            requests.get(
+                f"{self.base_url}/events",
+                params={"since": seq, "timeout_ms": 1000},
+                timeout=self.timeout + 2,
+            )
+        except requests.exceptions.RequestException:
+            time.sleep(poll_interval)
+
     def wait_for_queue(
         self,
         timeout: int = 30,
@@ -141,7 +168,7 @@ class CLORestClient:
                 self.execute_queue()
                 last_trigger = time.time()
 
-            time.sleep(poll_interval)
+            self._wait_for_event_or_sleep(status, poll_interval)
 
         raise TimeoutError(
             f"CLO queue did not drain within {timeout}s. Last status: {last_status or self.get_status()}"

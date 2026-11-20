@@ -29,15 +29,15 @@ import json
 from pathlib import Path
 
 try:
-    from .clo_draft import CloTShirtDraft
-    from .clo_draft_config import CloBlockMeasurements, CloDraftConfig, relaxed_tee, woven_tee
-    from .clo_dxf_writer import write_pattern_set, write_svg
+    from .step_05_2_clo_draft import CloTShirtDraft
+    from .step_05_1_clo_draft_config import CloBlockMeasurements, CloDraftConfig, relaxed_tee, woven_tee
+    from .step_05_3_clo_dxf_writer import write_pattern_set, write_svg
 except ImportError:  # pragma: no cover
-    from clo_draft import CloTShirtDraft  # type: ignore
-    from clo_draft_config import (  # type: ignore
+    from step_05_2_clo_draft import CloTShirtDraft  # type: ignore
+    from step_05_1_clo_draft_config import (  # type: ignore
         CloBlockMeasurements, CloDraftConfig, relaxed_tee, woven_tee,
     )
-    from clo_dxf_writer import write_pattern_set, write_svg  # type: ignore
+    from step_05_3_clo_dxf_writer import write_pattern_set, write_svg  # type: ignore
 
 PRESETS = {"clo": CloDraftConfig, "relaxed": relaxed_tee, "woven": woven_tee}
 

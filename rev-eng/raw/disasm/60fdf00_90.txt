@@ -1,0 +1,57 @@
+
+Dump of file C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe
+
+File Type: EXECUTABLE IMAGE
+
+  00000001460FDF00: movd        eax,xmm0
+  00000001460FDF04: and         eax,7F800000h
+  00000001460FDF09: cmp         eax,7F800000h
+  00000001460FDF0E: setne       al
+  00000001460FDF11: cmp         al,1
+  00000001460FDF13: jne         00000001460FDF57
+  00000001460FDF15: movd        eax,xmm1
+  00000001460FDF19: and         eax,7F800000h
+  00000001460FDF1E: cmp         eax,7F800000h
+  00000001460FDF23: setne       al
+  00000001460FDF26: cmp         al,1
+  00000001460FDF28: jne         00000001460FDF57
+  00000001460FDF2A: xorps       xmm3,xmm3
+  00000001460FDF2D: comiss      xmm3,xmm0
+  00000001460FDF30: ja          00000001460FDF57
+  00000001460FDF32: movss       xmm2,dword ptr [00000001482703F8h]
+  00000001460FDF3A: comiss      xmm0,xmm2
+  00000001460FDF3D: ja          00000001460FDF57
+  00000001460FDF3F: comiss      xmm3,xmm1
+  00000001460FDF42: ja          00000001460FDF57
+  00000001460FDF44: comiss      xmm1,xmm2
+  00000001460FDF47: ja          00000001460FDF57
+  00000001460FDF49: xor         eax,eax
+  00000001460FDF4B: mov         ecx,0FFFFFFFAh
+  00000001460FDF50: comiss      xmm0,xmm1
+  00000001460FDF53: cmovae      eax,ecx
+  00000001460FDF56: ret
+  00000001460FDF57: mov         eax,0FFFFFFFBh
+  00000001460FDF5C: ret
+  00000001460FDF5D: int         3
+  00000001460FDF5E: int         3
+  00000001460FDF5F: int         3
+  00000001460FDF60: mov         qword ptr [rsp+10h],rbx
+  00000001460FDF65: mov         qword ptr [rsp+20h],rsi
+  00000001460FDF6A: mov         dword ptr [rsp+18h],r8d
+  00000001460FDF6F: push        rdi
+  00000001460FDF70: sub         rsp,20h
+  00000001460FDF74: mov         rbx,r9
+  00000001460FDF77: mov         rdi,rdx
+  00000001460FDF7A: mov         rsi,rcx
+  00000001460FDF7D: lea         rdx,[rsp+40h]
+  00000001460FDF82: xor         r9d,r9d
+  00000001460FDF85: lea         rcx,[rsp+30h]
+  00000001460FDF8A: mov         r8b,3
+  00000001460FDF8D: E8
+  00000001460FDF8E: 1E
+  00000001460FDF8F: F3
+  00000001460FDF90: CE
+
+  Summary
+
+     822A000 .text

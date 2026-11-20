@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -175,6 +176,9 @@ def select_cmake_command(config: dict[str, str]) -> list[str]:
 def generate_build_info_header(version_data: dict, contract_data: dict, config: dict[str, str]) -> None:
     platform_sync = version_data.get("platforms", {}).get(config["platform"], "untested")
     build_time = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    sdk_folder = Path(config["sdk_path"]).name
+    sdk_clo_match = re.search(r"\d{4}\.\d+\.\d+", sdk_folder)
+    sdk_clo_version = sdk_clo_match.group(0) if sdk_clo_match else "unknown"
 
     header = f"""#pragma once
 
@@ -190,6 +194,8 @@ def generate_build_info_header(version_data: dict, contract_data: dict, config: 
 #define MIRRA_PLUGIN_CONTRACT_NAME "{contract_data['contract_name']}"
 #define MIRRA_PLUGIN_CONTRACT_VERSION "{contract_data['api_version']}"
 #define MIRRA_PLUGIN_BUILD_TIME "{build_time}"
+#define MIRRA_PLUGIN_SDK_FOLDER "{sdk_folder}"
+#define MIRRA_PLUGIN_SDK_CLO_VERSION "{sdk_clo_version}"
 #define MIRRA_PLUGIN_LOG_DIR "{LOGS_DIR.as_posix()}"
 """
     BUILD_INFO_HEADER.parent.mkdir(parents=True, exist_ok=True)
@@ -321,6 +327,7 @@ def main() -> int:
     log(f"Version file: {version_path}")
     log(f"Contract file: {CONTRACT_PATH}")
     log(f"Build log: {ACTIVE_LOG_PATH}")
+    log(f"Building against SDK folder: {Path(config['sdk_path']).name}")
 
     generate_build_info_header(version_data, contract_data, config)
     log(f"Generated shared build metadata: {BUILD_INFO_HEADER}")

@@ -21,7 +21,7 @@ SIZE_MEASUREMENT_FIELDS = (
 )
 
 # Taper fields, both FULL flat widths in cm. Optional: documents written before
-# they existed are still valid, and product_ingestion.panel_generation_clo
+# they existed are still valid, and product_ingestion.step_05_0_panel_generation_clo
 # falls back to the same ratios when they are absent. Without them a straight-
 # sided tee and a tapered one are indistinguishable in the schema.
 SIZE_TAPER_FIELDS = (
@@ -30,7 +30,7 @@ SIZE_TAPER_FIELDS = (
 )
 
 # CLO reference block ratios, kept byte-identical to the constants in
-# product_ingestion/panel_generation_clo.py so the derived value here and the
+# product_ingestion/step_05_0_panel_generation_clo.py so the derived value here and the
 # adapter's fallback agree exactly.
 HEM_TO_CHEST_RATIO = 269.9999 / 290.0975      # 0.930697
 WRIST_TO_BICEP_RATIO = 384.3506 / 490.2734    # 0.783952

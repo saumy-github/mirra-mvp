@@ -1,0 +1,191 @@
+1460FAFE0  mov      qword ptr [rsp+8],rbx                    ; 
+1460FAFE5  mov      qword ptr [rsp+18h],rsi                  ; 
+1460FAFEA  mov      qword ptr [rsp+20h],rdi                  ; 
+1460FAFEF  mov      qword ptr [rsp+10h],rdx                  ; 
+1460FAFF4  push     rbp                                      ; 
+1460FAFF5  push     r14                                      ; 
+1460FAFF7  push     r15                                      ; 
+1460FAFF9  lea      rbp,[rsp-3Fh]                            ; 
+1460FAFFE  sub      rsp,0A0h                                 ; 
+1460FB005  mov      rbx,r9                                   ; 
+1460FB008  mov      r15d,r8d                                 ; 
+1460FB00B  mov      rsi,rdx                                  ; 
+1460FB00E  mov      r14,rcx                                  ; 
+1460FB011  mov      rcx,rdx                                  ; 
+1460FB014  call     0000000146667120                         ; call 0x6667120
+1460FB019  test     al,al                                    ; 
+1460FB01B  jne      00000001460FB04B                         ; 
+1460FB01D  mov      rdx,rsi                                  ; 
+1460FB020  lea      rcx,[rbp-9]                              ; 
+1460FB024  call     0000000146675BD0                         ; call 0x6675bd0
+1460FB029  nop                                               ; 
+1460FB02A  lea      rcx,[rbp-9]                              ; 
+1460FB02E  call     0000000146676030                         ; call 0x6676030
+1460FB033  nop                                               ; 
+1460FB034  lea      rcx,[rbp-9]                              ; 
+1460FB038  test     al,al                                    ; 
+1460FB03A  jne      00000001460FB046                         ; 
+1460FB03C  call     0000000146675D90                         ; call 0x6675d90
+1460FB041  jmp      00000001460FB208                         ; 
+1460FB046  call     0000000146675D90                         ; call 0x6675d90
+1460FB04B  xorps    xmm0,xmm0                                ; 
+1460FB04E  movdqu   xmmword ptr [rbp-29h],xmm0               ; 
+1460FB053  mov      rax,qword ptr [rbx+8]                    ; 
+1460FB057  test     rax,rax                                  ; 
+1460FB05A  je       00000001460FB060                         ; 
+1460FB05C  lock     inc    dword ptr [rax+8]                 ; 
+1460FB060  mov      rax,qword ptr [rbx]                      ; 
+1460FB063  mov      qword ptr [rbp-29h],rax                  ; 
+1460FB067  mov      rax,qword ptr [rbx+8]                    ; 
+1460FB06B  mov      qword ptr [rbp-21h],rax                  ; 
+1460FB06F  xor      edx,edx                                  ; 
+1460FB071  lea      rcx,[rbp-29h]                            ; 
+1460FB075  call     0000000141C096A0                         ; call 0x1c096a0
+1460FB07A  mov      edi,0FFFFFFFFh                           ; 
+1460FB07F  test     al,al                                    ; 
+1460FB081  je       00000001460FB11A                         ; 
+1460FB087  call     0000000141C22C90                         ; call 0x1c22c90
+1460FB08C  lea      rdx,[rbp+7]                              ; 
+1460FB090  mov      rcx,rax                                  ; 
+1460FB093  call     0000000145CF9E30                         ; call 0x5cf9e30
+1460FB098  mov      rcx,qword ptr [rax]                      ; 
+1460FB09B  mov      rdx,qword ptr [rax+8]                    ; 
+1460FB09F  mov      qword ptr [rax],0                        ; 
+1460FB0A6  mov      qword ptr [rax+8],0                      ; 
+1460FB0AE  mov      qword ptr [rbp-29h],rcx                  ; 
+1460FB0B2  mov      rbx,qword ptr [rbp-21h]                  ; 
+1460FB0B6  mov      qword ptr [rbp-21h],rdx                  ; 
+1460FB0BA  test     rbx,rbx                                  ; 
+1460FB0BD  je       00000001460FB0E8                         ; 
+1460FB0BF  mov      eax,edi                                  ; 
+1460FB0C1  lock     xadd   dword ptr [rbx+8],eax             ; 
+1460FB0C6  cmp      eax,1                                    ; 
+1460FB0C9  jne      00000001460FB0E8                         ; 
+1460FB0CB  mov      rax,qword ptr [rbx]                      ; 
+1460FB0CE  mov      rcx,rbx                                  ; 
+1460FB0D1  call     qword ptr [rax]                          ; 
+1460FB0D3  mov      eax,edi                                  ; 
+1460FB0D5  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+1460FB0DA  cmp      eax,1                                    ; 
+1460FB0DD  jne      00000001460FB0E8                         ; 
+1460FB0DF  mov      rax,qword ptr [rbx]                      ; 
+1460FB0E2  mov      rcx,rbx                                  ; 
+1460FB0E5  call     qword ptr [rax+8]                        ; 
+1460FB0E8  mov      rbx,qword ptr [rbp+0Fh]                  ; 
+1460FB0EC  test     rbx,rbx                                  ; 
+1460FB0EF  je       00000001460FB11A                         ; 
+1460FB0F1  mov      eax,edi                                  ; 
+1460FB0F3  lock     xadd   dword ptr [rbx+8],eax             ; 
+1460FB0F8  cmp      eax,1                                    ; 
+1460FB0FB  jne      00000001460FB11A                         ; 
+1460FB0FD  mov      rax,qword ptr [rbx]                      ; 
+1460FB100  mov      rcx,rbx                                  ; 
+1460FB103  call     qword ptr [rax]                          ; 
+1460FB105  mov      eax,edi                                  ; 
+1460FB107  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+1460FB10C  cmp      eax,1                                    ; 
+1460FB10F  jne      00000001460FB11A                         ; 
+1460FB111  mov      rax,qword ptr [rbx]                      ; 
+1460FB114  mov      rcx,rbx                                  ; 
+1460FB117  call     qword ptr [rax+8]                        ; 
+1460FB11A  xor      edx,edx                                  ; 
+1460FB11C  lea      rcx,[rbp-29h]                            ; 
+1460FB120  call     0000000141C096A0                         ; call 0x1c096a0
+1460FB125  test     al,al                                    ; 
+1460FB127  jne      00000001460FB1D7                         ; 
+1460FB12D  mov      dword ptr [rsp+20h],0                    ; 
+1460FB135  mov      r9d,dword ptr [rbp+7Fh]                  ; 
+1460FB139  lea      r8,[rbp-29h]                             ; 
+1460FB13D  lea      rdx,[rbp-19h]                            ; 
+1460FB141  mov      rcx,r14                                  ; 
+1460FB144  call     00000001460ADDD0                         ; call 0x60addd0
+1460FB149  nop                                               ; 
+1460FB14A  xor      edx,edx                                  ; 
+1460FB14C  lea      rcx,[rbp-19h]                            ; 
+1460FB150  call     0000000141D32960                         ; call 0x1d32960
+1460FB155  test     al,al                                    ; 
+1460FB157  jne      00000001460FB1A4                         ; 
+1460FB159  mov      rbx,qword ptr [rbp-19h]                  ; 
+1460FB15D  mov      rdx,rsi                                  ; 
+1460FB160  lea      rcx,[rbp+17h]                            ; 
+1460FB164  call     0000000146664E10                         ; call 0x6664e10
+1460FB169  mov      r8d,r15d                                 ; 
+1460FB16C  mov      rdx,rax                                  ; 
+1460FB16F  lea      rcx,[rbx+0000000000000220h]              ; 
+1460FB176  call     0000000143A73910                         ; call 0x3a73910
+1460FB17B  call     0000000141BE1040                         ; call 0x1be1040
+1460FB180  mov      rcx,rax                                  ; 
+1460FB183  call     0000000145CCD3A0                         ; call 0x5ccd3a0
+1460FB188  call     0000000141BE0EC0                         ; call 0x1be0ec0
+1460FB18D  cmp      qword ptr [rax+30h],0                    ; 
+1460FB192  je       00000001460FB1A4                         ; 
+1460FB194  call     0000000141BE0EC0                         ; call 0x1be0ec0
+1460FB199  mov      rcx,qword ptr [rax+30h]                  ; 
+1460FB19D  mov      rax,qword ptr [rcx]                      ; 
+1460FB1A0  call     qword ptr [rax+20h]                      ; 
+1460FB1A3  nop                                               ; 
+1460FB1A4  mov      rbx,qword ptr [rbp-11h]                  ; 
+1460FB1A8  test     rbx,rbx                                  ; 
+1460FB1AB  je       00000001460FB1D7                         ; 
+1460FB1AD  mov      eax,edi                                  ; 
+1460FB1AF  lock     xadd   dword ptr [rbx+8],eax             ; 
+1460FB1B4  cmp      eax,1                                    ; 
+1460FB1B7  jne      00000001460FB1D7                         ; 
+1460FB1B9  mov      rax,qword ptr [rbx]                      ; 
+1460FB1BC  mov      rcx,rbx                                  ; 
+1460FB1BF  call     qword ptr [rax]                          ; 
+1460FB1C1  mov      eax,edi                                  ; 
+1460FB1C3  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+1460FB1C8  cmp      eax,1                                    ; 
+1460FB1CB  jne      00000001460FB1D7                         ; 
+1460FB1CD  mov      rax,qword ptr [rbx]                      ; 
+1460FB1D0  mov      rcx,rbx                                  ; 
+1460FB1D3  call     qword ptr [rax+8]                        ; 
+1460FB1D6  nop                                               ; 
+1460FB1D7  mov      rbx,qword ptr [rbp-21h]                  ; 
+1460FB1DB  test     rbx,rbx                                  ; 
+1460FB1DE  je       00000001460FB208                         ; 
+1460FB1E0  mov      eax,edi                                  ; 
+1460FB1E2  lock     xadd   dword ptr [rbx+8],eax             ; 
+1460FB1E7  cmp      eax,1                                    ; 
+1460FB1EA  jne      00000001460FB208                         ; 
+1460FB1EC  mov      rax,qword ptr [rbx]                      ; 
+1460FB1EF  mov      rcx,rbx                                  ; 
+1460FB1F2  call     qword ptr [rax]                          ; 
+1460FB1F4  lock     xadd   dword ptr [rbx+0Ch],edi           ; 
+1460FB1F9  cmp      edi,1                                    ; 
+1460FB1FC  jne      00000001460FB208                         ; 
+1460FB1FE  mov      rax,qword ptr [rbx]                      ; 
+1460FB201  mov      rcx,rbx                                  ; 
+1460FB204  call     qword ptr [rax+8]                        ; 
+1460FB207  nop                                               ; 
+1460FB208  mov      rcx,rsi                                  ; 
+1460FB20B  call     0000000146665040                         ; call 0x6665040
+1460FB210  lea      r11,[rsp+00000000000000A0h]              ; 
+1460FB218  mov      rbx,qword ptr [r11+20h]                  ; 
+1460FB21C  mov      rsi,qword ptr [r11+30h]                  ; 
+1460FB220  mov      rdi,qword ptr [r11+38h]                  ; 
+1460FB224  mov      rsp,r11                                  ; 
+1460FB227  pop      r15                                      ; 
+1460FB229  pop      r14                                      ; 
+1460FB22B  pop      rbp                                      ; 
+1460FB22C  ret                                               ; 
+== 172 instructions, ends 1460FB22C
+== strings
+== calls (rva: count, thunk)
+  1be0ec0: x2 
+  1be1040: x1 
+  1c096a0: x2 
+  1c22c90: x1 
+  1d32960: x1 
+  3a73910: x1 
+  5ccd3a0: x1 
+  5cf9e30: x1 
+  60addd0: x1 
+  6664e10: x1 
+  6665040: x1 
+  6667120: x1 
+  6675bd0: x1 
+  6675d90: x2 
+  6676030: x1 
+== data refs

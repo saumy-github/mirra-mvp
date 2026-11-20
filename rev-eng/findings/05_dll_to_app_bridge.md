@@ -1,0 +1,8 @@
+# How a plugin call reaches CLO
+
+- `CLOAPIInterface.dll` (SDK and installed copy) imports ONLY CRT/KERNEL32 (`raw/dll_deps_336.txt`). It contains no CLO logic.
+- Each `CLOAPI::*APIInterface` method is a virtual member whose base implementation is a stub: `xor eax,eax; ret` (int/bool) or "zero the return std::string/vector" (`raw/app_dll_disasm.txt`, e.g. GetPatternCount -> jmp 0x18000AF40 = `xor eax,eax; ret`).
+- The CLO exe (`CLO_Standalone_OnlineAuth_x64.exe`, 220 MB, no PE exports) holds the real subclasses. It hands the plugin pointers through `APICommand::Set{Utility,Pattern,Fabric,Import,Export,Gui,Rest}API` / `Get*API` (strings at 0x09F5B8xx-0x09F5CDxx).
+- Plugin entry points the exe looks up by name: `GetActionName`, `GetObjectNameTreeToAddAction`, `GetPositionIndexToAddAction`, `DoFunction`, `DoFunctionAfterLoadingCLOFile` (0x08294E28-0x08294FC0). Plugins load from `C:\Program Files\CLO Standalone OnlineAuth\plugins`. The same folder contains other CLO plugin names: `StartupPlugin.dll`, `CloEventAPI_Plugin.dll`, `CloLibraryAPI_Plugin.dll`.
+- Consequence: the plugin calls through the vtable of an object that lives in the exe. So the **vtable slot order compiled into the plugin (from the SDK headers/lib) must equal the exe's.** That is why an SDK/app version mismatch crashes CLO instead of failing cleanly.
+- Both SDK 336 DLL and installed app DLL export the identical 921 symbols (no export diff), but are different builds (169,472 vs 291,136 bytes; app copy has CFG `.00cfg`). Per-class vtable slot counts match (Export 124, Fabric 285, Gui 39, Import 45, Pattern 233, Rest 9, Utility 408); a full slot-by-slot comparison was not completed.

@@ -32,7 +32,6 @@ class PipelineContext:
     avatar_path: Path
     patterns_dir: Path
     output_dir: Path
-    project_dir: Path
     pattern_files: list[str]
     seams: list[dict]
     using_default_seams: bool = True
@@ -189,8 +188,6 @@ def create_context(
     size_id = size_id or FALLBACK_SIZE_ID
 
     output_dir = get_next_vto_run_dir(user_id, cloth_id, size_id)
-    project_dir = output_dir / "projects"
-    project_dir.mkdir(parents=True, exist_ok=True)
     run_number = int(output_dir.name)
     run_id = build_vto_run_id(user_id, cloth_id, size_id, run_number)
 
@@ -250,7 +247,6 @@ def create_context(
         avatar_path=avatar_path,
         patterns_dir=patterns_dir,
         output_dir=output_dir,
-        project_dir=project_dir,
         pattern_files=[
             "front_panel.dxf",
             "back_panel.dxf",

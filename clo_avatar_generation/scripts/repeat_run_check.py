@@ -27,7 +27,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from clo_avatar_generation.avatar_runtime.context import Step1Context
+from clo_avatar_generation.avatar_runtime.context import DEFAULT_APPLY_MODE, Step1Context
 from clo_avatar_generation.avatar_runtime.field_contract import get_default_base_avatar
 from clo_avatar_generation.avatar_runtime.pipeline import run_pipeline
 
@@ -79,7 +79,7 @@ def main() -> int:
         ctx = Step1Context(
             user_id=args.user_id,
             base_avatar_path_input=str(base_avatar_path),
-            measurement_apply_mode_input="avt_patch",
+            measurement_apply_mode_input=DEFAULT_APPLY_MODE,
             interactive=False,
         )
         ctx = run_pipeline(ctx)

@@ -1,0 +1,162 @@
+
+Dump of file C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe
+
+File Type: EXECUTABLE IMAGE
+
+  000000014571E250: mov         qword ptr [rsp+8],rbx
+  000000014571E255: mov         qword ptr [rsp+10h],rdx
+  000000014571E25A: push        rdi
+  000000014571E25B: sub         rsp,20h
+  000000014571E25F: mov         rdi,rdx
+  000000014571E262: lea         rdx,[rcx+00000000000005B8h]
+  000000014571E269: mov         rcx,qword ptr [rdi]
+  000000014571E26C: call        0000000144EB8570
+  000000014571E271: nop
+  000000014571E272: mov         rdi,qword ptr [rdi+8]
+  000000014571E276: test        al,al
+  000000014571E278: je          000000014571E2B8
+  000000014571E27A: test        rdi,rdi
+  000000014571E27D: je          000000014571E2AB
+  000000014571E27F: mov         ebx,0FFFFFFFFh
+  000000014571E284: mov         eax,ebx
+  000000014571E286: lock xadd   dword ptr [rdi+8],eax
+  000000014571E28B: cmp         eax,1
+  000000014571E28E: jne         000000014571E2AB
+  000000014571E290: mov         rax,qword ptr [rdi]
+  000000014571E293: mov         rcx,rdi
+  000000014571E296: call        qword ptr [rax]
+  000000014571E298: lock xadd   dword ptr [rdi+0Ch],ebx
+  000000014571E29D: cmp         ebx,1
+  000000014571E2A0: jne         000000014571E2AB
+  000000014571E2A2: mov         rax,qword ptr [rdi]
+  000000014571E2A5: mov         rcx,rdi
+  000000014571E2A8: call        qword ptr [rax+8]
+  000000014571E2AB: mov         al,1
+  000000014571E2AD: mov         rbx,qword ptr [rsp+30h]
+  000000014571E2B2: add         rsp,20h
+  000000014571E2B6: pop         rdi
+  000000014571E2B7: ret
+  000000014571E2B8: test        rdi,rdi
+  000000014571E2BB: je          000000014571E2E9
+  000000014571E2BD: mov         ebx,0FFFFFFFFh
+  000000014571E2C2: mov         eax,ebx
+  000000014571E2C4: lock xadd   dword ptr [rdi+8],eax
+  000000014571E2C9: cmp         eax,1
+  000000014571E2CC: jne         000000014571E2E9
+  000000014571E2CE: mov         rax,qword ptr [rdi]
+  000000014571E2D1: mov         rcx,rdi
+  000000014571E2D4: call        qword ptr [rax]
+  000000014571E2D6: lock xadd   dword ptr [rdi+0Ch],ebx
+  000000014571E2DB: cmp         ebx,1
+  000000014571E2DE: jne         000000014571E2E9
+  000000014571E2E0: mov         rax,qword ptr [rdi]
+  000000014571E2E3: mov         rcx,rdi
+  000000014571E2E6: call        qword ptr [rax+8]
+  000000014571E2E9: xor         al,al
+  000000014571E2EB: mov         rbx,qword ptr [rsp+30h]
+  000000014571E2F0: add         rsp,20h
+  000000014571E2F4: pop         rdi
+  000000014571E2F5: ret
+  000000014571E2F6: int         3
+  000000014571E2F7: int         3
+  000000014571E2F8: int         3
+  000000014571E2F9: int         3
+  000000014571E2FA: int         3
+  000000014571E2FB: int         3
+  000000014571E2FC: int         3
+  000000014571E2FD: int         3
+  000000014571E2FE: int         3
+  000000014571E2FF: int         3
+  000000014571E300: mov         qword ptr [rsp+10h],rbx
+  000000014571E305: mov         qword ptr [rsp+18h],rsi
+  000000014571E30A: mov         qword ptr [rsp+20h],rdi
+  000000014571E30F: push        rbp
+  000000014571E310: push        r14
+  000000014571E312: push        r15
+  000000014571E314: mov         rbp,rsp
+  000000014571E317: sub         rsp,80h
+  000000014571E31E: movzx       esi,dl
+  000000014571E321: mov         rbx,rcx
+  000000014571E324: mov         rax,qword ptr [rcx]
+  000000014571E327: call        qword ptr [rax+8]
+  000000014571E32A: cmp         ax,15h
+  000000014571E32E: je          000000014571E346
+  000000014571E330: mov         rax,qword ptr [rbx]
+  000000014571E333: mov         rcx,rbx
+  000000014571E336: call        qword ptr [rax+8]
+  000000014571E339: cmp         ax,0Ah
+  000000014571E33D: je          000000014571E346
+  000000014571E33F: xor         al,al
+  000000014571E341: jmp         000000014571E5D1
+  000000014571E346: xorps       xmm0,xmm0
+  000000014571E349: movdqu      xmmword ptr [rbp-40h],xmm0
+  000000014571E34E: movdqu      xmmword ptr [rbp-50h],xmm0
+  000000014571E353: movdqu      xmmword ptr [rbp-20h],xmm0
+  000000014571E358: mov         byte ptr [rsp+20h],sil
+  000000014571E35D: lea         r9,[rbp-20h]
+  000000014571E361: lea         r8,[rbp-50h]
+  000000014571E365: lea         rdx,[rbp-40h]
+  000000014571E369: mov         rcx,rbx
+  000000014571E36C: call        00000001456C5320
+  000000014571E371: mov         edi,0FFFFFFFFh
+  000000014571E376: test        al,al
+  000000014571E378: je          000000014571E525
+  000000014571E37E: xor         edx,edx
+  000000014571E380: test        sil,sil
+  000000014571E383: je          000000014571E5EE
+  000000014571E389: lea         rcx,[rbp-40h]
+  000000014571E38D: call        0000000141D68C30
+  000000014571E392: test        al,al
+  000000014571E394: jne         000000014571E525
+  000000014571E39A: xor         edx,edx
+  000000014571E39C: lea         rcx,[rbp-50h]
+  000000014571E3A0: call        0000000141D68C30
+  000000014571E3A5: test        al,al
+  000000014571E3A7: jne         000000014571E525
+  000000014571E3AD: xor         edx,edx
+  000000014571E3AF: lea         rcx,[rbp-20h]
+  000000014571E3B3: call        0000000141D68C00
+  000000014571E3B8: test        al,al
+  000000014571E3BA: jne         000000014571E525
+  000000014571E3C0: mov         rbx,qword ptr [rbp-50h]
+  000000014571E3C4: mov         rcx,rbx
+  000000014571E3C7: call        0000000144376160
+  000000014571E3CC: movzx       r14d,al
+  000000014571E3D0: mov         r15,qword ptr [rbp-40h]
+  000000014571E3D4: mov         rcx,r15
+  000000014571E3D7: call        0000000144376160
+  000000014571E3DC: cmp         r14b,al
+  000000014571E3DF: jne         000000014571E525
+  000000014571E3E5: mov         r9b,1
+  000000014571E3E8: movzx       r8d,r9b
+  000000014571E3EC: lea         rdx,[rbp-40h]
+  000000014571E3F0: lea         rcx,[rbp-50h]
+  000000014571E3F4: call        00000001442E11B0
+  000000014571E3F9: cmp         al,1
+  000000014571E3FB: je          000000014571E525
+  000000014571E401: cmp         sil,1
+  000000014571E405: jne         000000014571E5FF
+  000000014571E40B: lea         rdx,[rbp-30h]
+  000000014571E40F: mov         rcx,rbx
+  000000014571E412: call        000000014435A400
+  000000014571E417: nop
+  000000014571E418: xor         edx,edx
+  000000014571E41A: lea         rcx,[rbp-30h]
+  000000014571E41E: call        0000000141D68C00
+  000000014571E423: test        al,al
+  000000014571E425: jne         000000014571E4F3
+  000000014571E42B: test        r14b,r14b
+  000000014571E42E: jne         000000014571E483
+  000000014571E430: xorps       xmm0,xmm0
+  000000014571E433: movdqa      xmmword ptr [rbp-10h],xmm0
+  000000014571E438: mov         rax,qword ptr [rbp-28h]
+  000000014571E43C: test        rax,rax
+  000000014571E43F: je          000000014571E44D
+  000000014571E441: lock inc    dword ptr [rax+8]
+  000000014571E445: mov         r15,qword ptr [rbp-40h]
+  000000014571E449: mov         rbx,qword ptr [rbp-50h]
+  000000014571E44D: movaps      xmm0,xmmword ptr [rbp-30h]
+
+  Summary
+
+     822A000 .text

@@ -60,7 +60,8 @@ static void TraceLog(const std::string& message)
         localtime_s(&tm_buf, &t);
         char buf[16];
         std::strftime(buf, sizeof(buf), "%H:%M:%S", &tm_buf);
-        f << "[" << buf << "] [tid=" << std::this_thread::get_id() << "] " << message << "\n";
+        // pid distinguishes concurrent CLO sessions that share this log file.
+        f << "[" << buf << "] [pid=" << GetCurrentProcessId() << "] [tid=" << std::this_thread::get_id() << "] " << message << "\n";
         f.flush();
     } catch (...) {
         // Never let logging itself be a new crash source.
@@ -136,16 +137,35 @@ static std::vector<std::string> ComputeMissingAfterKeys(
 
 // Command queue system for thread-safe API calls
 #include <queue>
+#include <deque>
 #include <mutex>
 #include <future>
 #include <condition_variable>
 #include <windows.h>  // SetTimer / KillTimer
+#include <winver.h>   // GetFileVersionInfo — host CLO version check
+#include <vector>
+
+// ─── Command ids ─────────────────────────────────────────────────────────────
+// Every APICommand gets a monotonically increasing id when constructed. The
+// id of the last command created on an HTTP worker thread is echoed back to the
+// client in the X-Mirra-Command-Id response header (see the routing handlers in
+// StartRESTServer), so a client can wait for exactly its own command via
+// GET /wait?id=N instead of polling /status.
+static std::atomic<unsigned long long> g_nextCommandId{0};
+static thread_local unsigned long long t_lastCommandId = 0;
+static unsigned long long NextCommandId()
+{
+    unsigned long long id = ++g_nextCommandId;
+    t_lastCommandId = id;
+    return id;
+}
 
 // ─── Command payload ────────────────────────────────────────────────────────
 // All CLO API calls MUST run on the main thread.
 // The background HTTP thread writes APICommand objects here; the main thread
 // drains the queue in ProcessCommandQueue() / DoFunctionContinuously().
 struct APICommand {
+    unsigned long long id = NextCommandId();
     std::string type;         // command type identifier
     std::string param1;       // file path, fabric preset name
     std::string param2;       // export format ("glb" / "gltf")
@@ -214,6 +234,126 @@ struct FabricStatus {
     std::string       lastMessage;
 };
 static FabricStatus g_fabricStatus;
+
+// ── Completion events ─────────────────────────────────────────────────────────
+// Push-style replacement for polling /status. The main thread appends an event
+// when a command finishes (command_done), when an async fabric call finishes
+// (fabric_done) and when everything is drained (queue_idle). Clients read them
+// through GET /events (long-poll), GET /wait (one command) or the /ws WebSocket.
+// The ring is bounded; a client that falls behind just sees the newest events.
+struct BusEvent { unsigned long long seq; json data; };
+static std::mutex                  g_eventMutex;
+static std::condition_variable     g_eventCv;
+static std::deque<BusEvent>        g_events;
+static unsigned long long          g_eventSeq = 0;
+static unsigned long long          g_lastDoneCommandId = 0;
+static const size_t                kMaxEvents = 2000;
+static int                         g_boundPort = 0;
+
+static unsigned long long EmitEvent(json data)
+{
+    unsigned long long seq;
+    {
+        std::lock_guard<std::mutex> lk(g_eventMutex);
+        seq = ++g_eventSeq;
+        data["seq"] = seq;
+        data["pid"] = (unsigned long)GetCurrentProcessId();
+        data["t_ms"] = (long long)std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        g_events.push_back({seq, std::move(data)});
+        while (g_events.size() > kMaxEvents) g_events.pop_front();
+    }
+    g_eventCv.notify_all();
+    return seq;
+}
+
+static unsigned long long CurrentEventSeq()
+{
+    std::lock_guard<std::mutex> lk(g_eventMutex);
+    return g_eventSeq;
+}
+
+// Emits queue_idle only when nothing is queued and no async fabric call is
+// still waiting for the main thread's message loop.
+static void MaybeEmitIdle()
+{
+    bool queueEmpty;
+    {
+        std::lock_guard<std::mutex> lk(g_queueMutex);
+        queueEmpty = g_commandQueue.empty();
+    }
+    if (!queueEmpty) return;
+    if (g_fabricStatus.pending.load() > g_fabricStatus.completed.load() + g_fabricStatus.failed.load()) return;
+    unsigned long long last;
+    { std::lock_guard<std::mutex> lk(g_eventMutex); last = g_lastDoneCommandId; }
+    EmitEvent({{"type", "queue_idle"}, {"last_command_id", last}});
+}
+
+// Events with seq > since (oldest first), at most `limit`. latest = newest seq.
+static json CollectEventsSince(unsigned long long since, size_t limit, unsigned long long& latest)
+{
+    json out = json::array();
+    std::lock_guard<std::mutex> lk(g_eventMutex);
+    latest = g_eventSeq;
+    for (const auto& e : g_events) {
+        if (e.seq <= since) continue;
+        out.push_back(e.data);
+        if (out.size() >= limit) break;
+    }
+    return out;
+}
+
+// Blocks up to timeoutMs for an event newer than `since`. True if one exists.
+static bool WaitForNewEvent(unsigned long long since, int timeoutMs)
+{
+    std::unique_lock<std::mutex> lk(g_eventMutex);
+    return g_eventCv.wait_for(lk, std::chrono::milliseconds(timeoutMs),
+                              [&] { return g_eventSeq > since; });
+}
+
+// ── Instance registry + port selection ────────────────────────────────────────
+// Several CLO sessions can run side by side if each plugin listens on its own
+// port. MIRRA_PLUGIN_PORT=<n> pins the port; MIRRA_PLUGIN_PORT=auto lets the OS
+// choose a free one. Default (unset) stays 50505 for existing clients. Each
+// session writes <log dir>/instances/clo_<pid>.json so an orchestrator can find
+// the ports; the file is removed on shutdown.
+static int RequestedPort()
+{
+    char buf[32] = {0};
+    DWORD n = GetEnvironmentVariableA("MIRRA_PLUGIN_PORT", buf, sizeof(buf));
+    if (n == 0 || n >= sizeof(buf)) return 50505;
+    if (std::string(buf) == "auto") return 0;
+    int p = std::atoi(buf);
+    return (p > 0 && p < 65536) ? p : 50505;
+}
+
+static std::filesystem::path InstanceRegistryPath()
+{
+    std::filesystem::path p(std::string(MIRRA_PLUGIN_LOG_DIR));
+    return p / "instances" / ("clo_" + std::to_string(GetCurrentProcessId()) + ".json");
+}
+
+static void WriteInstanceRegistry()
+{
+    try {
+        auto path = InstanceRegistryPath();
+        std::filesystem::create_directories(path.parent_path());
+        json j = {
+            {"pid", (unsigned long)GetCurrentProcessId()},
+            {"port", g_boundPort},
+            {"plugin_version", MIRRA_PLUGIN_VERSION},
+            {"started_at_ms", (long long)std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count()}
+        };
+        std::ofstream f(path, std::ios::trunc);
+        if (f.is_open()) f << j.dump();
+    } catch (...) {}
+}
+
+static void RemoveInstanceRegistry()
+{
+    try { std::filesystem::remove(InstanceRegistryPath()); } catch (...) {}
+}
 
 static HWND    g_cloMainWnd  = nullptr;  // CLO top-level HWND (discovered once at startup)
 static WNDPROC g_origWndProc = nullptr;  // CLO's original WndProc (restored on shutdown)
@@ -308,6 +448,9 @@ static LRESULT CALLBACK MirraWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
             g_fabricStatus.failed++;
             g_fabricStatus.lastSuccess = false;
         }
+        EmitEvent({{"type", "fabric_done"}, {"op", "color"}, {"fabric", p->fabric_idx},
+                   {"success", g_fabricStatus.lastSuccess.load()}});
+        MaybeEmitIdle();
         delete p;
         return 0;
     }
@@ -328,6 +471,9 @@ static LRESULT CALLBACK MirraWndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp)
             g_fabricStatus.failed++;
             g_fabricStatus.lastSuccess = false;
         }
+        EmitEvent({{"type", "fabric_done"}, {"op", "texture"}, {"fabric", p->fabric_idx},
+                   {"success", g_fabricStatus.lastSuccess.load()}});
+        MaybeEmitIdle();
         delete p;
         return 0;
     }
@@ -653,6 +799,28 @@ static bool ExportAVT_SEHSafe(const std::string& path)
 // already existed before Phase 3 and has an established track record via
 // dispatchSyncRead. has_avatar_avt_export is likewise only set from a real
 // /export-avatar-avt request (see ProcessCommandQueue), via ExportAVT_SEHSafe.
+// File version of the CLO executable hosting this plugin, as "major.minor.build"
+// (e.g. "2026.1.310"). Compared against the SDK the plugin was built with so a
+// host/SDK mismatch is visible in the trace and /health instead of showing up
+// as a CLO crash inside an SDK call.
+#pragma comment(lib, "Version.lib")
+static std::string GetHostAppVersion()
+{
+    wchar_t exePath[MAX_PATH] = {};
+    if (!GetModuleFileNameW(NULL, exePath, MAX_PATH)) return "unknown";
+    DWORD handle = 0;
+    DWORD size = GetFileVersionInfoSizeW(exePath, &handle);
+    if (size == 0) return "unknown";
+    std::vector<char> data(size);
+    if (!GetFileVersionInfoW(exePath, 0, size, data.data())) return "unknown";
+    VS_FIXEDFILEINFO* info = nullptr;
+    UINT len = 0;
+    if (!VerQueryValueW(data.data(), L"\\", reinterpret_cast<LPVOID*>(&info), &len) || !info) return "unknown";
+    return std::to_string(HIWORD(info->dwFileVersionMS)) + "." +
+           std::to_string(LOWORD(info->dwFileVersionMS)) + "." +
+           std::to_string(HIWORD(info->dwFileVersionLS));
+}
+
 static void RunCapabilityProbesOnce()
 {
     if (g_capabilityProbesRun.exchange(true)) return;
@@ -681,7 +849,14 @@ void StartRESTServer()
                 {"platform_sync_state", MIRRA_PLUGIN_PLATFORM_SYNC_STATE},
                 {"contract_name", MIRRA_PLUGIN_CONTRACT_NAME},
                 {"contract_version", MIRRA_PLUGIN_CONTRACT_VERSION},
-                {"plugin_built_at", MIRRA_PLUGIN_BUILD_TIME}
+                {"plugin_built_at", MIRRA_PLUGIN_BUILD_TIME},
+                {"sdk_folder", MIRRA_PLUGIN_SDK_FOLDER},
+                {"sdk_clo_version", MIRRA_PLUGIN_SDK_CLO_VERSION},
+                {"host_app_version", GetHostAppVersion()},
+                {"host_matches_sdk", GetHostAppVersion() == MIRRA_PLUGIN_SDK_CLO_VERSION},
+                {"pid", (unsigned long)GetCurrentProcessId()},
+                {"port", g_boundPort},
+                {"has_events", true}
             };
             res.set_content(response.dump(), "application/json");
         });
@@ -825,6 +1000,21 @@ void StartRESTServer()
             APICommand cmd;
             cmd.type = "import-avatar-avt";
             cmd.param1 = filePath;
+
+            // Optional experiment knobs (all default to the original behaviour):
+            //   "method": "import_avatar" | "import_file" | "import_file_opts"
+            //   "options": {"scale": 1.0, "bAdd": false, "bAutoTranslate": false,
+            //               "ImportObjectType": 0, "bMoveGarment": false, ...}
+            // Passed through as strings in stringMapParam1 and parsed in the
+            // import-avatar-avt branch of ProcessCommandQueue.
+            if (j.contains("method")) cmd.stringMapParam1["method"] = j["method"].get<std::string>();
+            if (j.contains("options") && j["options"].is_object()) {
+                for (auto it = j["options"].begin(); it != j["options"].end(); ++it) {
+                    cmd.stringMapParam1[it.key()] = it.value().is_boolean()
+                        ? std::string(it.value().get<bool>() ? "1" : "0")
+                        : (it.value().is_string() ? it.value().get<std::string>() : it.value().dump());
+                }
+            }
 
             {
                 std::lock_guard<std::mutex> lock(g_queueMutex);
@@ -1203,6 +1393,37 @@ void StartRESTServer()
     });
 
     // ── New Project / Clear Scene ────────────────────────────────────────────
+    // EXPERIMENT: size an avatar through the grading API instead of ImportAvatar.
+    //   body: {"avt": "<avatar .avt>", "avs": "<avatar size .avs>",
+    //          "assign_all": false, "load_avt": true}
+    // Steps (each result is traced and returned in the command result message):
+    //   AddGradingSizeGroup -> SetGradingPairedAvatarFromFile -> SetGradingPairedAvatarSizing
+    svr.Post("/avatar/grading-size", [](const Request& req, Response& res) {
+        try {
+            auto j = json::parse(req.body);
+            APICommand cmd;
+            cmd.type = "grading-avatar-size";
+            cmd.param1 = j.value("avt", "");
+            cmd.param2 = j.value("avs", "");
+            cmd.boolParam1 = j.value("assign_all", false);
+            cmd.boolParam2 = j.value("load_avt", true);
+            {
+                std::lock_guard<std::mutex> lock(g_queueMutex);
+                g_commandQueue.push(cmd);
+            }
+            json response = {
+                {"success",    true},
+                {"message",    "Grading avatar size queued"},
+                {"queue_size", (int)g_commandQueue.size()}
+            };
+            res.set_content(response.dump(), "application/json");
+        }
+        catch (const std::exception& e) {
+            json response = {{"success", false}, {"error", e.what()}};
+            res.set_content(response.dump(), "application/json");
+        }
+    });
+
     svr.Post("/new-project", [](const Request&, Response& res) {
         try {
             APICommand cmd;
@@ -1505,7 +1726,11 @@ void StartRESTServer()
                 {"queue_size",       queueSize},
                 {"queue_processing", processing},
                 {"patterns_loaded",  patternsLoaded},
-                {"last_results",     lastResults}
+                {"last_results",     lastResults},
+                {"pid",              (unsigned long)GetCurrentProcessId()},
+                {"port",             g_boundPort},
+                {"event_seq",        CurrentEventSeq()},
+                {"fabric_pending",   g_fabricStatus.pending.load() - g_fabricStatus.completed.load() - g_fabricStatus.failed.load()}
             };
             res.set_content(response.dump(), "application/json");
         }
@@ -1515,14 +1740,118 @@ void StartRESTServer()
         }
     });
 
+    // ── Completion events: long-poll, single-command wait, WebSocket ──────────
+    // The routing handlers echo ids so a client never has to poll /status:
+    //   X-Mirra-Command-Id  id of the command this request queued (async POSTs)
+    //   X-Mirra-Event-Seq   newest event seq when the response was built
+    svr.set_pre_routing_handler([](const Request&, Response&) {
+        t_lastCommandId = 0;
+        return Server::HandlerResponse::Unhandled;
+    });
+    svr.set_post_routing_handler([](const Request&, Response& res) {
+        if (t_lastCommandId != 0)
+            res.set_header("X-Mirra-Command-Id", std::to_string(t_lastCommandId));
+        res.set_header("X-Mirra-Event-Seq", std::to_string(CurrentEventSeq()));
+    });
+
+    // GET /events?since=<seq>&timeout_ms=<ms>&limit=<n>
+    // Returns events with seq > since; waits up to timeout_ms (default 0 = no
+    // wait, max 120000) when there are none. Reuse "latest" as the next since.
+    svr.Get("/events", [](const Request& req, Response& res) {
+        unsigned long long since = 0;
+        int timeoutMs = 0;
+        size_t limit = 200;
+        try { if (req.has_param("since")) since = std::stoull(req.get_param_value("since")); } catch (...) {}
+        try { if (req.has_param("timeout_ms")) timeoutMs = std::stoi(req.get_param_value("timeout_ms")); } catch (...) {}
+        try { if (req.has_param("limit")) limit = (size_t)std::stoul(req.get_param_value("limit")); } catch (...) {}
+        timeoutMs = std::clamp(timeoutMs, 0, 120000);
+        limit = std::clamp<size_t>(limit, 1, 1000);
+
+        unsigned long long latest = 0;
+        json events = CollectEventsSince(since, limit, latest);
+        if (events.empty() && timeoutMs > 0 && WaitForNewEvent(since, timeoutMs))
+            events = CollectEventsSince(since, limit, latest);
+        json r = {{"success", true}, {"latest", latest}, {"events", events}};
+        res.set_content(r.dump(), "application/json");
+    });
+
+    // GET /wait?id=<command id>&timeout_ms=<ms>
+    // Blocks until that command (or a later one) has finished, then returns its
+    // command_done event when it is still in the ring.
+    svr.Get("/wait", [](const Request& req, Response& res) {
+        unsigned long long id = 0;
+        int timeoutMs = 30000;
+        try { if (req.has_param("id")) id = std::stoull(req.get_param_value("id")); } catch (...) {}
+        try { if (req.has_param("timeout_ms")) timeoutMs = std::stoi(req.get_param_value("timeout_ms")); } catch (...) {}
+        timeoutMs = std::clamp(timeoutMs, 0, 300000);
+
+        bool done = false;
+        {
+            std::unique_lock<std::mutex> lk(g_eventMutex);
+            done = g_eventCv.wait_for(lk, std::chrono::milliseconds(timeoutMs),
+                                      [&] { return g_lastDoneCommandId >= id; });
+        }
+        json ev = nullptr;
+        unsigned long long latest = 0;
+        if (done) {
+            json all = CollectEventsSince(0, kMaxEvents, latest);
+            for (const auto& e : all)
+                if (e.value("type", "") == "command_done" && e.value("id", 0ULL) == id) { ev = e; break; }
+        }
+        json r = {{"success", true}, {"id", id}, {"done", done}, {"event", ev}};
+        res.set_content(r.dump(), "application/json");
+    });
+
+    // WebSocket /ws?since=<seq>  — pushes every event as one JSON text frame.
+    // Default since = now (only new events); since=0 replays the ring. A
+    // {"type":"ping"} frame every 15 s lets the server notice dead clients.
+    svr.WebSocket("/ws", [](const Request& req, ws::WebSocket& sock) {
+        unsigned long long since = CurrentEventSeq();
+        try { if (req.has_param("since")) since = std::stoull(req.get_param_value("since")); } catch (...) {}
+        if (!sock.send(json({{"type", "hello"}, {"pid", (unsigned long)GetCurrentProcessId()},
+                             {"port", g_boundPort}, {"latest", CurrentEventSeq()}}).dump())) return;
+        int idleMs = 0;
+        while (sock.is_open() && g_serverRunning) {
+            if (!WaitForNewEvent(since, 1000)) {
+                idleMs += 1000;
+                if (idleMs >= 15000) {
+                    idleMs = 0;
+                    if (!sock.send(json({{"type", "ping"}}).dump())) return;
+                }
+                continue;
+            }
+            idleMs = 0;
+            unsigned long long latest = 0;
+            json events = CollectEventsSince(since, 200, latest);
+            for (const auto& e : events) {
+                if (!sock.send(e.dump())) return;
+                since = std::max<unsigned long long>(since, e.value("seq", 0ULL));
+            }
+        }
+    });
+
     // ── Start listening (blocking, retries on failure) ────────────────────────
     svr.set_keep_alive_max_count(100);
     svr.set_read_timeout(5, 0);  // 5 seconds
     svr.set_write_timeout(5, 0); // 5 seconds
-    
-    TraceLog("StartRESTServer: about to call svr.listen(127.0.0.1, 50505)");
+
+    const int requestedPort = RequestedPort();
+    TraceLog("StartRESTServer: about to listen on 127.0.0.1, requested port " +
+             (requestedPort == 0 ? std::string("auto") : std::to_string(requestedPort)));
     while (g_serverRunning) {
-        bool success = svr.listen("127.0.0.1", 50505);
+        bool success = false;
+        if (requestedPort == 0) {
+            int bound = svr.bind_to_any_port("127.0.0.1");
+            if (bound > 0) {
+                g_boundPort = bound;
+                WriteInstanceRegistry();
+                success = svr.listen_after_bind();
+            }
+        } else {
+            g_boundPort = requestedPort;
+            WriteInstanceRegistry();
+            success = svr.listen("127.0.0.1", requestedPort);
+        }
         if (!success) {
             TraceLog("StartRESTServer: svr.listen() returned false, WSAGetLastError()=" + std::to_string(WSAGetLastError()));
         } else {
@@ -1559,6 +1888,8 @@ void PluginShutdown()
         g_origWndProc = nullptr;
     }
     g_serverRunning = false;
+    g_eventCv.notify_all();  // release /wait, /events and /ws waiters
+    RemoveInstanceRegistry();
     if (g_timerId != 0) { KillTimer(NULL, g_timerId); g_timerId = 0; }
     if (g_server != nullptr) { g_server->stop(); }
 }
@@ -1633,6 +1964,7 @@ void ProcessCommandQueue()
         CommandResult asyncResult;
         asyncResult.type    = cmd.type;
         asyncResult.success = false;
+        const auto cmdStart = std::chrono::steady_clock::now();
 
         try {
             // ── Avatar import ─────────────────────────────────────────────
@@ -1656,8 +1988,35 @@ void ProcessCommandQueue()
             else if (cmd.type == "import-avatar-avt") {
                 Marvelous::ImportExportOption options;
                 options.scale = 1.0f;
-                TraceLog("BEGIN import-avatar-avt path=" + cmd.param1 + " scale=" + std::to_string(options.scale));
-                asyncResult.success = IMPORT_API->ImportAvatar(cmd.param1, options);
+                // Experiment knobs from /import-avatar-avt (defaults = old behaviour).
+                auto optStr = [&](const char* k) -> const std::string* {
+                    auto f = cmd.stringMapParam1.find(k);
+                    return f == cmd.stringMapParam1.end() ? nullptr : &f->second;
+                };
+                auto optBool = [&](const char* k, bool& dst) {
+                    if (auto s = optStr(k)) dst = (*s == "1" || *s == "true");
+                };
+                if (auto s = optStr("scale")) options.scale = std::stof(*s);
+                if (auto s = optStr("ImportObjectType")) options.ImportObjectType = std::stoi(*s);
+                optBool("bAdd", options.bAdd);
+                optBool("bAutoTranslate", options.bAutoTranslate);
+                optBool("bMoveGarment", options.bMoveGarment);
+                optBool("bAddArrangementPoints", options.bAddArrangementPoints);
+                optBool("bAutoCreateFittingSuit", options.bAutoCreateFittingSuit);
+                optBool("bSizeAndPoseFromAvatar", options.bSizeAndPoseFromAvatar);
+                optBool("bIncludeAvatarShape", options.bIncludeAvatarShape);
+                optBool("bIncludeSkeleton", options.bIncludeSkeleton);
+                std::string method = optStr("method") ? *optStr("method") : "import_avatar";
+                TraceLog("BEGIN import-avatar-avt path=" + cmd.param1 + " scale=" + std::to_string(options.scale)
+                    + " method=" + method + " bAdd=" + std::to_string(options.bAdd)
+                    + " bAutoTranslate=" + std::to_string(options.bAutoTranslate)
+                    + " ImportObjectType=" + std::to_string(options.ImportObjectType));
+                if (method == "import_file")
+                    asyncResult.success = IMPORT_API->ImportFile(cmd.param1);
+                else if (method == "import_file_opts")
+                    asyncResult.success = IMPORT_API->ImportFile(cmd.param1, options);
+                else
+                    asyncResult.success = IMPORT_API->ImportAvatar(cmd.param1, options);
                 if (asyncResult.success) g_avatarsLoaded++;
                 TraceLog("END   import-avatar-avt success=" + std::string(asyncResult.success ? "true" : "false")
                     + " avatarsLoaded=" + std::to_string(g_avatarsLoaded.load()));
@@ -1847,6 +2206,25 @@ void ProcessCommandQueue()
                 asyncResult.message = asyncResult.success
                     ? "Exported to: " + cmd.param1
                     : (wantGLB ? "ExportGLB returned no files" : "Export failed");
+            }
+            // ── EXPERIMENT: avatar size via grading API ────────────────────
+            else if (cmd.type == "grading-avatar-size") {
+                std::string log;
+                TraceLog("BEGIN grading-avatar-size avt=" + cmd.param1 + " avs=" + cmd.param2);
+                int group = PATTERN_API->AddGradingSizeGroup(cmd.boolParam1);
+                log += "AddGradingSizeGroup=" + std::to_string(group);
+                TraceLog("  " + log);
+                bool paired = true;
+                if (cmd.boolParam2 && !cmd.param1.empty()) {
+                    paired = PATTERN_API->SetGradingPairedAvatarFromFile(0, cmd.param1);
+                    log += " PairedFromFile=" + std::string(paired ? "true" : "false");
+                    TraceLog("  PairedFromFile=" + std::string(paired ? "true" : "false"));
+                }
+                bool sized = PATTERN_API->SetGradingPairedAvatarSizing(0, cmd.param2);
+                log += " Sizing=" + std::string(sized ? "true" : "false");
+                TraceLog("END   grading-avatar-size " + log);
+                asyncResult.success = sized;
+                asyncResult.message = log;
             }
             // ── New project ───────────────────────────────────────────────
             else if (cmd.type == "new-project") {
@@ -2319,7 +2697,25 @@ void ProcessCommandQueue()
             std::lock_guard<std::mutex> rlock(g_resultsMutex);
             g_lastResults.push_back(asyncResult);
         }
+
+        // Publish completion. Commands run in FIFO order, so g_lastDoneCommandId
+        // only ever grows; /wait?id=N is satisfied once it reaches N.
+        {
+            std::lock_guard<std::mutex> elk(g_eventMutex);
+            if (cmd.id > g_lastDoneCommandId) g_lastDoneCommandId = cmd.id;
+        }
+        if (!cmd.isSync) {
+            const long long elapsedMs = (long long)std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::steady_clock::now() - cmdStart).count();
+            EmitEvent({{"type", "command_done"}, {"id", cmd.id}, {"command", cmd.type},
+                       {"success", asyncResult.success}, {"message", asyncResult.message},
+                       {"elapsed_ms", elapsedMs}});
+        } else {
+            g_eventCv.notify_all();
+        }
     }
+
+    MaybeEmitIdle();
 
     // processingGuard's destructor resets g_queueProcessing = false here,
     // whether we reach this point normally or via an exception unwinding
@@ -2354,6 +2750,16 @@ CLO_PLUGIN_SPECIFIER int GetPositionIndexToAddAction()
 static void EnsureServerStarted(bool showMessageBox)
 {
     if (g_serverRunning) return;
+
+    {
+        const std::string hostVersion = GetHostAppVersion();
+        TraceLog(std::string("EnsureServerStarted: built against SDK folder ") + MIRRA_PLUGIN_SDK_FOLDER +
+                 " (CLO " + MIRRA_PLUGIN_SDK_CLO_VERSION + "), host CLO app is " + hostVersion);
+        if (hostVersion != MIRRA_PLUGIN_SDK_CLO_VERSION) {
+            TraceLog("WARNING: host CLO version differs from the SDK this plugin was built against; "
+                     "SDK calls such as ImportAvatar may crash CLO. Rebuild against a matching SDK or use a matching CLO.");
+        }
+    }
 
     if (showMessageBox && UTILITY_API) {
         UTILITY_API->DisplayMessageBox("Starting REST server on http://localhost:50505\n\nQueue drains automatically every 200 ms — no further menu clicks needed.");

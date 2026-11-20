@@ -69,6 +69,21 @@ def _next_version(avatars_root: Path, user_id: str) -> int:
     return (max(existing) + 1) if existing else 1
 
 
+def _reserve_version_dir(avatars_root: Path, user_id: str) -> tuple[int, Path]:
+    """Claim the next version folder atomically (mkdir without exist_ok), so
+    two parallel workers saving for the same user never share a version."""
+    user_root = avatars_root / user_id
+    user_root.mkdir(parents=True, exist_ok=True)
+    version = _next_version(avatars_root, user_id)
+    while True:
+        version_dir = user_root / f"{version:03d}"
+        try:
+            version_dir.mkdir()
+            return version, version_dir
+        except FileExistsError:
+            version += 1
+
+
 def _copy(src: Path | None, dest: Path) -> Path | None:
     if src is None or not src.exists():
         return None
@@ -92,9 +107,7 @@ def save_avatar_version(
     version — <version> is the next integer under that user's folder,
     matching clo_avatar_generation's own run-numbering convention."""
     avatars_root = _avatars_root()
-    version = _next_version(avatars_root, user_id)
-    version_dir = avatars_root / user_id / f"{version:03d}"
-    version_dir.mkdir(parents=True, exist_ok=True)
+    version, version_dir = _reserve_version_dir(avatars_root, user_id)
 
     saved_zprj = _copy(zprj_path, version_dir / "avatar.zprj")
     saved_avt = _copy(avt_path, version_dir / "avatar.avt")

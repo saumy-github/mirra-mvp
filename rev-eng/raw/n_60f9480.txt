@@ -1,0 +1,203 @@
+1460F9480  mov      qword ptr [rsp+8],rbx                    ; 
+1460F9485  push     rbp                                      ; 
+1460F9486  push     rsi                                      ; 
+1460F9487  push     rdi                                      ; 
+1460F9488  push     r14                                      ; 
+1460F948A  push     r15                                      ; 
+1460F948C  lea      rbp,[rsp-0Fh]                            ; 
+1460F9491  sub      rsp,0F0h                                 ; 
+1460F9498  mov      rax,qword ptr [000000014A172D40h]        ; stack cookie
+1460F949F  xor      rax,rsp                                  ; 
+1460F94A2  mov      qword ptr [rbp+7],rax                    ; 
+1460F94A6  mov      ebx,r9d                                  ; 
+1460F94A9  mov      r15d,r8d                                 ; 
+1460F94AC  mov      r14,rdx                                  ; 
+1460F94AF  mov      rdi,rcx                                  ; 
+1460F94B2  mov      rsi,qword ptr [rbp+7Fh]                  ; 
+1460F94B6  mov      qword ptr [rbp-1],rsi                    ; 
+1460F94BA  xor      edx,edx                                  ; 
+1460F94BC  mov      rcx,r14                                  ; 
+1460F94BF  call     0000000141C096A0                         ; call 0x1c096a0
+1460F94C4  test     al,al                                    ; 
+1460F94C6  jne      00000001460F9535                         ; 
+1460F94C8  mov      dword ptr [rsp+20h],ebx                  ; 
+1460F94CC  mov      r9d,r15d                                 ; 
+1460F94CF  mov      r8,r14                                   ; 
+1460F94D2  lea      rdx,[rsp+30h]                            ; 
+1460F94D7  mov      rcx,rdi                                  ; 
+1460F94DA  call     00000001460ADDD0                         ; call 0x60addd0
+1460F94DF  nop                                               ; 
+1460F94E0  xor      edx,edx                                  ; 
+1460F94E2  lea      rcx,[rsp+30h]                            ; 
+1460F94E7  call     0000000141D32960                         ; call 0x1d32960
+1460F94EC  test     al,al                                    ; 
+1460F94EE  jne      00000001460F94FE                         ; 
+1460F94F0  mov      rcx,qword ptr [rsp+30h]                  ; 
+1460F94F5  call     0000000143ADEF90                         ; call 0x3adef90
+1460F94FA  test     al,al                                    ; 
+1460F94FC  je       00000001460F9562                         ; 
+1460F94FE  mov      rbx,qword ptr [rsp+38h]                  ; 
+1460F9503  test     rbx,rbx                                  ; 
+1460F9506  je       00000001460F9535                         ; 
+1460F9508  mov      edi,0FFFFFFFFh                           ; 
+1460F950D  mov      eax,edi                                  ; 
+1460F950F  lock     xadd   dword ptr [rbx+8],eax             ; 
+1460F9514  cmp      eax,1                                    ; 
+1460F9517  jne      00000001460F9535                         ; 
+1460F9519  mov      rax,qword ptr [rbx]                      ; 
+1460F951C  mov      rcx,rbx                                  ; 
+1460F951F  call     qword ptr [rax]                          ; 
+1460F9521  lock     xadd   dword ptr [rbx+0Ch],edi           ; 
+1460F9526  cmp      edi,1                                    ; 
+1460F9529  jne      00000001460F9535                         ; 
+1460F952B  mov      rax,qword ptr [rbx]                      ; 
+1460F952E  mov      rcx,rbx                                  ; 
+1460F9531  call     qword ptr [rax+8]                        ; 
+1460F9534  nop                                               ; 
+1460F9535  mov      rcx,rsi                                  ; 
+1460F9538  call     0000000141BAA170                         ; call 0x1baa170
+1460F953D  xor      al,al                                    ; 
+1460F953F  mov      rcx,qword ptr [rbp+7]                    ; 
+1460F9543  xor      rcx,rsp                                  ; 
+1460F9546  call     00000001470D9780                         ; call 0x70d9780
+1460F954B  mov      rbx,qword ptr [rsp+0000000000000120h]    ; 
+1460F9553  add      rsp,0F0h                                 ; 
+1460F955A  pop      r15                                      ; 
+1460F955C  pop      r14                                      ; 
+1460F955E  pop      rdi                                      ; 
+1460F955F  pop      rsi                                      ; 
+1460F9560  pop      rbp                                      ; 
+1460F9561  ret                                               ; 
+1460F9562  mov      rcx,qword ptr [rsp+30h]                  ; 
+1460F9567  add      rcx,220h                                 ; 
+1460F956E  lea      rdx,[rsp+50h]                            ; 
+1460F9573  call     0000000143AD2CC0                         ; call 0x3ad2cc0
+1460F9578  xor      edx,edx                                  ; 
+1460F957A  mov      rcx,rax                                  ; 
+1460F957D  call     0000000143AC6EC0                         ; call 0x3ac6ec0
+1460F9582  movzx    r15d,al                                  ; 
+1460F9586  mov      edi,0FFFFFFFFh                           ; 
+1460F958B  mov      rbx,qword ptr [rsp+58h]                  ; 
+1460F9590  test     rbx,rbx                                  ; 
+1460F9593  je       00000001460F95BE                         ; 
+1460F9595  mov      edx,edi                                  ; 
+1460F9597  lock     xadd   dword ptr [rbx+8],edx             ; 
+1460F959C  cmp      edx,1                                    ; 
+1460F959F  jne      00000001460F95BE                         ; 
+1460F95A1  mov      rdx,qword ptr [rbx]                      ; 
+1460F95A4  mov      rcx,rbx                                  ; 
+1460F95A7  call     qword ptr [rdx]                          ; 
+1460F95A9  mov      eax,edi                                  ; 
+1460F95AB  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+1460F95B0  cmp      eax,1                                    ; 
+1460F95B3  jne      00000001460F95BE                         ; 
+1460F95B5  mov      rax,qword ptr [rbx]                      ; 
+1460F95B8  mov      rcx,rbx                                  ; 
+1460F95BB  call     qword ptr [rax+8]                        ; 
+1460F95BE  test     r15b,r15b                                ; 
+1460F95C1  je       00000001460F95D6                         ; 
+1460F95C3  mov      rbx,qword ptr [rsp+38h]                  ; 
+1460F95C8  test     rbx,rbx                                  ; 
+1460F95CB  je       00000001460F9535                         ; 
+1460F95D1  jmp      00000001460F950D                         ; 
+1460F95D6  mov      rbx,qword ptr [rsp+30h]                  ; 
+1460F95DB  movss    xmm0,dword ptr [rbp+5Fh]                 ; 
+1460F95E0  movss    dword ptr [rsp+40h],xmm0                 ; 
+1460F95E6  movss    xmm1,dword ptr [rbp+67h]                 ; 
+1460F95EB  movss    dword ptr [rsp+44h],xmm1                 ; 
+1460F95F1  movss    xmm0,dword ptr [rbp+6Fh]                 ; 
+1460F95F6  movss    dword ptr [rsp+48h],xmm0                 ; 
+1460F95FC  mov      dword ptr [rsp+4Ch],3F800000h            ; 
+1460F9604  lea      rdx,[rsp+40h]                            ; 
+1460F9609  lea      rcx,[rbp-61h]                            ; 
+1460F960D  call     00000001439D1D40                         ; call 0x39d1d40
+1460F9612  nop                                               ; 
+1460F9613  mov      rdx,rax                                  ; 
+1460F9616  lea      rcx,[rbx+0000000000000220h]              ; 
+1460F961D  call     0000000143A857E0                         ; call 0x3a857e0
+1460F9622  nop                                               ; 
+1460F9623  lea      rcx,[rbp-61h]                            ; 
+1460F9627  call     00000001439D39B0                         ; call 0x39d39b0
+1460F962C  mov      rcx,qword ptr [rsp+30h]                  ; 
+1460F9631  add      rcx,220h                                 ; 
+1460F9638  movss    xmm1,dword ptr [rbp+77h]                 ; 
+1460F963D  call     0000000143A852E0                         ; call 0x3a852e0
+1460F9642  cmp      qword ptr [rsi+10h],0                    ; 
+1460F9647  je       00000001460F9676                         ; 
+1460F9649  mov      rbx,qword ptr [rsp+30h]                  ; 
+1460F964E  mov      rdx,rsi                                  ; 
+1460F9651  lea      rcx,[rsp+60h]                            ; 
+1460F9656  call     00000001466668A0                         ; call 0x66668a0
+1460F965B  nop                                               ; 
+1460F965C  mov      rdx,rax                                  ; 
+1460F965F  lea      rcx,[rbx+0000000000000220h]              ; 
+1460F9666  call     0000000143A85B70                         ; call 0x3a85b70
+1460F966B  nop                                               ; 
+1460F966C  lea      rcx,[rsp+60h]                            ; 
+1460F9671  call     0000000146665040                         ; call 0x6665040
+1460F9676  mov      rcx,qword ptr [rsp+30h]                  ; 
+1460F967B  add      rcx,220h                                 ; 
+1460F9682  xor      edx,edx                                  ; 
+1460F9684  call     0000000143A90900                         ; call 0x3a90900
+1460F9689  mov      rcx,qword ptr [r14]                      ; 
+1460F968C  call     00000001449A79E0                         ; call 0x49a79e0
+1460F9691  call     0000000141BE1040                         ; call 0x1be1040
+1460F9696  mov      rcx,rax                                  ; 
+1460F9699  call     0000000145CCD3A0                         ; call 0x5ccd3a0
+1460F969E  call     0000000141BE0EC0                         ; call 0x1be0ec0
+1460F96A3  cmp      qword ptr [rax+30h],0                    ; 
+1460F96A8  je       00000001460F96CC                         ; 
+1460F96AA  call     0000000141BE0EC0                         ; call 0x1be0ec0
+1460F96AF  mov      rcx,qword ptr [rax+40h]                  ; 
+1460F96B3  mov      rax,qword ptr [rcx]                      ; 
+1460F96B6  call     qword ptr [rax+0000000000000080h]        ; 
+1460F96BC  call     0000000141BE0EC0                         ; call 0x1be0ec0
+1460F96C1  mov      rcx,qword ptr [rax+30h]                  ; 
+1460F96C5  mov      rax,qword ptr [rcx]                      ; 
+1460F96C8  call     qword ptr [rax+20h]                      ; 
+1460F96CB  nop                                               ; 
+1460F96CC  mov      rbx,qword ptr [rsp+38h]                  ; 
+1460F96D1  test     rbx,rbx                                  ; 
+1460F96D4  je       00000001460F96FE                         ; 
+1460F96D6  mov      eax,edi                                  ; 
+1460F96D8  lock     xadd   dword ptr [rbx+8],eax             ; 
+1460F96DD  cmp      eax,1                                    ; 
+1460F96E0  jne      00000001460F96FE                         ; 
+1460F96E2  mov      rax,qword ptr [rbx]                      ; 
+1460F96E5  mov      rcx,rbx                                  ; 
+1460F96E8  call     qword ptr [rax]                          ; 
+1460F96EA  lock     xadd   dword ptr [rbx+0Ch],edi           ; 
+1460F96EF  cmp      edi,1                                    ; 
+1460F96F2  jne      00000001460F96FE                         ; 
+1460F96F4  mov      rax,qword ptr [rbx]                      ; 
+1460F96F7  mov      rcx,rbx                                  ; 
+1460F96FA  call     qword ptr [rax+8]                        ; 
+1460F96FD  nop                                               ; 
+1460F96FE  mov      rcx,rsi                                  ; 
+1460F9701  call     0000000141BAA170                         ; call 0x1baa170
+1460F9706  mov      al,1                                     ; 
+1460F9708  jmp      00000001460F953F                         ; 
+== 179 instructions, ends 1460F9708
+== strings
+== calls (rva: count, thunk)
+  1baa170: x2 
+  1be0ec0: x3 
+  1be1040: x1 
+  1c096a0: x1 
+  1d32960: x1 
+  39d1d40: x1 
+  39d39b0: x1 
+  3a852e0: x1 
+  3a857e0: x1 
+  3a85b70: x1 
+  3a90900: x1 
+  3ac6ec0: x1 
+  3ad2cc0: x1 
+  3adef90: x1 
+  49a79e0: x1 
+  5ccd3a0: x1 
+  60addd0: x1 
+  6665040: x1 
+  66668a0: x1 
+  70d9780: x1 
+== data refs

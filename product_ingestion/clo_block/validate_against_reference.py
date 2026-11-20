@@ -30,11 +30,11 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 try:
-    from .clo_draft import CloTShirtDraft, _arc_length
-    from .clo_draft_config import CloBlockMeasurements, CloDraftConfig
+    from .step_05_2_clo_draft import CloTShirtDraft, _arc_length
+    from .step_05_1_clo_draft_config import CloBlockMeasurements, CloDraftConfig
 except ImportError:  # pragma: no cover
-    from clo_draft import CloTShirtDraft, _arc_length  # type: ignore
-    from clo_draft_config import CloBlockMeasurements, CloDraftConfig  # type: ignore
+    from step_05_2_clo_draft import CloTShirtDraft, _arc_length  # type: ignore
+    from step_05_1_clo_draft_config import CloBlockMeasurements, CloDraftConfig  # type: ignore
 
 Point2D = Tuple[float, float]
 

@@ -1,0 +1,95 @@
+143BD1220  mov      qword ptr [rsp+8],rbx                    ; 
+143BD1225  mov      qword ptr [rsp+10h],rsi                  ; 
+143BD122A  push     rdi                                      ; 
+143BD122B  sub      rsp,30h                                  ; 
+143BD122F  mov      rsi,rdx                                  ; 
+143BD1232  mov      rbx,rcx                                  ; 
+143BD1235  cmp      dword ptr [rcx+000000000000034Ch],1      ; 
+143BD123C  je       0000000143BD1346                         ; 
+143BD1242  cmp      byte ptr [rcx+0000000000000318h],0       ; 
+143BD1249  je       0000000143BD1346                         ; 
+143BD124F  cmp      byte ptr [rcx+00000000000001C0h],0       ; 
+143BD1256  jne      0000000143BD1346                         ; 
+143BD125C  cmp      dword ptr [rcx+2Ch],0                    ; 
+143BD1260  ja       0000000143BD126C                         ; 
+143BD1262  cmp      dword ptr [rcx+30h],0                    ; 
+143BD1266  jbe      0000000143BD1346                         ; 
+143BD126C  lea      rdi,[rcx+0000000000000320h]              ; 
+143BD1273  mov      rcx,rdi                                  ; 
+143BD1276  call     0000000146669700                         ; call 0x6669700
+143BD127B  test     eax,eax                                  ; 
+143BD127D  jne      0000000143BD1314                         ; 
+143BD1283  lea      rdx,[rbx+00000000000002F8h]              ; 
+143BD128A  lea      rcx,[rsp+20h]                            ; 
+143BD128F  call     0000000146675BD0                         ; call 0x6675bd0
+143BD1294  nop                                               ; 
+143BD1295  mov      edx,1                                    ; 
+143BD129A  lea      rcx,[rsp+20h]                            ; 
+143BD129F  call     0000000146676400                         ; call 0x6676400
+143BD12A4  lea      rcx,[rsp+20h]                            ; 
+143BD12A9  call     00000001466761A0                         ; call 0x66761a0
+143BD12AE  test     al,al                                    ; 
+143BD12B0  je       0000000143BD1331                         ; 
+143BD12B2  mov      edx,dword ptr [rbx+2Ch]                  ; 
+143BD12B5  lea      rcx,[rsp+20h]                            ; 
+143BD12BA  call     0000000146676AA0                         ; call 0x6676aa0
+143BD12BF  test     al,al                                    ; 
+143BD12C1  je       0000000143BD1331                         ; 
+143BD12C3  mov      eax,dword ptr [rbx+30h]                  ; 
+143BD12C6  test     eax,eax                                  ; 
+143BD12C8  jne      0000000143BD12DA                         ; 
+143BD12CA  lea      rcx,[rsp+20h]                            ; 
+143BD12CF  call     0000000146676BE0                         ; call 0x6676be0
+143BD12D4  sub      eax,dword ptr [rbx+2Ch]                  ; 
+143BD12D7  mov      dword ptr [rbx+30h],eax                  ; 
+143BD12DA  mov      edx,eax                                  ; 
+143BD12DC  mov      rcx,rdi                                  ; 
+143BD12DF  call     0000000146669620                         ; call 0x6669620
+143BD12E4  mov      ebx,dword ptr [rbx+30h]                  ; 
+143BD12E7  mov      rcx,rdi                                  ; 
+143BD12EA  call     0000000146668FD0                         ; call 0x6668fd0
+143BD12EF  mov      r8d,ebx                                  ; 
+143BD12F2  mov      rdx,rax                                  ; 
+143BD12F5  lea      rcx,[rsp+20h]                            ; 
+143BD12FA  call     0000000146676600                         ; call 0x6676600
+143BD12FF  lea      rcx,[rsp+20h]                            ; 
+143BD1304  call     0000000146675E00                         ; call 0x6675e00
+143BD1309  nop                                               ; 
+143BD130A  lea      rcx,[rsp+20h]                            ; 
+143BD130F  call     0000000146675D90                         ; call 0x6675d90
+143BD1314  mov      rdx,rdi                                  ; 
+143BD1317  mov      rcx,rsi                                  ; 
+143BD131A  call     0000000146668BE0                         ; call 0x6668be0
+143BD131F  mov      al,1                                     ; 
+143BD1321  mov      rbx,qword ptr [rsp+40h]                  ; 
+143BD1326  mov      rsi,qword ptr [rsp+48h]                  ; 
+143BD132B  add      rsp,30h                                  ; 
+143BD132F  pop      rdi                                      ; 
+143BD1330  ret                                               ; 
+143BD1331  lea      rcx,[rsp+20h]                            ; 
+143BD1336  call     0000000146675E00                         ; call 0x6675e00
+143BD133B  nop                                               ; 
+143BD133C  lea      rcx,[rsp+20h]                            ; 
+143BD1341  call     0000000146675D90                         ; call 0x6675d90
+143BD1346  xor      al,al                                    ; 
+143BD1348  mov      rbx,qword ptr [rsp+40h]                  ; 
+143BD134D  mov      rsi,qword ptr [rsp+48h]                  ; 
+143BD1352  add      rsp,30h                                  ; 
+143BD1356  pop      rdi                                      ; 
+143BD1357  ret                                               ; 
+== 79 instructions, ends 143BD1357
+== strings
+== calls (rva: count, thunk)
+  6668be0: x1 
+  6668fd0: x1 
+  6669620: x1 
+  6669700: x1 
+  6675bd0: x1 
+  6675d90: x2 
+  6675e00: x2 
+  66761a0: x1 
+  6676400: x1 
+  6676600: x1 
+  6676aa0: x1 
+  6676be0: x1 
+== data refs

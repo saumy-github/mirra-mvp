@@ -221,7 +221,8 @@ def run(ctx: Step1Context) -> bool:
         "measurement_apply_mode_resolved": apply_mode,
     }
 
-    if apply_mode == "avt_patch":
+    if apply_mode in ("avt_patch", "avs"):
+        # avs reuses the avt_patch field/index payload.
         avt_patch_payload, avt_patch_fields, skipped_avt_patch_fields = _build_avt_patch_payload(ctx)
         ctx.clo_payload_avt_patch_json = avt_patch_payload
 

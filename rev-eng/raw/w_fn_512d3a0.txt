@@ -1,0 +1,40 @@
+﻿14512D3A0  mov      qword ptr [rsp+8],rbx                    ; 
+14512D3A5  push     rdi                                      ; 
+14512D3A6  sub      rsp,30h                                  ; 
+14512D3AA  movsxd   rbx,edx                                  ; 
+14512D3AD  mov      rdi,rcx                                  ; 
+14512D3B0  movaps   xmmword ptr [rsp+20h],xmm6               ; 
+14512D3B5  mov      edx,ebx                                  ; 
+14512D3B7  movaps   xmm6,xmm2                                ; 
+14512D3BA  call     00000001450D8A30                         ; call 0x50d8a30
+14512D3BF  cmp      eax,8                                    ; 
+14512D3C2  jne      000000014512D3D1                         ; 
+14512D3C4  movss    xmm1,dword ptr [0000000148270478h]       ; .rdata 8270478
+14512D3CC  xorps    xmm0,xmm0                                ; 
+14512D3CF  jmp      000000014512D3E1                         ; 
+14512D3D1  movss    xmm0,dword ptr [00000001482703D8h]       ; .rdata 82703d8
+14512D3D9  movss    xmm1,dword ptr [000000014846C880h]       ; .rdata 846c880
+14512D3E1  movsxd   rax,dword ptr [rdi+18h]                  ; 
+14512D3E5  maxss    xmm0,xmm6                                ; 
+14512D3E9  imul     r8,rax,8F20h                             ; 
+14512D3F0  imul     rax,rbx,210h                             ; 
+14512D3F7  minss    xmm1,xmm0                                ; 
+14512D3FB  add      r8,rdi                                   ; 
+14512D3FE  mov      rcx,rdi                                  ; 
+14512D401  mov      r8d,dword ptr [rax+r8+0000000000000278h] ; 
+14512D409  call     000000014516BCF0                         ; call 0x516bcf0
+14512D40E  movaps   xmm6,xmmword ptr [rsp+20h]               ; 
+14512D413  movss    dword ptr [rdi+rbx*4+0000000000086860h],xmm0 ; 
+14512D41C  mov      rbx,qword ptr [rsp+40h]                  ; 
+14512D421  add      rsp,30h                                  ; 
+14512D425  pop      rdi                                      ; 
+14512D426  ret                                               ; 
+== 31 instructions, ends 14512D426
+== strings
+== calls (rva: count, thunk)
+  50d8a30: x1 
+  516bcf0: x1 
+== data refs
+  82703d8 .rdata x1
+  8270478 .rdata x1
+  846c880 .rdata x1

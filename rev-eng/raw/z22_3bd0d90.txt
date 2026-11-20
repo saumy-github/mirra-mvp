@@ -1,0 +1,100 @@
+143BD0D90  mov      qword ptr [rsp+10h],rbx                  ; 
+143BD0D95  mov      qword ptr [rsp+18h],rbp                  ; 
+143BD0D9A  push     rsi                                      ; 
+143BD0D9B  push     rdi                                      ; 
+143BD0D9C  push     r12                                      ; 
+143BD0D9E  push     r14                                      ; 
+143BD0DA0  push     r15                                      ; 
+143BD0DA2  sub      rsp,0E0h                                 ; 
+143BD0DA9  mov      r14,r9                                   ; 
+143BD0DAC  mov      r15,r8                                   ; 
+143BD0DAF  mov      r12,rdx                                  ; 
+143BD0DB2  mov      rsi,rcx                                  ; 
+143BD0DB5  lea      rdx,[rcx+00000000000002F8h]              ; 
+143BD0DBC  lea      rcx,[rsp+0000000000000080h]              ; 
+143BD0DC4  call     0000000146664E10                         ; call 0x6664e10
+143BD0DC9  nop                                               ; 
+143BD0DCA  mov      rbp,qword ptr [rsp+0000000000000130h]    ; 
+143BD0DD2  cmp      byte ptr [rsi+00000000000001C0h],0       ; 
+143BD0DD9  jne      0000000143BD0DEF                         ; 
+143BD0DDB  lea      rcx,[rsi+00000000000002F8h]              ; 
+143BD0DE2  call     0000000144B70A00                         ; call 0x4b70a00
+143BD0DE7  test     al,al                                    ; 
+143BD0DE9  je       0000000143BD0EAF                         ; 
+143BD0DEF  lea      rcx,[rsp+60h]                            ; 
+143BD0DF4  call     0000000146665010                         ; call 0x6665010
+143BD0DF9  nop                                               ; 
+143BD0DFA  lea      rcx,[rsp+40h]                            ; 
+143BD0DFF  call     0000000146665010                         ; call 0x6665010
+143BD0E04  nop                                               ; 
+143BD0E05  lea      rdx,[00000001482BC714h]                  ; .rdata 82bc714
+143BD0E0C  lea      rcx,[rsp+00000000000000A0h]              ; 
+143BD0E14  call     0000000146664F70                         ; call 0x6664f70
+143BD0E19  nop                                               ; 
+143BD0E1A  mov      ebx,dword ptr [rsi+000000000000034Ch]    ; 
+143BD0E20  lea      rdx,[rsi+00000000000002F8h]              ; 
+143BD0E27  lea      rcx,[rsp+00000000000000C0h]              ; 
+143BD0E2F  call     0000000146664E10                         ; call 0x6664e10
+143BD0E34  lea      r8,[rsi+00000000000002F0h]               ; 
+143BD0E3B  lea      rcx,[rsp+40h]                            ; 
+143BD0E40  mov      qword ptr [rsp+30h],rcx                  ; 
+143BD0E45  mov      qword ptr [rsp+28h],r14                  ; 
+143BD0E4A  lea      rcx,[rsp+60h]                            ; 
+143BD0E4F  mov      qword ptr [rsp+20h],rcx                  ; 
+143BD0E54  lea      r9,[rsp+00000000000000A0h]               ; 
+143BD0E5C  mov      edx,ebx                                  ; 
+143BD0E5E  mov      rcx,rax                                  ; 
+143BD0E61  call     0000000146260840                         ; call 0x6260840
+143BD0E66  movzx    ebx,al                                   ; 
+143BD0E69  lea      rcx,[rsp+00000000000000A0h]              ; 
+143BD0E71  call     0000000146665040                         ; call 0x6665040
+143BD0E76  lea      rdx,[rsp+60h]                            ; 
+143BD0E7B  lea      rcx,[rsp+0000000000000080h]              ; 
+143BD0E83  call     00000001466650B0                         ; call 0x66650b0
+143BD0E88  lea      rdx,[rsp+40h]                            ; 
+143BD0E8D  mov      rcx,rbp                                  ; 
+143BD0E90  call     00000001466650B0                         ; call 0x66650b0
+143BD0E95  nop                                               ; 
+143BD0E96  lea      rcx,[rsp+40h]                            ; 
+143BD0E9B  call     0000000146665040                         ; call 0x6665040
+143BD0EA0  nop                                               ; 
+143BD0EA1  lea      rcx,[rsp+60h]                            ; 
+143BD0EA6  call     0000000146665040                         ; call 0x6665040
+143BD0EAB  test     bl,bl                                    ; 
+143BD0EAD  je       0000000143BD0ED8                         ; 
+143BD0EAF  call     0000000144B707B0                         ; call 0x4b707b0
+143BD0EB4  mov      qword ptr [rsp+28h],rbp                  ; 
+143BD0EB9  mov      qword ptr [rsp+20h],r15                  ; 
+143BD0EBE  mov      r9,r12                                   ; 
+143BD0EC1  movzx    r8d,byte ptr [r14]                       ; 
+143BD0EC5  lea      rdx,[rsp+0000000000000080h]              ; 
+143BD0ECD  mov      rcx,rax                                  ; 
+143BD0ED0  call     0000000144B6E390                         ; call 0x4b6e390
+143BD0ED5  movzx    ebx,al                                   ; 
+143BD0ED8  lea      rcx,[rsp+0000000000000080h]              ; 
+143BD0EE0  call     0000000146665040                         ; call 0x6665040
+143BD0EE5  movzx    eax,bl                                   ; 
+143BD0EE8  lea      r11,[rsp+00000000000000E0h]              ; 
+143BD0EF0  mov      rbx,qword ptr [r11+38h]                  ; 
+143BD0EF4  mov      rbp,qword ptr [r11+40h]                  ; 
+143BD0EF8  mov      rsp,r11                                  ; 
+143BD0EFB  pop      r15                                      ; 
+143BD0EFD  pop      r14                                      ; 
+143BD0EFF  pop      r12                                      ; 
+143BD0F01  pop      rdi                                      ; 
+143BD0F02  pop      rsi                                      ; 
+143BD0F03  ret                                               ; 
+== 86 instructions, ends 143BD0F03
+== strings
+== calls (rva: count, thunk)
+  4b6e390: x1 
+  4b707b0: x1 
+  4b70a00: x1 
+  6260840: x1 
+  6664e10: x2 
+  6664f70: x1 
+  6665010: x2 
+  6665040: x4 
+  66650b0: x2 
+== data refs
+  82bc714 .rdata x1

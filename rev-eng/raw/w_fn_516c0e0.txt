@@ -1,0 +1,100 @@
+﻿14516C0E0  mov      qword ptr [rsp+8],rbx                    ; 
+14516C0E5  mov      qword ptr [rsp+10h],rbp                  ; 
+14516C0EA  mov      qword ptr [rsp+18h],rsi                  ; 
+14516C0EF  push     rdi                                      ; 
+14516C0F0  push     r14                                      ; 
+14516C0F2  push     r15                                      ; 
+14516C0F4  sub      rsp,40h                                  ; 
+14516C0F8  mov      r15,rdx                                  ; 
+14516C0FB  movaps   xmmword ptr [rsp+30h],xmm6               ; 
+14516C100  mov      r14,rcx                                  ; 
+14516C103  movaps   xmmword ptr [rsp+20h],xmm7               ; 
+14516C108  mov      rcx,r15                                  ; 
+14516C10B  mov      edx,5                                    ; 
+14516C110  mov      ebp,r8d                                  ; 
+14516C113  xorps    xmm6,xmm6                                ; 
+14516C116  call     0000000145143350                         ; call 0x5143350
+14516C11B  mov      rax,qword ptr [r14+28h]                  ; 
+14516C11F  cmp      dword ptr [rax+00000000000000C0h],0      ; 
+14516C126  je       000000014516C142                         ; 
+14516C128  mov      edx,25h                                  ; 
+14516C12D  mov      rcx,r15                                  ; 
+14516C130  call     0000000145143350                         ; call 0x5143350
+14516C135  mov      edx,2Fh                                  ; 
+14516C13A  mov      rcx,r15                                  ; 
+14516C13D  call     0000000145143350                         ; call 0x5143350
+14516C142  mov      rax,qword ptr [r14+28h]                  ; 
+14516C146  cmp      dword ptr [rax+00000000000000E4h],0      ; 
+14516C14D  je       000000014516C169                         ; 
+14516C14F  mov      edx,37h                                  ; 
+14516C154  mov      rcx,r15                                  ; 
+14516C157  call     0000000145143350                         ; call 0x5143350
+14516C15C  mov      edx,38h                                  ; 
+14516C161  mov      rcx,r15                                  ; 
+14516C164  call     0000000145143350                         ; call 0x5143350
+14516C169  mov      rax,qword ptr [r14+28h]                  ; 
+14516C16D  cmp      dword ptr [rax+1Ch],0                    ; 
+14516C171  je       000000014516C180                         ; 
+14516C173  mov      edx,8                                    ; 
+14516C178  mov      rcx,r15                                  ; 
+14516C17B  call     0000000145143350                         ; call 0x5143350
+14516C180  movss    xmm7,dword ptr [00000001482704A0h]       ; .rdata 82704a0
+14516C188  lea      rbx,[r15+00000000000001ECh]              ; 
+14516C18F  xor      edi,edi                                  ; 
+14516C191  mov      esi,edi                                  ; 
+14516C193  cmp      byte ptr [rbx-8],0                       ; 
+14516C197  je       000000014516C1FC                         ; 
+14516C199  mov      rax,qword ptr [r14+28h]                  ; 
+14516C19D  mov      ecx,dword ptr [rsi+rax]                  ; 
+14516C1A0  test     ecx,ecx                                  ; 
+14516C1A2  je       000000014516C1FC                         ; 
+14516C1A4  cmp      ecx,5                                    ; 
+14516C1A7  je       000000014516C1FC                         ; 
+14516C1A9  cmp      ebp,1                                    ; 
+14516C1AC  jne      000000014516C1BA                         ; 
+14516C1AE  lea      eax,[rcx-2]                              ; 
+14516C1B1  test     eax,0FFFFFFFDh                           ; 
+14516C1B6  jne      000000014516C1CD                         ; 
+14516C1B8  jmp      000000014516C1FC                         ; 
+14516C1BA  cmp      ebp,2                                    ; 
+14516C1BD  jne      000000014516C1C3                         ; 
+14516C1BF  cmp      ecx,ebp                                  ; 
+14516C1C1  jmp      000000014516C1CB                         ; 
+14516C1C3  cmp      ebp,3                                    ; 
+14516C1C6  jne      000000014516C1CD                         ; 
+14516C1C8  cmp      ecx,4                                    ; 
+14516C1CB  je       000000014516C1FC                         ; 
+14516C1CD  mov      edx,edi                                  ; 
+14516C1CF  mov      rcx,r15                                  ; 
+14516C1D2  call     0000000145143350                         ; call 0x5143350
+14516C1D7  mov      r8d,dword ptr [rbx-0Ch]                  ; 
+14516C1DB  mov      rcx,r14                                  ; 
+14516C1DE  movss    xmm1,dword ptr [r14+rsi+000000000008696Ch] ; 
+14516C1E8  call     000000014516B8F0                         ; call 0x516b8f0
+14516C1ED  movss    xmm1,dword ptr [rbx]                     ; 
+14516C1F1  subss    xmm1,xmm0                                ; 
+14516C1F5  andps    xmm1,xmm7                                ; 
+14516C1F8  addss    xmm6,xmm1                                ; 
+14516C1FC  inc      edi                                      ; 
+14516C1FE  add      rsi,4                                    ; 
+14516C202  add      rbx,210h                                 ; 
+14516C209  cmp      edi,43h                                  ; 
+14516C20C  jl       000000014516C193                         ; 
+14516C20E  mov      rbx,qword ptr [rsp+60h]                  ; 
+14516C213  movaps   xmm0,xmm6                                ; 
+14516C216  movaps   xmm6,xmmword ptr [rsp+30h]               ; 
+14516C21B  mov      rbp,qword ptr [rsp+68h]                  ; 
+14516C220  mov      rsi,qword ptr [rsp+70h]                  ; 
+14516C225  movaps   xmm7,xmmword ptr [rsp+20h]               ; 
+14516C22A  add      rsp,40h                                  ; 
+14516C22E  pop      r15                                      ; 
+14516C230  pop      r14                                      ; 
+14516C232  pop      rdi                                      ; 
+14516C233  ret                                               ; 
+== 93 instructions, ends 14516C233
+== strings
+== calls (rva: count, thunk)
+  5143350: x7 
+  516b8f0: x1 
+== data refs
+  82704a0 .rdata x1

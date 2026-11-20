@@ -17,8 +17,8 @@ _HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_HERE))
 
 from garment_measurements import GarmentMeasurements
-from panels import DynamicPatternGenerator
-from texture_projection import TextureProjector, project_textures
+from step_05_0_panel_generation_clo import generate_panels
+from step_06_0_texture_projection import TextureProjector, project_textures
 
 
 def _make_measurements() -> GarmentMeasurements:
@@ -53,14 +53,9 @@ def _make_garment_rgba(w=300, h=400) -> np.ndarray:
 
 
 def _make_layouts():
-    m = _make_measurements()
-    gen = DynamicPatternGenerator(m)
-    gen.generate_front_panel()
-    gen.generate_back_panel()
-    arm = (gen.front_armhole_length + gen.back_armhole_length) / 2
-    gen.generate_sleeve("sleeve_left",  target_armhole_length=arm)
-    gen.generate_sleeve("sleeve_right", target_armhole_length=arm)
-    return gen.layouts
+    """Real panel layouts (cm) from the current CLO-block generator."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        return generate_panels(_make_measurements(), Path(tmpdir)).layouts
 
 
 class TestTextureProjection(unittest.TestCase):

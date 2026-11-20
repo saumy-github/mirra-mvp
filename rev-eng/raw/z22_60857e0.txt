@@ -1,0 +1,117 @@
+1460857E0  mov      qword ptr [rsp+8],rbx                    ; 
+1460857E5  push     rdi                                      ; 
+1460857E6  sub      rsp,90h                                  ; 
+1460857ED  mov      rax,qword ptr [000000014A172D40h]        ; stack cookie
+1460857F4  xor      rax,rsp                                  ; 
+1460857F7  mov      qword ptr [rsp+0000000000000088h],rax    ; 
+1460857FF  mov      edi,edx                                  ; 
+146085801  call     0000000144E10DD0                         ; call 0x4e10dd0
+146085806  mov      rbx,rax                                  ; 
+146085809  mov      dword ptr [rsp+24h],0                    ; 
+146085811  lea      r8,[rsp+20h]                             ; 
+146085816  lea      rdx,[rsp+24h]                            ; 
+14608581B  lea      rcx,[rsp+28h]                            ; 
+146085820  call     0000000145EF27E0                         ; call 0x5ef27e0
+146085825  nop                                               ; 
+146085826  xorps    xmm0,xmm0                                ; 
+146085829  movups   xmmword ptr [rsp+68h],xmm0               ; 
+14608582E  mov      qword ptr [rsp+78h],0                    ; 
+146085837  mov      qword ptr [rsp+0000000000000080h],0Fh    ; 
+146085843  mov      ecx,50h                                  ; 
+146085848  call     00000001470D91B8                         ; call 0x70d91b8
+14608584D  mov      rcx,rax                                  ; 
+146085850  mov      qword ptr [rsp+68h],rax                  ; 
+146085855  mov      qword ptr [rsp+78h],43h                  ; 
+14608585E  mov      qword ptr [rsp+0000000000000080h],4Fh    ; 
+14608586A  movaps   xmm0,xmmword ptr [00000001489A8920h]     ; .rdata 89a8920 -> 'A:void __cdecl Marvelous::UtilityAPI::UsePlugInFromList(unsigned int)'
+146085871  movups   xmmword ptr [rax],xmm0                   ; 
+146085874  movaps   xmm1,xmmword ptr [00000001489A8930h]     ; .rdata 89a8930 -> 'A:velous::UtilityAPI::UsePlugInFromList(unsigned int)'
+14608587B  movups   xmmword ptr [rax+10h],xmm1               ; 
+14608587F  movaps   xmm0,xmmword ptr [00000001489A8940h]     ; .rdata 89a8940 -> 'A:PI::UsePlugInFromList(unsigned int)'
+146085886  movups   xmmword ptr [rax+20h],xmm0               ; 
+14608588A  movaps   xmm1,xmmword ptr [00000001489A8950h]     ; .rdata 89a8950 -> 'A:mList(unsigned int)'
+146085891  movups   xmmword ptr [rax+30h],xmm1               ; 
+146085895  movzx    eax,word ptr [00000001489A8960h]         ; .rdata 89a8960 -> 'A:nt)'
+14608589C  mov      word ptr [rcx+40h],ax                    ; 
+1460858A0  movzx    eax,byte ptr [00000001489A8962h]         ; .rdata 89a8962
+1460858A7  mov      byte ptr [rcx+42h],al                    ; 
+1460858AA  mov      byte ptr [rcx+43h],0                     ; 
+1460858AE  lea      r9,[rsp+28h]                             ; 
+1460858B3  lea      r8,[rsp+68h]                             ; 
+1460858B8  mov      edx,2                                    ; 
+1460858BD  mov      rcx,rbx                                  ; 
+1460858C0  call     0000000144E10FB0                         ; call 0x4e10fb0
+1460858C5  nop                                               ; 
+1460858C6  mov      rdx,qword ptr [rsp+0000000000000080h]    ; 
+1460858CE  cmp      rdx,0Fh                                  ; 
+1460858D2  jbe      0000000146085909                         ; 
+1460858D4  inc      rdx                                      ; 
+1460858D7  mov      rcx,qword ptr [rsp+68h]                  ; 
+1460858DC  mov      rax,rcx                                  ; 
+1460858DF  cmp      rdx,1000h                                ; 
+1460858E6  jb       0000000146085904                         ; 
+1460858E8  add      rdx,27h                                  ; 
+1460858EC  mov      rcx,qword ptr [rcx-8]                    ; 
+1460858F0  sub      rax,rcx                                  ; 
+1460858F3  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+1460858F7  cmp      rax,1Fh                                  ; 
+1460858FB  jbe      0000000146085904                         ; 
+1460858FD  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+146085903  int      3                                        ; 
+146085904  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+146085909  mov      qword ptr [rsp+78h],0                    ; 
+146085912  mov      qword ptr [rsp+0000000000000080h],0Fh    ; 
+14608591E  mov      byte ptr [rsp+68h],0                     ; 
+146085923  mov      rcx,qword ptr [rsp+40h]                  ; 
+146085928  test     rcx,rcx                                  ; 
+14608592B  je       0000000146085978                         ; 
+14608592D  mov      rdx,qword ptr [rsp+50h]                  ; 
+146085932  sub      rdx,rcx                                  ; 
+146085935  and      rdx,0FFFFFFFFFFFFFFF8h                   ; 
+146085939  mov      rax,rcx                                  ; 
+14608593C  cmp      rdx,1000h                                ; 
+146085943  jb       0000000146085961                         ; 
+146085945  add      rdx,27h                                  ; 
+146085949  mov      rcx,qword ptr [rcx-8]                    ; 
+14608594D  sub      rax,rcx                                  ; 
+146085950  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+146085954  cmp      rax,1Fh                                  ; 
+146085958  jbe      0000000146085961                         ; 
+14608595A  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+146085960  int      3                                        ; 
+146085961  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+146085966  mov      qword ptr [rsp+40h],0                    ; 
+14608596F  xorps    xmm0,xmm0                                ; 
+146085972  movdqu   xmmword ptr [rsp+48h],xmm0               ; 
+146085978  lea      rcx,[rsp+30h]                            ; 
+14608597D  call     0000000141BDD3C0                         ; call 0x1bdd3c0
+146085982  call     0000000141BE0EC0                         ; call 0x1be0ec0
+146085987  cmp      qword ptr [rax+30h],0                    ; 
+14608598C  je       000000014608599F                         ; 
+14608598E  call     0000000141BE0EC0                         ; call 0x1be0ec0
+146085993  mov      rcx,qword ptr [rax+70h]                  ; 
+146085997  mov      rax,qword ptr [rcx]                      ; 
+14608599A  mov      edx,edi                                  ; 
+14608599C  call     qword ptr [rax+30h]                      ; 
+14608599F  mov      rcx,qword ptr [rsp+0000000000000088h]    ; 
+1460859A7  xor      rcx,rsp                                  ; 
+1460859AA  call     00000001470D9780                         ; call 0x70d9780
+1460859AF  mov      rbx,qword ptr [rsp+00000000000000A0h]    ; 
+1460859B7  add      rsp,90h                                  ; 
+1460859BE  pop      rdi                                      ; 
+1460859BF  ret                                               ; 
+== 102 instructions, ends 1460859BF
+== strings
+  14608586A  ref 89a8920  A:void __cdecl Marvelous::UtilityAPI::UsePlugInFromList(unsigned int)
+== calls (rva: count, thunk)
+  1bdd3c0: x1 
+  1be0ec0: x2 
+  4e10dd0: x1 
+  4e10fb0: x1 
+  5ef27e0: x1 
+  70d91b8: x1 
+  70d91f4: x2 jmp->1470d9060
+  70d9780: x1 
+== data refs
+  8237590 .rdata x2
+  89a8962 .rdata x1

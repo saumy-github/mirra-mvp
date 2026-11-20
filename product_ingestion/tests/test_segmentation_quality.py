@@ -16,7 +16,7 @@ import numpy as np
 _HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_HERE))
 
-from segmentation import GarmentSegmentor
+from step_02_0_segmentation import GarmentSegmentor
 
 
 def _solid_mask(h=200, w=200, fill_frac=0.5) -> np.ndarray:

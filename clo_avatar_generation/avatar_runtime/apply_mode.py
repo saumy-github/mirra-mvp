@@ -6,6 +6,7 @@ how to apply it), so the decision is made exactly once per run.
 
 from __future__ import annotations
 
+from .avs_patch import TEMPLATE_PATH as AVS_TEMPLATE_PATH
 from .context import Step1Context
 from .field_contract import get_v1_avt_patch_fields_for_gender
 
@@ -37,7 +38,7 @@ _LEGACY_MODES = {"csv", "avatar_properties"}
 
 def resolve_apply_mode(ctx: Step1Context) -> str:
     requested = (ctx.measurement_apply_mode_input or "auto").strip().lower() or "auto"
-    if requested not in {"auto", "csv", "avatar_properties", "avt_patch"}:
+    if requested not in {"auto", "csv", "avatar_properties", "avt_patch", "avs"}:
         raise ValueError(f"Unsupported measurement apply mode: {requested}")
 
     has_property_route = bool(ctx.capabilities.get("has_avatar_property_set"))
@@ -45,8 +46,16 @@ def resolve_apply_mode(ctx: Step1Context) -> str:
         _avt_patch_supported_field_count(ctx) > 0
         and bool(ctx.capabilities.get("has_native_avatar_import", True))
     )
+    has_avs_route = has_avt_patch_route and AVS_TEMPLATE_PATH.exists()
 
-    if requested == "avt_patch":
+    if requested == "avs":
+        if not has_avs_route:
+            raise RuntimeError(
+                "Apply mode avs was requested, but either no avt-feature-index fields were present in the "
+                f"current payload or the .avs template is missing ({AVS_TEMPLATE_PATH})."
+            )
+        resolved = "avs"
+    elif requested == "avt_patch":
         if not has_avt_patch_route:
             raise RuntimeError(
                 "Apply mode avt_patch was requested, but no AVT-patch-supported fields were present in the "
@@ -62,6 +71,8 @@ def resolve_apply_mode(ctx: Step1Context) -> str:
         resolved = "avatar_properties"
     elif requested == "csv":
         resolved = "csv"
+    elif has_avs_route:
+        resolved = "avs"
     elif has_avt_patch_route:
         resolved = "avt_patch"
     elif has_property_route:

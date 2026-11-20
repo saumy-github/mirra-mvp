@@ -1,0 +1,87 @@
+{
+ "experiment": "e02_avt_patch_redeform",
+ "started": "2026-11-10T23:27:24.424651",
+ "args": {
+  "live": false,
+  "queue_timeout": 120.0,
+  "avt": "clo_avatar_generation/input/female_research/random-weight-female.avt",
+  "reexport_avt": false
+ },
+ "steps": [
+  {
+   "t": 1.34,
+   "step": "prepare[baseline]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\baseline.avt",
+   "sha256_16": "0f9f02e4e01fe857",
+   "patches": []
+  },
+  {
+   "t": 3.18,
+   "step": "prepare[mode1]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\mode1.avt",
+   "sha256_16": "0f9f02e4e01fe857",
+   "patches": [
+    {
+     "field": "enLastUpdateMode",
+     "path": "/mapResizingAvatar/enLastUpdateMode",
+     "old": "01000000",
+     "new": "01000000"
+    }
+   ]
+  },
+  {
+   "t": 7.79,
+   "step": "prepare[mode2]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\mode2.avt",
+   "sha256_16": "28fdd3e74b2a1320",
+   "patches": [
+    {
+     "field": "enLastUpdateMode",
+     "path": "/mapResizingAvatar/enLastUpdateMode",
+     "old": "01000000",
+     "new": "02000000"
+    }
+   ]
+  },
+  {
+   "t": 13.02,
+   "step": "prepare[unlinked]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\unlinked.avt",
+   "sha256_16": "edfe58756fac5da6",
+   "patches": [
+    {
+     "field": "bHeightLinked",
+     "path": "/mapResizingAvatar/bHeightLinked",
+     "old": "01",
+     "new": "00"
+    }
+   ]
+  },
+  {
+   "t": 16.82,
+   "step": "prepare[mode1_unlinked]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\mode1_unlinked.avt",
+   "sha256_16": "edfe58756fac5da6",
+   "patches": [
+    {
+     "field": "enLastUpdateMode",
+     "path": "/mapResizingAvatar/enLastUpdateMode",
+     "old": "01000000",
+     "new": "01000000"
+    },
+    {
+     "field": "bHeightLinked",
+     "path": "/mapResizingAvatar/bHeightLinked",
+     "old": "01",
+     "new": "00"
+    }
+   ]
+  }
+ ],
+ "notes": [
+  "Verify with: python -I rev-eng/scripts/avs_grammar.py dandiff out/e02/baseline.avt out/e02/<variant>.avt",
+  "PREPARE ONLY (no --live): plugin not contacted."
+ ],
+ "verdict": "prepared",
+ "finished": "2026-11-10T23:27:41.248496"
+}

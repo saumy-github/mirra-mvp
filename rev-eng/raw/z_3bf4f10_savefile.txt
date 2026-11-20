@@ -1,0 +1,394 @@
+143BF4F10  push     rbp                                      ; 
+143BF4F12  push     rbx                                      ; 
+143BF4F13  push     rsi                                      ; 
+143BF4F14  push     rdi                                      ; 
+143BF4F15  push     r14                                      ; 
+143BF4F17  lea      rbp,[rsp-60h]                            ; 
+143BF4F1C  sub      rsp,160h                                 ; 
+143BF4F23  mov      rsi,rcx                                  ; 
+143BF4F26  cmp      dword ptr [rcx+000000000000034Ch],1      ; 
+143BF4F2D  jne      0000000143BF4F79                         ; 
+143BF4F2F  lea      rdx,[000000014884C6B8h]                  ; .rdata 884c6b8 -> 'A:SaveFile() if (m_via == MVFILE_USING_FILEPOINTER)\n'
+143BF4F36  lea      rcx,[rsp+40h]                            ; 
+143BF4F3B  call     0000000146664F70                         ; call 0x6664f70
+143BF4F40  nop                                               ; 
+143BF4F41  lea      rdx,[rsp+40h]                            ; 
+143BF4F46  lea      rcx,[rsp+60h]                            ; 
+143BF4F4B  call     0000000146664E10                         ; call 0x6664e10
+143BF4F50  mov      r8b,1                                    ; 
+143BF4F53  mov      rdx,rax                                  ; 
+143BF4F56  mov      rcx,rsi                                  ; 
+143BF4F59  call     0000000143C38930                         ; call 0x3c38930
+143BF4F5E  nop                                               ; 
+143BF4F5F  lea      rcx,[rsp+40h]                            ; 
+143BF4F64  call     0000000146665040                         ; call 0x6665040
+143BF4F69  xor      al,al                                    ; 
+143BF4F6B  add      rsp,160h                                 ; 
+143BF4F72  pop      r14                                      ; 
+143BF4F74  pop      rdi                                      ; 
+143BF4F75  pop      rsi                                      ; 
+143BF4F76  pop      rbx                                      ; 
+143BF4F77  pop      rbp                                      ; 
+143BF4F78  ret                                               ; 
+143BF4F79  add      rcx,2F8h                                 ; 
+143BF4F80  call     0000000146667120                         ; call 0x6667120
+143BF4F85  test     al,al                                    ; 
+143BF4F87  je       0000000143BF4FD3                         ; 
+143BF4F89  lea      rdx,[000000014884C6F0h]                  ; .rdata 884c6f0 -> 'A:SaveFile() if (m_path == nullptr || m_path.isEmpty())\n'
+143BF4F90  lea      rcx,[rsp+40h]                            ; 
+143BF4F95  call     0000000146664F70                         ; call 0x6664f70
+143BF4F9A  nop                                               ; 
+143BF4F9B  lea      rdx,[rsp+40h]                            ; 
+143BF4FA0  lea      rcx,[rsp+60h]                            ; 
+143BF4FA5  call     0000000146664E10                         ; call 0x6664e10
+143BF4FAA  mov      r8b,1                                    ; 
+143BF4FAD  mov      rdx,rax                                  ; 
+143BF4FB0  mov      rcx,rsi                                  ; 
+143BF4FB3  call     0000000143C38930                         ; call 0x3c38930
+143BF4FB8  nop                                               ; 
+143BF4FB9  lea      rcx,[rsp+40h]                            ; 
+143BF4FBE  call     0000000146665040                         ; call 0x6665040
+143BF4FC3  xor      al,al                                    ; 
+143BF4FC5  add      rsp,160h                                 ; 
+143BF4FCC  pop      r14                                      ; 
+143BF4FCE  pop      rdi                                      ; 
+143BF4FCF  pop      rsi                                      ; 
+143BF4FD0  pop      rbx                                      ; 
+143BF4FD1  pop      rbp                                      ; 
+143BF4FD2  ret                                               ; 
+143BF4FD3  mov      rcx,rsi                                  ; 
+143BF4FD6  call     0000000143C117A0                         ; call 0x3c117a0
+143BF4FDB  mov      rcx,rsi                                  ; 
+143BF4FDE  call     0000000143C2CBD0                         ; call 0x3c2cbd0
+143BF4FE3  lea      rcx,[rsi+8]                              ; 
+143BF4FE7  call     0000000143C0B160                         ; call 0x3c0b160
+143BF4FEC  mov      dword ptr [rsi+20h],eax                  ; 
+143BF4FEF  add      eax,dword ptr [rsi+0000000000000350h]    ; 
+143BF4FF5  mov      dword ptr [rbp+0000000000000090h],eax    ; 
+143BF4FFB  lea      rdx,[rbp+0000000000000090h]              ; 
+143BF5002  mov      rcx,rsi                                  ; 
+143BF5005  call     0000000143C3AFA0                         ; call 0x3c3afa0
+143BF500A  lea      rdx,[rbp+0000000000000090h]              ; 
+143BF5011  mov      rcx,rsi                                  ; 
+143BF5014  call     0000000143C3AE40                         ; call 0x3c3ae40
+143BF5019  lea      rdx,[rbp+0000000000000090h]              ; 
+143BF5020  mov      rcx,rsi                                  ; 
+143BF5023  call     0000000143C3ACA0                         ; call 0x3c3aca0
+143BF5028  lea      rdx,[rbp+0000000000000090h]              ; 
+143BF502F  mov      rcx,rsi                                  ; 
+143BF5032  call     0000000143C3AE00                         ; call 0x3c3ae00
+143BF5037  mov      ebx,dword ptr [rbp+0000000000000090h]    ; 
+143BF503D  mov      edx,ebx                                  ; 
+143BF503F  mov      rcx,rsi                                  ; 
+143BF5042  call     0000000143C3ACE0                         ; call 0x3c3ace0
+143BF5047  mov      ecx,dword ptr [rsi+30h]                  ; 
+143BF504A  add      rcx,rbx                                  ; 
+143BF504D  cmp      rcx,7FFFFFFFh                            ; 
+143BF5054  jbe      0000000143BF50E7                         ; 
+143BF505A  mov      byte ptr [rsi+00000000000003A0h],1       ; 
+143BF5061  lea      rdx,[000000014884C728h]                  ; .rdata 884c728 -> 'A:SaveFile() file(%1) total size exceeds 2GB\n'
+143BF5068  lea      rcx,[rsp+60h]                            ; 
+143BF506D  call     0000000146664F70                         ; call 0x6664f70
+143BF5072  mov      rbx,rax                                  ; 
+143BF5075  mov      edx,20h                                  ; 
+143BF507A  lea      rcx,[rbp+0000000000000090h]              ; 
+143BF5081  call     0000000146671C80                         ; call 0x6671c80
+143BF5086  movzx    ecx,word ptr [rax]                       ; 
+143BF5089  mov      word ptr [rsp+20h],cx                    ; 
+143BF508E  xor      r9d,r9d                                  ; 
+143BF5091  lea      r8,[rsi+00000000000002F8h]               ; 
+143BF5098  lea      rdx,[rsp+40h]                            ; 
+143BF509D  mov      rcx,rbx                                  ; 
+143BF50A0  call     0000000146665AE0                         ; call 0x6665ae0
+143BF50A5  nop                                               ; 
+143BF50A6  lea      rcx,[rsp+60h]                            ; 
+143BF50AB  call     0000000146665040                         ; call 0x6665040
+143BF50B0  lea      rdx,[rsp+40h]                            ; 
+143BF50B5  lea      rcx,[rbp-80h]                            ; 
+143BF50B9  call     0000000146664E10                         ; call 0x6664e10
+143BF50BE  mov      r8b,1                                    ; 
+143BF50C1  mov      rdx,rax                                  ; 
+143BF50C4  mov      rcx,rsi                                  ; 
+143BF50C7  call     0000000143C38930                         ; call 0x3c38930
+143BF50CC  nop                                               ; 
+143BF50CD  lea      rcx,[rsp+40h]                            ; 
+143BF50D2  call     0000000146665040                         ; call 0x6665040
+143BF50D7  xor      al,al                                    ; 
+143BF50D9  add      rsp,160h                                 ; 
+143BF50E0  pop      r14                                      ; 
+143BF50E2  pop      rdi                                      ; 
+143BF50E3  pop      rsi                                      ; 
+143BF50E4  pop      rbx                                      ; 
+143BF50E5  pop      rbp                                      ; 
+143BF50E6  ret                                               ; 
+143BF50E7  lea      rcx,[rbp-60h]                            ; 
+143BF50EB  call     0000000146668B60                         ; call 0x6668b60
+143BF50F0  nop                                               ; 
+143BF50F1  mov      r8d,2                                    ; 
+143BF50F7  lea      rdx,[rbp-60h]                            ; 
+143BF50FB  lea      rcx,[rbp-40h]                            ; 
+143BF50FF  call     000000014667A9A0                         ; call 0x667a9a0
+143BF5104  nop                                               ; 
+143BF5105  mov      dl,1                                     ; 
+143BF5107  lea      rcx,[rbp-40h]                            ; 
+143BF510B  call     000000014667BE20                         ; call 0x667be20
+143BF5110  lea      rdx,[rbp-40h]                            ; 
+143BF5114  mov      rcx,rsi                                  ; 
+143BF5117  call     0000000143BF54F0                         ; call 0x3bf54f0
+143BF511C  test     al,al                                    ; 
+143BF511E  je       0000000143BF5432                         ; 
+143BF5124  mov      byte ptr [rsi+0000000000000318h],1       ; 
+143BF512B  lea      rdx,[rbp-40h]                            ; 
+143BF512F  mov      rcx,rsi                                  ; 
+143BF5132  call     0000000143BF6720                         ; call 0x3bf6720
+143BF5137  test     al,al                                    ; 
+143BF5139  je       0000000143BF5432                         ; 
+143BF513F  lea      rdx,[rbp-40h]                            ; 
+143BF5143  mov      rcx,rsi                                  ; 
+143BF5146  call     0000000143BF6690                         ; call 0x3bf6690
+143BF514B  test     al,al                                    ; 
+143BF514D  je       0000000143BF5432                         ; 
+143BF5153  lea      rdx,[rbp-40h]                            ; 
+143BF5157  mov      rcx,rsi                                  ; 
+143BF515A  call     0000000143BF4D80                         ; call 0x3bf4d80
+143BF515F  test     al,al                                    ; 
+143BF5161  je       0000000143BF5432                         ; 
+143BF5167  lea      rdx,[rbp-60h]                            ; 
+143BF516B  lea      rcx,[rbp-80h]                            ; 
+143BF516F  call     0000000143BCDBD0                         ; call 0x3bcdbd0
+143BF5174  nop                                               ; 
+143BF5175  lea      rcx,[rsi+00000000000002D0h]              ; 
+143BF517C  mov      rdx,rax                                  ; 
+143BF517F  call     00000001466650B0                         ; call 0x66650b0
+143BF5184  nop                                               ; 
+143BF5185  lea      rcx,[rbp-80h]                            ; 
+143BF5189  call     0000000146665040                         ; call 0x6665040
+143BF518E  lea      rdx,[rbp-40h]                            ; 
+143BF5192  mov      rcx,rsi                                  ; 
+143BF5195  call     0000000143BF5460                         ; call 0x3bf5460
+143BF519A  test     al,al                                    ; 
+143BF519C  je       0000000143BF5432                         ; 
+143BF51A2  lea      rdx,[rbp-40h]                            ; 
+143BF51A6  mov      rcx,rsi                                  ; 
+143BF51A9  call     0000000143BF4E10                         ; call 0x3bf4e10
+143BF51AE  test     al,al                                    ; 
+143BF51B0  je       0000000143BF5432                         ; 
+143BF51B6  lea      rdx,[rsi+00000000000002F8h]              ; 
+143BF51BD  lea      rcx,[rsp+30h]                            ; 
+143BF51C2  call     0000000146675BD0                         ; call 0x6675bd0
+143BF51C7  nop                                               ; 
+143BF51C8  mov      edx,2                                    ; 
+143BF51CD  lea      rcx,[rsp+30h]                            ; 
+143BF51D2  call     0000000146676400                         ; call 0x6676400
+143BF51D7  lea      rcx,[rsp+30h]                            ; 
+143BF51DC  call     00000001466761A0                         ; call 0x66761a0
+143BF51E1  lea      rcx,[rsp+30h]                            ; 
+143BF51E6  test     al,al                                    ; 
+143BF51E8  jne      0000000143BF52DA                         ; 
+143BF51EE  call     0000000146675E00                         ; call 0x6675e00
+143BF51F3  lea      rdx,[000000014884C758h]                  ; .rdata 884c758 -> 'A:SaveFile() file(%1) open fail! error=(%2)\n'
+143BF51FA  lea      rcx,[rbp-8]                              ; 
+143BF51FE  call     0000000146664F70                         ; call 0x6664f70
+143BF5203  mov      rbx,rax                                  ; 
+143BF5206  mov      edx,20h                                  ; 
+143BF520B  lea      rcx,[rbp+0000000000000090h]              ; 
+143BF5212  call     0000000146671C80                         ; call 0x6671c80
+143BF5217  movzx    ecx,word ptr [rax]                       ; 
+143BF521A  mov      word ptr [rsp+20h],cx                    ; 
+143BF521F  xor      r9d,r9d                                  ; 
+143BF5222  lea      r8,[rsi+00000000000002F8h]               ; 
+143BF5229  lea      rdx,[rbp-80h]                            ; 
+143BF522D  mov      rcx,rbx                                  ; 
+143BF5230  call     0000000146665AE0                         ; call 0x6665ae0
+143BF5235  mov      rdi,rax                                  ; 
+143BF5238  mov      edx,20h                                  ; 
+143BF523D  lea      rcx,[rbp+00000000000000A0h]              ; 
+143BF5244  call     0000000146671C80                         ; call 0x6671c80
+143BF5249  movzx    ebx,word ptr [rax]                       ; 
+143BF524C  lea      rcx,[rsp+30h]                            ; 
+143BF5251  call     0000000146676010                         ; call 0x6676010
+143BF5256  mov      rdx,rax                                  ; 
+143BF5259  lea      rcx,[rsp+40h]                            ; 
+143BF525E  call     0000000146664F70                         ; call 0x6664f70
+143BF5263  nop                                               ; 
+143BF5264  mov      word ptr [rsp+20h],bx                    ; 
+143BF5269  xor      r9d,r9d                                  ; 
+143BF526C  lea      r8,[rsp+40h]                             ; 
+143BF5271  lea      rdx,[rsp+60h]                            ; 
+143BF5276  mov      rcx,rdi                                  ; 
+143BF5279  call     0000000146665AE0                         ; call 0x6665ae0
+143BF527E  nop                                               ; 
+143BF527F  lea      rcx,[rsp+40h]                            ; 
+143BF5284  call     0000000146665040                         ; call 0x6665040
+143BF5289  nop                                               ; 
+143BF528A  lea      rcx,[rbp-80h]                            ; 
+143BF528E  call     0000000146665040                         ; call 0x6665040
+143BF5293  nop                                               ; 
+143BF5294  lea      rcx,[rbp-8]                              ; 
+143BF5298  call     0000000146665040                         ; call 0x6665040
+143BF529D  lea      rdx,[rsp+60h]                            ; 
+143BF52A2  lea      rcx,[rbp+18h]                            ; 
+143BF52A6  call     0000000146664E10                         ; call 0x6664e10
+143BF52AB  mov      r8b,1                                    ; 
+143BF52AE  mov      rdx,rax                                  ; 
+143BF52B1  mov      rcx,rsi                                  ; 
+143BF52B4  call     0000000143C38930                         ; call 0x3c38930
+143BF52B9  call     0000000141C5FB60                         ; call 0x1c5fb60
+143BF52BE  xor      edx,edx                                  ; 
+143BF52C0  mov      rcx,rax                                  ; 
+143BF52C3  call     0000000145D82A80                         ; call 0x5d82a80
+143BF52C8  nop                                               ; 
+143BF52C9  lea      rcx,[rsp+60h]                            ; 
+143BF52CE  call     0000000146665040                         ; call 0x6665040
+143BF52D3  xor      bl,bl                                    ; 
+143BF52D5  jmp      0000000143BF5426                         ; 
+143BF52DA  lea      rdx,[rbp-60h]                            ; 
+143BF52DE  call     0000000146676CC0                         ; call 0x6676cc0
+143BF52E3  mov      r14,rax                                  ; 
+143BF52E6  lea      rcx,[rbp-60h]                            ; 
+143BF52EA  call     0000000146669700                         ; call 0x6669700
+143BF52EF  movsxd   rcx,eax                                  ; 
+143BF52F2  cmp      r14,rcx                                  ; 
+143BF52F5  je       0000000143BF541A                         ; 
+143BF52FB  lea      rdx,[000000014884C788h]                  ; .rdata 884c788 -> 'A:SaveFile() file(%1) write fail! written=(%2) error=(%3)\n'
+143BF5302  lea      rcx,[rbp-80h]                            ; 
+143BF5306  call     0000000146664F70                         ; call 0x6664f70
+143BF530B  mov      rbx,rax                                  ; 
+143BF530E  mov      edx,20h                                  ; 
+143BF5313  lea      rcx,[rbp+0000000000000090h]              ; 
+143BF531A  call     0000000146671C80                         ; call 0x6671c80
+143BF531F  movzx    ecx,word ptr [rax]                       ; 
+143BF5322  mov      word ptr [rsp+20h],cx                    ; 
+143BF5327  xor      r9d,r9d                                  ; 
+143BF532A  lea      r8,[rsi+00000000000002F8h]               ; 
+143BF5331  lea      rdx,[rbp-8]                              ; 
+143BF5335  mov      rcx,rbx                                  ; 
+143BF5338  call     0000000146665AE0                         ; call 0x6665ae0
+143BF533D  mov      rbx,rax                                  ; 
+143BF5340  mov      edx,20h                                  ; 
+143BF5345  lea      rcx,[rbp+00000000000000A0h]              ; 
+143BF534C  call     0000000146671C80                         ; call 0x6671c80
+143BF5351  movzx    ecx,word ptr [rax]                       ; 
+143BF5354  mov      word ptr [rsp+28h],cx                    ; 
+143BF5359  mov      dword ptr [rsp+20h],0Ah                  ; 
+143BF5361  xor      r9d,r9d                                  ; 
+143BF5364  mov      r8,r14                                   ; 
+143BF5367  lea      rdx,[rbp+18h]                            ; 
+143BF536B  mov      rcx,rbx                                  ; 
+143BF536E  call     0000000146666170                         ; call 0x6666170
+143BF5373  mov      rdi,rax                                  ; 
+143BF5376  mov      edx,20h                                  ; 
+143BF537B  lea      rcx,[rbp+00000000000000A8h]              ; 
+143BF5382  call     0000000146671C80                         ; call 0x6671c80
+143BF5387  movzx    ebx,word ptr [rax]                       ; 
+143BF538A  lea      rcx,[rsp+30h]                            ; 
+143BF538F  call     0000000146676010                         ; call 0x6676010
+143BF5394  mov      rdx,rax                                  ; 
+143BF5397  lea      rcx,[rsp+60h]                            ; 
+143BF539C  call     0000000146664F70                         ; call 0x6664f70
+143BF53A1  nop                                               ; 
+143BF53A2  mov      word ptr [rsp+20h],bx                    ; 
+143BF53A7  xor      r9d,r9d                                  ; 
+143BF53AA  lea      r8,[rsp+60h]                             ; 
+143BF53AF  lea      rdx,[rsp+40h]                            ; 
+143BF53B4  mov      rcx,rdi                                  ; 
+143BF53B7  call     0000000146665AE0                         ; call 0x6665ae0
+143BF53BC  nop                                               ; 
+143BF53BD  lea      rcx,[rsp+60h]                            ; 
+143BF53C2  call     0000000146665040                         ; call 0x6665040
+143BF53C7  nop                                               ; 
+143BF53C8  lea      rcx,[rbp+18h]                            ; 
+143BF53CC  call     0000000146665040                         ; call 0x6665040
+143BF53D1  nop                                               ; 
+143BF53D2  lea      rcx,[rbp-8]                              ; 
+143BF53D6  call     0000000146665040                         ; call 0x6665040
+143BF53DB  nop                                               ; 
+143BF53DC  lea      rcx,[rbp-80h]                            ; 
+143BF53E0  call     0000000146665040                         ; call 0x6665040
+143BF53E5  lea      rcx,[rsp+30h]                            ; 
+143BF53EA  call     0000000146675E00                         ; call 0x6675e00
+143BF53EF  lea      rdx,[rsp+40h]                            ; 
+143BF53F4  lea      rcx,[rbp+38h]                            ; 
+143BF53F8  call     0000000146664E10                         ; call 0x6664e10
+143BF53FD  mov      r8b,1                                    ; 
+143BF5400  mov      rdx,rax                                  ; 
+143BF5403  mov      rcx,rsi                                  ; 
+143BF5406  call     0000000143C38930                         ; call 0x3c38930
+143BF540B  nop                                               ; 
+143BF540C  lea      rcx,[rsp+40h]                            ; 
+143BF5411  call     0000000146665040                         ; call 0x6665040
+143BF5416  xor      bl,bl                                    ; 
+143BF5418  jmp      0000000143BF5426                         ; 
+143BF541A  lea      rcx,[rsp+30h]                            ; 
+143BF541F  call     0000000146675E00                         ; call 0x6675e00
+143BF5424  mov      bl,1                                     ; 
+143BF5426  lea      rcx,[rsp+30h]                            ; 
+143BF542B  call     0000000146675D90                         ; call 0x6675d90
+143BF5430  jmp      0000000143BF5434                         ; 
+143BF5432  xor      bl,bl                                    ; 
+143BF5434  lea      rcx,[rbp-40h]                            ; 
+143BF5438  call     000000014667ABB0                         ; call 0x667abb0
+143BF543D  nop                                               ; 
+143BF543E  lea      rcx,[rbp-60h]                            ; 
+143BF5442  call     0000000146668B90                         ; call 0x6668b90
+143BF5447  movzx    eax,bl                                   ; 
+143BF544A  add      rsp,160h                                 ; 
+143BF5451  pop      r14                                      ; 
+143BF5453  pop      rdi                                      ; 
+143BF5454  pop      rsi                                      ; 
+143BF5455  pop      rbx                                      ; 
+143BF5456  pop      rbp                                      ; 
+143BF5457  ret                                               ; 
+== 341 instructions, ends 143BF5457
+== strings
+  143BF4F2F  ref 884c6b8  A:SaveFile() if (m_via == MVFILE_USING_FILEPOINTER)
+
+  143BF4F89  ref 884c6f0  A:SaveFile() if (m_path == nullptr || m_path.isEmpty())
+
+  143BF5061  ref 884c728  A:SaveFile() file(%1) total size exceeds 2GB
+
+  143BF51F3  ref 884c758  A:SaveFile() file(%1) open fail! error=(%2)
+
+  143BF52FB  ref 884c788  A:SaveFile() file(%1) write fail! written=(%2) error=(%3)
+
+== calls (rva: count, thunk)
+  1c5fb60: x1 
+  3bcdbd0: x1 
+  3bf4d80: x1 
+  3bf4e10: x1 
+  3bf5460: x1 
+  3bf54f0: x1 
+  3bf6690: x1 
+  3bf6720: x1 
+  3c0b160: x1 
+  3c117a0: x1 
+  3c2cbd0: x1 
+  3c38930: x5 
+  3c3aca0: x1 
+  3c3ace0: x1 
+  3c3ae00: x1 
+  3c3ae40: x1 
+  3c3afa0: x1 
+  5d82a80: x1 
+  6664e10: x5 
+  6664f70: x7 
+  6665040: x14 
+  66650b0: x1 
+  6665ae0: x5 
+  6666170: x1 
+  6667120: x1 
+  6668b60: x1 
+  6668b90: x1 
+  6669700: x1 
+  6671c80: x6 
+  6675bd0: x1 
+  6675d90: x1 
+  6675e00: x3 
+  6676010: x2 
+  66761a0: x1 
+  6676400: x1 
+  6676cc0: x1 
+  667a9a0: x1 
+  667abb0: x1 
+  667be20: x1 
+== data refs

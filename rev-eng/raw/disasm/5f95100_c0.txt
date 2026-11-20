@@ -1,0 +1,72 @@
+
+Dump of file C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe
+
+File Type: EXECUTABLE IMAGE
+
+  0000000145F95100: jne         0000000145F95126
+  0000000145F95102: mov         rax,qword ptr [rbx]
+  0000000145F95105: mov         rcx,rbx
+  0000000145F95108: call        qword ptr [rax]
+  0000000145F9510A: mov         eax,edi
+  0000000145F9510C: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145F95111: cmp         eax,1
+  0000000145F95114: jne         0000000145F95126
+  0000000145F95116: mov         rax,qword ptr [rbx]
+  0000000145F95119: mov         rcx,rbx
+  0000000145F9511C: call        qword ptr [rax+8]
+  0000000145F9511F: jmp         0000000145F95126
+  0000000145F95121: mov         esi,0FFFFFFFEh
+  0000000145F95126: mov         rcx,qword ptr [rsp+68h]
+  0000000145F9512B: test        rcx,rcx
+  0000000145F9512E: je          0000000145F95161
+  0000000145F95130: mov         eax,edi
+  0000000145F95132: lock xadd   dword ptr [rcx+8],eax
+  0000000145F95137: cmp         eax,1
+  0000000145F9513A: jne         0000000145F95161
+  0000000145F9513C: mov         rbx,qword ptr [rsp+68h]
+  0000000145F95141: mov         rax,qword ptr [rbx]
+  0000000145F95144: mov         rcx,rbx
+  0000000145F95147: call        qword ptr [rax]
+  0000000145F95149: mov         eax,edi
+  0000000145F9514B: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145F95150: cmp         eax,1
+  0000000145F95153: jne         0000000145F95161
+  0000000145F95155: mov         rcx,qword ptr [rsp+68h]
+  0000000145F9515A: mov         rax,qword ptr [rcx]
+  0000000145F9515D: call        qword ptr [rax+8]
+  0000000145F95160: nop
+  0000000145F95161: mov         rcx,qword ptr [rsp+78h]
+  0000000145F95166: test        rcx,rcx
+  0000000145F95169: je          0000000145F9519C
+  0000000145F9516B: mov         eax,edi
+  0000000145F9516D: lock xadd   dword ptr [rcx+8],eax
+  0000000145F95172: cmp         eax,1
+  0000000145F95175: jne         0000000145F9519C
+  0000000145F95177: mov         rbx,qword ptr [rsp+78h]
+  0000000145F9517C: mov         rax,qword ptr [rbx]
+  0000000145F9517F: mov         rcx,rbx
+  0000000145F95182: call        qword ptr [rax]
+  0000000145F95184: mov         eax,edi
+  0000000145F95186: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145F9518B: cmp         eax,1
+  0000000145F9518E: jne         0000000145F9519C
+  0000000145F95190: mov         rcx,qword ptr [rsp+78h]
+  0000000145F95195: mov         rax,qword ptr [rcx]
+  0000000145F95198: call        qword ptr [rax+8]
+  0000000145F9519B: nop
+  0000000145F9519C: mov         rbx,qword ptr [rbp-18h]
+  0000000145F951A0: test        rbx,rbx
+  0000000145F951A3: je          0000000145F951CC
+  0000000145F951A5: mov         eax,edi
+  0000000145F951A7: lock xadd   dword ptr [rbx+8],eax
+  0000000145F951AC: cmp         eax,1
+  0000000145F951AF: jne         0000000145F951CC
+  0000000145F951B1: mov         rdx,qword ptr [rbx]
+  0000000145F951B4: mov         rcx,rbx
+  0000000145F951B7: call        qword ptr [rdx]
+  0000000145F951B9: lock xadd   dword ptr [rbx+0Ch],edi
+  0000000145F951BE: cmp         edi,1
+
+  Summary
+
+     822A000 .text

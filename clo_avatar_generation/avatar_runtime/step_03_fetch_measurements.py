@@ -1,4 +1,4 @@
-"""Step 3: fetch and validate the user measurement snapshot from JSON or MongoDB."""
+"""Step 3: load and validate measurements from the job snapshot, an explicit file, or MongoDB."""
 
 from __future__ import annotations
 
@@ -23,58 +23,14 @@ MEASUREMENT_RANGES = {
     "under_bust_circumference_cm": (45, 170),
 }
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-CLO_AVATAR_GENERATION_OUTPUT_ROOT = REPO_ROOT / "clo_avatar_generation" / "output"
-CLO_AVATAR_GENERATION_INPUT_ROOT = REPO_ROOT / "clo_avatar_generation" / "input"
-
 
 def _sanitize_doc(doc: dict[str, Any]) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for key, value in doc.items():
         if key == "_id":
             continue
-        if isinstance(value, datetime):
-            out[key] = value.isoformat()
-        else:
-            out[key] = value
+        out[key] = value.isoformat() if isinstance(value, datetime) else value
     return out
-
-
-def _load_latest_local_snapshot(user_id: str) -> dict[str, Any] | None:
-    if not CLO_AVATAR_GENERATION_OUTPUT_ROOT.exists():
-        return None
-
-    candidates = sorted(
-        [
-            path for path in CLO_AVATAR_GENERATION_OUTPUT_ROOT.iterdir()
-            if path.is_dir() and path.name.startswith(f"{user_id}-")
-        ]
-    )
-    for path in reversed(candidates):
-        mongo_snapshot_path = path / "mongo_snapshot.json"
-        if mongo_snapshot_path.exists():
-            try:
-                payload = json.loads(mongo_snapshot_path.read_text(encoding="utf-8"))
-            except Exception:
-                payload = None
-            if isinstance(payload, dict):
-                return payload
-
-        input_json_path = path / "input.json"
-        if not input_json_path.exists():
-            continue
-        try:
-            payload = json.loads(input_json_path.read_text(encoding="utf-8"))
-        except Exception:
-            continue
-        mongo_snapshot = payload.get("mongo_snapshot")
-        if isinstance(mongo_snapshot, dict):
-            return mongo_snapshot
-    return None
-
-
-def _default_measurement_json_path(user_id: str) -> Path:
-    return CLO_AVATAR_GENERATION_INPUT_ROOT / f"{user_id}.measurements.json"
 
 
 def _load_measurement_json(path: Path) -> dict[str, Any]:
@@ -82,10 +38,41 @@ def _load_measurement_json(path: Path) -> dict[str, Any]:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise ValueError(f"Measurement JSON is not valid JSON: {path}") from exc
-
     if not isinstance(payload, dict):
         raise ValueError(f"Measurement JSON must contain an object at the top level: {path}")
     return payload
+
+
+def _fetch_from_mongo(ctx: Step1Context) -> tuple[dict[str, Any], str]:
+    try:
+        from mirra_measurements.db import (
+            get_measurements_collection,
+            get_user_measurements_collection,
+        )
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "MongoDB dependencies are not available in this Python environment. Run the pipeline "
+            "inside the repo virtual environment, or pass --measurement-file."
+        ) from exc
+
+    try:
+        doc = get_user_measurements_collection().find_one({"user_id": ctx.user_id})
+        if doc is not None:
+            return doc, "mongodb:user_measurements"
+        doc = get_measurements_collection().find_one({"user_id": ctx.user_id})
+    except Exception as exc:
+        raise RuntimeError(
+            f"Could not read measurements for user_id={ctx.user_id} from MongoDB: {exc}"
+        ) from exc
+
+    if doc is None:
+        raise ValueError(f"No measurements found for user_id: {ctx.user_id}")
+    ctx.warnings.append(
+        f"Measurements for {ctx.user_id} came from the legacy `measurements` collection, "
+        "not `user_measurements`."
+    )
+    ctx.logger.warning("Using the legacy `measurements` collection for user_id=%s", ctx.user_id)
+    return doc, "mongodb:measurements"
 
 
 def _validate_required_fields(doc: dict[str, Any]) -> None:
@@ -95,14 +82,11 @@ def _validate_required_fields(doc: dict[str, Any]) -> None:
             f"Step-1 CLO avatar generation currently supports male only, got gender={gender!r}"
         )
 
-    missing: list[str] = []
-    for field in get_v1_fields_for_gender(gender):
-        mongo_field = field.get("mongo_field")
-        if not mongo_field:
-            continue
-        if doc.get(mongo_field) is None:
-            missing.append(mongo_field)
-
+    missing = [
+        field["mongo_field"]
+        for field in get_v1_fields_for_gender(gender)
+        if field.get("mongo_field") and doc.get(field["mongo_field"]) is None
+    ]
     if missing:
         raise ValueError(f"Missing required measurement fields: {', '.join(sorted(missing))}")
 
@@ -115,85 +99,28 @@ def _validate_ranges(doc: dict[str, Any]) -> None:
             continue
         numeric_value = float(value)
         if numeric_value < minimum or numeric_value > maximum:
-            out_of_range.append(
-                f"{field_name}={numeric_value:.2f} (expected {minimum}-{maximum})"
-            )
+            out_of_range.append(f"{field_name}={numeric_value:.2f} (expected {minimum}-{maximum})")
     if out_of_range:
         raise ValueError(
-            "Measurement values are outside the current sanity-check ranges: "
-            + "; ".join(out_of_range)
+            "Measurement values are outside the current sanity-check ranges: " + "; ".join(out_of_range)
         )
 
 
 def run(ctx: Step1Context) -> bool:
     ctx.logger.info("Fetching measurements for user_id=%s", ctx.user_id)
-    doc: dict[str, Any] | None = None
-    source = "mongodb"
     source_path: Path | None = None
 
-    measurement_json_path: Path | None = None
-    if ctx.measurement_file_input:
-        measurement_json_path = Path(ctx.measurement_file_input).expanduser().resolve()
-        if not measurement_json_path.exists():
-            raise FileNotFoundError(f"Measurement JSON file not found: {measurement_json_path}")
+    if ctx.measurement_doc_input is not None:
+        doc, source = dict(ctx.measurement_doc_input), "job_snapshot"
+    elif ctx.measurement_file_input:
+        source_path = Path(ctx.measurement_file_input).expanduser().resolve()
+        if not source_path.exists():
+            raise FileNotFoundError(f"Measurement JSON file not found: {source_path}")
+        doc, source = _load_measurement_json(source_path), "json_file"
+        ctx.warnings.append(f"Measurements came from an explicit file, not the database: {source_path}")
+        ctx.logger.warning("Using an explicit measurement file: %s", source_path)
     else:
-        default_json_path = _default_measurement_json_path(ctx.user_id)
-        if default_json_path.exists():
-            measurement_json_path = default_json_path.resolve()
-
-    if measurement_json_path is not None:
-        doc = _load_measurement_json(measurement_json_path)
-        source = "json_file"
-        source_path = measurement_json_path
-    else:
-        try:
-            from mirra_measurements.db import (
-                get_measurements_collection,
-                get_user_measurements_collection,
-            )
-        except ModuleNotFoundError as exc:
-            raise RuntimeError(
-                "MongoDB dependencies are not available in this Python environment and no JSON measurement "
-                "file was supplied. Run the pipeline inside the repo virtual environment or pass "
-                "--measurement-file."
-            ) from exc
-
-        # Website writes user_measurements; CLI golden users live in measurements.
-        try:
-            user_measurements_collection = get_user_measurements_collection()
-            doc = user_measurements_collection.find_one({"user_id": ctx.user_id})
-            if doc is not None:
-                source = "mongodb:user_measurements"
-            else:
-                measurements_collection = get_measurements_collection()
-                doc = measurements_collection.find_one({"user_id": ctx.user_id})
-                if doc is not None:
-                    source = "mongodb:measurements"
-        except Exception as exc:
-            local_snapshot = _load_latest_local_snapshot(ctx.user_id)
-            if local_snapshot is None:
-                raise RuntimeError(
-                    "Failed to fetch measurements from MongoDB and no local snapshot fallback was found."
-                ) from exc
-            ctx.warnings.append(
-                "MongoDB fetch failed; using the latest clo_avatar_generation snapshot "
-                f"for user {ctx.user_id} instead."
-            )
-            ctx.logger.warning("MongoDB fetch failed; falling back to latest local snapshot")
-            doc = local_snapshot
-            source = "clo_avatar_generation_snapshot"
-
-        if doc is None:
-            local_snapshot = _load_latest_local_snapshot(ctx.user_id)
-            if local_snapshot is None:
-                raise ValueError(f"No measurements found for user_id: {ctx.user_id}")
-            ctx.warnings.append(
-                "No live MongoDB document was found in either user_measurements or measurements; "
-                f"using the latest clo_avatar_generation snapshot for user {ctx.user_id} instead."
-            )
-            ctx.logger.warning("No live MongoDB document found; falling back to latest local snapshot")
-            doc = local_snapshot
-            source = "clo_avatar_generation_snapshot"
+        doc, source = _fetch_from_mongo(ctx)
 
     ctx.logger.info("Measurement source: %s%s", source, f" ({source_path})" if source_path else "")
 
@@ -207,9 +134,7 @@ def run(ctx: Step1Context) -> bool:
 
     ctx.input_payload["measurement_source"] = source
     ctx.input_payload["measurement_source_path"] = str(source_path) if source_path else None
-    # Logged before validation so the actual fetched document is always captured,
-    # even when validation below rejects it — otherwise a validation failure would
-    # leave no record of what data was actually present.
+    # Logged before validation so a rejected document is still recorded.
     ctx.log_json("mongo_snapshot", ctx.mongo_snapshot)
 
     _validate_required_fields(doc)

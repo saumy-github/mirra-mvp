@@ -1,0 +1,50 @@
+
+Dump of file C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe
+
+File Type: EXECUTABLE IMAGE
+
+  000000014476C2D0: sal         bl,0Fh
+  000000014476C2D3: jg          000000014476C319
+  000000014476C2D5: and         al,68h
+  000000014476C2D7: mov         rax,qword ptr [rdi+8]
+  000000014476C2DB: test        rax,rax
+  000000014476C2DE: je          000000014476C2E4
+  000000014476C2E0: lock inc    dword ptr [rax+8]
+  000000014476C2E4: mov         rax,qword ptr [rdi]
+  000000014476C2E7: mov         qword ptr [rsp+68h],rax
+  000000014476C2EC: mov         rax,qword ptr [rdi+8]
+  000000014476C2F0: mov         qword ptr [rsp+70h],rax
+  000000014476C2F5: lea         rdx,[rsp+68h]
+  000000014476C2FA: lea         rcx,[rbp-50h]
+  000000014476C2FE: call        000000014407E920
+  000000014476C303: nop
+  000000014476C304: mov         rcx,r15
+  000000014476C307: call        00000001440958B0
+  000000014476C30C: movzx       r8d,al
+  000000014476C310: lea         rdx,[rbp-20h]
+  000000014476C314: lea         rcx,[rbp-50h]
+  000000014476C318: call        0000000144096C80
+  000000014476C31D: mov         rcx,r15
+  000000014476C320: call        00000001440958B0
+  000000014476C325: test        al,al
+  000000014476C327: jne         000000014476C33D
+  000000014476C329: mov         rcx,r15
+  000000014476C32C: call        0000000144092AB0
+  000000014476C331: movaps      xmm1,xmm0
+  000000014476C334: lea         rcx,[rbp-50h]
+  000000014476C338: call        00000001440A1AC0
+  000000014476C33D: mov         rcx,r15
+  000000014476C340: call        00000001440965D0
+  000000014476C345: movzx       r8d,al
+  000000014476C349: xorps       xmm0,xmm0
+  000000014476C34C: movdqu      xmmword ptr [rsp+78h],xmm0
+  000000014476C352: mov         rcx,qword ptr [rdi+8]
+  000000014476C356: test        rcx,rcx
+  000000014476C359: je          000000014476C35F
+  000000014476C35B: lock inc    dword ptr [rcx+8]
+  000000014476C35F: 48
+  000000014476C360: 8B
+
+  Summary
+
+     822A000 .text

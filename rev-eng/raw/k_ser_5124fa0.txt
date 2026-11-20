@@ -1,0 +1,26 @@
+145124FA0  mov      eax,ecx                                  ; 
+145124FA2  cmp      rdx,1000h                                ; 
+145124FA9  jb       0000000145124FC7                         ; 
+145124FAB  add      rdx,27h                                  ; 
+145124FAF  mov      rcx,qword ptr [rcx-8]                    ; 
+145124FB3  sub      rax,rcx                                  ; 
+145124FB6  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+145124FBA  cmp      rax,1Fh                                  ; 
+145124FBE  jbe      0000000145124FC7                         ; 
+145124FC0  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+145124FC6  int      3                                        ; 
+145124FC7  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+145124FCC  mov      rbx,qword ptr [rsp+0000000000000168h]    ; 
+145124FD4  add      rsp,130h                                 ; 
+145124FDB  pop      r15                                      ; 
+145124FDD  pop      r14                                      ; 
+145124FDF  pop      rdi                                      ; 
+145124FE0  pop      rsi                                      ; 
+145124FE1  pop      rbp                                      ; 
+145124FE2  ret                                               ; 
+== 20 instructions, ends 145124FE2
+== strings
+== calls (rva: count, thunk)
+  70d91f4: x1 jmp->1470d9060
+== data refs
+  8237590 .rdata x1
