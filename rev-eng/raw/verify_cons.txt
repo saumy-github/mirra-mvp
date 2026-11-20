@@ -1,0 +1,47 @@
+  000000014413D700: jb          000000014413D706
+  000000014413D702: mov         word ptr [rbp+000000000000032Ch],ax
+  000000014413D709: mov         byte ptr [rbp+000000000000032Eh],0
+  000000014413D710: lea         rdx,[rbp+0000000000000328h]
+  000000014413D717: mov         rcx,rdi
+  000000014413D71A: call        0000000141D7ADD0
+  000000014413D71F: mov         rdx,rax
+  000000014413D722: movzx       ecx,byte ptr [rax]
+  000000014413D725: movzx       eax,byte ptr [rbp-78h]
+  000000014413D729: mov         byte ptr [rdx],al
+  000000014413D72B: mov         byte ptr [rbp-78h],cl
+  000000014413D72E: mov         rax,qword ptr [rdx+8]
+  000000014413D732: mov         rcx,qword ptr [rbp-70h]
+  000000014413D736: mov         qword ptr [rdx+8],rcx
+  000000014413D73A: mov         qword ptr [rbp-70h],rax
+  000000014413D73E: movzx       edx,byte ptr [rbp-78h]
+  000000014413D742: lea         rcx,[rbp-70h]
+  000000014413D746: call        0000000141DC9FD0
+  000000014413D74B: nop
+  000000014413D74C: lea         rax,[rbp-68h]
+  000000014413D750: mov         qword ptr [rsp+38h],rax
+  000000014413D755: lea         rdx,[rsp+50h]
+  000000014413D75A: mov         rcx,r14
+  000000014413D75D: call        0000000144139350
+  000000014413D762: movaps      xmm6,xmm0
+  000000014413D765: mulss       xmm6,dword ptr [000000014833A9D4h]
+  000000014413D76D: xorps       xmm1,xmm1
+  000000014413D770: movups      xmmword ptr [rbp-68h],xmm1
+  000000014413D774: xor         eax,eax
+  000000014413D776: mov         qword ptr [rbp-60h],rax
+  000000014413D77A: movzx       edx,byte ptr [rbp-68h]
+  000000014413D77E: lea         rcx,[rbp-60h]
+  000000014413D782: call        0000000141DC9FD0
+  000000014413D787: mov         byte ptr [rbp-68h],7
+  000000014413D78B: xorps       xmm0,xmm0
+  000000014413D78E: cvtss2sd    xmm0,xmm6
+  000000014413D792: movsd       mmword ptr [rbp-60h],xmm0
+  000000014413D797: 48
+  000000014413D798: C7
+  000000014413D799: test        dword ptr [rax],ebp
+  000000014413D79B: add         al,byte ptr [rax]
+  000000014413D79D: add         byte ptr [rdi],cl
+  000000014413D79F: add         byte ptr [rax],al
+
+  Summary
+
+     822A000 .text

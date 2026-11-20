@@ -11,12 +11,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from clo_avatar_generation.avatar_runtime.context import Step1Context
+from clo_avatar_generation.avatar_runtime.context import DEFAULT_APPLY_MODE, Step1Context
 from clo_avatar_generation.avatar_runtime.field_contract import get_default_base_avatar
 from clo_avatar_generation.avatar_runtime.pipeline import run_pipeline
 from clo_avatar_generation.avatar_runtime.run_manifest import get_latest_user_id, get_next_run_number
 
-DEFAULT_APPLY_MODE = "avt_patch"
 LEGACY_APPLY_MODES = {"csv", "avatar_properties"}
 LEGACY_ROUTES_DOC = "clo_avatar_generation/schema/legacy_routes.md"
 
@@ -47,13 +46,30 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--user-id", default=None, help="Measurement user_id (for example u_001).")
     parser.add_argument("--run-number", type=int, default=None, help="Optional explicit run number.")
     parser.add_argument("--base-avatar", default=None, help="Optional override for the base .avt path.")
-    parser.add_argument("--measurement-file", default=None, help="Optional override for the JSON measurement source.")
     parser.add_argument(
-        "--apply-mode",
-        choices=("auto", "csv", "avatar_properties", "avt_patch"),
+        "--measurement-file",
         default=None,
         help=(
-            "Measurement apply mode. avt_patch (the default) is the only supported route. "
+            "Explicit JSON measurement file (testing). Without it, measurements are read from MongoDB "
+            "by user_id; there is no implicit per-user file and no stale-snapshot fallback."
+        ),
+    )
+    parser.add_argument(
+        "--fresh-session",
+        action="store_true",
+        help=(
+            "Always start a new CLO project and re-import the base avatar. By default the avs route keeps "
+            "CLO open with the base avatar and only applies the user's size file."
+        ),
+    )
+    parser.add_argument(
+        "--apply-mode",
+        choices=("auto", "csv", "avatar_properties", "avt_patch", "avs"),
+        default=None,
+        help=(
+            "Measurement apply mode. avs (the default) writes a CLO avatar-size file and applies it to the "
+            "base avatar, which actually resizes the body. avt_patch patches floats into the .avt but CLO "
+            "does not rebuild the mesh when the plugin imports it, so the exported GLB stays the base body. "
             "csv and avatar_properties are legacy/experimental routes that require --enable-legacy-route; "
             "see clo_avatar_generation/schema/legacy_routes.md."
         ),
@@ -143,6 +159,7 @@ def main() -> int:
             enable_legacy_route=args.enable_legacy_route,
             active_field_filters=active_fields,
             interactive=not args.non_interactive,
+            reuse_session=not args.fresh_session,
         )
         ctx = run_pipeline(ctx)
 

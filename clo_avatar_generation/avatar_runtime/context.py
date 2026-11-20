@@ -18,6 +18,9 @@ def utc_timestamp() -> str:
     return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
+DEFAULT_APPLY_MODE = "avs"
+
+
 @dataclass
 class Step1Context:
     """Shared mutable state for the Step-1 avatar-generation workflow."""
@@ -26,7 +29,9 @@ class Step1Context:
     requested_run_number: int | None = None
     base_avatar_path_input: str | None = None
     measurement_file_input: str | None = None
+    measurement_doc_input: dict[str, Any] | None = None  # worker passes the job snapshot
     measurement_apply_mode_input: str = "auto"
+    reuse_session: bool = True  # False forces a new project + base import in step 7
     enable_legacy_route: bool = False
     active_field_filters: list[str] = field(default_factory=list)
     interactive: bool = True

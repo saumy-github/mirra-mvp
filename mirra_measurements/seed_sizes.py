@@ -15,7 +15,7 @@ from mirra_measurements import create_size_doc, validate_size_doc
 # The previous values were ~3.8 cm too narrow for their own armholes, which
 # the old generator hid by clamping the cap solve at cap_height_max_frac=0.95.
 # The current numbers put the cap at the reference 0.244 of the bicep; see
-# INTEGRATION.md section 6 and panel_generation_clo.recommend_bicep_width_cm().
+# INTEGRATION.md section 6 and step_05_0_panel_generation_clo.recommend_bicep_width_cm().
 # ---------------------------------------------------------------------------
 SIZE_SEED_DATA = [
     {

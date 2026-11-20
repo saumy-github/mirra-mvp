@@ -1,0 +1,629 @@
+145D76840  mov      qword ptr [rsp+8],rbx                    ; 
+145D76845  push     rbp                                      ; 
+145D76846  mov      rbp,rsp                                  ; 
+145D76849  sub      rsp,60h                                  ; 
+145D7684D  mov      rdx,rcx                                  ; 
+145D76850  lea      rcx,[rbp-20h]                            ; 
+145D76854  call     00000001440ED340                         ; call 0x40ed340
+145D76859  nop                                               ; 
+145D7685A  lea      rdx,[rbp-40h]                            ; 
+145D7685E  mov      rcx,rax                                  ; 
+145D76861  call     0000000146668300                         ; call 0x6668300
+145D76866  nop                                               ; 
+145D76867  lea      rcx,[rbp-20h]                            ; 
+145D7686B  call     0000000146665040                         ; call 0x6665040
+145D76870  mov      ebx,0FFFFFFFFh                           ; 
+145D76875  lea      rdx,[0000000148260790h]                  ; .rdata 8260790 -> 'A:mtn'
+145D7687C  lea      rcx,[rbp-40h]                            ; 
+145D76880  call     0000000146665260                         ; call 0x6665260
+145D76885  test     al,al                                    ; 
+145D76887  jne      0000000145D7714F                         ; 
+145D7688D  lea      rdx,[0000000148360974h]                  ; .rdata 8360974 -> 'A:avacm'
+145D76894  lea      rcx,[rbp-40h]                            ; 
+145D76898  call     0000000146665260                         ; call 0x6665260
+145D7689D  test     al,al                                    ; 
+145D7689F  jne      0000000145D7714F                         ; 
+145D768A5  lea      rdx,[000000014826079Ch]                  ; .rdata 826079c -> 'A:cak'
+145D768AC  lea      rcx,[rbp-40h]                            ; 
+145D768B0  call     0000000146665260                         ; call 0x6665260
+145D768B5  test     al,al                                    ; 
+145D768B7  je       0000000145D768C3                         ; 
+145D768B9  mov      ebx,6Eh                                  ; 
+145D768BE  jmp      0000000145D77154                         ; 
+145D768C3  lea      rdx,[000000014836097Ch]                  ; .rdata 836097c -> 'A:dae'
+145D768CA  lea      rcx,[rbp-40h]                            ; 
+145D768CE  call     0000000146665260                         ; call 0x6665260
+145D768D3  test     al,al                                    ; 
+145D768D5  je       0000000145D768E1                         ; 
+145D768D7  mov      ebx,6                                    ; 
+145D768DC  jmp      0000000145D77154                         ; 
+145D768E1  lea      rdx,[00000001482607B0h]                  ; .rdata 82607b0 -> 'A:avt'
+145D768E8  lea      rcx,[rbp-40h]                            ; 
+145D768EC  call     0000000146665260                         ; call 0x6665260
+145D768F1  test     al,al                                    ; 
+145D768F3  jne      0000000145D77148                         ; 
+145D768F9  lea      rdx,[000000014834BD74h]                  ; .rdata 834bd74 -> 'A:avac'
+145D76900  lea      rcx,[rbp-40h]                            ; 
+145D76904  call     0000000146665260                         ; call 0x6665260
+145D76909  test     al,al                                    ; 
+145D7690B  jne      0000000145D77148                         ; 
+145D76911  lea      rdx,[00000001482607A8h]                  ; .rdata 82607a8 -> 'A:avte'
+145D76918  lea      rcx,[rbp-40h]                            ; 
+145D7691C  call     0000000146665260                         ; call 0x6665260
+145D76921  test     al,al                                    ; 
+145D76923  jne      0000000145D77148                         ; 
+145D76929  lea      rdx,[0000000148260808h]                  ; .rdata 8260808 -> 'A:obj'
+145D76930  lea      rcx,[rbp-40h]                            ; 
+145D76934  call     0000000146665260                         ; call 0x6665260
+145D76939  test     al,al                                    ; 
+145D7693B  je       0000000145D76947                         ; 
+145D7693D  mov      ebx,0Bh                                  ; 
+145D76942  jmp      0000000145D77154                         ; 
+145D76947  lea      rdx,[0000000148333274h]                  ; .rdata 8333274 -> 'A:gltf'
+145D7694E  lea      rcx,[rbp-40h]                            ; 
+145D76952  call     0000000146665260                         ; call 0x6665260
+145D76957  test     al,al                                    ; 
+145D76959  jne      0000000145D77141                         ; 
+145D7695F  lea      rdx,[00000001482910ECh]                  ; .rdata 82910ec -> 'A:glb'
+145D76966  lea      rcx,[rbp-40h]                            ; 
+145D7696A  call     0000000146665260                         ; call 0x6665260
+145D7696F  test     al,al                                    ; 
+145D76971  jne      0000000145D77141                         ; 
+145D76977  lea      rdx,[0000000148290F7Ch]                  ; .rdata 8290f7c -> 'A:vrm'
+145D7697E  lea      rcx,[rbp-40h]                            ; 
+145D76982  call     0000000146665260                         ; call 0x6665260
+145D76987  test     al,al                                    ; 
+145D76989  je       0000000145D76995                         ; 
+145D7698B  mov      ebx,75h                                  ; 
+145D76990  jmp      0000000145D77154                         ; 
+145D76995  lea      rdx,[00000001482607BCh]                  ; .rdata 82607bc -> 'A:pos'
+145D7699C  lea      rcx,[rbp-40h]                            ; 
+145D769A0  call     0000000146665260                         ; call 0x6665260
+145D769A5  test     al,al                                    ; 
+145D769A7  jne      0000000145D7713A                         ; 
+145D769AD  lea      rdx,[0000000148360990h]                  ; .rdata 8360990 -> 'A:avacp'
+145D769B4  lea      rcx,[rbp-40h]                            ; 
+145D769B8  call     0000000146665260                         ; call 0x6665260
+145D769BD  test     al,al                                    ; 
+145D769BF  jne      0000000145D7713A                         ; 
+145D769C5  lea      rdx,[00000001483609A4h]                  ; .rdata 83609a4 -> 'A:hpos'
+145D769CC  lea      rcx,[rbp-40h]                            ; 
+145D769D0  call     0000000146665260                         ; call 0x6665260
+145D769D5  test     al,al                                    ; 
+145D769D7  je       0000000145D769E3                         ; 
+145D769D9  mov      ebx,6Ch                                  ; 
+145D769DE  jmp      0000000145D77154                         ; 
+145D769E3  lea      rdx,[00000001482607E4h]                  ; .rdata 82607e4 -> 'A:anm'
+145D769EA  lea      rcx,[rbp-40h]                            ; 
+145D769EE  call     0000000146665260                         ; call 0x6665260
+145D769F3  test     al,al                                    ; 
+145D769F5  je       0000000145D76A01                         ; 
+145D769F7  mov      ebx,7                                    ; 
+145D769FC  jmp      0000000145D77154                         ; 
+145D76A01  lea      rdx,[00000001482608B0h]                  ; .rdata 82608b0 -> 'A:zpac'
+145D76A08  lea      rcx,[rbp-40h]                            ; 
+145D76A0C  call     0000000146665260                         ; call 0x6665260
+145D76A11  test     al,al                                    ; 
+145D76A13  je       0000000145D76A1F                         ; 
+145D76A15  mov      ebx,20h                                  ; 
+145D76A1A  jmp      0000000145D77154                         ; 
+145D76A1F  lea      rdx,[00000001482607C8h]                  ; .rdata 82607c8 -> 'A:pacx'
+145D76A26  lea      rcx,[rbp-40h]                            ; 
+145D76A2A  call     0000000146665260                         ; call 0x6665260
+145D76A2F  test     al,al                                    ; 
+145D76A31  je       0000000145D76A3D                         ; 
+145D76A33  mov      ebx,23h                                  ; 
+145D76A38  jmp      0000000145D77154                         ; 
+145D76A3D  lea      rdx,[00000001482607D8h]                  ; .rdata 82607d8 -> 'A:tco'
+145D76A44  lea      rcx,[rbp-40h]                            ; 
+145D76A48  call     0000000146665260                         ; call 0x6665260
+145D76A4D  test     al,al                                    ; 
+145D76A4F  je       0000000145D76A5B                         ; 
+145D76A51  mov      ebx,24h                                  ; 
+145D76A56  jmp      0000000145D77154                         ; 
+145D76A5B  lea      rdx,[00000001482607F0h]                  ; .rdata 82607f0 -> 'A:pan'
+145D76A62  lea      rcx,[rbp-40h]                            ; 
+145D76A66  call     0000000146665260                         ; call 0x6665260
+145D76A6B  test     al,al                                    ; 
+145D76A6D  je       0000000145D76A79                         ; 
+145D76A6F  mov      ebx,8                                    ; 
+145D76A74  jmp      0000000145D77154                         ; 
+145D76A79  lea      rdx,[00000001482607FCh]                  ; .rdata 82607fc -> 'A:arr'
+145D76A80  lea      rcx,[rbp-40h]                            ; 
+145D76A84  call     0000000146665260                         ; call 0x6665260
+145D76A89  test     al,al                                    ; 
+145D76A8B  je       0000000145D76A97                         ; 
+145D76A8D  mov      ebx,9                                    ; 
+145D76A92  jmp      0000000145D77154                         ; 
+145D76A97  lea      rdx,[000000014825E29Ch]                  ; .rdata 825e29c -> 'A:dxf'
+145D76A9E  lea      rcx,[rbp-40h]                            ; 
+145D76AA2  call     0000000146665260                         ; call 0x6665260
+145D76AA7  test     al,al                                    ; 
+145D76AA9  jne      0000000145D77133                         ; 
+145D76AAF  lea      rdx,[0000000148362FB8h]                  ; .rdata 8362fb8 -> 'A:aam'
+145D76AB6  lea      rcx,[rbp-40h]                            ; 
+145D76ABA  call     0000000146665260                         ; call 0x6665260
+145D76ABF  test     al,al                                    ; 
+145D76AC1  jne      0000000145D77133                         ; 
+145D76AC7  lea      rdx,[0000000148290E9Ch]                  ; .rdata 8290e9c -> 'A:aama'
+145D76ACE  lea      rcx,[rbp-40h]                            ; 
+145D76AD2  call     0000000146665260                         ; call 0x6665260
+145D76AD7  test     al,al                                    ; 
+145D76AD9  jne      0000000145D77133                         ; 
+145D76ADF  lea      rdx,[000000014828707Ch]                  ; .rdata 828707c -> 'ai..ExternalOpen'
+145D76AE6  lea      rcx,[rbp-40h]                            ; 
+145D76AEA  call     0000000146665260                         ; call 0x6665260
+145D76AEF  test     al,al                                    ; 
+145D76AF1  jne      0000000145D7712C                         ; 
+145D76AF7  lea      rdx,[000000014825E284h]                  ; .rdata 825e284 -> 'A:pdf'
+145D76AFE  lea      rcx,[rbp-40h]                            ; 
+145D76B02  call     0000000146665260                         ; call 0x6665260
+145D76B07  test     al,al                                    ; 
+145D76B09  jne      0000000145D7712C                         ; 
+145D76B0F  lea      rdx,[0000000148360984h]                  ; .rdata 8360984 -> 'A:amx'
+145D76B16  lea      rcx,[rbp-40h]                            ; 
+145D76B1A  call     0000000146665260                         ; call 0x6665260
+145D76B1F  test     al,al                                    ; 
+145D76B21  je       0000000145D76B2D                         ; 
+145D76B23  mov      ebx,10h                                  ; 
+145D76B28  jmp      0000000145D77154                         ; 
+145D76B2D  lea      rdx,[000000014826084Ch]                  ; .rdata 826084c -> 'mc...mc.mcx..mcx'
+145D76B34  lea      rcx,[rbp-40h]                            ; 
+145D76B38  call     0000000146665260                         ; call 0x6665260
+145D76B3D  test     al,al                                    ; 
+145D76B3F  je       0000000145D76B4B                         ; 
+145D76B41  mov      ebx,17h                                  ; 
+145D76B46  jmp      0000000145D77154                         ; 
+145D76B4B  lea      rdx,[0000000148260854h]                  ; .rdata 8260854 -> 'A:mcx'
+145D76B52  lea      rcx,[rbp-40h]                            ; 
+145D76B56  call     0000000146665260                         ; call 0x6665260
+145D76B5B  test     al,al                                    ; 
+145D76B5D  je       0000000145D76B69                         ; 
+145D76B5F  mov      ebx,18h                                  ; 
+145D76B64  jmp      0000000145D77154                         ; 
+145D76B69  lea      rdx,[0000000148260860h]                  ; .rdata 8260860 -> 'A:pc2'
+145D76B70  lea      rcx,[rbp-40h]                            ; 
+145D76B74  call     0000000146665260                         ; call 0x6665260
+145D76B79  test     al,al                                    ; 
+145D76B7B  je       0000000145D76B87                         ; 
+145D76B7D  mov      ebx,19h                                  ; 
+145D76B82  jmp      0000000145D77154                         ; 
+145D76B87  lea      rdx,[000000014826086Ch]                  ; .rdata 826086c -> 'A:mdd'
+145D76B8E  lea      rcx,[rbp-40h]                            ; 
+145D76B92  call     0000000146665260                         ; call 0x6665260
+145D76B97  test     al,al                                    ; 
+145D76B99  je       0000000145D76BA5                         ; 
+145D76B9B  mov      ebx,1Ah                                  ; 
+145D76BA0  jmp      0000000145D77154                         ; 
+145D76BA5  lea      rdx,[00000001482608A0h]                  ; .rdata 82608a0 -> 'A:zprj'
+145D76BAC  lea      rcx,[rbp-40h]                            ; 
+145D76BB0  call     0000000146665260                         ; call 0x6665260
+145D76BB5  test     al,al                                    ; 
+145D76BB7  je       0000000145D76BC3                         ; 
+145D76BB9  mov      ebx,1Ch                                  ; 
+145D76BBE  jmp      0000000145D77154                         ; 
+145D76BC3  lea      rdx,[0000000148260878h]                  ; .rdata 8260878 -> 'A:cmp'
+145D76BCA  lea      rcx,[rbp-40h]                            ; 
+145D76BCE  call     0000000146665260                         ; call 0x6665260
+145D76BD3  test     al,al                                    ; 
+145D76BD5  je       0000000145D76BE1                         ; 
+145D76BD7  mov      ebx,28h                                  ; 
+145D76BDC  jmp      0000000145D77154                         ; 
+145D76BE1  lea      rdx,[0000000148260884h]                  ; .rdata 8260884 -> 'A:cmt'
+145D76BE8  lea      rcx,[rbp-40h]                            ; 
+145D76BEC  call     0000000146665260                         ; call 0x6665260
+145D76BF1  test     al,al                                    ; 
+145D76BF3  je       0000000145D76BFF                         ; 
+145D76BF5  mov      ebx,29h                                  ; 
+145D76BFA  jmp      0000000145D77154                         ; 
+145D76BFF  lea      rdx,[0000000148260890h]                  ; .rdata 8260890 -> 'A:zvrp'
+145D76C06  lea      rcx,[rbp-40h]                            ; 
+145D76C0A  call     0000000146665260                         ; call 0x6665260
+145D76C0F  test     al,al                                    ; 
+145D76C11  je       0000000145D76C1D                         ; 
+145D76C13  mov      ebx,59h                                  ; 
+145D76C18  jmp      0000000145D77154                         ; 
+145D76C1D  lea      rdx,[000000014884CB14h]                  ; .rdata 884cb14 -> 'A:stp'
+145D76C24  lea      rcx,[rbp-40h]                            ; 
+145D76C28  call     0000000146665260                         ; call 0x6665260
+145D76C2D  test     al,al                                    ; 
+145D76C2F  je       0000000145D76C3B                         ; 
+145D76C31  mov      ebx,33h                                  ; 
+145D76C36  jmp      0000000145D77154                         ; 
+145D76C3B  lea      rdx,[000000014883CC00h]                  ; .rdata 883cc00 -> 'A:sap'
+145D76C42  lea      rcx,[rbp-40h]                            ; 
+145D76C46  call     0000000146665260                         ; call 0x6665260
+145D76C4B  test     al,al                                    ; 
+145D76C4D  je       0000000145D76C59                         ; 
+145D76C4F  mov      ebx,35h                                  ; 
+145D76C54  jmp      0000000145D77154                         ; 
+145D76C59  lea      rdx,[00000001482608F4h]                  ; .rdata 82608f4 -> 'A:sew'
+145D76C60  lea      rcx,[rbp-40h]                            ; 
+145D76C64  call     0000000146665260                         ; call 0x6665260
+145D76C69  test     al,al                                    ; 
+145D76C6B  je       0000000145D76C77                         ; 
+145D76C6D  mov      ebx,36h                                  ; 
+145D76C72  jmp      0000000145D77154                         ; 
+145D76C77  lea      rdx,[0000000148260900h]                  ; .rdata 8260900 -> 'A:ssp'
+145D76C7E  lea      rcx,[rbp-40h]                            ; 
+145D76C82  call     0000000146665260                         ; call 0x6665260
+145D76C87  test     al,al                                    ; 
+145D76C89  je       0000000145D76C95                         ; 
+145D76C8B  mov      ebx,6Fh                                  ; 
+145D76C90  jmp      0000000145D77154                         ; 
+145D76C95  lea      rdx,[000000014826090Ch]                  ; .rdata 826090c -> 'A:sst'
+145D76C9C  lea      rcx,[rbp-40h]                            ; 
+145D76CA0  call     0000000146665260                         ; call 0x6665260
+145D76CA5  test     al,al                                    ; 
+145D76CA7  je       0000000145D76CB3                         ; 
+145D76CA9  mov      ebx,3Fh                                  ; 
+145D76CAE  jmp      0000000145D77154                         ; 
+145D76CB3  lea      rdx,[00000001482608DCh]                  ; .rdata 82608dc -> 'A:btn'
+145D76CBA  lea      rcx,[rbp-40h]                            ; 
+145D76CBE  call     0000000146665260                         ; call 0x6665260
+145D76CC3  test     al,al                                    ; 
+145D76CC5  je       0000000145D76CD1                         ; 
+145D76CC7  mov      ebx,3Ah                                  ; 
+145D76CCC  jmp      0000000145D77154                         ; 
+145D76CD1  lea      rdx,[00000001482608E8h]                  ; .rdata 82608e8 -> 'A:bth'
+145D76CD8  lea      rcx,[rbp-40h]                            ; 
+145D76CDC  call     0000000146665260                         ; call 0x6665260
+145D76CE1  test     al,al                                    ; 
+145D76CE3  je       0000000145D76CEF                         ; 
+145D76CE5  mov      ebx,3Bh                                  ; 
+145D76CEA  jmp      0000000145D77154                         ; 
+145D76CEF  lea      rdx,[0000000148260834h]                  ; .rdata 8260834 -> 'A:fbx'
+145D76CF6  lea      rcx,[rbp-40h]                            ; 
+145D76CFA  call     0000000146665260                         ; call 0x6665260
+145D76CFF  test     al,al                                    ; 
+145D76D01  je       0000000145D76D0D                         ; 
+145D76D03  mov      ebx,38h                                  ; 
+145D76D08  jmp      0000000145D77154                         ; 
+145D76D0D  lea      rdx,[0000000148260918h]                  ; .rdata 8260918 -> 'A:zacs'
+145D76D14  lea      rcx,[rbp-40h]                            ; 
+145D76D18  call     0000000146665260                         ; call 0x6665260
+145D76D1D  test     al,al                                    ; 
+145D76D1F  je       0000000145D76D2B                         ; 
+145D76D21  mov      ebx,3Eh                                  ; 
+145D76D26  jmp      0000000145D77154                         ; 
+145D76D2B  lea      rdx,[000000014826FF00h]                  ; .rdata 826ff00 -> 'A:fab'
+145D76D32  lea      rcx,[rbp-40h]                            ; 
+145D76D36  call     0000000146665260                         ; call 0x6665260
+145D76D3B  test     al,al                                    ; 
+145D76D3D  je       0000000145D76D49                         ; 
+145D76D3F  mov      ebx,31h                                  ; 
+145D76D44  jmp      0000000145D77154                         ; 
+145D76D49  lea      rdx,[00000001482608CCh]                  ; .rdata 82608cc -> 'A:zfab'
+145D76D50  lea      rcx,[rbp-40h]                            ; 
+145D76D54  call     0000000146665260                         ; call 0x6665260
+145D76D59  test     al,al                                    ; 
+145D76D5B  je       0000000145D76D67                         ; 
+145D76D5D  mov      ebx,32h                                  ; 
+145D76D62  jmp      0000000145D77154                         ; 
+145D76D67  lea      rdx,[0000000148260928h]                  ; .rdata 8260928 -> 'A:avs'
+145D76D6E  lea      rcx,[rbp-40h]                            ; 
+145D76D72  call     0000000146665260                         ; call 0x6665260
+145D76D77  test     al,al                                    ; 
+145D76D79  je       0000000145D76D85                         ; 
+145D76D7B  mov      ebx,27h                                  ; 
+145D76D80  jmp      0000000145D77154                         ; 
+145D76D85  lea      rdx,[00000001482608C0h]                  ; .rdata 82608c0 -> 'A:mea'
+145D76D8C  lea      rcx,[rbp-40h]                            ; 
+145D76D90  call     0000000146665260                         ; call 0x6665260
+145D76D95  test     al,al                                    ; 
+145D76D97  je       0000000145D76DA3                         ; 
+145D76D99  mov      ebx,0Ah                                  ; 
+145D76D9E  jmp      0000000145D77154                         ; 
+145D76DA3  lea      rdx,[00000001482C9F44h]                  ; .rdata 82c9f44 -> 'A:smp'
+145D76DAA  lea      rcx,[rbp-40h]                            ; 
+145D76DAE  call     0000000146665260                         ; call 0x6665260
+145D76DB3  test     al,al                                    ; 
+145D76DB5  je       0000000145D76DC1                         ; 
+145D76DB7  mov      ebx,26h                                  ; 
+145D76DBC  jmp      0000000145D77154                         ; 
+145D76DC1  lea      rdx,[0000000148360988h]                  ; .rdata 8360988 -> 'A:rdp'
+145D76DC8  lea      rcx,[rbp-40h]                            ; 
+145D76DCC  call     0000000146665260                         ; call 0x6665260
+145D76DD1  test     al,al                                    ; 
+145D76DD3  je       0000000145D76DDF                         ; 
+145D76DD5  mov      ebx,40h                                  ; 
+145D76DDA  jmp      0000000145D77154                         ; 
+145D76DDF  lea      rdx,[000000014826FF4Ch]                  ; .rdata 826ff4c -> 'A:ptp'
+145D76DE6  lea      rcx,[rbp-40h]                            ; 
+145D76DEA  call     0000000146665260                         ; call 0x6665260
+145D76DEF  test     al,al                                    ; 
+145D76DF1  je       0000000145D76DFD                         ; 
+145D76DF3  mov      ebx,41h                                  ; 
+145D76DF8  jmp      0000000145D77154                         ; 
+145D76DFD  lea      rdx,[0000000148260840h]                  ; .rdata 8260840 -> 'A:abc'
+145D76E04  lea      rcx,[rbp-40h]                            ; 
+145D76E08  call     0000000146665260                         ; call 0x6665260
+145D76E0D  test     al,al                                    ; 
+145D76E0F  je       0000000145D76E1B                         ; 
+145D76E11  mov      ebx,42h                                  ; 
+145D76E16  jmp      0000000145D77154                         ; 
+145D76E1B  lea      rdx,[0000000148260934h]                  ; .rdata 8260934 -> 'A:zblc'
+145D76E22  lea      rcx,[rbp-40h]                            ; 
+145D76E26  call     0000000146665260                         ; call 0x6665260
+145D76E2B  test     al,al                                    ; 
+145D76E2D  je       0000000145D76E39                         ; 
+145D76E2F  mov      ebx,44h                                  ; 
+145D76E34  jmp      0000000145D77154                         ; 
+145D76E39  lea      rdx,[00000001482911A8h]                  ; .rdata 82911a8 -> 'A:zmod'
+145D76E40  lea      rcx,[rbp-40h]                            ; 
+145D76E44  call     0000000146665260                         ; call 0x6665260
+145D76E49  test     al,al                                    ; 
+145D76E4B  je       0000000145D76E57                         ; 
+145D76E4D  mov      ebx,45h                                  ; 
+145D76E52  jmp      0000000145D77154                         ; 
+145D76E57  lea      rdx,[00000001483839D4h]                  ; .rdata 83839d4 -> 'A:zmdr'
+145D76E5E  lea      rcx,[rbp-40h]                            ; 
+145D76E62  call     0000000146665260                         ; call 0x6665260
+145D76E67  test     al,al                                    ; 
+145D76E69  je       0000000145D76E75                         ; 
+145D76E6B  mov      ebx,47h                                  ; 
+145D76E70  jmp      0000000145D77154                         ; 
+145D76E75  lea      rdx,[0000000148304410h]                  ; .rdata 8304410 -> 'A:cpt'
+145D76E7C  lea      rcx,[rbp-40h]                            ; 
+145D76E80  call     0000000146665260                         ; call 0x6665260
+145D76E85  test     al,al                                    ; 
+145D76E87  je       0000000145D76E93                         ; 
+145D76E89  mov      ebx,48h                                  ; 
+145D76E8E  jmp      0000000145D77154                         ; 
+145D76E93  lea      rdx,[000000014836098Ch]                  ; .rdata 836098c -> 'A:cfg'
+145D76E9A  lea      rcx,[rbp-40h]                            ; 
+145D76E9E  call     0000000146665260                         ; call 0x6665260
+145D76EA3  test     al,al                                    ; 
+145D76EA5  je       0000000145D76EB1                         ; 
+145D76EA7  mov      ebx,4Ch                                  ; 
+145D76EAC  jmp      0000000145D77154                         ; 
+145D76EB1  lea      rdx,[00000001482919ACh]                  ; .rdata 82919ac -> 'py..CLOUIUpdateI'
+145D76EB8  lea      rcx,[rbp-40h]                            ; 
+145D76EBC  call     0000000146665260                         ; call 0x6665260
+145D76EC1  test     al,al                                    ; 
+145D76EC3  je       0000000145D76ECF                         ; 
+145D76EC5  mov      ebx,4Fh                                  ; 
+145D76ECA  jmp      0000000145D77154                         ; 
+145D76ECF  lea      rdx,[0000000148270214h]                  ; .rdata 8270214 -> 'A:trm'
+145D76ED6  lea      rcx,[rbp-40h]                            ; 
+145D76EDA  call     0000000146665260                         ; call 0x6665260
+145D76EDF  test     al,al                                    ; 
+145D76EE1  je       0000000145D76EED                         ; 
+145D76EE3  mov      ebx,50h                                  ; 
+145D76EE8  jmp      0000000145D77154                         ; 
+145D76EED  lea      rdx,[00000001484613C4h]                  ; .rdata 84613c4 -> 'A:zcmr'
+145D76EF4  lea      rcx,[rbp-40h]                            ; 
+145D76EF8  call     0000000146665260                         ; call 0x6665260
+145D76EFD  test     al,al                                    ; 
+145D76EFF  je       0000000145D76F0B                         ; 
+145D76F01  mov      ebx,49h                                  ; 
+145D76F06  jmp      0000000145D77154                         ; 
+145D76F0B  lea      rdx,[0000000148346934h]                  ; .rdata 8346934 -> 'A:jean'
+145D76F12  lea      rcx,[rbp-40h]                            ; 
+145D76F16  call     0000000146665260                         ; call 0x6665260
+145D76F1B  test     al,al                                    ; 
+145D76F1D  jne      0000000145D77125                         ; 
+145D76F23  lea      rdx,[000000014834693Ch]                  ; .rdata 834693c -> 'A:jean5'
+145D76F2A  lea      rcx,[rbp-40h]                            ; 
+145D76F2E  call     0000000146665260                         ; call 0x6665260
+145D76F33  test     al,al                                    ; 
+145D76F35  jne      0000000145D77125                         ; 
+145D76F3B  lea      rdx,[000000014825E048h]                  ; .rdata 825e048 -> 'A:axf'
+145D76F42  lea      rcx,[rbp-40h]                            ; 
+145D76F46  call     0000000146665260                         ; call 0x6665260
+145D76F4B  test     al,al                                    ; 
+145D76F4D  je       0000000145D76F59                         ; 
+145D76F4F  mov      ebx,56h                                  ; 
+145D76F54  jmp      0000000145D77154                         ; 
+145D76F59  lea      rdx,[000000014826FF58h]                  ; .rdata 826ff58 -> 'A:sbsar'
+145D76F60  lea      rcx,[rbp-40h]                            ; 
+145D76F64  call     0000000146665260                         ; call 0x6665260
+145D76F69  test     al,al                                    ; 
+145D76F6B  je       0000000145D76F77                         ; 
+145D76F6D  mov      ebx,5Ch                                  ; 
+145D76F72  jmp      0000000145D77154                         ; 
+145D76F77  lea      rdx,[000000014883A69Ch]                  ; .rdata 883a69c -> 'A:acs'
+145D76F7E  lea      rcx,[rbp-40h]                            ; 
+145D76F82  call     0000000146665260                         ; call 0x6665260
+145D76F87  test     al,al                                    ; 
+145D76F89  je       0000000145D76F95                         ; 
+145D76F8B  mov      ebx,5Dh                                  ; 
+145D76F90  jmp      0000000145D77154                         ; 
+145D76F95  lea      rdx,[000000014884E140h]                  ; .rdata 884e140 -> 'A:rul'
+145D76F9C  lea      rcx,[rbp-40h]                            ; 
+145D76FA0  call     0000000146665260                         ; call 0x6665260
+145D76FA5  test     al,al                                    ; 
+145D76FA7  je       0000000145D76FB3                         ; 
+145D76FA9  mov      ebx,63h                                  ; 
+145D76FAE  jmp      0000000145D77154                         ; 
+145D76FB3  lea      rdx,[000000014826FF60h]                  ; .rdata 826ff60 -> 'A:grp'
+145D76FBA  lea      rcx,[rbp-40h]                            ; 
+145D76FBE  call     0000000146665260                         ; call 0x6665260
+145D76FC3  test     al,al                                    ; 
+145D76FC5  je       0000000145D76FD1                         ; 
+145D76FC7  mov      ebx,66h                                  ; 
+145D76FCC  jmp      0000000145D77154                         ; 
+145D76FD1  lea      rdx,[0000000148360DB8h]                  ; .rdata 8360db8 -> 'A:usd'
+145D76FD8  lea      rcx,[rbp-40h]                            ; 
+145D76FDC  call     0000000146665260                         ; call 0x6665260
+145D76FE1  test     al,al                                    ; 
+145D76FE3  jne      0000000145D7711E                         ; 
+145D76FE9  lea      rdx,[0000000148360DBCh]                  ; .rdata 8360dbc -> 'A:usda'
+145D76FF0  lea      rcx,[rbp-40h]                            ; 
+145D76FF4  call     0000000146665260                         ; call 0x6665260
+145D76FF9  test     al,al                                    ; 
+145D76FFB  jne      0000000145D7711E                         ; 
+145D77001  lea      rdx,[0000000148360DC4h]                  ; .rdata 8360dc4 -> 'A:usdc'
+145D77008  lea      rcx,[rbp-40h]                            ; 
+145D7700C  call     0000000146665260                         ; call 0x6665260
+145D77011  test     al,al                                    ; 
+145D77013  jne      0000000145D7711E                         ; 
+145D77019  lea      rdx,[0000000148358E48h]                  ; .rdata 8358e48 -> 'A:zse'
+145D77020  lea      rcx,[rbp-40h]                            ; 
+145D77024  call     0000000146665260                         ; call 0x6665260
+145D77029  test     al,al                                    ; 
+145D7702B  je       0000000145D77037                         ; 
+145D7702D  mov      ebx,6Dh                                  ; 
+145D77032  jmp      0000000145D77154                         ; 
+145D77037  lea      rdx,[0000000148383B80h]                  ; .rdata 8383b80 -> 'A:uix'
+145D7703E  lea      rcx,[rbp-40h]                            ; 
+145D77042  call     0000000146665260                         ; call 0x6665260
+145D77047  test     al,al                                    ; 
+145D77049  je       0000000145D77055                         ; 
+145D7704B  mov      ebx,71h                                  ; 
+145D77050  jmp      0000000145D77154                         ; 
+145D77055  lea      rdx,[0000000148270208h]                  ; .rdata 8270208 -> 'A:zsl'
+145D7705C  lea      rcx,[rbp-40h]                            ; 
+145D77060  call     0000000146665260                         ; call 0x6665260
+145D77065  test     al,al                                    ; 
+145D77067  je       0000000145D77073                         ; 
+145D77069  mov      ebx,5Fh                                  ; 
+145D7706E  jmp      0000000145D77154                         ; 
+145D77073  lea      rdx,[0000000148270204h]                  ; .rdata 8270204 -> 'A:zss'
+145D7707A  lea      rcx,[rbp-40h]                            ; 
+145D7707E  call     0000000146665260                         ; call 0x6665260
+145D77083  test     al,al                                    ; 
+145D77085  je       0000000145D77091                         ; 
+145D77087  mov      ebx,5Eh                                  ; 
+145D7708C  jmp      0000000145D77154                         ; 
+145D77091  lea      rdx,[000000014827020Ch]                  ; .rdata 827020c -> 'A:zpu'
+145D77098  lea      rcx,[rbp-40h]                            ; 
+145D7709C  call     0000000146665260                         ; call 0x6665260
+145D770A1  test     al,al                                    ; 
+145D770A3  je       0000000145D770AF                         ; 
+145D770A5  mov      ebx,60h                                  ; 
+145D770AA  jmp      0000000145D77154                         ; 
+145D770AF  lea      rdx,[0000000148270210h]                  ; .rdata 8270210 -> 'A:zst'
+145D770B6  lea      rcx,[rbp-40h]                            ; 
+145D770BA  call     0000000146665260                         ; call 0x6665260
+145D770BF  test     al,al                                    ; 
+145D770C1  je       0000000145D770CD                         ; 
+145D770C3  mov      ebx,61h                                  ; 
+145D770C8  jmp      0000000145D77154                         ; 
+145D770CD  lea      rdx,[00000001482701F8h]                  ; .rdata 82701f8 -> 'A:zsd'
+145D770D4  lea      rcx,[rbp-40h]                            ; 
+145D770D8  call     0000000146665260                         ; call 0x6665260
+145D770DD  test     al,al                                    ; 
+145D770DF  je       0000000145D770E8                         ; 
+145D770E1  mov      ebx,4Ah                                  ; 
+145D770E6  jmp      0000000145D77154                         ; 
+145D770E8  lea      rdx,[00000001482701FCh]                  ; .rdata 82701fc -> 'A:zpl'
+145D770EF  lea      rcx,[rbp-40h]                            ; 
+145D770F3  call     0000000146665260                         ; call 0x6665260
+145D770F8  test     al,al                                    ; 
+145D770FA  je       0000000145D77103                         ; 
+145D770FC  mov      ebx,4Bh                                  ; 
+145D77101  jmp      0000000145D77154                         ; 
+145D77103  lea      rdx,[0000000148270200h]                  ; .rdata 8270200 -> 'A:zsp'
+145D7710A  lea      rcx,[rbp-40h]                            ; 
+145D7710E  call     0000000146665260                         ; call 0x6665260
+145D77113  test     al,al                                    ; 
+145D77115  je       0000000145D77154                         ; 
+145D77117  mov      ebx,54h                                  ; 
+145D7711C  jmp      0000000145D77154                         ; 
+145D7711E  mov      ebx,67h                                  ; 
+145D77123  jmp      0000000145D77154                         ; 
+145D77125  mov      ebx,5Bh                                  ; 
+145D7712A  jmp      0000000145D77154                         ; 
+145D7712C  mov      ebx,0Fh                                  ; 
+145D77131  jmp      0000000145D77154                         ; 
+145D77133  mov      ebx,0Eh                                  ; 
+145D77138  jmp      0000000145D77154                         ; 
+145D7713A  mov      ebx,2                                    ; 
+145D7713F  jmp      0000000145D77154                         ; 
+145D77141  mov      ebx,55h                                  ; 
+145D77146  jmp      0000000145D77154                         ; 
+145D77148  mov      ebx,3                                    ; 
+145D7714D  jmp      0000000145D77154                         ; 
+145D7714F  mov      ebx,1                                    ; 
+145D77154  lea      rcx,[rbp-40h]                            ; 
+145D77158  call     0000000146665040                         ; call 0x6665040
+145D7715D  mov      eax,ebx                                  ; 
+145D7715F  mov      rbx,qword ptr [rsp+70h]                  ; 
+145D77164  add      rsp,60h                                  ; 
+145D77168  pop      rbp                                      ; 
+145D77169  ret                                               ; 
+== 545 instructions, ends 145D77169
+== strings
+  145D76875  ref 8260790  A:mtn
+  145D7688D  ref 8360974  A:avacm
+  145D768A5  ref 826079c  A:cak
+  145D768C3  ref 836097c  A:dae
+  145D768E1  ref 82607b0  A:avt
+  145D768F9  ref 834bd74  A:avac
+  145D76911  ref 82607a8  A:avte
+  145D76929  ref 8260808  A:obj
+  145D76947  ref 8333274  A:gltf
+  145D7695F  ref 82910ec  A:glb
+  145D76977  ref 8290f7c  A:vrm
+  145D76995  ref 82607bc  A:pos
+  145D769AD  ref 8360990  A:avacp
+  145D769C5  ref 83609a4  A:hpos
+  145D769E3  ref 82607e4  A:anm
+  145D76A01  ref 82608b0  A:zpac
+  145D76A1F  ref 82607c8  A:pacx
+  145D76A3D  ref 82607d8  A:tco
+  145D76A5B  ref 82607f0  A:pan
+  145D76A79  ref 82607fc  A:arr
+  145D76A97  ref 825e29c  A:dxf
+  145D76AAF  ref 8362fb8  A:aam
+  145D76AC7  ref 8290e9c  A:aama
+  145D76ADF  ref 828707c  ai..ExternalOpen
+  145D76AF7  ref 825e284  A:pdf
+  145D76B0F  ref 8360984  A:amx
+  145D76B2D  ref 826084c  mc...mc.mcx..mcx
+  145D76B69  ref 8260860  A:pc2
+  145D76B87  ref 826086c  A:mdd
+  145D76BA5  ref 82608a0  A:zprj
+  145D76BC3  ref 8260878  A:cmp
+  145D76BE1  ref 8260884  A:cmt
+  145D76BFF  ref 8260890  A:zvrp
+  145D76C1D  ref 884cb14  A:stp
+  145D76C3B  ref 883cc00  A:sap
+  145D76C59  ref 82608f4  A:sew
+  145D76C77  ref 8260900  A:ssp
+  145D76C95  ref 826090c  A:sst
+  145D76CB3  ref 82608dc  A:btn
+  145D76CD1  ref 82608e8  A:bth
+  145D76CEF  ref 8260834  A:fbx
+  145D76D0D  ref 8260918  A:zacs
+  145D76D2B  ref 826ff00  A:fab
+  145D76D49  ref 82608cc  A:zfab
+  145D76D67  ref 8260928  A:avs
+  145D76D85  ref 82608c0  A:mea
+  145D76DA3  ref 82c9f44  A:smp
+  145D76DC1  ref 8360988  A:rdp
+  145D76DDF  ref 826ff4c  A:ptp
+  145D76DFD  ref 8260840  A:abc
+  145D76E1B  ref 8260934  A:zblc
+  145D76E39  ref 82911a8  A:zmod
+  145D76E57  ref 83839d4  A:zmdr
+  145D76E75  ref 8304410  A:cpt
+  145D76E93  ref 836098c  A:cfg
+  145D76EB1  ref 82919ac  py..CLOUIUpdateI
+  145D76ECF  ref 8270214  A:trm
+  145D76EED  ref 84613c4  A:zcmr
+  145D76F0B  ref 8346934  A:jean
+  145D76F23  ref 834693c  A:jean5
+  145D76F3B  ref 825e048  A:axf
+  145D76F59  ref 826ff58  A:sbsar
+  145D76F95  ref 884e140  A:rul
+  145D76FB3  ref 826ff60  A:grp
+  145D76FD1  ref 8360db8  A:usd
+  145D76FE9  ref 8360dbc  A:usda
+  145D77001  ref 8360dc4  A:usdc
+  145D77019  ref 8358e48  A:zse
+  145D77037  ref 8383b80  A:uix
+  145D77055  ref 8270208  A:zsl
+  145D77073  ref 8270204  A:zss
+  145D77091  ref 827020c  A:zpu
+  145D770AF  ref 8270210  A:zst
+  145D770CD  ref 82701f8  A:zsd
+  145D770E8  ref 82701fc  A:zpl
+  145D77103  ref 8270200  A:zsp
+== calls (rva: count, thunk)
+  40ed340: x1 
+  6665040: x2 
+  6665260: x78 
+  6668300: x1 
+== data refs

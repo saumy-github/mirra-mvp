@@ -1,0 +1,53 @@
+56dae10: push        rbx
+56dae12: sub         rsp,70h
+56dae16: mov         rax,qword ptr [000000014A172D40h] ; [.data a172d40]
+56dae1d: xor         rax,rsp
+56dae20: mov         qword ptr [rsp+68h],rax
+56dae25: mov         rbx,rdx
+56dae28: mov         qword ptr [rsp+30h],rdx
+56dae2d: lea         rdx,[rsp+30h]
+56dae32: call        00000001456DAEF0 ; [.text 56daef0]
+56dae37: nop
+56dae38: mov         dword ptr [rsp+28h],0
+56dae40: mov         byte ptr [rsp+20h],0
+56dae45: mov         r9b,20h
+56dae48: mov         r8d,1
+56dae4e: lea         rdx,[rsp+48h]
+56dae53: lea         rcx,[rsp+30h]
+56dae58: call        0000000143D3A3C0 ; [.text 3d3a3c0]
+56dae5d: nop
+56dae5e: mov         rdx,rax
+56dae61: mov         rcx,rbx
+56dae64: call        00000001466668A0 ; [.text 66668a0]
+56dae69: nop
+56dae6a: mov         rdx,qword ptr [rsp+60h]
+56dae6f: cmp         rdx,0Fh
+56dae73: jbe         00000001456DAEAA ; [.text 56daeaa]
+56dae75: inc         rdx
+56dae78: mov         rcx,qword ptr [rsp+48h]
+56dae7d: mov         rax,rcx
+56dae80: cmp         rdx,1000h
+56dae87: jb          00000001456DAEA5 ; [.text 56daea5]
+56dae89: add         rdx,27h
+56dae8d: mov         rcx,qword ptr [rcx-8]
+56dae91: sub         rax,rcx
+56dae94: add         rax,0FFFFFFFFFFFFFFF8h
+56dae98: cmp         rax,1Fh
+56dae9c: jbe         00000001456DAEA5 ; [.text 56daea5]
+56dae9e: call        qword ptr [0000000148237590h] ; [.rdata 8237590]
+56daea4: int         3
+56daea5: call        00000001470D91F4 ; [.text 70d91f4]
+56daeaa: movdqa      xmm0,xmmword ptr [00000001482609B0h] ; [.rdata 82609b0]
+56daeb2: movdqu      xmmword ptr [rsp+58h],xmm0
+56daeb8: mov         byte ptr [rsp+48h],0
+56daebd: movzx       edx,byte ptr [rsp+30h]
+56daec2: lea         rcx,[rsp+38h]
+56daec7: call        0000000141DC9FD0 ; [.text 1dc9fd0]
+56daecc: nop
+56daecd: mov         rax,rbx
+56daed0: mov         rcx,qword ptr [rsp+68h]
+56daed5: xor         rcx,rsp
+56daed8: call        00000001470D9780 ; [.text 70d9780]
+56daedd: add         rsp,70h
+56daee1: pop         rbx
+56daee2: ret

@@ -4,8 +4,8 @@ Native Windows Python process that drives the real CLO3D avatar/VTO
 pipelines for the website backend. Design doc:
 [`.agent/website-launch/07-step0-worker-queue.md`](../.agent/website-launch/07-step0-worker-queue.md).
 
-Runs **outside Docker** — it needs to reach the CLO3D REST plugin at
-`localhost:50505` directly, and drive `clo_avatar_generation`/`clo_vto`
+Runs **outside Docker** — it needs to reach the CLO3D REST plugin (default
+`localhost:50505`, one port per session when running in parallel) directly, and drive `clo_avatar_generation`/`clo_vto`
 against the local filesystem the same way the existing dev CLI scripts
 (`run_avatar.py`, `run_clo_vto.py`) already do.
 
@@ -31,11 +31,37 @@ against the local filesystem the same way the existing dev CLI scripts
    python worker/run_worker.py
    ```
 
-Concurrency is intentionally 1 — CLO3D's plugin is itself single-threaded
-(one command queue, drained by CLO's own UI thread), so running a second
-worker against the same CLO instance would race and corrupt whichever job's
-scene state loses. Don't start a second worker against the same CLO
-instance.
+## Running several jobs in parallel
+
+One CLO session is single-threaded (one command queue, drained by CLO's own
+UI thread), so a worker handles one job at a time. Throughput scales by
+running **several CLO sessions, each with its own worker** (several CLO
+sessions on one machine are fine and licensed for production use).
+
+1. Start each CLO with its own plugin port, e.g. in PowerShell:
+   `$env:MIRRA_PLUGIN_PORT=50601; & "C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe"`
+   then `50602` for the next one, and so on. The plugin must be the build
+   with the event feed (`/health` shows `has_events: true`).
+2. In each CLO click **Plugins → REST Server Execute → OK** once (the plugin
+   does not start by itself yet).
+3. `python worker/run_workers.py --discover` starts one worker per live
+   session (or `--ports 50601,50602`, or `--count 2 --base-port 50601`).
+   Each child is `run_worker.py` with `CLO_BASE_URL` and `WORKER_SLOT` set;
+   a worker waits for its session to be healthy and refuses to start if
+   another worker already owns that session.
+
+What is shared and how parallel jobs stay apart:
+- Run folders (`clo_avatar_generation/output/<user>-<n>`) and upload versions
+  (`dev_upload|live_upload/avatars/<user>/<n>`) are claimed atomically, so two
+  jobs for the same user never write into the same folder.
+- Try-on renders all write into the single `clo_vto/output/` folder, so they
+  take a cross-process lock and run one at a time (avatar jobs are unaffected).
+- Each CLO session needs about 1.3–1.8 GB RAM; size the number of sessions to
+  the machine.
+
+`python worker/run_worker.py` on its own still works for a single session
+(default `http://localhost:50505`, or whatever `CLO_BASE_URL` says). Never
+point two workers at the same session; the second one exits.
 
 ## What it does
 

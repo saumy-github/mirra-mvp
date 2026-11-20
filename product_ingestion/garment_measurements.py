@@ -44,7 +44,7 @@ class GarmentMeasurements:
       bicep_width       — the one genuine half-girth here: flat seam-to-seam
                           across the FOLDED sleeve. Pattern generators multiply
                           by 2 for the unfolded sleeve piece width — panels.py
-                          generate_sleeve() and panel_generation_clo's
+                          generate_sleeve() and step_05_0_panel_generation_clo's
                           `bicep_full = bicep_width * 2 * MM_PER_CM` both do.
                           Do NOT store the full circumference here.
 

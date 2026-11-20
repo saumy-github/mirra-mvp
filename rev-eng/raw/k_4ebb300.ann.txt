@@ -1,0 +1,306 @@
+44EBB300 mov    ah,0DEh                                      ; 
+44EBB302 and    dword ptr [rdx],eax                          ; 
+44EBB304 mov    rdi,rax                                      ; 
+44EBB307 mov    r8,qword ptr [rbp+0000000000000108h]         ; 
+44EBB30E mov    rdx,qword ptr [rbp+00000000000000F8h]        ; 
+44EBB315 sub    r8,rdx                                       ; 
+44EBB318 sar    r8,3                                         ; 
+44EBB31C test   r8,r8                                        ; 
+44EBB31F je     0000000144EBB32D                             ; 
+44EBB321 lea    rcx,[rbp+00000000000000F8h]                  ; 
+44EBB328 call   00000001439848D0                             ; call 0x39848d0
+44EBB32D mov    qword ptr [rbp+00000000000000F8h],rdi        ; 
+44EBB334 lea    rdx,[rdi+0000000000000080h]                  ; 
+44EBB33B mov    qword ptr [rbp+0000000000000100h],rdx        ; 
+44EBB342 mov    qword ptr [rbp+0000000000000108h],rdx        ; 
+44EBB349 lea    r8,[rbp+0000000000000178h]                   ; 
+44EBB350 mov    rcx,rdi                                      ; 
+44EBB353 call   0000000141D0AA40                             ; call 0x1d0aa40
+44EBB358 nop                                                 ; 
+44EBB359 mov    rcx,rbx                                      ; 
+44EBB35C shl    rcx,5                                        ; 
+44EBB360 add    rcx,qword ptr [rbp+30h]                      ; 
+44EBB364 lea    rdx,[rbp+00000000000000E0h]                  ; 
+44EBB36B call   00000001462D2A10                             ; call 0x62d2a10
+44EBB370 test   al,al                                        ; 
+44EBB372 je     0000000144EBB9CB                             ; 
+44EBB378 xorps  xmm0,xmm0                                    ; 
+44EBB37B movups xmmword ptr [rbp+00000000000003F0h],xmm0     ; 
+44EBB382 mov    qword ptr [rbp+0000000000000400h],0Bh        ; 
+44EBB38D mov    qword ptr [rbp+0000000000000408h],0Fh        ; 
+44EBB398 movsd  xmm0,mmword ptr [00000001488BD4B8h]          ; 88bd4b8 'A:uiSizeIndex'
+44EBB3A0 movsd  mmword ptr [rbp+00000000000003F0h],xmm0      ; 
+44EBB3A8 movzx  eax,word ptr [00000001488BD4C0h]             ; 88bd4c0 'A:dex'
+44EBB3AF mov    word ptr [rbp+00000000000003F8h],ax          ; 
+44EBB3B6 movzx  eax,byte ptr [00000001488BD4C2h]             ; 88bd4c2 
+44EBB3BD mov    byte ptr [rbp+00000000000003FAh],al          ; 
+44EBB3C3 mov    byte ptr [rbp+00000000000003FBh],0           ; 
+44EBB3CA lea    r8,[rsp+54h]                                 ; 
+44EBB3CF lea    rdx,[rbp+00000000000003F0h]                  ; 
+44EBB3D6 lea    rcx,[rbp+00000000000000E0h]                  ; 
+44EBB3DD call   00000001462D3520                             ; call 0x62d3520
+44EBB3E2 nop                                                 ; 
+44EBB3E3 lea    rcx,[rbp+00000000000003F0h]                  ; 
+44EBB3EA call   00000001438D1D60                             ; call 0x38d1d60
+44EBB3EF xorps  xmm0,xmm0                                    ; 
+44EBB3F2 movups xmmword ptr [rbp+0000000000000470h],xmm0     ; 
+44EBB3F9 mov    qword ptr [rbp+0000000000000480h],0Ch        ; 
+44EBB404 mov    qword ptr [rbp+0000000000000488h],0Fh        ; 
+44EBB40F movsd  xmm0,mmword ptr [00000001488BD4C8h]          ; 88bd4c8 'A:uiAvtarIndex'
+44EBB417 movsd  mmword ptr [rbp+0000000000000470h],xmm0      ; 
+44EBB41F mov    eax,dword ptr [00000001488BD4D0h]            ; 88bd4d0 'A:ndex'
+44EBB425 mov    dword ptr [rbp+0000000000000478h],eax        ; 
+44EBB42B mov    byte ptr [rbp+000000000000047Ch],0           ; 
+44EBB432 lea    r8,[rbp-18h]                                 ; 
+44EBB436 lea    rdx,[rbp+0000000000000470h]                  ; 
+44EBB43D lea    rcx,[rbp+00000000000000E0h]                  ; 
+44EBB444 call   00000001462D3520                             ; call 0x62d3520
+44EBB449 nop                                                 ; 
+44EBB44A lea    rcx,[rbp+0000000000000470h]                  ; 
+44EBB451 call   00000001438D1D60                             ; call 0x38d1d60
+44EBB456 mov    eax,dword ptr [rsp+54h]                      ; 
+44EBB45A mov    dword ptr [rbp+60h],eax                      ; 
+44EBB45D mov    ecx,dword ptr [rbp-18h]                      ; 
+44EBB460 mov    dword ptr [rbp+64h],ecx                      ; 
+44EBB463 cmp    r12,qword ptr [rbp+10h]                      ; 
+44EBB467 je     0000000144EBB482                             ; 
+44EBB469 shl    rcx,20h                                      ; 
+44EBB46D or     rcx,rax                                      ; 
+44EBB470 mov    qword ptr [r12],rcx                          ; 
+44EBB474 add    r12,8                                        ; 
+44EBB478 mov    qword ptr [rbp-30h],r12                      ; 
+44EBB47C mov    qword ptr [rbp+8],r12                        ; 
+44EBB480 jmp    0000000144EBB49A                             ; 
+44EBB482 lea    r8,[rbp+60h]                                 ; 
+44EBB486 mov    rdx,r12                                      ; 
+44EBB489 lea    rcx,[rbp]                                    ; 
+44EBB48D call   0000000144EAEAA0                             ; call 0x4eaeaa0
+44EBB492 mov    rax,qword ptr [rbp+8]                        ; 
+44EBB496 mov    qword ptr [rbp-30h],rax                      ; 
+44EBB49A mov    dword ptr [rbp+0000000000000120h],0          ; 
+44EBB4A4 mov    qword ptr [rbp+0000000000000128h],r14        ; 
+44EBB4AB mov    qword ptr [rbp+0000000000000130h],r14        ; 
+44EBB4B2 mov    ecx,50h                                      ; 
+44EBB4B7 call   00000001470D91B8                             ; call 0x70d91b8
+44EBB4BC mov    qword ptr [rax],rax                          ; 
+44EBB4BF mov    qword ptr [rax+8],rax                        ; 
+44EBB4C3 mov    qword ptr [rbp+0000000000000128h],rax        ; 
+44EBB4CA mov    qword ptr [rbp+0000000000000138h],r14        ; 
+44EBB4D1 xorps  xmm0,xmm0                                    ; 
+44EBB4D4 movdqa xmmword ptr [rbp+0000000000000140h],xmm0     ; 
+44EBB4DC mov    qword ptr [rbp+0000000000000150h],7          ; 
+44EBB4E7 mov    qword ptr [rbp+0000000000000158h],8          ; 
+44EBB4F2 mov    dword ptr [rbp+0000000000000120h],3F800000h  ; 
+44EBB4FC mov    qword ptr [rbp+0000000000000180h],rax        ; 
+44EBB503 mov    ecx,80h                                      ; 
+44EBB508 call   00000001470D91B8                             ; call 0x70d91b8
+44EBB50D mov    rdi,rax                                      ; 
+44EBB510 mov    r8,qword ptr [rbp+0000000000000148h]         ; 
+44EBB517 mov    rdx,qword ptr [rbp+0000000000000138h]        ; 
+44EBB51E sub    r8,rdx                                       ; 
+44EBB521 sar    r8,3                                         ; 
+44EBB525 test   r8,r8                                        ; 
+44EBB528 je     0000000144EBB536                             ; 
+44EBB52A lea    rcx,[rbp+0000000000000138h]                  ; 
+44EBB531 call   00000001439848D0                             ; call 0x39848d0
+44EBB536 mov    qword ptr [rbp+0000000000000138h],rdi        ; 
+44EBB53D lea    rdx,[rdi+0000000000000080h]                  ; 
+44EBB544 mov    qword ptr [rbp+0000000000000140h],rdx        ; 
+44EBB54B mov    qword ptr [rbp+0000000000000148h],rdx        ; 
+44EBB552 lea    r8,[rbp+0000000000000180h]                   ; 
+44EBB559 mov    rcx,rdi                                      ; 
+44EBB55C call   0000000141D0AA40                             ; call 0x1d0aa40
+44EBB561 nop                                                 ; 
+44EBB562 lea    rcx,[rbp+00000000000002A0h]                  ; 
+44EBB569 call   00000001450899F0                             ; call 0x50899f0
+44EBB56E nop                                                 ; 
+44EBB56F xorps  xmm0,xmm0                                    ; 
+44EBB572 movups xmmword ptr [rbp+00000000000003B0h],xmm0     ; 
+44EBB579 mov    qword ptr [rbp+00000000000003C0h],0Dh        ; 
+44EBB584 mov    qword ptr [rbp+00000000000003C8h],0Fh        ; 
+44EBB58F movsd  xmm0,mmword ptr [00000001483CABE0h]          ; 83cabe0 'A:MVresizingMap'
+44EBB597 movsd  mmword ptr [rbp+00000000000003B0h],xmm0      ; 
+44EBB59F mov    eax,dword ptr [00000001483CABE8h]            ; 83cabe8 'A:ngMap'
+44EBB5A5 mov    dword ptr [rbp+00000000000003B8h],eax        ; 
+44EBB5AB movzx  eax,byte ptr [00000001483CABECh]             ; 83cabec 
+44EBB5B2 mov    byte ptr [rbp+00000000000003BCh],al          ; 
+44EBB5B8 mov    byte ptr [rbp+00000000000003BDh],0           ; 
+44EBB5BF lea    r8,[rbp+0000000000000120h]                   ; 
+44EBB5C6 lea    rdx,[rbp+00000000000003B0h]                  ; 
+44EBB5CD lea    rcx,[rbp+00000000000000E0h]                  ; 
+44EBB5D4 call   00000001462D2F00                             ; call 0x62d2f00
+44EBB5D9 movzx  edi,al                                       ; 
+44EBB5DC mov    r8,qword ptr [rbp+00000000000003C8h]         ; 
+44EBB5E3 cmp    r8,0Fh                                       ; 
+44EBB5E7 jbe    0000000144EBB5FC                             ; 
+44EBB5E9 mov    rdx,qword ptr [rbp+00000000000003B0h]        ; 
+44EBB5F0 lea    rcx,[rbp+00000000000003B0h]                  ; 
+44EBB5F7 call   0000000141BE8260                             ; call 0x1be8260
+44EBB5FC test   dil,dil                                      ; 
+44EBB5FF je     0000000144EBB63A                             ; 
+44EBB601 lea    rdx,[rbp+0000000000000120h]                  ; 
+44EBB608 lea    rcx,[rbp+00000000000002A0h]                  ; 
+44EBB60F call   000000014510B9D0                             ; call 0x510b9d0
+44EBB614 mov    byte ptr [rbp+00000000000002A0h],1           ; 
+44EBB61B mov    r8,rbx                                       ; 
+44EBB61E shr    r8,5                                         ; 
+44EBB622 mov    rdx,qword ptr [rbp+0000000000000190h]        ; 
+44EBB629 movzx  ecx,bl                                       ; 
+44EBB62C and    cl,1Fh                                       ; 
+44EBB62F mov    eax,1                                        ; 
+44EBB634 shl    eax,cl                                       ; 
+44EBB636 or     dword ptr [rdx+r8*4],eax                     ; 
+44EBB63A mov    rax,qword ptr [rbp+00000000000000D0h]        ; 
+44EBB641 cmp    rax,qword ptr [rbp+00000000000000D8h]        ; 
+44EBB648 je     0000000144EBB666                             ; 
+44EBB64A lea    rdx,[rbp+00000000000002A0h]                  ; 
+44EBB651 mov    rcx,rax                                      ; 
+44EBB654 call   0000000142E96BB0                             ; call 0x2e96bb0
+44EBB659 add    qword ptr [rbp+00000000000000D0h],0F0h       ; 
+44EBB664 jmp    0000000144EBB67C                             ; 
+44EBB666 lea    r8,[rbp+00000000000002A0h]                   ; 
+44EBB66D mov    rdx,rax                                      ; 
+44EBB670 lea    rcx,[rbp+00000000000000C8h]                  ; 
+44EBB677 call   0000000144EADD60                             ; call 0x4eadd60
+44EBB67C xorps  xmm0,xmm0                                    ; 
+44EBB67F movdqu xmmword ptr [rbp+48h],xmm0                   ; 
+44EBB684 mov    qword ptr [rbp+58h],r14                      ; 
+44EBB688 mov    byte ptr [rsp+20h],0                         ; 
+44EBB68D movups xmmword ptr [rbp+00000000000004F0h],xmm0     ; 
+44EBB694 mov    qword ptr [rbp+0000000000000500h],r14        ; 
+44EBB69B mov    qword ptr [rbp+0000000000000508h],r14        ; 
+44EBB6A2 mov    r8d,1Dh                                      ; 
+44EBB6A8 lea    rdx,[00000001488BD4F0h]                      ; 88bd4f0 'A:listJointMatricesBindRelative'
+44EBB6AF lea    rcx,[rbp+00000000000004F0h]                  ; 
+44EBB6B6 call   0000000141BA0D50                             ; call 0x1ba0d50
+44EBB6BB nop                                                 ; 
+44EBB6BC lea    r8,[rbp+48h]                                 ; 
+44EBB6C0 lea    rdx,[rbp+00000000000004F0h]                  ; 
+44EBB6C7 lea    rcx,[rbp+00000000000000E0h]                  ; 
+44EBB6CE call   00000001462D2750                             ; call 0x62d2750
+44EBB6D3 movzx  ebx,al                                       ; 
+44EBB6D6 lea    rcx,[rbp+00000000000004F0h]                  ; 
+44EBB6DD call   00000001438D1D60                             ; call 0x38d1d60
+44EBB6E2 test   bl,bl                                        ; 
+44EBB6E4 je     0000000144EBB6F0                             ; 
+44EBB6E6 mov    byte ptr [rsp+20h],1                         ; 
+44EBB6EB jmp    0000000144EBB7B7                             ; 
+44EBB6F0 xorps  xmm0,xmm0                                    ; 
+44EBB6F3 movups xmmword ptr [rbp+0000000000000510h],xmm0     ; 
+44EBB6FA mov    qword ptr [rbp+0000000000000520h],r14        ; 
+44EBB701 mov    qword ptr [rbp+0000000000000528h],r14        ; 
+44EBB708 mov    r8d,11h                                      ; 
+44EBB70E lea    rdx,[00000001488BD4D8h]                      ; 88bd4d8 'A:listJointMatrices'
+44EBB715 lea    rcx,[rbp+0000000000000510h]                  ; 
+44EBB71C call   0000000141BA0D50                             ; call 0x1ba0d50
+44EBB721 nop                                                 ; 
+44EBB722 lea    r8,[rbp+48h]                                 ; 
+44EBB726 lea    rdx,[rbp+0000000000000510h]                  ; 
+44EBB72D lea    rcx,[rbp+00000000000000E0h]                  ; 
+44EBB734 call   00000001462D2750                             ; call 0x62d2750
+44EBB739 movzx  ebx,al                                       ; 
+44EBB73C lea    rcx,[rbp+0000000000000510h]                  ; 
+44EBB743 call   00000001438D1D60                             ; call 0x38d1d60
+44EBB748 test   bl,bl                                        ; 
+44EBB74A je     0000000144EBB7B7                             ; 
+44EBB74C xorps  xmm0,xmm0                                    ; 
+44EBB74F movups xmmword ptr [rbp+0000000000000490h],xmm0     ; 
+44EBB756 mov    qword ptr [rbp+00000000000004A0h],r14        ; 
+44EBB75D mov    qword ptr [rbp+00000000000004A8h],r14        ; 
+44EBB764 mov    r8d,1Ah                                      ; 
+44EBB76A lea    rdx,[00000001488BD570h]                      ; 88bd570 'A:bJointMatricesBindRelative'
+44EBB771 lea    rcx,[rbp+0000000000000490h]                  ; 
+44EBB778 call   0000000141BA0D50                             ; call 0x1ba0d50
+44EBB77D nop                                                 ; 
+44EBB77E lea    r8,[rsp+20h]                                 ; 
+44EBB783 lea    rdx,[rbp+0000000000000490h]                  ; 
+44EBB78A lea    rcx,[rbp+00000000000000E0h]                  ; 
+44EBB791 call   00000001462D1F70                             ; call 0x62d1f70
+44EBB796 nop                                                 ; 
+44EBB797 mov    r8,qword ptr [rbp+00000000000004A8h]         ; 
+44EBB79E cmp    r8,0Fh                                       ; 
+44EBB7A2 jbe    0000000144EBB7B7                             ; 
+44EBB7A4 mov    rdx,qword ptr [rbp+0000000000000490h]        ; 
+44EBB7AB lea    rcx,[rbp+0000000000000490h]                  ; 
+44EBB7B2 call   0000000141BE8260                             ; call 0x1be8260
+44EBB7B7 mov    rdi,qword ptr [rbp+50h]                      ; 
+44EBB7BB mov    rax,qword ptr [rbp+48h]                      ; 
+44EBB7BF cmp    rax,rdi                                      ; 
+44EBB7C2 je     0000000144EBB9A4                             ; 
+44EBB7C8 sub    rdi,rax                                      ; 
+44EBB7CB sar    rdi,5                                        ; 
+44EBB7CF test   dil,0Fh                                      ; 
+44EBB7D3 jne    0000000144EBB9A4                             ; 
+44EBB7D9 shr    rdi,4                                        ; 
+44EBB7DD mov    qword ptr [rsp+60h],rdi                      ; 
+44EBB7E2 mov    ebx,dword ptr [rsp+54h]                      ; 
+44EBB7E6 mov    edx,ebx                                      ; 
+44EBB7E8 mov    rcx,r13                                      ; 
+44EBB7EB call   0000000144EC5020                             ; call 0x4ec5020
+44EBB7F0 test   al,al                                        ; 
+44EBB7F2 je     0000000144EBB9A4                             ; 
+44EBB7F8 imul   r12,rbx,350h                                 ; 
+44EBB7FF add    r12,318h                                     ; 
+44EBB806 add    r12,qword ptr [r13+0000000000000228h]        ; 
+44EBB80D mov    r9,qword ptr [r12+8]                         ; 
+44EBB812 mov    rdx,qword ptr [r12]                          ; 
+44EBB816 mov    rcx,r9                                       ; 
+44EBB819 sub    rcx,rdx                                      ; 
+44EBB81C sar    rcx,6                                        ; 
+44EBB820 cmp    rdi,rcx                                      ; 
+44EBB823 jae    0000000144EBB831                             ; 
+44EBB825 mov    rax,rdi                                      ; 
+44EBB828 shl    rax,6                                        ; 
+44EBB82C add    rax,rdx                                      ; 
+44EBB82F jmp    0000000144EBB864                             ; 
+44EBB831 jbe    0000000144EBB869                             ; 
+44EBB833 mov    rax,qword ptr [r12+10h]                      ; 
+44EBB838 sub    rax,rdx                                      ; 
+44EBB83B sar    rax,6                                        ; 
+44EBB83F mov    rdx,rdi                                      ; 
+44EBB842 cmp    rdi,rax                                      ; 
+44EBB845 jbe    0000000144EBB856                             ; 
+44EBB847 lea    r8,[rsp+51h]                                 ; 
+44EBB84C mov    rcx,r12                                      ; 
+44EBB84F call   0000000143CD8780                             ; call 0x3cd8780
+44EBB854 jmp    0000000144EBB869                             ; 
+44EBB856 sub    rdx,rcx                                      ; 
+44EBB859 mov    r8,r12                                       ; 
+44EBB85C mov    rcx,r9                                       ; 
+44EBB85F call   0000000144EAFED0                             ; call 0x4eafed0
+44EBB864 mov    qword ptr [r12+8],rax                        ; 
+44EBB869 mov    r15,r14                                      ; 
+44EBB86C test   rdi,rdi                                      ; 
+44EBB86F je     0000000144EBB984                             ; 
+44EBB875 mov    r13d,0Ch                                     ; 
+44EBB87B nop    dword ptr [rax+rax]                          ; 
+44EBB880 mov    ebx,r15d                                     ; 
+44EBB883 shl    ebx,4                                        ; 
+44EBB886 add    ebx,2                                        ; 
+44EBB889 mov    rsi,r14                                      ; 
+44EBB88C mov    edi,4                                        ; 
+44EBB891 mov    dword ptr [rsp+24h],0                        ; 
+44EBB899 lea    eax,[rbx-2]                                  ; 
+44EBB89C movsxd rcx,eax                                      ; 
+44EBB89F shl    rcx,5                                        ; 
+44EBB8A3 add    rcx,qword ptr [rbp+48h]                      ; 
+44EBB8A7 lea    rdx,[rsp+24h]                                ; 
+44EBB8AC call   00000001462D2350                             ; call 0x62d2350
+44EBB8B1 mov    rax,qword ptr [r12]                          ; 
+44EBB8B5 movss  xmm0,dword ptr [rsp+24h]                     ; 
+44EBB8BB movss  dword ptr [rsi+rax],xmm0                     ; 
+44EBB8C0 mov    dword ptr [rsp+24h],0                        ; 
+44EBB8C8 lea    eax,[rbx-1]                                  ; 
+44EBB8CB movsxd rcx,eax                                      ; 
+44EBB8CE shl    rcx,5                                        ; 
+44EBB8D2 add    rcx,qword ptr [rbp+48h]                      ; 
+44EBB8D6 lea    rdx,[rsp+24h]                                ; 
+44EBB8DB call   00000001462D2350                             ; call 0x62d2350
+44EBB8E0 mov    rax,qword ptr [r12]                          ; 
+44EBB8E4 movss  xmm0,dword ptr [rsp+24h]                     ; 
+44EBB8EA movss  dword ptr [rax+rsi+4],xmm0                   ; 
+44EBB8F0 mov    dword ptr [rsp+24h],0                        ; 
+44EBB8F8 movsxd rcx,ebx                                      ; 
+44EBB8FB shl    rcx,5                                        ; 
+44EBB8FF 48                                                  ; 
+44EBB900 03                                                  ; 

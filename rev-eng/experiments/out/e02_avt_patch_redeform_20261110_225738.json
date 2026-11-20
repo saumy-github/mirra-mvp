@@ -1,0 +1,440 @@
+{
+ "experiment": "e02_avt_patch_redeform",
+ "started": "2026-11-10T22:57:38.213773",
+ "args": {
+  "live": true,
+  "queue_timeout": 90.0,
+  "avt": "clo_avatar_generation/input/base-1.avt",
+  "reexport_avt": false
+ },
+ "steps": [
+  {
+   "t": 1.99,
+   "step": "prepare[baseline]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\baseline.avt",
+   "sha256_16": "5f1db5e71adcf307",
+   "patches": []
+  },
+  {
+   "t": 8.2,
+   "step": "prepare[mode1]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\mode1.avt",
+   "sha256_16": "d3826b634a1f0deb",
+   "patches": [
+    {
+     "field": "enLastUpdateMode",
+     "path": "/mapResizingAvatar/enLastUpdateMode",
+     "old": "04000000",
+     "new": "01000000"
+    }
+   ]
+  },
+  {
+   "t": 15.24,
+   "step": "prepare[mode2]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\mode2.avt",
+   "sha256_16": "b71eb70154ae7aaf",
+   "patches": [
+    {
+     "field": "enLastUpdateMode",
+     "path": "/mapResizingAvatar/enLastUpdateMode",
+     "old": "04000000",
+     "new": "02000000"
+    }
+   ]
+  },
+  {
+   "t": 22.4,
+   "step": "prepare[unlinked]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\unlinked.avt",
+   "sha256_16": "a8fb1e42e8929580",
+   "patches": [
+    {
+     "field": "bHeightLinked",
+     "path": "/mapResizingAvatar/bHeightLinked",
+     "old": "01",
+     "new": "00"
+    }
+   ]
+  },
+  {
+   "t": 29.91,
+   "step": "prepare[mode1_unlinked]",
+   "file": "C:\\D-drive-data\\mirra-mvp\\rev-eng\\experiments\\out\\e02\\mode1_unlinked.avt",
+   "sha256_16": "a275d829de1a213b",
+   "patches": [
+    {
+     "field": "enLastUpdateMode",
+     "path": "/mapResizingAvatar/enLastUpdateMode",
+     "old": "04000000",
+     "new": "01000000"
+    },
+    {
+     "field": "bHeightLinked",
+     "path": "/mapResizingAvatar/bHeightLinked",
+     "old": "01",
+     "new": "00"
+    }
+   ]
+  },
+  {
+   "t": 30.16,
+   "step": "health",
+   "status": "ok",
+   "plugin_built_at": "2026-10-29T09:36:26Z",
+   "sdk_clo_version": "2026.1.336",
+   "host_app_version": "2026.1.336",
+   "host_matches_sdk": true,
+   "error": null
+  },
+  {
+   "t": 30.16,
+   "step": "capabilities",
+   "has_arrangement_list": true,
+   "has_avatar_avt_export": false,
+   "has_avatar_debug": true,
+   "has_avatar_measurement_import": true,
+   "has_avatar_property_debug": true,
+   "has_avatar_property_set": true,
+   "has_avatar_state_readback": true,
+   "has_native_avatar_debug": true,
+   "has_native_avatar_import": true,
+   "has_pattern_arrangements": true,
+   "has_pattern_bbox": true,
+   "has_pattern_input_info": true,
+   "has_pattern_line_count": false,
+   "has_pattern_line_length_probe": true,
+   "has_scene_geometry_probe": true,
+   "has_set_fabric_color": true,
+   "has_set_fabric_graphic": true,
+   "has_set_fabric_texture": true
+  },
+  {
+   "t": 30.16,
+   "step": "status",
+   "queue_size": 0,
+   "queue_processing": false
+  },
+  {
+   "t": 31.09,
+   "step": "clear[baseline]",
+   "route": "/clear-avatars",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Avatars cleared",
+     "success": true,
+     "type": "clear-avatars"
+    }
+   ]
+  },
+  {
+   "t": 39.68,
+   "step": "import[baseline]",
+   "route": "/import-avatar-avt",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Imported native avatar template: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/baseline.avt",
+     "success": true,
+     "type": "import-avatar-avt"
+    }
+   ]
+  },
+  {
+   "t": 39.72,
+   "step": "avatars/state[baseline]",
+   "avatar_count": 1,
+   "names": [
+    "MV2_Thomas_1_eye_Joint"
+   ],
+   "success": true
+  },
+  {
+   "t": 48.74,
+   "step": "export[baseline]",
+   "route": "/export",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Exported to: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/baseline.glb",
+     "success": true,
+     "type": "export"
+    }
+   ]
+  },
+  {
+   "t": 48.85,
+   "step": "export[baseline].file",
+   "path": "C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/baseline.glb",
+   "bytes": 39648432,
+   "sha256_16": "2ecc0fa17682b97f"
+  },
+  {
+   "t": 48.95,
+   "step": "glb[baseline]",
+   "bin_sha": "ef5ab2c9aa1fcee3",
+   "verts": 606659,
+   "tris": 179080,
+   "bin_len": 39604256
+  },
+  {
+   "t": 49.88,
+   "step": "clear[mode1]",
+   "route": "/clear-avatars",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Avatars cleared",
+     "success": true,
+     "type": "clear-avatars"
+    }
+   ]
+  },
+  {
+   "t": 54.35,
+   "step": "import[mode1]",
+   "route": "/import-avatar-avt",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Imported native avatar template: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode1.avt",
+     "success": true,
+     "type": "import-avatar-avt"
+    }
+   ]
+  },
+  {
+   "t": 54.43,
+   "step": "avatars/state[mode1]",
+   "avatar_count": 1,
+   "names": [
+    "MV2_Thomas_1_eye_Joint"
+   ],
+   "success": true
+  },
+  {
+   "t": 63.46,
+   "step": "export[mode1]",
+   "route": "/export",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Exported to: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode1.glb",
+     "success": true,
+     "type": "export"
+    }
+   ]
+  },
+  {
+   "t": 63.54,
+   "step": "export[mode1].file",
+   "path": "C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode1.glb",
+   "bytes": 39648428,
+   "sha256_16": "460429f8c7c2e8df"
+  },
+  {
+   "t": 63.64,
+   "step": "glb[mode1]",
+   "bin_sha": "ef5ab2c9aa1fcee3",
+   "verts": 606659,
+   "tris": 179080,
+   "bin_len": 39604256
+  },
+  {
+   "t": 64.56,
+   "step": "clear[mode2]",
+   "route": "/clear-avatars",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Avatars cleared",
+     "success": true,
+     "type": "clear-avatars"
+    }
+   ]
+  },
+  {
+   "t": 69.49,
+   "step": "import[mode2]",
+   "route": "/import-avatar-avt",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Imported native avatar template: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode2.avt",
+     "success": true,
+     "type": "import-avatar-avt"
+    }
+   ]
+  },
+  {
+   "t": 69.57,
+   "step": "avatars/state[mode2]",
+   "avatar_count": 1,
+   "names": [
+    "MV2_Thomas_1_eye_Joint"
+   ],
+   "success": true
+  },
+  {
+   "t": 78.62,
+   "step": "export[mode2]",
+   "route": "/export",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Exported to: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode2.glb",
+     "success": true,
+     "type": "export"
+    }
+   ]
+  },
+  {
+   "t": 78.71,
+   "step": "export[mode2].file",
+   "path": "C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode2.glb",
+   "bytes": 39648428,
+   "sha256_16": "9ce1a266fe165196"
+  },
+  {
+   "t": 78.81,
+   "step": "glb[mode2]",
+   "bin_sha": "ef5ab2c9aa1fcee3",
+   "verts": 606659,
+   "tris": 179080,
+   "bin_len": 39604256
+  },
+  {
+   "t": 79.74,
+   "step": "clear[unlinked]",
+   "route": "/clear-avatars",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Avatars cleared",
+     "success": true,
+     "type": "clear-avatars"
+    }
+   ]
+  },
+  {
+   "t": 85.75,
+   "step": "import[unlinked]",
+   "route": "/import-avatar-avt",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Imported native avatar template: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/unlinked.avt",
+     "success": true,
+     "type": "import-avatar-avt"
+    }
+   ]
+  },
+  {
+   "t": 85.91,
+   "step": "avatars/state[unlinked]",
+   "avatar_count": 1,
+   "names": [
+    "MV2_Thomas_1_eye_Joint"
+   ],
+   "success": true
+  },
+  {
+   "t": 93.89,
+   "step": "export[unlinked]",
+   "route": "/export",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Exported to: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/unlinked.glb",
+     "success": true,
+     "type": "export"
+    }
+   ]
+  },
+  {
+   "t": 93.98,
+   "step": "export[unlinked].file",
+   "path": "C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/unlinked.glb",
+   "bytes": 39648432,
+   "sha256_16": "79f98f18582a0a5f"
+  },
+  {
+   "t": 94.07,
+   "step": "glb[unlinked]",
+   "bin_sha": "ef5ab2c9aa1fcee3",
+   "verts": 606659,
+   "tris": 179080,
+   "bin_len": 39604256
+  },
+  {
+   "t": 94.99,
+   "step": "clear[mode1_unlinked]",
+   "route": "/clear-avatars",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Avatars cleared",
+     "success": true,
+     "type": "clear-avatars"
+    }
+   ]
+  },
+  {
+   "t": 98.97,
+   "step": "import[mode1_unlinked]",
+   "route": "/import-avatar-avt",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Imported native avatar template: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode1_unlinked.avt",
+     "success": true,
+     "type": "import-avatar-avt"
+    }
+   ]
+  },
+  {
+   "t": 99.13,
+   "step": "avatars/state[mode1_unlinked]",
+   "avatar_count": 1,
+   "names": [
+    "MV2_Thomas_1_eye_Joint"
+   ],
+   "success": true
+  },
+  {
+   "t": 106.65,
+   "step": "export[mode1_unlinked]",
+   "route": "/export",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Exported to: C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode1_unlinked.glb",
+     "success": true,
+     "type": "export"
+    }
+   ]
+  },
+  {
+   "t": 106.71,
+   "step": "export[mode1_unlinked].file",
+   "path": "C:/D-drive-data/mirra-mvp/rev-eng/experiments/out/e02/mode1_unlinked.glb",
+   "bytes": 39648456,
+   "sha256_16": "ac31e3a589a9be31"
+  },
+  {
+   "t": 106.8,
+   "step": "glb[mode1_unlinked]",
+   "bin_sha": "ef5ab2c9aa1fcee3",
+   "verts": 606659,
+   "tris": 179080,
+   "bin_len": 39604256
+  }
+ ],
+ "notes": [
+  "Verify with: python -I rev-eng/scripts/avs_grammar.py dandiff out/e02/baseline.avt out/e02/<variant>.avt",
+  "verdict per variant: {'baseline': 'same-as-baseline', 'mode1': 'same-as-baseline', 'mode2': 'same-as-baseline', 'unlinked': 'same-as-baseline', 'mode1_unlinked': 'same-as-baseline'}"
+ ],
+ "verdict": "{'baseline': 'same-as-baseline', 'mode1': 'same-as-baseline', 'mode2': 'same-as-baseline', 'unlinked': 'same-as-baseline', 'mode1_unlinked': 'same-as-baseline'}",
+ "finished": "2026-11-10T22:59:25.017034"
+}

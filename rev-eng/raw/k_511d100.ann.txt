@@ -1,0 +1,269 @@
+4511D100 mov    ecx,edi                                      ; 
+4511D102 call   0000000144B799D0                             ; call 0x4b799d0
+4511D107 nop                                                 ; 
+4511D108 mov    rdx,qword ptr [rbp+0000000000000158h]        ; 
+4511D10F cmp    rdx,0Fh                                      ; 
+4511D113 jbe    000000014511D14C                             ; 
+4511D115 inc    rdx                                          ; 
+4511D118 mov    rcx,qword ptr [rbp+0000000000000140h]        ; 
+4511D11F mov    rax,rcx                                      ; 
+4511D122 cmp    rdx,1000h                                    ; 
+4511D129 jb     000000014511D147                             ; 
+4511D12B add    rdx,27h                                      ; 
+4511D12F mov    rcx,qword ptr [rcx-8]                        ; 
+4511D133 sub    rax,rcx                                      ; 
+4511D136 add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+4511D13A cmp    rax,1Fh                                      ; 
+4511D13E jbe    000000014511D147                             ; 
+4511D140 call   qword ptr [0000000148237590h]                ; 8237590 
+4511D146 int    3                                            ; 
+4511D147 call   00000001470D91F4                             ; call 0x70d91f4
+4511D14C mov    qword ptr [rbp+0000000000000150h],r13        ; 
+4511D153 mov    qword ptr [rbp+0000000000000158h],0Fh        ; 
+4511D15E mov    byte ptr [rbp+0000000000000140h],0           ; 
+4511D165 lea    rcx,[rsp+20h]                                ; 
+4511D16A call   0000000146665040                             ; call 0x6665040
+4511D16F mov    rax,qword ptr [rdi]                          ; 
+4511D172 mov    rcx,rdi                                      ; 
+4511D175 call   qword ptr [rax+0000000000000240h]            ; 
+4511D17B movzx  edx,al                                       ; 
+4511D17E lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D185 call   00000001462CFC30                             ; call 0x62cfc30
+4511D18A nop                                                 ; 
+4511D18B lea    r8,[rbp+0000000000000140h]                   ; 
+4511D192 lea    rdx,[0000000148840318h]                      ; 8840318 'A:bTechPack'
+4511D199 mov    rcx,r15                                      ; 
+4511D19C call   00000001462D0010                             ; call 0x62d0010
+4511D1A1 nop                                                 ; 
+4511D1A2 mov    qword ptr [rbp+0000000000000140h],r12        ; 
+4511D1A9 mov    rcx,qword ptr [rbp+0000000000000150h]        ; 
+4511D1B0 test   rcx,rcx                                      ; 
+4511D1B3 je     000000014511D1BA                             ; 
+4511D1B5 call   00000001470D9820                             ; call 0x70d9820
+4511D1BA mov    rax,qword ptr [rdi]                          ; 
+4511D1BD mov    rcx,rdi                                      ; 
+4511D1C0 call   qword ptr [rax+0000000000000248h]            ; 
+4511D1C6 movzx  edx,al                                       ; 
+4511D1C9 lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D1D0 call   00000001462CFC30                             ; call 0x62cfc30
+4511D1D5 nop                                                 ; 
+4511D1D6 lea    r8,[rbp+0000000000000140h]                   ; 
+4511D1DD lea    rdx,[0000000148840328h]                      ; 8840328 'A:bTrimItem'
+4511D1E4 mov    rcx,r15                                      ; 
+4511D1E7 call   00000001462D0010                             ; call 0x62d0010
+4511D1EC nop                                                 ; 
+4511D1ED mov    qword ptr [rbp+0000000000000140h],r12        ; 
+4511D1F4 mov    rcx,qword ptr [rbp+0000000000000150h]        ; 
+4511D1FB test   rcx,rcx                                      ; 
+4511D1FE je     000000014511D205                             ; 
+4511D200 call   00000001470D9820                             ; call 0x70d9820
+4511D205 call   0000000145895050                             ; call 0x5895050
+4511D20A mov    rbx,rax                                      ; 
+4511D20D lea    rdx,[0000000148910D88h]                      ; 8910d88 'A:Save Size'
+4511D214 lea    rcx,[rsp+20h]                                ; 
+4511D219 call   0000000146664F70                             ; call 0x6664f70
+4511D21E mov    r8d,3Ch                                      ; 
+4511D224 mov    rdx,rax                                      ; 
+4511D227 mov    rcx,rbx                                      ; 
+4511D22A call   00000001458956F0                             ; call 0x58956f0
+4511D22F mov    rcx,rdi                                      ; 
+4511D232 call   00000001450F2010                             ; call 0x50f2010
+4511D237 test   al,al                                        ; 
+4511D239 je     000000014511D309                             ; 
+4511D23F call   0000000141BE0FC0                             ; call 0x1be0fc0
+4511D244 mov    rbx,rax                                      ; 
+4511D247 mov    r9d,0FFFFFFFFh                               ; 
+4511D24D xor    r8d,r8d                                      ; 
+4511D250 lea    rdx,[0000000148910D98h]                      ; 8910d98 'A:Saving Size...'
+4511D257 lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D25E call   qword ptr [0000000148230078h]                ; 8230078 
+4511D264 nop                                                 ; 
+4511D265 mov    qword ptr [rsp+68h],rsi                      ; 
+4511D26A mov    rdx,rax                                      ; 
+4511D26D lea    rcx,[rsp+70h]                                ; 
+4511D272 call   qword ptr [00000001482300E8h]                ; 82300e8 
+4511D278 nop                                                 ; 
+4511D279 mov    r8d,32h                                      ; 
+4511D27F lea    rdx,[rsp+68h]                                ; 
+4511D284 mov    rcx,rbx                                      ; 
+4511D287 call   0000000146155870                             ; call 0x6155870
+4511D28C nop                                                 ; 
+4511D28D lea    rcx,[rsp+68h]                                ; 
+4511D292 call   0000000146665040                             ; call 0x6665040
+4511D297 nop                                                 ; 
+4511D298 lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D29F call   qword ptr [00000001482300E0h]                ; 82300e0 
+4511D2A5 lea    rcx,[rsp+20h]                                ; 
+4511D2AA call   0000000141D0FF40                             ; call 0x1d0ff40
+4511D2AF nop                                                 ; 
+4511D2B0 lea    rdx,[rsp+20h]                                ; 
+4511D2B5 mov    rcx,rdi                                      ; 
+4511D2B8 call   00000001451258C0                             ; call 0x51258c0
+4511D2BD lea    rdx,[rsp+20h]                                ; 
+4511D2C2 lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D2C9 call   00000001462CF150                             ; call 0x62cf150
+4511D2CE nop                                                 ; 
+4511D2CF lea    r8,[rbp+0000000000000140h]                   ; 
+4511D2D6 lea    rdx,[000000014883B188h]                      ; 883b188 'A:mapResizingAvatar'
+4511D2DD mov    rcx,r15                                      ; 
+4511D2E0 call   00000001462D0010                             ; call 0x62d0010
+4511D2E5 nop                                                 ; 
+4511D2E6 mov    qword ptr [rbp+0000000000000140h],r12        ; 
+4511D2ED mov    rcx,qword ptr [rbp+0000000000000150h]        ; 
+4511D2F4 test   rcx,rcx                                      ; 
+4511D2F7 je     000000014511D2FF                             ; 
+4511D2F9 call   00000001470D9820                             ; call 0x70d9820
+4511D2FE nop                                                 ; 
+4511D2FF lea    rcx,[rsp+20h]                                ; 
+4511D304 call   0000000141D10AA0                             ; call 0x1d10aa0
+4511D309 call   0000000145895050                             ; call 0x5895050
+4511D30E mov    rbx,rax                                      ; 
+4511D311 lea    rdx,[0000000148383F18h]                      ; 8383f18 'A:Save Arrangement'
+4511D318 lea    rcx,[rsp+20h]                                ; 
+4511D31D call   0000000146664F70                             ; call 0x6664f70
+4511D322 mov    r8d,50h                                      ; 
+4511D328 mov    rdx,rax                                      ; 
+4511D32B mov    rcx,rbx                                      ; 
+4511D32E call   00000001458956F0                             ; call 0x58956f0
+4511D333 call   0000000141BE0FC0                             ; call 0x1be0fc0
+4511D338 mov    rbx,rax                                      ; 
+4511D33B mov    r9d,0FFFFFFFFh                               ; 
+4511D341 xor    r8d,r8d                                      ; 
+4511D344 lea    rdx,[0000000148910DA8h]                      ; 8910da8 'A:Saving Arrangement Bounding Volume...'
+4511D34B lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D352 call   qword ptr [0000000148230078h]                ; 8230078 
+4511D358 nop                                                 ; 
+4511D359 mov    qword ptr [rsp+68h],rsi                      ; 
+4511D35E mov    rdx,rax                                      ; 
+4511D361 lea    rcx,[rsp+70h]                                ; 
+4511D366 call   qword ptr [00000001482300E8h]                ; 82300e8 
+4511D36C nop                                                 ; 
+4511D36D mov    r8d,3Ch                                      ; 
+4511D373 lea    rdx,[rsp+68h]                                ; 
+4511D378 mov    rcx,rbx                                      ; 
+4511D37B call   0000000146155870                             ; call 0x6155870
+4511D380 nop                                                 ; 
+4511D381 lea    rcx,[rsp+68h]                                ; 
+4511D386 call   0000000146665040                             ; call 0x6665040
+4511D38B nop                                                 ; 
+4511D38C lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D393 call   qword ptr [00000001482300E0h]                ; 82300e0 
+4511D399 mov    rdx,r15                                      ; 
+4511D39C mov    rcx,rdi                                      ; 
+4511D39F call   0000000145122A20                             ; call 0x5122a20
+4511D3A4 call   0000000141BE0FC0                             ; call 0x1be0fc0
+4511D3A9 mov    rbx,rax                                      ; 
+4511D3AC mov    r9d,0FFFFFFFFh                               ; 
+4511D3B2 xor    r8d,r8d                                      ; 
+4511D3B5 lea    rdx,[0000000148910DD0h]                      ; 8910dd0 'A:Saving Arrangement Points...'
+4511D3BC lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D3C3 call   qword ptr [0000000148230078h]                ; 8230078 
+4511D3C9 nop                                                 ; 
+4511D3CA mov    qword ptr [rsp+68h],rsi                      ; 
+4511D3CF mov    rdx,rax                                      ; 
+4511D3D2 lea    rcx,[rsp+70h]                                ; 
+4511D3D7 call   qword ptr [00000001482300E8h]                ; 82300e8 
+4511D3DD nop                                                 ; 
+4511D3DE mov    r8d,46h                                      ; 
+4511D3E4 lea    rdx,[rsp+68h]                                ; 
+4511D3E9 mov    rcx,rbx                                      ; 
+4511D3EC call   0000000146155870                             ; call 0x6155870
+4511D3F1 nop                                                 ; 
+4511D3F2 lea    rcx,[rsp+68h]                                ; 
+4511D3F7 call   0000000146665040                             ; call 0x6665040
+4511D3FC nop                                                 ; 
+4511D3FD lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D404 call   qword ptr [00000001482300E0h]                ; 82300e0 
+4511D40A mov    rdx,r15                                      ; 
+4511D40D mov    rcx,rdi                                      ; 
+4511D410 call   0000000145120AE0                             ; call 0x5120ae0
+4511D415 call   0000000141BE0FC0                             ; call 0x1be0fc0
+4511D41A mov    rbx,rax                                      ; 
+4511D41D mov    r9d,0FFFFFFFFh                               ; 
+4511D423 xor    r8d,r8d                                      ; 
+4511D426 lea    rdx,[0000000148910DF0h]                      ; 8910df0 'A:Saving Measure...'
+4511D42D lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D434 call   qword ptr [0000000148230078h]                ; 8230078 
+4511D43A nop                                                 ; 
+4511D43B mov    qword ptr [rsp+68h],rsi                      ; 
+4511D440 mov    rdx,rax                                      ; 
+4511D443 lea    rcx,[rsp+70h]                                ; 
+4511D448 call   qword ptr [00000001482300E8h]                ; 82300e8 
+4511D44E nop                                                 ; 
+4511D44F mov    r8d,50h                                      ; 
+4511D455 lea    rdx,[rsp+68h]                                ; 
+4511D45A mov    rcx,rbx                                      ; 
+4511D45D call   0000000146155870                             ; call 0x6155870
+4511D462 nop                                                 ; 
+4511D463 lea    rcx,[rsp+68h]                                ; 
+4511D468 call   0000000146665040                             ; call 0x6665040
+4511D46D nop                                                 ; 
+4511D46E lea    rcx,[rbp+0000000000000140h]                  ; 
+4511D475 call   qword ptr [00000001482300E0h]                ; 82300e0 
+4511D47B call   0000000145895050                             ; call 0x5895050
+4511D480 mov    rbx,rax                                      ; 
+4511D483 lea    rdx,[0000000148910E08h]                      ; 8910e08 'A:Save Measure'
+4511D48A lea    rcx,[rsp+20h]                                ; 
+4511D48F call   0000000146664F70                             ; call 0x6664f70
+4511D494 mov    r8d,5Ah                                      ; 
+4511D49A mov    rdx,rax                                      ; 
+4511D49D mov    rcx,rbx                                      ; 
+4511D4A0 call   00000001458956F0                             ; call 0x58956f0
+4511D4A5 mov    rdx,r15                                      ; 
+4511D4A8 mov    rcx,rdi                                      ; 
+4511D4AB call   0000000145121670                             ; call 0x5121670
+4511D4B0 lea    rcx,[rdi+00000000000007C8h]                  ; 
+4511D4B7 mov    rdx,r15                                      ; 
+4511D4BA call   0000000144C39760                             ; call 0x4c39760
+4511D4BF lea    rcx,[rdi+00000000000000E8h]                  ; 
+4511D4C6 call   0000000146667120                             ; call 0x6667120
+4511D4CB test   al,al                                        ; 
+4511D4CD je     000000014511D4F4                             ; 
+4511D4CF lea    rcx,[rsp+20h]                                ; 
+4511D4D4 call   000000014625E590                             ; call 0x625e590
+4511D4D9 nop                                                 ; 
+4511D4DA mov    rdx,rax                                      ; 
+4511D4DD lea    rcx,[rdi+00000000000000E8h]                  ; 
+4511D4E4 call   00000001466650B0                             ; call 0x66650b0
+4511D4E9 nop                                                 ; 
+4511D4EA lea    rcx,[rsp+20h]                                ; 
+4511D4EF call   0000000146665040                             ; call 0x6665040
+4511D4F4 xorps  xmm0,xmm0                                    ; 
+4511D4F7 movups xmmword ptr [rbp+0000000000000140h],xmm0     ; 
+4511D4FE mov    qword ptr [rbp+0000000000000150h],6          ; 
+4511D509 mov    qword ptr [rbp+0000000000000158h],0Fh        ; 
+4511D514 mov    eax,dword ptr [0000000148840370h]            ; 8840370 'A:qsUuid'
+4511D51A mov    dword ptr [rbp+0000000000000140h],eax        ; 
+4511D520 movzx  eax,word ptr [0000000148840374h]             ; 8840374 
+4511D527 mov    word ptr [rbp+0000000000000144h],ax          ; 
+4511D52E mov    byte ptr [rbp+0000000000000146h],0           ; 
+4511D535 lea    r8,[rdi+00000000000000E8h]                   ; 
+4511D53C lea    rdx,[rbp+0000000000000140h]                  ; 
+4511D543 mov    rcx,r15                                      ; 
+4511D546 call   0000000144B799D0                             ; call 0x4b799d0
+4511D54B nop                                                 ; 
+4511D54C mov    rdx,qword ptr [rbp+0000000000000158h]        ; 
+4511D553 cmp    rdx,0Fh                                      ; 
+4511D557 jbe    000000014511D590                             ; 
+4511D559 inc    rdx                                          ; 
+4511D55C mov    rcx,qword ptr [rbp+0000000000000140h]        ; 
+4511D563 mov    rax,rcx                                      ; 
+4511D566 cmp    rdx,1000h                                    ; 
+4511D56D jb     000000014511D58B                             ; 
+4511D56F add    rdx,27h                                      ; 
+4511D573 mov    rcx,qword ptr [rcx-8]                        ; 
+4511D577 sub    rax,rcx                                      ; 
+4511D57A add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+4511D57E cmp    rax,1Fh                                      ; 
+4511D582 jbe    000000014511D58B                             ; 
+4511D584 call   qword ptr [0000000148237590h]                ; 8237590 
+4511D58A int    3                                            ; 
+4511D58B call   00000001470D91F4                             ; call 0x70d91f4
+4511D590 lea    r8,[rdi+0000000000000108h]                   ; 
+4511D597 xorps  xmm0,xmm0                                    ; 
+4511D59A movups xmmword ptr [rbp+0000000000000140h],xmm0     ; 
+4511D5A1 mov    qword ptr [rbp+0000000000000150h],0Ah        ; 
+4511D5AC mov    qword ptr [rbp+0000000000000158h],0Fh        ; 
+4511D5B7 movsd  xmm0,mmword ptr [0000000148840378h]          ; 8840378 'A:qsClosetId'
+4511D5BF F2                                                  ; 
+4511D5C0 0F                                                  ; 

@@ -1,0 +1,95 @@
+{
+ "experiment": "e01_avs_single_avatar",
+ "started": "2026-11-10T23:27:47.502861",
+ "args": {
+  "live": true,
+  "queue_timeout": 90.0,
+  "avt_a": "rev-eng/experiments/out/e02/baseA.avt",
+  "avt_b": "rev-eng/experiments/out/e02/femaleB.avt",
+  "avs": "clo_avatar_generation/input/CLO_Male_Default.avs",
+  "avs_b": null,
+  "load_method": "import_avatar",
+  "need_measurements": false,
+  "skip_load": false,
+  "export_glb": null
+ },
+ "steps": [
+  {
+   "t": 0.03,
+   "step": "health",
+   "status": "ok",
+   "plugin_built_at": "2026-10-29T09:36:26Z",
+   "sdk_clo_version": "2026.1.336",
+   "host_app_version": "2026.1.336",
+   "host_matches_sdk": true,
+   "error": null
+  },
+  {
+   "t": 0.05,
+   "step": "capabilities",
+   "has_arrangement_list": true,
+   "has_avatar_avt_export": false,
+   "has_avatar_debug": true,
+   "has_avatar_measurement_import": true,
+   "has_avatar_property_debug": true,
+   "has_avatar_property_set": true,
+   "has_avatar_state_readback": true,
+   "has_native_avatar_debug": true,
+   "has_native_avatar_import": true,
+   "has_pattern_arrangements": true,
+   "has_pattern_bbox": true,
+   "has_pattern_input_info": true,
+   "has_pattern_line_count": false,
+   "has_pattern_line_length_probe": true,
+   "has_scene_geometry_probe": true,
+   "has_set_fabric_color": true,
+   "has_set_fabric_graphic": true,
+   "has_set_fabric_texture": true
+  },
+  {
+   "t": 0.06,
+   "step": "status",
+   "queue_size": 0,
+   "queue_processing": false
+  },
+  {
+   "t": 0.08,
+   "step": "avs.qsAvatarID",
+   "avs": "clo_avatar_generation/input/CLO_Male_Default.avs",
+   "id": [
+    "qsAvatarID",
+    "5.1_MaleTemplate_07"
+   ],
+   "avs_b": null
+  },
+  {
+   "t": 1.06,
+   "step": "clear-avatars",
+   "route": "/clear-avatars",
+   "execute": "drain posted to main thread",
+   "results": [
+    {
+     "message": "Avatars cleared",
+     "success": true,
+     "type": "clear-avatars"
+    }
+   ]
+  },
+  {
+   "t": 1.08,
+   "step": "avatars/state[after-clear]",
+   "avatar_count": 0,
+   "names": [],
+   "success": true
+  },
+  {
+   "t": 91.36,
+   "step": "import-avt-A",
+   "timeout": true,
+   "hint": "TIMEOUT: probably a modal dialog; run e07 watchdog, then dismiss by hand"
+  }
+ ],
+ "notes": [],
+ "verdict": "ABORTED_TIMEOUT",
+ "finished": "2026-11-10T23:29:18.862106"
+}

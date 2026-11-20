@@ -1,0 +1,39 @@
+143BBCA90  mov      qword ptr [rsp+10h],rbx                  ; 
+143BBCA95  mov      qword ptr [rsp+18h],rsi                  ; 
+143BBCA9A  push     rdi                                      ; 
+143BBCA9B  sub      rsp,30h                                  ; 
+143BBCA9F  mov      rbx,qword ptr [rcx+00000000000000A0h]    ; 
+143BBCAA6  mov      rsi,rdx                                  ; 
+143BBCAA9  mov      rdi,qword ptr [rcx+00000000000000A8h]    ; 
+143BBCAB0  movaps   xmmword ptr [rsp+20h],xmm6               ; 
+143BBCAB5  movaps   xmm6,xmm2                                ; 
+143BBCAB8  cmp      rbx,rdi                                  ; 
+143BBCABB  je       0000000143BBCAF4                         ; 
+143BBCABD  nop      dword ptr [rax]                          ; 
+143BBCAC0  movss    xmm0,dword ptr [rsi]                     ; 
+143BBCAC4  lea      rdx,[rsp+40h]                            ; 
+143BBCAC9  movss    xmm1,dword ptr [rsi+4]                   ; 
+143BBCACE  mov      rcx,qword ptr [rbx]                      ; 
+143BBCAD1  movss    dword ptr [rsp+40h],xmm0                 ; 
+143BBCAD7  movss    dword ptr [rsp+44h],xmm1                 ; 
+143BBCADD  call     0000000143BCF380                         ; call 0x3bcf380
+143BBCAE2  mulss    xmm0,xmm0                                ; 
+143BBCAE6  comiss   xmm6,xmm0                                ; 
+143BBCAE9  jae      0000000143BBCB0B                         ; 
+143BBCAEB  add      rbx,8                                    ; 
+143BBCAEF  cmp      rbx,rdi                                  ; 
+143BBCAF2  jne      0000000143BBCAC0                         ; 
+143BBCAF4  xor      al,al                                    ; 
+143BBCAF6  mov      rbx,qword ptr [rsp+48h]                  ; 
+143BBCAFB  mov      rsi,qword ptr [rsp+50h]                  ; 
+143BBCB00  movaps   xmm6,xmmword ptr [rsp+20h]               ; 
+143BBCB05  add      rsp,30h                                  ; 
+143BBCB09  pop      rdi                                      ; 
+143BBCB0A  ret                                               ; 
+143BBCB0B  mov      al,1                                     ; 
+143BBCB0D  jmp      0000000143BBCAF6                         ; 
+== 34 instructions, ends 143BBCB0D
+== strings
+== calls (rva: count, thunk)
+  3bcf380: x1 
+== data refs

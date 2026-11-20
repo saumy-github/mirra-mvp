@@ -48,7 +48,7 @@ SIZE_SEED_DATA = [
 
 
 # CLO reference block taper ratios, identical to the constants in
-# mirra_measurements/size_model.py and product_ingestion/panel_generation_clo.py.
+# mirra_measurements/size_model.py and product_ingestion/step_05_0_panel_generation_clo.py.
 # No size above has a measured hem or cuff, so both are derived.
 HEM_TO_CHEST_RATIO = 269.9999 / 290.0975      # 0.930697
 WRIST_TO_BICEP_RATIO = 384.3506 / 490.2734    # 0.783952

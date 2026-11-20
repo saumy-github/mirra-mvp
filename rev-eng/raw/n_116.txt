@@ -1,0 +1,183 @@
+14604E5E0  push     rbp                                      ; 
+14604E5E2  push     rbx                                      ; 
+14604E5E3  push     rsi                                      ; 
+14604E5E4  push     rdi                                      ; 
+14604E5E5  push     r14                                      ; 
+14604E5E7  push     r15                                      ; 
+14604E5E9  lea      rbp,[rsp-18h]                            ; 
+14604E5EE  sub      rsp,118h                                 ; 
+14604E5F5  movaps   xmmword ptr [rsp+0000000000000100h],xmm6 ; 
+14604E5FD  mov      rax,qword ptr [000000014A172D40h]        ; stack cookie
+14604E604  xor      rax,rsp                                  ; 
+14604E607  mov      qword ptr [rbp-10h],rax                  ; 
+14604E60B  movaps   xmm6,xmm3                                ; 
+14604E60E  mov      r14d,r8d                                 ; 
+14604E611  mov      esi,edx                                  ; 
+14604E613  mov      rdi,rcx                                  ; 
+14604E616  call     0000000144E10DD0                         ; call 0x4e10dd0
+14604E61B  mov      rbx,rax                                  ; 
+14604E61E  mov      dword ptr [rsp+54h],0                    ; 
+14604E626  lea      r8,[rsp+50h]                             ; 
+14604E62B  lea      rdx,[rsp+54h]                            ; 
+14604E630  lea      rcx,[rbp-70h]                            ; 
+14604E634  call     0000000145EF27E0                         ; call 0x5ef27e0
+14604E639  nop                                               ; 
+14604E63A  xorps    xmm0,xmm0                                ; 
+14604E63D  movups   xmmword ptr [rbp-30h],xmm0               ; 
+14604E641  xor      r15d,r15d                                ; 
+14604E644  mov      qword ptr [rbp-20h],r15                  ; 
+14604E648  mov      qword ptr [rbp-18h],0Fh                  ; 
+14604E650  mov      ecx,80h                                  ; 
+14604E655  call     00000001470D91B8                         ; call 0x70d91b8
+14604E65A  mov      rcx,rax                                  ; 
+14604E65D  mov      qword ptr [rbp-30h],rax                  ; 
+14604E661  mov      qword ptr [rbp-20h],73h                  ; 
+14604E669  mov      qword ptr [rbp-18h],7Fh                  ; 
+14604E671  movaps   xmm0,xmmword ptr [000000014897ED70h]     ; .rdata 897ed70 -> 'A:bool __cdecl Marvelous::FabricAPI::SetFabricPBRMaterialBaseColor(unsigned int,unsigned int,float,float,float,float)'
+14604E678  movups   xmmword ptr [rax],xmm0                   ; 
+14604E67B  movaps   xmm1,xmmword ptr [000000014897ED80h]     ; .rdata 897ed80 -> 'A:velous::FabricAPI::SetFabricPBRMaterialBaseColor(unsigned int,unsigned int,float,float,float,float)'
+14604E682  movups   xmmword ptr [rax+10h],xmm1               ; 
+14604E686  movaps   xmm0,xmmword ptr [000000014897ED90h]     ; .rdata 897ed90 -> 'A:I::SetFabricPBRMaterialBaseColor(unsigned int,unsigned int,float,float,float,float)'
+14604E68D  movups   xmmword ptr [rax+20h],xmm0               ; 
+14604E691  movaps   xmm1,xmmword ptr [000000014897EDA0h]     ; .rdata 897eda0 -> 'A:aterialBaseColor(unsigned int,unsigned int,float,float,float,float)'
+14604E698  movups   xmmword ptr [rax+30h],xmm1               ; 
+14604E69C  movaps   xmm0,xmmword ptr [000000014897EDB0h]     ; .rdata 897edb0 -> 'A:(unsigned int,unsigned int,float,float,float,float)'
+14604E6A3  movups   xmmword ptr [rax+40h],xmm0               ; 
+14604E6A7  movaps   xmm1,xmmword ptr [000000014897EDC0h]     ; .rdata 897edc0 -> 'A:signed int,float,float,float,float)'
+14604E6AE  movups   xmmword ptr [rax+50h],xmm1               ; 
+14604E6B2  movaps   xmm0,xmmword ptr [000000014897EDD0h]     ; .rdata 897edd0 -> 'A:,float,float,float)'
+14604E6B9  movups   xmmword ptr [rax+60h],xmm0               ; 
+14604E6BD  movzx    eax,word ptr [000000014897EDE0h]         ; .rdata 897ede0 -> 'A:at)'
+14604E6C4  mov      word ptr [rcx+70h],ax                    ; 
+14604E6C8  movzx    eax,byte ptr [000000014897EDE2h]         ; .rdata 897ede2
+14604E6CF  mov      byte ptr [rcx+72h],al                    ; 
+14604E6D2  mov      byte ptr [rcx+73h],r15b                  ; 
+14604E6D6  lea      r9,[rbp-70h]                             ; 
+14604E6DA  lea      r8,[rbp-30h]                             ; 
+14604E6DE  lea      edx,[r15+3]                              ; 
+14604E6E2  mov      rcx,rbx                                  ; 
+14604E6E5  call     0000000144E10FB0                         ; call 0x4e10fb0
+14604E6EA  nop                                               ; 
+14604E6EB  mov      rdx,qword ptr [rbp-18h]                  ; 
+14604E6EF  cmp      rdx,0Fh                                  ; 
+14604E6F3  jbe      000000014604E729                         ; 
+14604E6F5  inc      rdx                                      ; 
+14604E6F8  mov      rcx,qword ptr [rbp-30h]                  ; 
+14604E6FC  mov      rax,rcx                                  ; 
+14604E6FF  cmp      rdx,1000h                                ; 
+14604E706  jb       000000014604E724                         ; 
+14604E708  add      rdx,27h                                  ; 
+14604E70C  mov      rcx,qword ptr [rcx-8]                    ; 
+14604E710  sub      rax,rcx                                  ; 
+14604E713  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+14604E717  cmp      rax,1Fh                                  ; 
+14604E71B  jbe      000000014604E724                         ; 
+14604E71D  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+14604E723  int      3                                        ; 
+14604E724  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+14604E729  mov      qword ptr [rbp-20h],r15                  ; 
+14604E72D  mov      qword ptr [rbp-18h],0Fh                  ; 
+14604E735  mov      byte ptr [rbp-30h],0                     ; 
+14604E739  mov      rcx,qword ptr [rbp-58h]                  ; 
+14604E73D  test     rcx,rcx                                  ; 
+14604E740  je       000000014604E78E                         ; 
+14604E742  mov      rax,qword ptr [rbp-48h]                  ; 
+14604E746  sub      rax,rcx                                  ; 
+14604E749  sar      rax,3                                    ; 
+14604E74D  lea      rdx,[rax*8+0000000000000000h]            ; 
+14604E755  mov      rax,rcx                                  ; 
+14604E758  cmp      rdx,1000h                                ; 
+14604E75F  jb       000000014604E77D                         ; 
+14604E761  add      rdx,27h                                  ; 
+14604E765  mov      rcx,qword ptr [rcx-8]                    ; 
+14604E769  sub      rax,rcx                                  ; 
+14604E76C  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+14604E770  cmp      rax,1Fh                                  ; 
+14604E774  jbe      000000014604E77D                         ; 
+14604E776  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+14604E77C  int      3                                        ; 
+14604E77D  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+14604E782  mov      qword ptr [rbp-58h],r15                  ; 
+14604E786  xorps    xmm0,xmm0                                ; 
+14604E789  movdqu   xmmword ptr [rbp-50h],xmm0               ; 
+14604E78E  lea      rcx,[rbp-68h]                            ; 
+14604E792  call     0000000141BDD3C0                         ; call 0x1bdd3c0
+14604E797  lea      rax,[rsp+58h]                            ; 
+14604E79C  mov      qword ptr [rsp+78h],rax                  ; 
+14604E7A1  xorps    xmm0,xmm0                                ; 
+14604E7A4  movups   xmmword ptr [rsp+58h],xmm0               ; 
+14604E7A9  mov      qword ptr [rsp+68h],r15                  ; 
+14604E7AE  mov      qword ptr [rsp+70h],0Fh                  ; 
+14604E7B7  mov      byte ptr [rsp+58h],0                     ; 
+14604E7BC  call     00000001449FFD90                         ; call 0x49ffd90
+14604E7C1  mov      rcx,rax                                  ; 
+14604E7C4  call     00000001449FB510                         ; call 0x49fb510
+14604E7C9  mov      ebx,eax                                  ; 
+14604E7CB  mov      r8d,esi                                  ; 
+14604E7CE  lea      rdx,[rbp-80h]                            ; 
+14604E7D2  mov      rcx,rdi                                  ; 
+14604E7D5  call     00000001460AC160                         ; call 0x60ac160
+14604E7DA  nop                                               ; 
+14604E7DB  lea      rcx,[rsp+58h]                            ; 
+14604E7E0  mov      qword ptr [rsp+40h],rcx                  ; 
+14604E7E5  movss    xmm0,dword ptr [rbp+0000000000000080h]   ; 
+14604E7ED  movss    dword ptr [rsp+38h],xmm0                 ; 
+14604E7F3  movss    xmm1,dword ptr [rbp+78h]                 ; 
+14604E7F8  movss    dword ptr [rsp+30h],xmm1                 ; 
+14604E7FE  movss    xmm0,dword ptr [rbp+70h]                 ; 
+14604E803  movss    dword ptr [rsp+28h],xmm0                 ; 
+14604E809  movss    dword ptr [rsp+20h],xmm6                 ; 
+14604E80F  mov      r9d,r14d                                 ; 
+14604E812  mov      r8d,ebx                                  ; 
+14604E815  mov      rdx,rax                                  ; 
+14604E818  mov      rcx,rdi                                  ; 
+14604E81B  call     00000001460F9480                         ; call 0x60f9480
+14604E820  movzx    esi,al                                   ; 
+14604E823  mov      rbx,qword ptr [rbp-78h]                  ; 
+14604E827  test     rbx,rbx                                  ; 
+14604E82A  je       000000014604E858                         ; 
+14604E82C  mov      edi,0FFFFFFFFh                           ; 
+14604E831  mov      edx,edi                                  ; 
+14604E833  lock     xadd   dword ptr [rbx+8],edx             ; 
+14604E838  cmp      edx,1                                    ; 
+14604E83B  jne      000000014604E858                         ; 
+14604E83D  mov      rdx,qword ptr [rbx]                      ; 
+14604E840  mov      rcx,rbx                                  ; 
+14604E843  call     qword ptr [rdx]                          ; 
+14604E845  lock     xadd   dword ptr [rbx+0Ch],edi           ; 
+14604E84A  cmp      edi,1                                    ; 
+14604E84D  jne      000000014604E858                         ; 
+14604E84F  mov      rax,qword ptr [rbx]                      ; 
+14604E852  mov      rcx,rbx                                  ; 
+14604E855  call     qword ptr [rax+8]                        ; 
+14604E858  movzx    eax,sil                                  ; 
+14604E85C  mov      rcx,qword ptr [rbp-10h]                  ; 
+14604E860  xor      rcx,rsp                                  ; 
+14604E863  call     00000001470D9780                         ; call 0x70d9780
+14604E868  movaps   xmm6,xmmword ptr [rsp+0000000000000100h] ; 
+14604E870  add      rsp,118h                                 ; 
+14604E877  pop      r15                                      ; 
+14604E879  pop      r14                                      ; 
+14604E87B  pop      rdi                                      ; 
+14604E87C  pop      rsi                                      ; 
+14604E87D  pop      rbx                                      ; 
+14604E87E  pop      rbp                                      ; 
+14604E87F  ret                                               ; 
+== 165 instructions, ends 14604E87F
+== strings
+  14604E671  ref 897ed70  A:bool __cdecl Marvelous::FabricAPI::SetFabricPBRMaterialBaseColor(unsigned int,unsigned int,float,float,float,float)
+== calls (rva: count, thunk)
+  1bdd3c0: x1 
+  49fb510: x1 
+  49ffd90: x1 
+  4e10dd0: x1 
+  4e10fb0: x1 
+  5ef27e0: x1 
+  60ac160: x1 
+  60f9480: x1 
+  70d91b8: x1 
+  70d91f4: x2 jmp->1470d9060
+  70d9780: x1 
+== data refs
+  8237590 .rdata x2
+  897ede2 .rdata x1

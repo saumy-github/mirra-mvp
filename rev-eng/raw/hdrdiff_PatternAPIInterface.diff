@@ -1,0 +1,360 @@
+--- /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.224_Win/CLOAPIInterface/include/PatternAPIInterface.h	2026-09-12 19:23:49.912623600 +0530
++++ /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.336_Win/CLOAPIInterface/include/PatternAPIInterface.h	2026-10-29 15:05:00.392506100 +0530
+@@ -3,6 +3,7 @@
+ #include <vector>
+ #include <map>
+ 
++#include "CloApiData.h"
+ #include "DefineDllForWin.h"
+ 
+ namespace CLOAPI
+@@ -1341,7 +1342,71 @@
+ 		/// @param _directionA : The direction of the stitching, true : forward, false : backward
+ 		/// @param _directionB : The direction of the stitching, true : forward, false : backward
+ 		virtual bool AddSeamlinePairGroup(int _patternAIndex, int _childAIndex, int _lineAIndex, int _patternBIndex, int _childBIndex, int _lineBIndex, bool _directionA, bool _directionB) { return false; }
+-	
++
++		/// @ingroup PATTERN_API
++		/// @fn AddSeamlinePairGroupPartial(int _patternAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB)
++		/// @brief Add sewing between sub-segments of two pattern outline lines (pattern A line <-> pattern B line).
++		///        Unlike AddSeamlinePairGroup, which always sews the whole line, each side here sews only the
++		///        portion of its line between the given ratios, so a seam can cover part of an edge.
++		///        The resulting stitch is identical to a manually created one and simulates the same way.
++		/// @return Marvelous::SeamlinePairGroupResult - SEAMLINE_PAIR_SUCCESS (0) on success, a negative code on failure.
++		///         Test against SEAMLINE_PAIR_SUCCESS rather than for truthiness, because 0 is falsy in Python.
++		/// @param _patternAIndex : A pattern index
++		/// @param _lineAIndex : The index of the line that belongs to the A pattern.
++		/// @param _startRatioA : Where the seam starts along the A line, normalized to the line length. 0.0 is the line start, 1.0 the line end.
++		/// @param _endRatioA : Where the seam ends along the A line. Must be strictly greater than _startRatioA.
++		/// @param _directionA : The direction of the stitching, true : forward, false : backward
++		/// @param _patternBIndex : B pattern index
++		/// @param _lineBIndex : The index of the line that belongs to the B pattern.
++		/// @param _startRatioB : Where the seam starts along the B line, normalized to the line length.
++		/// @param _endRatioB : Where the seam ends along the B line. Must be strictly greater than _startRatioB.
++		/// @param _directionB : The direction of the stitching, true : forward, false : backward
++		/// @remark Ratios are used verbatim; notch snapping is not applied. Call from the thread that owns the
++		///         scene, as with the other pattern-editing APIs.
++		/// @remark This call reports only a status code. To act on the new seam afterwards, diff
++		///         GetSeamlinePairGroupListInPattern(_patternAIndex) across the call to get its index.
++		virtual int AddSeamlinePairGroupPartial(int _patternAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB) { return Marvelous::SEAMLINE_PAIR_ERROR_NO_PATTERN_EDITOR; }
++
++		/// @ingroup PATTERN_API
++		/// @fn AddSeamlinePairGroupPartial(int _patternAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _childBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB)
++		/// @brief Add sewing between a sub-segment of a pattern outline line and a sub-segment of an inner shape line
++		///        (pattern A outline <-> pattern B inner shape).
++		/// @return Marvelous::SeamlinePairGroupResult - SEAMLINE_PAIR_SUCCESS (0) on success, a negative code on failure.
++		/// @param _patternAIndex : A pattern index
++		/// @param _lineAIndex : The index of the line that belongs to the A pattern.
++		/// @param _startRatioA : Where the seam starts along the A line, normalized to the line length.
++		/// @param _endRatioA : Where the seam ends along the A line. Must be strictly greater than _startRatioA.
++		/// @param _directionA : The direction of the stitching, true : forward, false : backward
++		/// @param _patternBIndex : B pattern index
++		/// @param _childBIndex : The index of the innershape that belongs to the B pattern.
++		/// @param _lineBIndex : The index of the line that belongs to the innerShape.
++		/// @param _startRatioB : Where the seam starts along the B line, normalized to the line length.
++		/// @param _endRatioB : Where the seam ends along the B line. Must be strictly greater than _startRatioB.
++		/// @param _directionB : The direction of the stitching, true : forward, false : backward
++		/// @remark This call reports only a status code. To act on the new seam afterwards, diff
++		///         GetSeamlinePairGroupListInPattern(_patternAIndex) across the call to get its index.
++		virtual int AddSeamlinePairGroupPartial(int _patternAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _childBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB) { return Marvelous::SEAMLINE_PAIR_ERROR_NO_PATTERN_EDITOR; }
++
++		/// @ingroup PATTERN_API
++		/// @fn AddSeamlinePairGroupPartial(int _patternAIndex, int _childAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _childBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB)
++		/// @brief Add sewing between sub-segments of two inner shape lines (pattern A inner shape <-> pattern B inner shape).
++		/// @return Marvelous::SeamlinePairGroupResult - SEAMLINE_PAIR_SUCCESS (0) on success, a negative code on failure.
++		/// @param _patternAIndex : A pattern index
++		/// @param _childAIndex : The index of the innershape that belongs to the A pattern.
++		/// @param _lineAIndex : The index of the line that belongs to the innerShape.
++		/// @param _startRatioA : Where the seam starts along the A line, normalized to the line length.
++		/// @param _endRatioA : Where the seam ends along the A line. Must be strictly greater than _startRatioA.
++		/// @param _directionA : The direction of the stitching, true : forward, false : backward
++		/// @param _patternBIndex : B pattern index
++		/// @param _childBIndex : The index of the innershape that belongs to the B pattern.
++		/// @param _lineBIndex : The index of the line that belongs to the innerShape.
++		/// @param _startRatioB : Where the seam starts along the B line, normalized to the line length.
++		/// @param _endRatioB : Where the seam ends along the B line. Must be strictly greater than _startRatioB.
++		/// @param _directionB : The direction of the stitching, true : forward, false : backward
++		/// @remark This call reports only a status code. To act on the new seam afterwards, diff
++		///         GetSeamlinePairGroupListInPattern(_patternAIndex) across the call to get its index.
++		virtual int AddSeamlinePairGroupPartial(int _patternAIndex, int _childAIndex, int _lineAIndex, float _startRatioA, float _endRatioA, bool _directionA, int _patternBIndex, int _childBIndex, int _lineBIndex, float _startRatioB, float _endRatioB, bool _directionB) { return Marvelous::SEAMLINE_PAIR_ERROR_NO_PATTERN_EDITOR; }
++
+ 		/// @ingroup PATTERN_API
+ 		/// @fn GetSelectedPattern()
+ 		/// @brief Get the selected pattern name
+@@ -1479,6 +1544,69 @@
+ 		virtual std::string GetLinkedPatternLists() { return ""; }
+ 
+ 		/// @ingroup PATTERN_API
++		/// @fn GetPatternComponents(int _patternIndex, const std::vector<std::string>& _types)
++		/// @brief Enumerate the components applied to pattern pieces — everything mounted on the fabric rather than the
++		///        fabric itself: buttons, buttonholes, graphics, prints, zippers and trims (buckles, rings, beads, ...).
++		/// @param _patternIndex: target pattern index (RealPatternList order, as used by GetPatternCount /
++		///        MovePatternsToUVSpace). Pass -1 (the default) for every pattern in the scene.
++		/// @param _types: component types to report — any of "button", "buttonhole", "graphic", "print", "zipper",
++		///        "trim". Empty (the default) reports every type. An unknown name fails the call.
++		/// @return JSON: {"status","patterns":[{"patternIndex","patternName","components":[...]}]}. The response shape is
++		///         the same whether one pattern or all were requested — a single pattern comes back as a one-element
++		///         "patterns" array. Patterns with nothing applied have an empty "components" array.
++		///         "status" is one of "success" or "failed" (the complete set); on "failed" a "message" explains why and
++		///         "patterns" is absent.
++		///
++		///         Component field schema. Every field listed for a type is ALWAYS present on components of that type -
++		///         there are no conditional fields - so consumers can read them directly without membership checks.
++		///         "Unset" values are signalled in-band (see the field notes) rather than by omitting the key:
++		///
++		///           type          | fields (in addition to the common four)
++		///           --------------+-----------------------------------------------------------------------
++		///           (every type)  | type, name, uid, patternIndex
++		///           button        | styleIndex, position{x,y}, angle
++		///           buttonhole    | styleIndex, position{x,y}, angle
++		///           graphic       | styleIndex, styleName, position{x,y}, angle, width, height
++		///           print         | styleIndex, styleName, position{x,y}, angle, width, height
++		///           zipper        | (none - the common four only)
++		///           trim          | trimType, styleName
++		///
++		///         Field notes:
++		///           "type"        one of "button", "buttonhole", "graphic", "print", "zipper", "trim".
++		///           "uid"         runtime handle, regenerated on load - never persist it between sessions.
++		///           "styleIndex"  index into that type's style library (button head / buttonhole / graphic style list,
++		///                         the same ordering as GetGraphicStyleListWithIndex for graphics). -1 when no style is
++		///                         assigned or it cannot be resolved.
++		///           "styleName"   JSON null when no style is assigned.
++		///           "position"    millimetres. NOTE: buttons/buttonholes report 2D-window world coordinates while
++		///                         graphics/prints report pattern-local coordinates - do not compare the two directly.
++		///           "trimType"    e.g. "Buckle", "Ring", "Bead"; "None" when the trim has no type set.
++		///         A zipper relates to both patterns its tapes are stitched to, so it is reported under each of them.
++		virtual std::string GetPatternComponents(int _patternIndex = -1, const std::vector<std::string>& _types = {}) { return ""; }
++
++		/// @ingroup PATTERN_API
++		/// @fn GetPatternGroupsBySeamlineConnectivity(bool _bIncludeAttachments, bool _bIncludeComponents)
++		/// @brief Split the scene's pattern pieces into garment groups by connectivity, so e.g. a shirt and a pant
++		///        loaded in one project come back as two separate groups. Pieces are treated as belonging to the same
++		///        garment when they are joined by ANY of: a seamline (sewing), glue (a gluing shape copied from a shape
++		///        on the other piece), a zipper (its two tapes), or a lacing (one lace threading holes on several
++		///        pieces). Groups are the connected components of that combined graph.
++		/// @param _bIncludeAttachments: when true, patterns fastened by a locked button-buttonhole pair are also merged.
++		///        This is opt-in because, unlike sewing/glue/zipper/lacing, a button can be unfastened by the wearer
++		///        and may join two garments that should stay separate (default false)
++		/// @param _bIncludeComponents: when true, each group also carries a "components" array with the non-fabric
++		///        component instances (buttons, buttonholes, graphics/prints, zippers, trims) applied to its patterns,
++		///        deduplicated by uid (a zipper spanning two patterns of the group is reported once). Same per-component
++		///        fields as GetNonFabricComponentsOnPattern. Default false.
++		/// @return JSON: {"status","groupCount","groups":[{"groupIndex","patternIndices":[int...],"patternNames":[string...],"patterns":[{"index","name"}...],"components":[...]}]}
++		///         "patterns" pairs each index with its piece name so callers can map one to the other directly;
++		///         "patternIndices" stays a plain int list because MovePatternsToUVSpace / ExportGLTF take it as is.
++		///         ("components" present only when _bIncludeComponents is true). Groups are ordered largest first.
++		///         Indices are RealPatternList order (as used by GetPatternCount / MovePatternsToUVSpace).
++		///         On failure: {"status":"failed","message"}.
++		virtual std::string GetPatternGroupsBySeamlineConnectivity(bool _bIncludeAttachments = false, bool _bIncludeComponents = false) { return ""; }
++
++		/// @ingroup PATTERN_API
+ 		/// @fn GetPatternsAttachedToAvatarMeasures()
+ 		/// @brief Retrieve all patterns that are currently attached (pinned/tacked) to avatar measures,
+ 		///        grouped by avatar measure. Each entry in the returned vector represents one avatar measure
+@@ -1542,6 +1670,30 @@
+ 		/// @param _padding: spacing kept around each pattern while packing, normalized 0..1 of the tile (default 0)
+ 		/// @return JSON: {"status","results":[{"patternIndex","ok","fromTile":{"x","y"},"toTile":{"x","y"},"bbox"}],"message"}
+ 		virtual std::string MovePatternsToUVSpace(const std::vector<int>& _patternIndices, int _uvTileX, int _uvTileY, float _offsetX = 0.0f, float _offsetY = 0.0f, bool _bAllowRotation = false, float _scale = 1.0f, float _padding = 0.0f) { return std::string(); }
++
++		/// @ingroup PATTERN_API
++		/// @fn MoveNonFabricObjectsToUVSpace(const std::vector<int>& _patternIndices, int _uvTileX, int _uvTileY, float _offsetX, float _offsetY, bool _bAllowRotation, float _scale, float _padding)
++		/// @brief Pack the UV islands of the non-fabric objects attached to the given patterns into the target UV tile —
++		///        the companion of MovePatternsToUVSpace for hardware: buttons sitting on the patterns, the zipper
++		///        tape(s) stitched to them, the zipper hardware (obj teeth/slider/puller/stoppers), and the trims
++		///        (buckles, rings, beads, ...) glued to them. Note that button, zipper-hardware and trim islands are
++		///        STYLE-level in the UV editor (one island per style, shared by every instance of that style) — moving
++		///        them also affects other garments using the same style. Graphics/prints are not handled here because
++		///        they follow their pattern's island automatically. Islands are deduplicated across the call.
++		///        The objects are placed in the FREE part of the target tile: whatever is already in that tile and is not
++		///        being moved (in practice the garment's pattern islands, put there by an earlier MovePatternsToUVSpace
++		///        call) is measured first, the largest strip left over around it is chosen, and the nested objects are
++		///        shrunk to fit that strip. So calling MovePatternsToUVSpace and then this function on the same tile
++		///        does not make the objects land on top of the patterns.
++		/// @return JSON: {"status","movedIslands","fitScale","freeBand":{"x","y","width","height"},"bbox",
++		///         "results":[{"patternIndex","ok","objectIslands","message"}],"message"}. "objectIslands" is the number
++		///         of attached-object islands contributed by that pattern (0 with ok=true means its objects were already
++		///         packed via an earlier pattern in the same call). "fitScale" is the extra shrink applied to make the
++		///         objects fit the free band (1 = none). On failure: {"status":"failed","message"}.
++		/// @param _componentTypes: which object types to move — any of "button", "zipper", "trim". Empty (default) moves
++		///        every type. Pass a single type to give e.g. all zippers one tile and all buttons another.
++		virtual std::string MoveNonFabricObjectsToUVSpace(const std::vector<int>& _patternIndices, int _uvTileX, int _uvTileY, float _offsetX = 0.0f, float _offsetY = 0.0f, bool _bAllowRotation = false, float _scale = 1.0f, float _padding = 0.0f, const std::vector<std::string>& _componentTypes = {}) { return std::string(); }
++
+ 	
+ 		/// @ingroup PATTERN_API
+ 		/// @fn GetPatternOnBodyDetails()
+@@ -1727,18 +1879,6 @@
+ 		/// @return true if the avatar was loaded and paired; false when no grading table exists, the index is out of range, or the file failed to load
+ 		virtual bool SetGradingPairedAvatarFromFile(unsigned int _gradingIndex, const std::string& _avtFilePath) { return false; }
+ 
+-		/// @ingroup PATTERN_API
+-		/// @fn RemovePatternFromAvatarMeasure(int _patternIndex, const std::string& _avatarMeasureName)
+-		/// @brief Detach a pattern from an avatar measure (clears its "Attach to Measure (Avatar)" Line Pins).
+-		///        Companion write API to GetPatternsAttachedToAvatarMeasures. Auto-simulates so the pattern
+-		///        visibly releases from the measure.
+-		/// @param _patternIndex: target pattern index (RealPatternList order)
+-		/// @param _avatarMeasureName: avatar measure name (see GetPatternsAttachedToAvatarMeasures)
+-		/// @return JSON string:
+-		///   success  : {"status":"success","patternIndex","patternName","avatarMeasureName","removedLinePins":N}
+-		///   errors   : {"status":"invalidInput"|"notFound"|"failed","message",...}
+-		virtual std::string RemovePatternFromAvatarMeasure(int _patternIndex, const std::string& _avatarMeasureName) { return std::string(); }
+-
+ 		// [TestAPI] New virtuals are appended at the end of the class so existing
+ 		// vtable slots are preserved for binaries built against older headers
+ 		// (DEV-20962 review).
+@@ -1895,5 +2035,156 @@
+ 		///         single pattern. patternIndex is the real-pattern-list index shared with the other pattern APIs
+ 		///         (e.g. GetPatternPieceName). Returns an empty array [] when there is no open project / no match.
+ 		virtual std::string GetUnusedSinglePatterns() { return "[]"; }
++
++		// New virtuals are appended at the end of the class so existing vtable slots are
++		// preserved for binaries built against older headers.
++		/// @ingroup PATTERN_API
++		/// @fn GetHiResTolerance(int _toleranceType)
++		/// @brief Get one Tolerance min/max range of the Hi-Res Properties window (3D Garment > Hi-Res Garment). The Tolerance range decides which pieces a Hi-Res apply touches: only patterns (or avatars, for Skin Offset) whose current value is inside [min, max] are changed. The values are the ones the window last stored, so this reads exactly what the window shows when it is opened next.
++		/// @param _toleranceType: which Tolerance row to read, one of Marvelous::HI_RES_TOLERANCE_TYPE (0 = Particle Distance, 1 = Additional Thickness - Collision, 2 = Skin Offset)
++		/// @return [min, max] of that Tolerance row in millimeters, as double - the type of the window's spin boxes (QDoubleSpinBox) and of the stored value. The window defaults are returned when it has never been used. Empty list when _toleranceType is not a valid HI_RES_TOLERANCE_TYPE.
++		virtual std::vector<double> GetHiResTolerance(int _toleranceType) { return {}; }
++
++		/// @ingroup PATTERN_API
++		/// @fn SetHiResTolerance(int _toleranceType, double _min, double _max)
++		/// @brief Set one Tolerance min/max range of the Hi-Res Properties window (3D Garment > Hi-Res Garment), so the next Hi-Res apply only touches pieces whose current value is inside [min, max]. Values are normalized the way the window's spin boxes normalize typed input - rounded to 1 decimal, then clamped to that row's spin box range (Particle Distance 1.0 to 700.0 on both bounds; Additional Thickness - Collision min 0.0 to 99.99, max 0.0 to 999999999.0; Skin Offset min 0.0 to 99.99, max 0.0 to 100.0) - so a later GetHiResTolerance returns exactly what the window will display. This writes the window's stored value only; it does not itself re-apply Hi-Res settings to the garment.
++		/// @param _toleranceType: which Tolerance row to write, one of Marvelous::HI_RES_TOLERANCE_TYPE (0 = Particle Distance, 1 = Additional Thickness - Collision, 2 = Skin Offset)
++		/// @param _min: lower bound of the Tolerance range, in millimeters (double, matching the window's spin box)
++		/// @param _max: upper bound of the Tolerance range, in millimeters (double, matching the window's spin box)
++		/// @return true when the range was stored; false when _toleranceType is not a valid HI_RES_TOLERANCE_TYPE or _min is greater than _max after normalization (nothing is written in that case)
++		virtual bool SetHiResTolerance(int _toleranceType, double _min, double _max) { return false; }
++		/// @ingroup PATTERN_API
++		/// @fn GetAllPatternToAvatarMeasures()
++		/// @brief Retrieve every attached (pattern, avatar measure) pair in the project - the read companion to
++		///        AttachPatternToAvatarMeasure. Both attachment kinds are reported: "Attach to Measure (Avatar)"
++		///        Line Pins and TackOnAvatar point tacks.
++		/// @note Differs from GetPatternsAttachedToAvatarMeasures, which groups patterns into one comma-joined
++		///       string per measure. This returns one flat pair per attachment, so pattern names that themselves
++		///       contain a comma stay unambiguous.
++		/// @return one (patternName, avatarMeasureName) pair per attachment, de-duplicated and sorted by pattern
++		///         name then measure name. Empty when no project is open, no avatar is loaded, or nothing is attached.
++		/// @note The pairs are keyed by name, so two pattern pieces that share a name and are attached to the
++		///       same measure collapse into a single pair. Use GetPatternLineInfo / the pattern indices if you
++		///       need to tell same-named pieces apart.
++		virtual std::vector<std::pair<std::string, std::string>> GetAllPatternToAvatarMeasures() { return {}; }
++
++		/// @ingroup PATTERN_API
++		/// @fn GetPatternToAvatarMeasureByAvatar(int _avatarIndex)
++		/// @brief Retrieve the attached (pattern, avatar measure) pairs whose measure belongs to one avatar.
++		/// @param _avatarIndex: avatar index (0-based, the avatar order of GetAvatarNameList / GetAvatarCount)
++		/// @return the matching (patternName, avatarMeasureName) pairs, de-duplicated and sorted like
++		///         GetAllPatternToAvatarMeasures. Empty when _avatarIndex is out of range, that avatar has no
++		///         measures, or none of its measures has a pattern attached.
++		virtual std::vector<std::pair<std::string, std::string>> GetPatternToAvatarMeasureByAvatar(int _avatarIndex) { return {}; }
++
++		/// @ingroup PATTERN_API
++		/// @fn GetPatternToAvatarMeasureByPatterns(const std::vector<std::string>& _patternList)
++		/// @brief Retrieve the attached (pattern, avatar measure) pairs for the named patterns only.
++		/// @param _patternList: pattern names to keep (as returned by GetPatternPieceName). Names are matched
++		///        exactly; unknown names simply contribute nothing. An empty list selects nothing, so the result
++		///        is empty - it does NOT mean "all patterns".
++		/// @return the matching (patternName, avatarMeasureName) pairs, de-duplicated and sorted like
++		///         GetAllPatternToAvatarMeasures. Empty when none of the named patterns is attached.
++		virtual std::vector<std::pair<std::string, std::string>> GetPatternToAvatarMeasureByPatterns(const std::vector<std::string>& _patternList) { return {}; }
++
++		/// @ingroup PATTERN_API
++		/// @fn GetPatternToAvatarMeasureByMeasures(const std::vector<std::string>& _avatarMeasureList)
++		/// @brief Retrieve the attached (pattern, avatar measure) pairs for the named avatar measures only.
++		/// @param _avatarMeasureList: avatar measure names to keep. Names are matched exactly across every loaded
++		///        avatar, so a measure name shared by two avatars reports the attachments of both. Unknown names
++		///        contribute nothing. An empty list selects nothing, so the result is empty - it does NOT mean
++		///        "all measures".
++		/// @return the matching (patternName, avatarMeasureName) pairs, de-duplicated and sorted like
++		///         GetAllPatternToAvatarMeasures. Empty when none of the named measures has a pattern attached.
++		virtual std::vector<std::pair<std::string, std::string>> GetPatternToAvatarMeasureByMeasures(const std::vector<std::string>& _avatarMeasureList) { return {}; }
++		/// @ingroup PATTERN_API
++		/// @fn SetPatternEdgeToAvatarMeasure(int _patternIndex, int _lineIndex, const std::string& _avatarMeasure, bool _attach)
++		/// @brief Attach or detach a specific pattern edge (outline line) to/from an avatar measure (Line Pin) -
++		///        the programmatic equivalent of the manual "Attach to Measure (Avatar)" / "Detach from Measure (Avatar)"
++		///        workflow. Runs the cloth solver afterwards so the result is visible without a separate Simulate() call.
++		/// @param _patternIndex: target pattern index (RealPatternList order)
++		/// @param _lineIndex: outline line index to attach/detach (same ordering as GetPatternLineInfo)
++		/// @param _avatarMeasure: avatar measure name, or its index given as a decimal string (height/linear measures are rejected)
++		/// @param _attach: true = attach the edge to the measure, false = detach the edge from the measure
++		/// @return true on success; false when the pattern/line index is out of bounds, the avatar measure does not
++		///         exist (or does not support attachment), or on detach the edge is not attached to that measure
++		virtual bool SetPatternEdgeToAvatarMeasure(int _patternIndex, int _lineIndex, const std::string& _avatarMeasure, bool _attach) { return false; }
++
++		/// @ingroup PATTERN_API
++		/// @fn GetPatternEdgeToAvatarMeasureAttachment(int _patternIndex, const std::string& _avatarMeasure)
++		/// @brief Query whether any edge (outline line) of a pattern is attached (Line Pin) to an avatar measure.
++		/// @param _patternIndex: target pattern index (RealPatternList order)
++		/// @param _avatarMeasure: avatar measure name, or its index given as a decimal string
++		/// @return JSON: {"is_attached":true,"line_index":N} when an attachment exists (N = lowest attached line index,
++		///         same ordering as GetPatternLineInfo / SetPatternEdgeToAvatarMeasure);
++		///         {"is_attached":false,"line_index":-1} when no attachment exists, the pattern index is out of
++		///         bounds, or the avatar measure does not exist
++		virtual std::string GetPatternEdgeToAvatarMeasureAttachment(int _patternIndex, const std::string& _avatarMeasure) { return std::string(); }
++		// New virtuals are appended at the end of the class to preserve existing vtable slots.
++		/// @ingroup PATTERN_API
++		/// @fn FlipPatternNormal(const std::vector<int>& _patternIndexList)
++		/// @brief Flip the mesh surface normal of the given pattern pieces - the API equivalent of the GUI 'Flip Normal' right-click menu (3D/2D). Each pattern is mirrored about its own vertical center axis and its mesh winding is reversed, so the fabric side that faced outwards now faces inwards (graphics and topstitches keep their visible side). Connected bindings are flipped together and the draping of connected sewing lines is reset, like the GUI.
++		/// @param _patternIndexList: pattern indices to flip (0-based, real pattern list order - the same index space as the other pattern APIs). A duplicated index flips its pattern once.
++		/// @note Validated as a whole: one out-of-range index makes the call a no-op rather than a half-flipped garment.
++		/// @note The given patterns are left selected afterwards (recorded on the undo stack), like the GUI.
++		/// @note Mesh-level change - run the simulation afterwards to let the garment settle.
++		/// @return true when at least one pattern was flipped; false when no pattern editor is loaded, the list is empty, or any index is out of range
++		virtual bool FlipPatternNormal(const std::vector<int>& _patternIndexList) { return false; }
++
++		// [DEV-21103] New virtuals are appended at the end of the class to preserve existing vtable slots.
++		/// @ingroup PATTERN_API
++		/// @fn PlaceButtonPairsOnEdge(int _buttonPatternIndex, int _buttonLineIndex, int _buttonholePatternIndex, int _buttonholeLineIndex, float _edgeOffset, const std::vector<float>& _distancesAlongEdge, const Marvelous::ButtonPairPlacementOption& _option)
++		/// @brief Place button / buttonhole pairs along the edges of two seam-paired patterns (e.g. the left and right
++		///        placket of a shirt) at explicit positions - the API equivalent of creating each button with the GUI 2D
++		///        'Button' tool and each buttonhole with the 'Buttonhole' tool at matching distances from the edge. For every
++		///        entry of _distancesAlongEdge one button head is created on the button pattern and one buttonhole on the
++		///        buttonhole pattern. Each item sits _edgeOffset mm inside its own edge, measured perpendicular to the edge
++		///        (curved edges use the local normal), at that arc-length distance from the edge corner selected by
++		///        _option.edgeOrigin. Pick the line indices with GetPatternLineInfo. The two patterns must belong to the same
++		///        sewn garment (connected through seamline pair groups), otherwise nothing is created. Validation is
++		///        all-or-nothing: one bad distance fails the whole call. Re-running the same call is safe: a pair whose
++		///        button or buttonhole would land within half a button width of an existing one on that pattern is reported
++		///        as skipped instead of duplicated. The whole call is one undo step.
++		/// @param _buttonPatternIndex: pattern that receives the button heads (0-based, real pattern list order)
++		/// @param _buttonLineIndex: outline line of that pattern to measure from (0-based, order of GetPatternLineInfo / GetLineLength)
++		/// @param _buttonholePatternIndex: pattern that receives the buttonholes (0-based, real pattern list order). Must differ from _buttonPatternIndex
++		/// @param _buttonholeLineIndex: outline line of the buttonhole pattern to measure from (0-based)
++		/// @param _edgeOffset: perpendicular distance in mm from each edge into its pattern. Must be greater than 0 and smaller than the pattern extent behind the edge
++		/// @param _distancesAlongEdge: one entry per pair - arc length in mm from the origin corner of the edge (see _option.edgeOrigin). Each must lie within both edge lengths
++		/// @param _option: styles, buttonhole size, rotation and the edge origin corner. Default-constructed = current styles, style size, no rotation, TOP origin
++		/// @note In a GUI session the 2D/3D views and related widgets are not refreshed automatically by this API.
++		/// @return JSON string {"status","reason","message","buttonPatternIndex","buttonLineIndex","buttonholePatternIndex","buttonholeLineIndex",
++		///         "edgeOffset","edgeLength","buttonholeEdgeLength","createdCount","skippedCount","placements":[...]}. status is "success" or "failed".
++		///         Each placements[] entry has index, distanceAlongEdge, status ("created" or "skipped"), button{x,y,worldX,worldY,buttonIndex} and
++		///         buttonhole{x,y,worldX,worldY,buttonholeIndex}: x,y are mm from the pattern bounding-box top-left with Y down (the frame of
++		///         GetPatternOutlinePoints / AddButtonToPattern), worldX,worldY are 2D-window coordinates (the frame of GetPatternComponents), and
++		///         the indices are scene-order button / buttonhole indices for the grading APIs (-1 when skipped). On failure placements is empty,
++		///         nothing is created, and reason is one of INVALID_PATTERN, SAME_PATTERN, CURVED_PATTERN_NOT_SUPPORTED, INVALID_LINE, NOT_SEAM_PAIRED,
++		///         INVALID_STYLE_INDEX, NO_BUTTON_STYLE, INVALID_BUTTONHOLE_SIZE, EDGE_OFFSET_OUT_OF_BOUNDS, EMPTY_DISTANCE_LIST, DISTANCE_OUT_OF_RANGE,
++		///         POSITION_OFF_PATTERN, NOT_FINITE_ARGUMENT, NO_EDITOR. On success reason is "OK".
++		virtual std::string PlaceButtonPairsOnEdge(int _buttonPatternIndex, int _buttonLineIndex, int _buttonholePatternIndex, int _buttonholeLineIndex, float _edgeOffset, const std::vector<float>& _distancesAlongEdge, const Marvelous::ButtonPairPlacementOption& _option) { return ""; }
++
++		/// @ingroup PATTERN_API
++		/// @fn DistributeButtonPairsOnEdge(int _buttonPatternIndex, int _buttonLineIndex, int _buttonholePatternIndex, int _buttonholeLineIndex, float _edgeOffset, int _buttonCount, float _startMargin, float _endMargin, const Marvelous::ButtonPairPlacementOption& _option)
++		/// @brief Distribute _buttonCount button / buttonhole pairs evenly along the edges of two seam-paired patterns -
++		///        the auto-spacing counterpart of PlaceButtonPairsOnEdge with the same placement rules, validation, duplicate
++		///        skipping, undo behaviour and return payload. The positions are computed on the button pattern edge as
++		///        spacing = (edgeLength - _startMargin - _endMargin) / (_buttonCount - 1), starting _startMargin from the origin
++		///        corner; a single pair is placed at the midpoint of that span. The same distances are applied on the
++		///        buttonhole edge, so both edges must be long enough for them.
++		/// @param _buttonPatternIndex: pattern that receives the button heads (0-based, real pattern list order)
++		/// @param _buttonLineIndex: outline line of that pattern to measure from (0-based, order of GetPatternLineInfo / GetLineLength)
++		/// @param _buttonholePatternIndex: pattern that receives the buttonholes (0-based, real pattern list order). Must differ from _buttonPatternIndex
++		/// @param _buttonholeLineIndex: outline line of the buttonhole pattern to measure from (0-based)
++		/// @param _edgeOffset: perpendicular distance in mm from each edge into its pattern. Must be greater than 0 and smaller than the pattern extent behind the edge
++		/// @param _buttonCount: number of pairs to create. Must be 1 or more
++		/// @param _startMargin: padding in mm from the origin corner (see _option.edgeOrigin) before the first pair. 0 or more
++		/// @param _endMargin: padding in mm from the opposite corner after the last pair. 0 or more. _startMargin + _endMargin must be smaller than both edge lengths
++		/// @param _option: styles, buttonhole size, rotation and the edge origin corner. Default-constructed = current styles, style size, no rotation, TOP origin
++		/// @note In a GUI session the 2D/3D views and related widgets are not refreshed automatically by this API.
++		/// @return Same JSON payload as PlaceButtonPairsOnEdge; placements[].distanceAlongEdge reports the computed positions.
++		///         Additional failure reasons: INVALID_BUTTON_COUNT (_buttonCount below 1) and MARGINS_EXCEED_EDGE (negative margin or
++		///         _startMargin + _endMargin not smaller than an edge length).
++		virtual std::string DistributeButtonPairsOnEdge(int _buttonPatternIndex, int _buttonLineIndex, int _buttonholePatternIndex, int _buttonholeLineIndex, float _edgeOffset, int _buttonCount, float _startMargin, float _endMargin, const Marvelous::ButtonPairPlacementOption& _option) { return ""; }
+ 	};
+ }

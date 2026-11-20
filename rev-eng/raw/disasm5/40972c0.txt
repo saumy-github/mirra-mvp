@@ -1,0 +1,25 @@
+1440972C0  mov      qword ptr [rsp+8],rbx                    ; 
+1440972C5  push     rdi                                      ; 
+1440972C6  sub      rsp,30h                                  ; 
+1440972CA  mov      rbx,rdx                                  ; 
+1440972CD  mov      rdi,rcx                                  ; 
+1440972D0  call     0000000144086A50                         ; call 0x4086a50
+1440972D5  mov      rdx,qword ptr [rdi+0000000000000118h]    ; 
+1440972DC  lea      rax,[rdi+0000000000000139h]              ; 
+1440972E3  mov      rcx,qword ptr [rdi+0000000000000110h]    ; 
+1440972EA  xor      r9d,r9d                                  ; 
+1440972ED  mov      qword ptr [rsp+28h],rax                  ; 
+1440972F2  xor      r8d,r8d                                  ; 
+1440972F5  mov      qword ptr [rsp+20h],rbx                  ; 
+1440972FA  mov      byte ptr [rax],0                         ; 
+1440972FD  call     0000000143940EC0                         ; call 0x3940ec0
+144097302  mov      rbx,qword ptr [rsp+40h]                  ; 
+144097307  add      rsp,30h                                  ; 
+14409730B  pop      rdi                                      ; 
+14409730C  ret                                               ; 
+== 19 instructions, ends 14409730C
+== strings
+== calls (rva: count, thunk)
+  3940ec0: x1 
+  4086a50: x1 
+== data refs

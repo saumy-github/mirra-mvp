@@ -48,16 +48,39 @@ pygltflib>=1.15
 
 scikit-learn==1.5.1
 scipy>=1.7.0
+# The repo .venv uses the CUDA 12.1 build of the same versions (GPU), installed with:
+#   pip install --no-deps torch==2.4.1+cu121 torchvision==0.19.1+cu121 --index-url https://download.pytorch.org/whl/cu121
+# The plain pins below install the CPU build, which also works. Do not raise the version.
 torch==2.4.1
 torchvision==0.19.1
 # 4.56.0 is the first release with SAM2 (Sam2Model/Sam2Processor) support,
-# used by product_ingestion/segmentation.py's primary segmentation method.
+# used by product_ingestion/step_02_0_segmentation.py's primary segmentation method.
 # Requires torch>=2.2 (satisfied by torch==2.4.1 above).
 transformers==4.56.0
-# U2-Net fallback for product_ingestion/segmentation.py when SAM2 is
+# U2-Net fallback for product_ingestion/step_02_0_segmentation.py when SAM2 is
 # unavailable or produces an out-of-range mask (segment_u2net()).
 # Pinned to 2.0.67, not the latest (2.0.77): 2.0.70+ requires numpy>=2.3.0,
 # which conflicts with numpy==1.26.4 above (needed by opencv/scikit-learn/
 # torch). 2.0.67 is the most recent release with no numpy constraint at all.
 rembg==2.0.67
 trimesh>=3.9.0
+
+# CV course work in product_ingestion/CV (added 2026-11-20):
+# YOLO / YOLOE segmentation baselines (AGPL-3.0 licence: fine for research, check before shipping)
+ultralytics==8.4.215
+# Text-region detection for design extraction
+easyocr==1.7.2
+# Fashion-tuned SigLIP (Marqo-FashionSigLIP) for view and design labels.
+# Pinned to 3.1.0: open_clip_torch 4.x pulls in torch 2.15, which is not allowed here.
+open_clip_torch==3.1.0
+# Parquet datasets (19.x works with numpy 1.26; 20+ needs numpy 2) and wavelet (DWT) texture features
+pyarrow==19.0.1
+PyWavelets==1.8.0
+# Imported directly by the CV code (also pulled in by ultralytics, easyocr and
+# scikit-learn; pinned here to the versions the results were produced with)
+scikit-image==0.26.0
+matplotlib==3.11.1
+psutil==7.2.2
+joblib==1.5.3
+# Windows UI Automation: starts the CLO REST plugin from the Plugins menu (Windows only)
+pywinauto==0.6.9; sys_platform == "win32"

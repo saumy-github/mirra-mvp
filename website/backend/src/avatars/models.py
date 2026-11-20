@@ -11,6 +11,9 @@ from pydantic import BaseModel, ConfigDict, Field
 
 JOB_STATES = ("queued", "processing", "ready", "failed")
 
+# Bump when the avatar pipeline changes what a stored avatar looks like; older profiles then count as stale.
+AVATAR_PIPELINE_VERSION = "avs-1"
+
 STAGE_LABELS = {
     "queued": "Waiting in queue",
     "processing": "Sculpting your digital twin",
@@ -64,6 +67,7 @@ class AvatarProfileDocument(BaseModel):
     avatar_glb_path: str | None = None
     # None for avatars predating this field; treated as "unknown", not stale.
     source_measurements_version: int | None = None
+    pipeline_version: str | None = None
     generated_at: datetime | None = None
     # e.g. "u_001-004" — traces back to clo_avatar_generation/output/<run>/
     # for the full debug trail (run.log, step-by-step JSON) this doc doesn't

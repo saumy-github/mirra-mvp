@@ -1,0 +1,39 @@
+
+Dump of file C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe
+
+File Type: EXECUTABLE IMAGE
+
+  0000000146665250: add         rdx,8
+  0000000146665254: add         rcx,8
+  0000000146665258: jmp         0000000141BCB7F0
+  000000014666525D: int         3
+  000000014666525E: int         3
+  000000014666525F: int         3
+  0000000146665260: push        rbx
+  0000000146665262: sub         rsp,60h
+  0000000146665266: xor         eax,eax
+  0000000146665268: mov         rbx,rcx
+  000000014666526B: test        rdx,rdx
+  000000014666526E: je          00000001466652CE
+  0000000146665270: cmp         byte ptr [rdx],al
+  0000000146665272: je          000000014666527D
+  0000000146665274: inc         rax
+  0000000146665277: cmp         byte ptr [rax+rdx],0
+  000000014666527B: jne         0000000146665274
+  000000014666527D: mov         rcx,rdx
+  0000000146665280: mov         qword ptr [rsp+20h],rax
+  0000000146665285: call        qword ptr [0000000148230108h]
+  000000014666528B: mov         qword ptr [rsp+28h],rax
+  0000000146665290: lea         rdx,[rsp+20h]
+  0000000146665295: movaps      xmm0,xmmword ptr [rsp+20h]
+  000000014666529A: lea         rcx,[rsp+30h]
+  000000014666529F: movdqa      xmmword ptr [rsp+20h],xmm0
+  00000001466652A5: call        qword ptr [00000001482300A8h]
+  00000001466652AB: mov         rdx,rax
+  00000001466652AE: 48
+  00000001466652AF: 8D
+  00000001466652B0: 4B
+
+  Summary
+
+     822A000 .text

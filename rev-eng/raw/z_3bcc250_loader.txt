@@ -1,0 +1,313 @@
+143BCC250  mov      qword ptr [rsp+8],rbx                    ; 
+143BCC255  mov      qword ptr [rsp+10h],rsi                  ; 
+143BCC25A  mov      qword ptr [rsp+18h],rdi                  ; 
+143BCC25F  push     rbp                                      ; 
+143BCC260  push     r12                                      ; 
+143BCC262  push     r13                                      ; 
+143BCC264  push     r14                                      ; 
+143BCC266  push     r15                                      ; 
+143BCC268  lea      rbp,[rsp+FFFFFFFFFFFFFF20h]              ; 
+143BCC270  sub      rsp,1E0h                                 ; 
+143BCC277  mov      r13,r9                                   ; 
+143BCC27A  mov      rsi,r8                                   ; 
+143BCC27D  mov      rbx,rdx                                  ; 
+143BCC280  call     0000000141BE0EC0                         ; call 0x1be0ec0
+143BCC285  cmp      qword ptr [rax+30h],0                    ; 
+143BCC28A  je       0000000143BCC29E                         ; 
+143BCC28C  call     0000000141BE0EC0                         ; call 0x1be0ec0
+143BCC291  mov      rcx,qword ptr [rax+38h]                  ; 
+143BCC295  mov      rax,qword ptr [rcx]                      ; 
+143BCC298  call     qword ptr [rax+0000000000000248h]        ; 
+143BCC29E  lea      rcx,[rsp+40h]                            ; 
+143BCC2A3  call     000000014666B740                         ; call 0x666b740
+143BCC2A8  nop                                               ; 
+143BCC2A9  mov      rdx,rbx                                  ; 
+143BCC2AC  lea      rcx,[rbp+20h]                            ; 
+143BCC2B0  call     0000000146664E10                         ; call 0x6664e10
+143BCC2B5  nop                                               ; 
+143BCC2B6  lea      rcx,[rbp]                                ; 
+143BCC2BA  call     0000000146665010                         ; call 0x6665010
+143BCC2BF  nop                                               ; 
+143BCC2C0  lea      rcx,[rbp-20h]                            ; 
+143BCC2C4  call     0000000146665010                         ; call 0x6665010
+143BCC2C9  nop                                               ; 
+143BCC2CA  call     0000000144B707B0                         ; call 0x4b707b0
+143BCC2CF  lea      rcx,[rbp-20h]                            ; 
+143BCC2D3  mov      qword ptr [rsp+28h],rcx                  ; 
+143BCC2D8  lea      rcx,[rbp]                                ; 
+143BCC2DC  mov      qword ptr [rsp+20h],rcx                  ; 
+143BCC2E1  lea      r9,[rsp+40h]                             ; 
+143BCC2E6  mov      r8b,1                                    ; 
+143BCC2E9  lea      rdx,[rbp+20h]                            ; 
+143BCC2ED  mov      rcx,rax                                  ; 
+143BCC2F0  call     0000000144B6E390                         ; call 0x4b6e390
+143BCC2F5  test     al,al                                    ; 
+143BCC2F7  jne      0000000143BCC48F                         ; 
+143BCC2FD  mov      r9d,0FFFFFFFFh                           ; 
+143BCC303  xor      r8d,r8d                                  ; 
+143BCC306  lea      rdx,[0000000148360878h]                  ; .rdata 8360878 -> 'A:Failed to load the Zipper file. Unzip error.'
+143BCC30D  lea      rcx,[rbp-40h]                            ; 
+143BCC311  call     qword ptr [0000000148230078h]            ; .rdata 8230078
+143BCC317  lea      rcx,[0000000148260728h]                  ; .rdata 8260728 -> 'p..A.....\\  <  >'
+143BCC31E  mov      qword ptr [rbp-80h],rcx                  ; 
+143BCC322  mov      rdx,rax                                  ; 
+143BCC325  lea      rcx,[rbp-78h]                            ; 
+143BCC329  call     qword ptr [00000001482300E8h]            ; .rdata 82300e8
+143BCC32F  nop                                               ; 
+143BCC330  lea      rcx,[rbp-40h]                            ; 
+143BCC334  call     qword ptr [00000001482300E0h]            ; .rdata 82300e0
+143BCC33A  lea      rcx,[rsp+58h]                            ; 
+143BCC33F  call     0000000146267B80                         ; call 0x6267b80
+143BCC344  nop                                               ; 
+143BCC345  lea      rdx,[000000014884C070h]                  ; .rdata 884c070 -> 'A: - %1, log=%2, free disk space=%3'
+143BCC34C  lea      rcx,[rbp+00000000000000A0h]              ; 
+143BCC353  call     0000000146664F70                         ; call 0x6664f70
+143BCC358  mov      rbx,rax                                  ; 
+143BCC35B  mov      edx,20h                                  ; 
+143BCC360  lea      rcx,[rsp+30h]                            ; 
+143BCC365  call     0000000146671C80                         ; call 0x6671c80
+143BCC36A  movzx    eax,word ptr [rax]                       ; 
+143BCC36D  mov      word ptr [rsp+20h],ax                    ; 
+143BCC372  xor      r9d,r9d                                  ; 
+143BCC375  lea      r8,[rbp+20h]                             ; 
+143BCC379  lea      rdx,[rbp+0000000000000080h]              ; 
+143BCC380  mov      rcx,rbx                                  ; 
+143BCC383  call     0000000146665AE0                         ; call 0x6665ae0
+143BCC388  mov      rbx,rax                                  ; 
+143BCC38B  mov      edx,20h                                  ; 
+143BCC390  lea      rcx,[rsp+32h]                            ; 
+143BCC395  call     0000000146671C80                         ; call 0x6671c80
+143BCC39A  movzx    eax,word ptr [rax]                       ; 
+143BCC39D  mov      word ptr [rsp+20h],ax                    ; 
+143BCC3A2  xor      r9d,r9d                                  ; 
+143BCC3A5  lea      r8,[rbp-20h]                             ; 
+143BCC3A9  lea      rdx,[rbp+60h]                            ; 
+143BCC3AD  mov      rcx,rbx                                  ; 
+143BCC3B0  call     0000000146665AE0                         ; call 0x6665ae0
+143BCC3B5  mov      rbx,rax                                  ; 
+143BCC3B8  mov      edx,20h                                  ; 
+143BCC3BD  lea      rcx,[rsp+34h]                            ; 
+143BCC3C2  call     0000000146671C80                         ; call 0x6671c80
+143BCC3C7  movzx    eax,word ptr [rax]                       ; 
+143BCC3CA  mov      word ptr [rsp+20h],ax                    ; 
+143BCC3CF  xor      r9d,r9d                                  ; 
+143BCC3D2  lea      r8,[rsp+58h]                             ; 
+143BCC3D7  lea      rdx,[rbp-40h]                            ; 
+143BCC3DB  mov      rcx,rbx                                  ; 
+143BCC3DE  call     0000000146665AE0                         ; call 0x6665ae0
+143BCC3E3  nop                                               ; 
+143BCC3E4  mov      r8,rax                                   ; 
+143BCC3E7  lea      rdx,[rbp-80h]                            ; 
+143BCC3EB  lea      rcx,[rbp+40h]                            ; 
+143BCC3EF  call     0000000146665500                         ; call 0x6665500
+143BCC3F4  nop                                               ; 
+143BCC3F5  lea      rcx,[rbp-40h]                            ; 
+143BCC3F9  call     0000000146665040                         ; call 0x6665040
+143BCC3FE  nop                                               ; 
+143BCC3FF  lea      rcx,[rbp+60h]                            ; 
+143BCC403  call     0000000146665040                         ; call 0x6665040
+143BCC408  nop                                               ; 
+143BCC409  lea      rcx,[rbp+0000000000000080h]              ; 
+143BCC410  call     0000000146665040                         ; call 0x6665040
+143BCC415  nop                                               ; 
+143BCC416  lea      rcx,[rbp+00000000000000A0h]              ; 
+143BCC41D  call     0000000146665040                         ; call 0x6665040
+143BCC422  lea      rax,[rbp+00000000000000C0h]              ; 
+143BCC429  mov      qword ptr [rsp+38h],rax                  ; 
+143BCC42E  lea      rdx,[0000000148360954h]                  ; .rdata 8360954 -> 'A:E12013'
+143BCC435  lea      rcx,[rbp+00000000000000C0h]              ; 
+143BCC43C  call     0000000146664F70                         ; call 0x6664f70
+143BCC441  mov      rbx,rax                                  ; 
+143BCC444  lea      rdx,[rbp+40h]                            ; 
+143BCC448  lea      rcx,[rbp-60h]                            ; 
+143BCC44C  call     0000000146664E10                         ; call 0x6664e10
+143BCC451  nop                                               ; 
+143BCC452  mov      r9d,9Eh                                  ; 
+143BCC458  lea      r8,[000000014884C0A0h]                   ; .rdata 884c0a0 -> 'A:D:\\work\\24f977aa179b3ca8\\Marvelous\\Source\\CloScene\\SceneGraph\\SceneUtility\\MVFileLoader.cpp'
+143BCC45F  mov      rdx,rbx                                  ; 
+143BCC462  mov      rcx,rax                                  ; 
+143BCC465  call     0000000144B7C060                         ; call 0x4b7c060
+143BCC46A  xor      bl,bl                                    ; 
+143BCC46C  lea      rcx,[rbp+40h]                            ; 
+143BCC470  call     0000000146665040                         ; call 0x6665040
+143BCC475  nop                                               ; 
+143BCC476  lea      rcx,[rsp+58h]                            ; 
+143BCC47B  call     0000000146665040                         ; call 0x6665040
+143BCC480  nop                                               ; 
+143BCC481  lea      rcx,[rbp-80h]                            ; 
+143BCC485  call     0000000146665040                         ; call 0x6665040
+143BCC48A  jmp      0000000143BCC631                         ; 
+143BCC48F  xor      r12b,r12b                                ; 
+143BCC492  xor      r15b,r15b                                ; 
+143BCC495  xor      r14d,r14d                                ; 
+143BCC498  lea      rcx,[rsp+40h]                            ; 
+143BCC49D  call     000000014666CF00                         ; call 0x666cf00
+143BCC4A2  test     eax,eax                                  ; 
+143BCC4A4  jle      0000000143BCC5B6                         ; 
+143BCC4AA  nop      word ptr [rax+rax]                       ; 
+143BCC4B0  movsxd   rbx,r14d                                 ; 
+143BCC4B3  shl      rbx,5                                    ; 
+143BCC4B7  mov      rdx,qword ptr [rsp+40h]                  ; 
+143BCC4BC  add      rdx,rbx                                  ; 
+143BCC4BF  lea      rcx,[rbp-60h]                            ; 
+143BCC4C3  call     00000001440ED340                         ; call 0x40ed340
+143BCC4C8  mov      rdi,rax                                  ; 
+143BCC4CB  lea      rdx,[000000014825E254h]                  ; .rdata 825e254 -> 'A:png'
+143BCC4D2  lea      rcx,[rsp+58h]                            ; 
+143BCC4D7  call     0000000146664F70                         ; call 0x6664f70
+143BCC4DC  nop                                               ; 
+143BCC4DD  xor      r8d,r8d                                  ; 
+143BCC4E0  lea      rdx,[rsp+58h]                            ; 
+143BCC4E5  mov      rcx,rdi                                  ; 
+143BCC4E8  call     0000000146666560                         ; call 0x6666560
+143BCC4ED  mov      edi,eax                                  ; 
+143BCC4EF  lea      rcx,[rsp+58h]                            ; 
+143BCC4F4  call     0000000146665040                         ; call 0x6665040
+143BCC4F9  nop                                               ; 
+143BCC4FA  lea      rcx,[rbp-60h]                            ; 
+143BCC4FE  call     0000000146665040                         ; call 0x6665040
+143BCC503  mov      rdx,qword ptr [rsp+40h]                  ; 
+143BCC508  add      rdx,rbx                                  ; 
+143BCC50B  test     edi,edi                                  ; 
+143BCC50D  jne      0000000143BCC51C                         ; 
+143BCC50F  mov      rcx,r13                                  ; 
+143BCC512  call     00000001466650B0                         ; call 0x66650b0
+143BCC517  mov      r12b,1                                   ; 
+143BCC51A  jmp      0000000143BCC596                         ; 
+143BCC51C  lea      rcx,[rbp-60h]                            ; 
+143BCC520  call     00000001440ED340                         ; call 0x40ed340
+143BCC525  mov      rdi,rax                                  ; 
+143BCC528  lea      rdx,[0000000148260808h]                  ; .rdata 8260808 -> 'A:obj'
+143BCC52F  lea      rcx,[rsp+58h]                            ; 
+143BCC534  call     0000000146664F70                         ; call 0x6664f70
+143BCC539  nop                                               ; 
+143BCC53A  xor      r8d,r8d                                  ; 
+143BCC53D  lea      rdx,[rsp+58h]                            ; 
+143BCC542  mov      rcx,rdi                                  ; 
+143BCC545  call     0000000146666560                         ; call 0x6666560
+143BCC54A  mov      edi,eax                                  ; 
+143BCC54C  lea      rcx,[rsp+58h]                            ; 
+143BCC551  call     0000000146665040                         ; call 0x6665040
+143BCC556  nop                                               ; 
+143BCC557  lea      rcx,[rbp-60h]                            ; 
+143BCC55B  call     0000000146665040                         ; call 0x6665040
+143BCC560  test     edi,edi                                  ; 
+143BCC562  jne      0000000143BCC596                         ; 
+143BCC564  mov      r8,qword ptr [rsp+40h]                   ; 
+143BCC569  add      r8,rbx                                   ; 
+143BCC56C  mov      rax,qword ptr [rsi+8]                    ; 
+143BCC570  cmp      rax,qword ptr [rsi+10h]                  ; 
+143BCC574  je       0000000143BCC588                         ; 
+143BCC576  mov      rdx,r8                                   ; 
+143BCC579  mov      rcx,rax                                  ; 
+143BCC57C  call     0000000146664E10                         ; call 0x6664e10
+143BCC581  add      qword ptr [rsi+8],20h                    ; 
+143BCC586  jmp      0000000143BCC593                         ; 
+143BCC588  mov      rdx,rax                                  ; 
+143BCC58B  mov      rcx,rsi                                  ; 
+143BCC58E  call     0000000142065FC0                         ; call 0x2065fc0
+143BCC593  mov      r15b,1                                   ; 
+143BCC596  inc      r14d                                     ; 
+143BCC599  lea      rcx,[rsp+40h]                            ; 
+143BCC59E  call     000000014666CF00                         ; call 0x666cf00
+143BCC5A3  cmp      r14d,eax                                 ; 
+143BCC5A6  jl       0000000143BCC4B0                         ; 
+143BCC5AC  test     r12b,r12b                                ; 
+143BCC5AF  je       0000000143BCC5B6                         ; 
+143BCC5B1  test     r15b,r15b                                ; 
+143BCC5B4  jne      0000000143BCC62F                         ; 
+143BCC5B6  mov      r9d,0FFFFFFFFh                           ; 
+143BCC5BC  xor      r8d,r8d                                  ; 
+143BCC5BF  lea      rdx,[000000014884C100h]                  ; .rdata 884c100 -> 'A:Failed to load the file. Invalid file.'
+143BCC5C6  lea      rcx,[rbp-40h]                            ; 
+143BCC5CA  call     qword ptr [0000000148230078h]            ; .rdata 8230078
+143BCC5D0  lea      rcx,[0000000148260728h]                  ; .rdata 8260728 -> 'p..A.....\\  <  >'
+143BCC5D7  mov      qword ptr [rbp-80h],rcx                  ; 
+143BCC5DB  mov      rdx,rax                                  ; 
+143BCC5DE  lea      rcx,[rbp-78h]                            ; 
+143BCC5E2  call     qword ptr [00000001482300E8h]            ; .rdata 82300e8
+143BCC5E8  nop                                               ; 
+143BCC5E9  lea      rcx,[rbp-40h]                            ; 
+143BCC5ED  call     qword ptr [00000001482300E0h]            ; .rdata 82300e0
+143BCC5F3  mov      qword ptr [rsp+38h],0FFFFFFFFFFFFFFFFh   ; 
+143BCC5FC  xor      r8d,r8d                                  ; 
+143BCC5FF  mov      rdx,qword ptr [rsp+38h]                  ; 
+143BCC604  lea      rcx,[rbp-80h]                            ; 
+143BCC608  call     0000000144B78600                         ; call 0x4b78600
+143BCC60D  lea      rdx,[rbp]                                ; 
+143BCC611  lea      rcx,[rbp-60h]                            ; 
+143BCC615  call     0000000146664E10                         ; call 0x6664e10
+143BCC61A  mov      rcx,rax                                  ; 
+143BCC61D  call     0000000146269F60                         ; call 0x6269f60
+143BCC622  xor      bl,bl                                    ; 
+143BCC624  lea      rcx,[rbp-80h]                            ; 
+143BCC628  call     0000000146665040                         ; call 0x6665040
+143BCC62D  jmp      0000000143BCC631                         ; 
+143BCC62F  mov      bl,1                                     ; 
+143BCC631  call     0000000141BE0EC0                         ; call 0x1be0ec0
+143BCC636  cmp      qword ptr [rax+30h],0                    ; 
+143BCC63B  je       0000000143BCC650                         ; 
+143BCC63D  call     0000000141BE0EC0                         ; call 0x1be0ec0
+143BCC642  mov      rcx,qword ptr [rax+38h]                  ; 
+143BCC646  mov      rax,qword ptr [rcx]                      ; 
+143BCC649  call     qword ptr [rax+0000000000000250h]        ; 
+143BCC64F  nop                                               ; 
+143BCC650  lea      rcx,[rbp-20h]                            ; 
+143BCC654  call     0000000146665040                         ; call 0x6665040
+143BCC659  nop                                               ; 
+143BCC65A  lea      rcx,[rbp]                                ; 
+143BCC65E  call     0000000146665040                         ; call 0x6665040
+143BCC663  nop                                               ; 
+143BCC664  lea      rcx,[rbp+20h]                            ; 
+143BCC668  call     0000000146665040                         ; call 0x6665040
+143BCC66D  nop                                               ; 
+143BCC66E  lea      rcx,[rsp+40h]                            ; 
+143BCC673  call     0000000141C07BD0                         ; call 0x1c07bd0
+143BCC678  movzx    eax,bl                                   ; 
+143BCC67B  lea      r11,[rsp+00000000000001E0h]              ; 
+143BCC683  mov      rbx,qword ptr [r11+30h]                  ; 
+143BCC687  mov      rsi,qword ptr [r11+38h]                  ; 
+143BCC68B  mov      rdi,qword ptr [r11+40h]                  ; 
+143BCC68F  mov      rsp,r11                                  ; 
+143BCC692  pop      r15                                      ; 
+143BCC694  pop      r14                                      ; 
+143BCC696  pop      r13                                      ; 
+143BCC698  pop      r12                                      ; 
+143BCC69A  pop      rbp                                      ; 
+143BCC69B  ret                                               ; 
+== 277 instructions, ends 143BCC69B
+== strings
+  143BCC306  ref 8360878  A:Failed to load the Zipper file. Unzip error.
+  143BCC317  ref 8260728  p..A.....\  <  >
+  143BCC345  ref 884c070  A: - %1, log=%2, free disk space=%3
+  143BCC42E  ref 8360954  A:E12013
+  143BCC458  ref 884c0a0  A:D:\work\24f977aa179b3ca8\Marvelous\Source\CloScene\SceneGraph\SceneUtility\MVFileLoader.cpp
+  143BCC4CB  ref 825e254  A:png
+  143BCC528  ref 8260808  A:obj
+  143BCC5BF  ref 884c100  A:Failed to load the file. Invalid file.
+== calls (rva: count, thunk)
+  1be0ec0: x4 
+  1c07bd0: x1 
+  2065fc0: x1 
+  40ed340: x2 
+  4b6e390: x1 
+  4b707b0: x1 
+  4b78600: x1 
+  4b7c060: x1 
+  6267b80: x1 
+  6269f60: x1 
+  6664e10: x4 
+  6664f70: x4 
+  6665010: x2 
+  6665040: x15 
+  66650b0: x1 
+  6665500: x1 
+  6665ae0: x3 
+  6666560: x2 
+  666b740: x1 
+  666cf00: x2 
+  6671c80: x3 
+== data refs
+  8230078 .rdata x2
+  82300e0 .rdata x2
+  82300e8 .rdata x2

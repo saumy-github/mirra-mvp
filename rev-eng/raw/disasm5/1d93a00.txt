@@ -1,0 +1,238 @@
+141D93A00  mov      qword ptr [rsp+18h],rbx                  ; 
+141D93A05  push     rbp                                      ; 
+141D93A06  push     rsi                                      ; 
+141D93A07  push     rdi                                      ; 
+141D93A08  push     r14                                      ; 
+141D93A0A  push     r15                                      ; 
+141D93A0C  lea      rbp,[rsp-10h]                            ; 
+141D93A11  sub      rsp,110h                                 ; 
+141D93A18  mov      rax,qword ptr [000000014A172D40h]        ; stack cookie
+141D93A1F  xor      rax,rsp                                  ; 
+141D93A22  mov      qword ptr [rbp+8],rax                    ; 
+141D93A26  mov      r14,rdx                                  ; 
+141D93A29  mov      r15,rcx                                  ; 
+141D93A2C  xor      ebx,ebx                                  ; 
+141D93A2E  mov      dword ptr [rsp+30h],ebx                  ; 
+141D93A32  call     0000000141BE0EC0                         ; call 0x1be0ec0
+141D93A37  mov      rcx,rax                                  ; 
+141D93A3A  call     00000001461548A0                         ; call 0x61548a0
+141D93A3F  test     rax,rax                                  ; 
+141D93A42  je       0000000141D93A66                         ; 
+141D93A44  call     0000000141BF5E20                         ; call 0x1bf5e20
+141D93A49  lea      rdx,[rsp+38h]                            ; 
+141D93A4E  mov      rcx,rax                                  ; 
+141D93A51  call     0000000145CFE9F0                         ; call 0x5cfe9f0
+141D93A56  mov      ebx,1                                    ; 
+141D93A5B  cmp      qword ptr [rax],0                        ; 
+141D93A5F  je       0000000141D93A66                         ; 
+141D93A61  xor      sil,sil                                  ; 
+141D93A64  jmp      0000000141D93A69                         ; 
+141D93A66  mov      sil,1                                    ; 
+141D93A69  mov      edi,0FFFFFFFFh                           ; 
+141D93A6E  test     bl,1                                     ; 
+141D93A71  je       0000000141D93AA6                         ; 
+141D93A73  mov      rbx,qword ptr [rsp+40h]                  ; 
+141D93A78  test     rbx,rbx                                  ; 
+141D93A7B  je       0000000141D93AA6                         ; 
+141D93A7D  mov      eax,edi                                  ; 
+141D93A7F  lock     xadd   dword ptr [rbx+8],eax             ; 
+141D93A84  cmp      eax,1                                    ; 
+141D93A87  jne      0000000141D93AA6                         ; 
+141D93A89  mov      rax,qword ptr [rbx]                      ; 
+141D93A8C  mov      rcx,rbx                                  ; 
+141D93A8F  call     qword ptr [rax]                          ; 
+141D93A91  mov      eax,edi                                  ; 
+141D93A93  lock     xadd   dword ptr [rbx+0Ch],eax           ; 
+141D93A98  cmp      eax,1                                    ; 
+141D93A9B  jne      0000000141D93AA6                         ; 
+141D93A9D  mov      rax,qword ptr [rbx]                      ; 
+141D93AA0  mov      rcx,rbx                                  ; 
+141D93AA3  call     qword ptr [rax+8]                        ; 
+141D93AA6  test     sil,sil                                  ; 
+141D93AA9  jne      0000000141D93CD7                         ; 
+141D93AAF  cmp      byte ptr [r14+0Bh],sil                   ; 
+141D93AB3  je       0000000141D93B12                         ; 
+141D93AB5  call     0000000141BE0FC0                         ; call 0x1be0fc0
+141D93ABA  mov      rbx,rax                                  ; 
+141D93ABD  mov      r9d,edi                                  ; 
+141D93AC0  xor      r8d,r8d                                  ; 
+141D93AC3  lea      rdx,[0000000148291158h]                  ; .rdata 8291158 -> 'A:Importing AMX'
+141D93ACA  lea      rcx,[rbp-48h]                            ; 
+141D93ACE  call     qword ptr [0000000148230078h]            ; .rdata 8230078
+141D93AD4  nop                                               ; 
+141D93AD5  lea      rcx,[0000000148260728h]                  ; .rdata 8260728 -> 'p..A.....\\  <  >'
+141D93ADC  mov      qword ptr [rsp+58h],rcx                  ; 
+141D93AE1  mov      rdx,rax                                  ; 
+141D93AE4  lea      rcx,[rsp+60h]                            ; 
+141D93AE9  call     qword ptr [00000001482300E8h]            ; .rdata 82300e8
+141D93AEF  nop                                               ; 
+141D93AF0  xor      r8d,r8d                                  ; 
+141D93AF3  lea      rdx,[rsp+58h]                            ; 
+141D93AF8  mov      rcx,rbx                                  ; 
+141D93AFB  call     0000000146155870                         ; call 0x6155870
+141D93B00  nop                                               ; 
+141D93B01  lea      rcx,[rsp+58h]                            ; 
+141D93B06  call     0000000146665040                         ; call 0x6665040
+141D93B0B  nop                                               ; 
+141D93B0C  lea      rcx,[rbp-48h]                            ; 
+141D93B10  jmp      0000000141D93B6C                         ; 
+141D93B12  call     0000000141BE0FC0                         ; call 0x1be0fc0
+141D93B17  mov      rbx,rax                                  ; 
+141D93B1A  mov      r9d,edi                                  ; 
+141D93B1D  xor      r8d,r8d                                  ; 
+141D93B20  lea      rdx,[0000000148291168h]                  ; .rdata 8291168 -> 'A:Importing DXF'
+141D93B27  lea      rcx,[rbp-30h]                            ; 
+141D93B2B  call     qword ptr [0000000148230078h]            ; .rdata 8230078
+141D93B31  nop                                               ; 
+141D93B32  lea      rcx,[0000000148260728h]                  ; .rdata 8260728 -> 'p..A.....\\  <  >'
+141D93B39  mov      qword ptr [rsp+78h],rcx                  ; 
+141D93B3E  mov      rdx,rax                                  ; 
+141D93B41  lea      rcx,[rbp-80h]                            ; 
+141D93B45  call     qword ptr [00000001482300E8h]            ; .rdata 82300e8
+141D93B4B  nop                                               ; 
+141D93B4C  xor      r8d,r8d                                  ; 
+141D93B4F  lea      rdx,[rsp+78h]                            ; 
+141D93B54  mov      rcx,rbx                                  ; 
+141D93B57  call     0000000146155870                         ; call 0x6155870
+141D93B5C  nop                                               ; 
+141D93B5D  lea      rcx,[rsp+78h]                            ; 
+141D93B62  call     0000000146665040                         ; call 0x6665040
+141D93B67  nop                                               ; 
+141D93B68  lea      rcx,[rbp-30h]                            ; 
+141D93B6C  call     qword ptr [00000001482300E0h]            ; .rdata 82300e0
+141D93B72  cmp      byte ptr [r14+8],0                       ; 
+141D93B77  jne      0000000141D93B7E                         ; 
+141D93B79  call     0000000145D79C30                         ; call 0x5d79c30
+141D93B7E  call     0000000141BE0FC0                         ; call 0x1be0fc0
+141D93B83  mov      edx,14h                                  ; 
+141D93B88  mov      rcx,rax                                  ; 
+141D93B8B  call     0000000146155890                         ; call 0x6155890
+141D93B90  call     0000000141BF5E20                         ; call 0x1bf5e20
+141D93B95  lea      rdx,[rsp+48h]                            ; 
+141D93B9A  mov      rcx,rax                                  ; 
+141D93B9D  call     0000000145CFE9F0                         ; call 0x5cfe9f0
+141D93BA2  nop                                               ; 
+141D93BA3  mov      byte ptr [rsp+20h],1                     ; 
+141D93BA8  mov      r9,r14                                   ; 
+141D93BAB  xor      edx,edx                                  ; 
+141D93BAD  mov      r8d,3E9h                                 ; 
+141D93BB3  mov      rcx,qword ptr [rax]                      ; 
+141D93BB6  call     00000001457354F0                         ; call 0x57354f0
+141D93BBB  nop                                               ; 
+141D93BBC  mov      rbx,qword ptr [rsp+50h]                  ; 
+141D93BC1  test     rbx,rbx                                  ; 
+141D93BC4  je       0000000141D93BED                         ; 
+141D93BC6  mov      eax,edi                                  ; 
+141D93BC8  lock     xadd   dword ptr [rbx+8],eax             ; 
+141D93BCD  cmp      eax,1                                    ; 
+141D93BD0  jne      0000000141D93BED                         ; 
+141D93BD2  mov      rax,qword ptr [rbx]                      ; 
+141D93BD5  mov      rcx,rbx                                  ; 
+141D93BD8  call     qword ptr [rax]                          ; 
+141D93BDA  lock     xadd   dword ptr [rbx+0Ch],edi           ; 
+141D93BDF  cmp      edi,1                                    ; 
+141D93BE2  jne      0000000141D93BED                         ; 
+141D93BE4  mov      rax,qword ptr [rbx]                      ; 
+141D93BE7  mov      rcx,rbx                                  ; 
+141D93BEA  call     qword ptr [rax+8]                        ; 
+141D93BED  call     0000000141BE0EC0                         ; call 0x1be0ec0
+141D93BF2  mov      rcx,rax                                  ; 
+141D93BF5  call     00000001461548A0                         ; call 0x61548a0
+141D93BFA  mov      rdx,qword ptr [rax]                      ; 
+141D93BFD  mov      rcx,rax                                  ; 
+141D93C00  call     qword ptr [rdx+0000000000000100h]        ; 
+141D93C06  call     0000000141BE0EC0                         ; call 0x1be0ec0
+141D93C0B  mov      rcx,rax                                  ; 
+141D93C0E  call     00000001461548B0                         ; call 0x61548b0
+141D93C13  mov      rcx,qword ptr [rax]                      ; 
+141D93C16  mov      r8,qword ptr [rcx+00000000000000B8h]     ; 
+141D93C1D  xor      edx,edx                                  ; 
+141D93C1F  mov      rcx,rax                                  ; 
+141D93C22  call     r8                                       ; 
+141D93C25  cmp      byte ptr [r14+8],0                       ; 
+141D93C2A  jne      0000000141D93CC8                         ; 
+141D93C30  call     0000000141C5FB60                         ; call 0x1c5fb60
+141D93C35  lea      rdx,[rbp-18h]                            ; 
+141D93C39  mov      rcx,rax                                  ; 
+141D93C3C  call     0000000145D752A0                         ; call 0x5d752a0
+141D93C41  nop                                               ; 
+141D93C42  mov      rdx,rax                                  ; 
+141D93C45  lea      rcx,[rbp-68h]                            ; 
+141D93C49  call     00000001466668A0                         ; call 0x66668a0
+141D93C4E  nop                                               ; 
+141D93C4F  mov      rdx,qword ptr [rbp]                      ; 
+141D93C53  cmp      rdx,0Fh                                  ; 
+141D93C57  jbe      0000000141D93C8D                         ; 
+141D93C59  inc      rdx                                      ; 
+141D93C5C  mov      rcx,qword ptr [rbp-18h]                  ; 
+141D93C60  mov      rax,rcx                                  ; 
+141D93C63  cmp      rdx,1000h                                ; 
+141D93C6A  jb       0000000141D93C88                         ; 
+141D93C6C  add      rdx,27h                                  ; 
+141D93C70  mov      rcx,qword ptr [rcx-8]                    ; 
+141D93C74  sub      rax,rcx                                  ; 
+141D93C77  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+141D93C7B  cmp      rax,1Fh                                  ; 
+141D93C7F  jbe      0000000141D93C88                         ; 
+141D93C81  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+141D93C87  int      3                                        ; 
+141D93C88  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+141D93C8D  movdqa   xmm0,xmmword ptr [00000001482609B0h]     ; .rdata 82609b0
+141D93C95  movdqu   xmmword ptr [rbp-8],xmm0                 ; 
+141D93C9A  mov      byte ptr [rbp-18h],0                     ; 
+141D93C9E  mov      rax,qword ptr [r15]                      ; 
+141D93CA1  lea      rdx,[rbp-68h]                            ; 
+141D93CA5  mov      rcx,r15                                  ; 
+141D93CA8  call     qword ptr [rax+0000000000000228h]        ; 
+141D93CAE  mov      rax,qword ptr [r15]                      ; 
+141D93CB1  lea      rdx,[rbp-68h]                            ; 
+141D93CB5  mov      rcx,r15                                  ; 
+141D93CB8  call     qword ptr [rax+0000000000000230h]        ; 
+141D93CBE  nop                                               ; 
+141D93CBF  lea      rcx,[rbp-68h]                            ; 
+141D93CC3  call     0000000146665040                         ; call 0x6665040
+141D93CC8  call     0000000141BC26D0                         ; call 0x1bc26d0
+141D93CCD  mov      dl,1                                     ; 
+141D93CCF  mov      rcx,rax                                  ; 
+141D93CD2  call     0000000145CCE3B0                         ; call 0x5cce3b0
+141D93CD7  mov      rcx,qword ptr [rbp+8]                    ; 
+141D93CDB  xor      rcx,rsp                                  ; 
+141D93CDE  call     00000001470D9780                         ; call 0x70d9780
+141D93CE3  mov      rbx,qword ptr [rsp+0000000000000150h]    ; 
+141D93CEB  add      rsp,110h                                 ; 
+141D93CF2  pop      r15                                      ; 
+141D93CF4  pop      r14                                      ; 
+141D93CF6  pop      rdi                                      ; 
+141D93CF7  pop      rsi                                      ; 
+141D93CF8  pop      rbp                                      ; 
+141D93CF9  ret                                               ; 
+== 208 instructions, ends 141D93CF9
+== strings
+  141D93AC3  ref 8291158  A:Importing AMX
+  141D93AD5  ref 8260728  p..A.....\  <  >
+  141D93B20  ref 8291168  A:Importing DXF
+== calls (rva: count, thunk)
+  1bc26d0: x1 
+  1be0ec0: x3 
+  1be0fc0: x3 
+  1bf5e20: x2 
+  1c5fb60: x1 
+  57354f0: x1 
+  5cce3b0: x1 
+  5cfe9f0: x2 
+  5d752a0: x1 
+  5d79c30: x1 
+  61548a0: x2 
+  61548b0: x1 
+  6155870: x2 
+  6155890: x1 
+  6665040: x3 
+  66668a0: x1 
+  70d91f4: x1 jmp->1470d9060
+  70d9780: x1 
+== data refs
+  8230078 .rdata x2
+  82300e0 .rdata x1
+  82300e8 .rdata x2
+  8237590 .rdata x1
+  82609b0 .rdata x1

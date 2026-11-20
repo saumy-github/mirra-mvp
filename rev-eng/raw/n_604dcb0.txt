@@ -1,0 +1,237 @@
+14604DCB0  mov      rax,rsp                                  ; 
+14604DCB3  push     rbp                                      ; 
+14604DCB4  push     rbx                                      ; 
+14604DCB5  push     rsi                                      ; 
+14604DCB6  push     rdi                                      ; 
+14604DCB7  push     r14                                      ; 
+14604DCB9  push     r15                                      ; 
+14604DCBB  lea      rbp,[rax+FFFFFFFFFFFFFF38h]              ; 
+14604DCC2  sub      rsp,198h                                 ; 
+14604DCC9  movaps   xmmword ptr [rax-48h],xmm6               ; 
+14604DCCD  movaps   xmmword ptr [rax-58h],xmm7               ; 
+14604DCD1  movaps   xmmword ptr [rax-68h],xmm8               ; 
+14604DCD6  mov      rax,qword ptr [000000014A172D40h]        ; stack cookie
+14604DCDD  xor      rax,rsp                                  ; 
+14604DCE0  mov      qword ptr [rbp+50h],rax                  ; 
+14604DCE4  mov      rdi,r9                                   ; 
+14604DCE7  mov      r15d,r8d                                 ; 
+14604DCEA  mov      r14d,edx                                 ; 
+14604DCED  mov      rsi,rcx                                  ; 
+14604DCF0  call     0000000144E10DD0                         ; call 0x4e10dd0
+14604DCF5  mov      rbx,rax                                  ; 
+14604DCF8  mov      dword ptr [rsp+54h],0                    ; 
+14604DD00  lea      r8,[rsp+50h]                             ; 
+14604DD05  lea      rdx,[rsp+54h]                            ; 
+14604DD0A  lea      rcx,[rsp+70h]                            ; 
+14604DD0F  call     0000000145EF27E0                         ; call 0x5ef27e0
+14604DD14  nop                                               ; 
+14604DD15  xorps    xmm0,xmm0                                ; 
+14604DD18  movups   xmmword ptr [rbp+30h],xmm0               ; 
+14604DD1C  mov      qword ptr [rbp+40h],0                    ; 
+14604DD24  mov      qword ptr [rbp+48h],0Fh                  ; 
+14604DD2C  mov      ecx,0C0h                                 ; 
+14604DD31  call     00000001470D91B8                         ; call 0x70d91b8
+14604DD36  mov      r8,rax                                   ; 
+14604DD39  mov      qword ptr [rbp+30h],rax                  ; 
+14604DD3D  mov      qword ptr [rbp+40h],0BBh                 ; 
+14604DD45  mov      qword ptr [rbp+48h],0BFh                 ; 
+14604DD4D  lea      rcx,[000000014897EE80h]                  ; .rdata 897ee80 -> 'A:bool __cdecl Marvelous::FabricAPI::SetFabricPBRMaterialBaseColor(unsigned int,unsigned int,const class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > &)'
+14604DD54  movups   xmm0,xmmword ptr [rcx]                   ; 
+14604DD57  movups   xmmword ptr [rax],xmm0                   ; 
+14604DD5A  movups   xmm1,xmmword ptr [rcx+10h]               ; 
+14604DD5E  movups   xmmword ptr [rax+10h],xmm1               ; 
+14604DD62  movups   xmm0,xmmword ptr [rcx+20h]               ; 
+14604DD66  movups   xmmword ptr [rax+20h],xmm0               ; 
+14604DD6A  movups   xmm1,xmmword ptr [rcx+30h]               ; 
+14604DD6E  movups   xmmword ptr [rax+30h],xmm1               ; 
+14604DD72  movups   xmm0,xmmword ptr [rcx+40h]               ; 
+14604DD76  movups   xmmword ptr [rax+40h],xmm0               ; 
+14604DD7A  movups   xmm1,xmmword ptr [rcx+50h]               ; 
+14604DD7E  movups   xmmword ptr [rax+50h],xmm1               ; 
+14604DD82  movups   xmm0,xmmword ptr [rcx+60h]               ; 
+14604DD86  movups   xmmword ptr [rax+60h],xmm0               ; 
+14604DD8A  lea      rdx,[rax+0000000000000080h]              ; 
+14604DD91  movups   xmm0,xmmword ptr [rcx+70h]               ; 
+14604DD95  movups   xmmword ptr [rdx-10h],xmm0               ; 
+14604DD99  lea      rcx,[rcx+0000000000000080h]              ; 
+14604DDA0  movups   xmm1,xmmword ptr [rcx]                   ; 
+14604DDA3  movups   xmmword ptr [rdx],xmm1                   ; 
+14604DDA6  movups   xmm0,xmmword ptr [rcx+10h]               ; 
+14604DDAA  movups   xmmword ptr [rdx+10h],xmm0               ; 
+14604DDAE  movups   xmm1,xmmword ptr [rcx+20h]               ; 
+14604DDB2  movups   xmmword ptr [rdx+20h],xmm1               ; 
+14604DDB6  mov      rax,qword ptr [rcx+30h]                  ; 
+14604DDBA  mov      qword ptr [rdx+30h],rax                  ; 
+14604DDBE  movzx    eax,word ptr [rcx+38h]                   ; 
+14604DDC2  mov      word ptr [rdx+38h],ax                    ; 
+14604DDC6  movzx    eax,byte ptr [rcx+3Ah]                   ; 
+14604DDCA  mov      byte ptr [rdx+3Ah],al                    ; 
+14604DDCD  mov      byte ptr [r8+00000000000000BBh],0        ; 
+14604DDD5  lea      r9,[rsp+70h]                             ; 
+14604DDDA  lea      r8,[rbp+30h]                             ; 
+14604DDDE  mov      edx,3                                    ; 
+14604DDE3  mov      rcx,rbx                                  ; 
+14604DDE6  call     0000000144E10FB0                         ; call 0x4e10fb0
+14604DDEB  nop                                               ; 
+14604DDEC  mov      rdx,qword ptr [rbp+48h]                  ; 
+14604DDF0  cmp      rdx,0Fh                                  ; 
+14604DDF4  jbe      000000014604DE2A                         ; 
+14604DDF6  inc      rdx                                      ; 
+14604DDF9  mov      rcx,qword ptr [rbp+30h]                  ; 
+14604DDFD  mov      rax,rcx                                  ; 
+14604DE00  cmp      rdx,1000h                                ; 
+14604DE07  jb       000000014604DE25                         ; 
+14604DE09  add      rdx,27h                                  ; 
+14604DE0D  mov      rcx,qword ptr [rcx-8]                    ; 
+14604DE11  sub      rax,rcx                                  ; 
+14604DE14  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+14604DE18  cmp      rax,1Fh                                  ; 
+14604DE1C  jbe      000000014604DE25                         ; 
+14604DE1E  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+14604DE24  int      3                                        ; 
+14604DE25  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+14604DE2A  mov      qword ptr [rbp+40h],0                    ; 
+14604DE32  mov      qword ptr [rbp+48h],0Fh                  ; 
+14604DE3A  mov      byte ptr [rbp+30h],0                     ; 
+14604DE3E  mov      rcx,qword ptr [rbp-78h]                  ; 
+14604DE42  test     rcx,rcx                                  ; 
+14604DE45  je       000000014604DE97                         ; 
+14604DE47  mov      rax,qword ptr [rbp-68h]                  ; 
+14604DE4B  sub      rax,rcx                                  ; 
+14604DE4E  sar      rax,3                                    ; 
+14604DE52  lea      rdx,[rax*8+0000000000000000h]            ; 
+14604DE5A  mov      rax,rcx                                  ; 
+14604DE5D  cmp      rdx,1000h                                ; 
+14604DE64  jb       000000014604DE82                         ; 
+14604DE66  add      rdx,27h                                  ; 
+14604DE6A  mov      rcx,qword ptr [rcx-8]                    ; 
+14604DE6E  sub      rax,rcx                                  ; 
+14604DE71  add      rax,0FFFFFFFFFFFFFFF8h                   ; 
+14604DE75  cmp      rax,1Fh                                  ; 
+14604DE79  jbe      000000014604DE82                         ; 
+14604DE7B  call     qword ptr [0000000148237590h]            ; .rdata 8237590
+14604DE81  int      3                                        ; 
+14604DE82  call     00000001470D91F4                         ; call 0x70d91f4 (jmp->1470d9060)
+14604DE87  mov      qword ptr [rbp-78h],0                    ; 
+14604DE8F  xorps    xmm0,xmm0                                ; 
+14604DE92  movdqu   xmmword ptr [rbp-70h],xmm0               ; 
+14604DE97  lea      rcx,[rsp+78h]                            ; 
+14604DE9C  call     0000000141BDD3C0                         ; call 0x1bdd3c0
+14604DEA1  call     0000000141BE0EC0                         ; call 0x1be0ec0
+14604DEA6  cmp      qword ptr [rax+30h],0                    ; 
+14604DEAB  je       000000014604DEC8                         ; 
+14604DEAD  call     0000000141BE0EC0                         ; call 0x1be0ec0
+14604DEB2  cmp      qword ptr [rax+40h],0                    ; 
+14604DEB7  je       000000014604DEC8                         ; 
+14604DEB9  call     0000000141BE0EC0                         ; call 0x1be0ec0
+14604DEBE  mov      rcx,qword ptr [rax+40h]                  ; 
+14604DEC2  mov      rax,qword ptr [rcx]                      ; 
+14604DEC5  call     qword ptr [rax+48h]                      ; 
+14604DEC8  lea      rcx,[rbp-30h]                            ; 
+14604DECC  call     00000001439D1DA0                         ; call 0x39d1da0
+14604DED1  nop                                               ; 
+14604DED2  lea      r8,[rbp-30h]                             ; 
+14604DED6  mov      rdx,rdi                                  ; 
+14604DED9  mov      rcx,rsi                                  ; 
+14604DEDC  call     00000001460B1300                         ; call 0x60b1300
+14604DEE1  cmp      al,1                                     ; 
+14604DEE3  jne      000000014604DFB8                         ; 
+14604DEE9  lea      rax,[rbp-50h]                            ; 
+14604DEED  mov      qword ptr [rsp+58h],rax                  ; 
+14604DEF2  mov      rdx,rdi                                  ; 
+14604DEF5  lea      rcx,[rbp-50h]                            ; 
+14604DEF9  call     0000000141BA82A0                         ; call 0x1ba82a0
+14604DEFE  mov      rdi,rax                                  ; 
+14604DF01  lea      rcx,[rbp-30h]                            ; 
+14604DF05  call     00000001439D58D0                         ; call 0x39d58d0
+14604DF0A  movaps   xmm8,xmm0                                ; 
+14604DF0E  lea      rcx,[rbp-30h]                            ; 
+14604DF12  call     00000001439D5EE0                         ; call 0x39d5ee0
+14604DF17  movaps   xmm7,xmm0                                ; 
+14604DF1A  lea      rcx,[rbp-30h]                            ; 
+14604DF1E  call     00000001439D6570                         ; call 0x39d6570
+14604DF23  movaps   xmm6,xmm0                                ; 
+14604DF26  call     00000001449FFD90                         ; call 0x49ffd90
+14604DF2B  mov      rcx,rax                                  ; 
+14604DF2E  call     00000001449FB510                         ; call 0x49fb510
+14604DF33  mov      ebx,eax                                  ; 
+14604DF35  mov      r8d,r14d                                 ; 
+14604DF38  lea      rdx,[rsp+60h]                            ; 
+14604DF3D  mov      rcx,rsi                                  ; 
+14604DF40  call     00000001460AC160                         ; call 0x60ac160
+14604DF45  nop                                               ; 
+14604DF46  mov      qword ptr [rsp+40h],rdi                  ; 
+14604DF4B  movss    xmm0,dword ptr [00000001482703F8h]       ; .rdata 82703f8
+14604DF53  movss    dword ptr [rsp+38h],xmm0                 ; 
+14604DF59  movss    dword ptr [rsp+30h],xmm8                 ; 
+14604DF60  movss    dword ptr [rsp+28h],xmm7                 ; 
+14604DF66  movss    dword ptr [rsp+20h],xmm6                 ; 
+14604DF6C  mov      r9d,r15d                                 ; 
+14604DF6F  mov      r8d,ebx                                  ; 
+14604DF72  mov      rdx,rax                                  ; 
+14604DF75  mov      rcx,rsi                                  ; 
+14604DF78  call     00000001460F9480                         ; call 0x60f9480
+14604DF7D  movzx    esi,al                                   ; 
+14604DF80  mov      rbx,qword ptr [rsp+68h]                  ; 
+14604DF85  test     rbx,rbx                                  ; 
+14604DF88  je       000000014604DFBB                         ; 
+14604DF8A  mov      edi,0FFFFFFFFh                           ; 
+14604DF8F  mov      eax,edi                                  ; 
+14604DF91  lock     xadd   dword ptr [rbx+8],eax             ; 
+14604DF96  cmp      eax,1                                    ; 
+14604DF99  jne      000000014604DFBB                         ; 
+14604DF9B  mov      rax,qword ptr [rbx]                      ; 
+14604DF9E  mov      rcx,rbx                                  ; 
+14604DFA1  call     qword ptr [rax]                          ; 
+14604DFA3  lock     xadd   dword ptr [rbx+0Ch],edi           ; 
+14604DFA8  cmp      edi,1                                    ; 
+14604DFAB  jne      000000014604DFBB                         ; 
+14604DFAD  mov      rax,qword ptr [rbx]                      ; 
+14604DFB0  mov      rcx,rbx                                  ; 
+14604DFB3  call     qword ptr [rax+8]                        ; 
+14604DFB6  jmp      000000014604DFBB                         ; 
+14604DFB8  xor      sil,sil                                  ; 
+14604DFBB  lea      rcx,[rbp-30h]                            ; 
+14604DFBF  call     00000001439D39B0                         ; call 0x39d39b0
+14604DFC4  movzx    eax,sil                                  ; 
+14604DFC8  mov      rcx,qword ptr [rbp+50h]                  ; 
+14604DFCC  xor      rcx,rsp                                  ; 
+14604DFCF  call     00000001470D9780                         ; call 0x70d9780
+14604DFD4  lea      r11,[rsp+0000000000000198h]              ; 
+14604DFDC  movaps   xmm6,xmmword ptr [r11-18h]               ; 
+14604DFE1  movaps   xmm7,xmmword ptr [r11-28h]               ; 
+14604DFE6  movaps   xmm8,xmmword ptr [r11-38h]               ; 
+14604DFEB  mov      rsp,r11                                  ; 
+14604DFEE  pop      r15                                      ; 
+14604DFF0  pop      r14                                      ; 
+14604DFF2  pop      rdi                                      ; 
+14604DFF3  pop      rsi                                      ; 
+14604DFF4  pop      rbx                                      ; 
+14604DFF5  pop      rbp                                      ; 
+14604DFF6  ret                                               ; 
+== 211 instructions, ends 14604DFF6
+== strings
+  14604DD4D  ref 897ee80  A:bool __cdecl Marvelous::FabricAPI::SetFabricPBRMaterialBaseColor(unsigned int,unsigned int,const class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > &)
+== calls (rva: count, thunk)
+  1ba82a0: x1 
+  1bdd3c0: x1 
+  1be0ec0: x3 
+  39d1da0: x1 
+  39d39b0: x1 
+  39d58d0: x1 
+  39d5ee0: x1 
+  39d6570: x1 
+  49fb510: x1 
+  49ffd90: x1 
+  4e10dd0: x1 
+  4e10fb0: x1 
+  5ef27e0: x1 
+  60ac160: x1 
+  60b1300: x1 
+  60f9480: x1 
+  70d91b8: x1 
+  70d91f4: x2 jmp->1470d9060
+  70d9780: x1 
+== data refs
+  8237590 .rdata x2
+  82703f8 .rdata x1

@@ -1,0 +1,73 @@
+  000000014625BDA0: movss       xmm1,dword ptr [00000001482BDA88h]
+  000000014625BDA8: movss       xmm2,dword ptr [00000001483752A0h]
+  000000014625BDB0: movss       xmm3,dword ptr [0000000148291F60h]
+  000000014625BDB8: movss       xmm4,dword ptr [0000000148269B44h]
+  000000014625BDC0: movss       xmm5,dword ptr [00000001482703F8h]
+  000000014625BDC8: test        edx,edx
+  000000014625BDCA: jne         000000014625BDD1
+  000000014625BDCC: movaps      xmm0,xmm1
+  000000014625BDCF: jmp         000000014625BE01
+  000000014625BDD1: cmp         edx,1
+  000000014625BDD4: jne         000000014625BDDB
+  000000014625BDD6: movaps      xmm0,xmm2
+  000000014625BDD9: jmp         000000014625BE01
+  000000014625BDDB: cmp         edx,2
+  000000014625BDDE: jne         000000014625BDE5
+  000000014625BDE0: movaps      xmm0,xmm3
+  000000014625BDE3: jmp         000000014625BE01
+  000000014625BDE5: cmp         edx,3
+  000000014625BDE8: jne         000000014625BDEF
+  000000014625BDEA: movaps      xmm0,xmm4
+  000000014625BDED: jmp         000000014625BE01
+  000000014625BDEF: cmp         edx,7
+  000000014625BDF2: jne         000000014625BDFE
+  000000014625BDF4: movss       xmm0,dword ptr [00000001488664C0h]
+  000000014625BDFC: jmp         000000014625BE01
+  000000014625BDFE: movaps      xmm0,xmm5
+  000000014625BE01: test        r8d,r8d
+  000000014625BE04: je          000000014625BE56
+  000000014625BE06: cmp         r8d,1
+  000000014625BE0A: jne         000000014625BE18
+  000000014625BE0C: mulss       xmm0,dword ptr [rcx]
+  000000014625BE10: movaps      xmm1,xmm2
+  000000014625BE13: divss       xmm0,xmm1
+  000000014625BE17: ret
+  000000014625BE18: cmp         r8d,2
+  000000014625BE1C: jne         000000014625BE2A
+  000000014625BE1E: mulss       xmm0,dword ptr [rcx]
+  000000014625BE22: movaps      xmm1,xmm3
+  000000014625BE25: divss       xmm0,xmm1
+  000000014625BE29: ret
+  000000014625BE2A: cmp         r8d,3
+  000000014625BE2E: jne         000000014625BE3C
+  000000014625BE30: mulss       xmm0,dword ptr [rcx]
+  000000014625BE34: movaps      xmm1,xmm4
+  000000014625BE37: divss       xmm0,xmm1
+  000000014625BE3B: ret
+  000000014625BE3C: cmp         r8d,7
+  000000014625BE40: jne         000000014625BE53
+  000000014625BE42: mulss       xmm0,dword ptr [rcx]
+  000000014625BE46: movss       xmm1,dword ptr [00000001488664C0h]
+  000000014625BE4E: divss       xmm0,xmm1
+  000000014625BE52: ret
+  000000014625BE53: movaps      xmm1,xmm5
+  000000014625BE56: mulss       xmm0,dword ptr [rcx]
+  000000014625BE5A: divss       xmm0,xmm1
+  000000014625BE5E: ret
+  000000014625BE5F: int         3
+  000000014625BE60: mov         qword ptr [rsp+10h],rbp
+  000000014625BE65: mov         qword ptr [rsp+18h],rsi
+  000000014625BE6A: push        rdi
+  000000014625BE6B: push        r14
+  000000014625BE6D: push        r15
+  000000014625BE6F: sub         rsp,20h
+  000000014625BE73: mov         rsi,qword ptr [rcx]
+  000000014625BE76: xor         edi,edi
+  000000014625BE78: mov         rax,qword ptr [rcx+8]
+  000000014625BE7C: mov         ebp,r8d
+  000000014625BE7F: 48
+  000000014625BE80: 2B
+
+  Summary
+
+     822A000 .text

@@ -35,6 +35,15 @@ def run(ctx: Step1Context) -> bool:
     if not health_ok:
         ctx.logger.error("CLO plugin health check failed: %s", ctx.health_result)
         return False
+    # A plugin built against another SDK than the running CLO mis-dispatches
+    # calls and can crash CLO (rev-eng findings 14, 47). Refuse before any import.
+    if ctx.health_result.get("host_matches_sdk") is False:
+        ctx.logger.error(
+            "Plugin SDK %s does not match the running CLO %s; rebuild the plugin before running.",
+            ctx.health_result.get("sdk_clo_version"),
+            ctx.health_result.get("host_app_version"),
+        )
+        return False
     if not capability_ok:
         ctx.logger.error("CLO plugin capabilities check failed: %s", ctx.capabilities)
         return False

@@ -41,13 +41,42 @@ if str(_ROOT) not in sys.path:
 
 from mirra_measurements.db import get_cloths_collection, get_sizes_collection  # noqa: E402
 from garment_measurements import GarmentMeasurements  # noqa: E402
-from view_selection import list_cloth_images, select_primary_image  # noqa: E402
-from segmentation import run_segmentation  # noqa: E402
-from colour_extraction import extract_colours  # noqa: E402
-from design_extraction import extract_design, make_empty_graphic_like  # noqa: E402
-from panel_generation_clo import generate_panels  # noqa: E402
+from step_01_0_view_selection import list_cloth_images, select_primary_image  # noqa: E402
+from step_02_0_segmentation import run_segmentation  # noqa: E402
+from step_03_0_colour_extraction import extract_colours  # noqa: E402
+from step_04_0_design_extraction import extract_design, make_empty_graphic_like  # noqa: E402
+from step_05_0_panel_generation_clo import generate_panels  # noqa: E402
 from run_manifest import build_product_run_id, get_next_product_run_dir  # noqa: E402
-from texture_projection import project_textures  # noqa: E402
+from step_06_0_texture_projection import project_textures  # noqa: E402
+
+# CV additions (each optional: the runner still works if one is missing).
+try:  # several unlabelled photos -> front / back / presentation (P16)
+    from step_01_0_view_selection import select_views  # noqa: E402
+    from multi_view import write_view_assignment_json  # noqa: E402
+except Exception:  # noqa: BLE001
+    select_views = None
+try:  # garment landmarks, sleeve class and shape ratios from the outline (P06)
+    from cv_shape import garment_landmarks  # noqa: E402
+except Exception:  # noqa: BLE001
+    garment_landmarks = None
+try:  # trained attribute models: pattern, sleeve length, neckline (P07)
+    from cv_attributes import predict_attributes, release_models  # noqa: E402
+except Exception:  # noqa: BLE001
+    predict_attributes = None
+
+
+def _json_safe(obj):
+    """Make numpy scalars/arrays JSON-serialisable."""
+    import numpy as np
+    if isinstance(obj, dict):
+        return {str(k): _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, np.generic):
+        return obj.item()
+    return obj
 
 
 def list_cloth_dirs(input_root: Path) -> list[Path]:
@@ -149,6 +178,9 @@ def write_colors_json(output_path: Path, colour_result) -> Path:
         "skin_pixels_removed": colour_result.skin_pixels_removed,
         "palette": [entry.to_dict() for entry in colour_result.palette],
     }
+    # Multi-colour fields (P04): fabric colours, roles and colour regions. New keys only.
+    if hasattr(colour_result, "extra_json"):
+        payload.update(_json_safe(colour_result.extra_json()))
     output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return output_path
 
@@ -165,6 +197,7 @@ def write_extraction_metadata(
     colour_hex_ok: bool,
     design_result,
     generated_files: dict,
+    view_info: dict | None = None,
 ) -> Path:
     """Write image_info/extraction_metadata.json."""
     payload = {
@@ -201,8 +234,17 @@ def write_extraction_metadata(
             "coverage_percent": round(design_result.design_coverage_percent, 2),
             "message": design_result.message,
         }
+        # Every design region with its type (P05 two-level outlining). New key only.
+        regions = getattr(design_result, "regions", None)
+        if regions:
+            payload["design"]["regions"] = _json_safe(
+                [{k: v for k, v in (r.items() if isinstance(r, dict) else vars(r).items())
+                  if k not in ("mask", "image", "crop")} for r in regions])
 
-    output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    if view_info is not None:
+        payload["views"] = view_info
+
+    output_path.write_text(json.dumps(_json_safe(payload), indent=2), encoding="utf-8")
     return output_path
 
 
@@ -278,13 +320,49 @@ def run_product_ingestion(args) -> int:
     print(f"Size ID      : {size_id}")
     print(f"Run folder   : {run_dir}")
 
-    print("\n[1/5] View selection")
+    print("\n[1/6] View selection")
     selection = select_primary_image(cloth_dir, skip_clip=args.skip_clip)
     print(f"  Selected image : {selection.selected_image.name}")
     print(f"  Reason         : {selection.selection_reason}")
 
-    print("\n[2/5] Segmentation")
-    segmentation_result, transparent_bg_ok = run_segmentation(selection.selected_image)
+    # Several unlabelled photos (P16): decide front / back / presentation for the whole set.
+    primary_image = Path(selection.selected_image)
+    back_image = None
+    main_view = "front"
+    presentation = None
+    view_info = None
+    view_assignment_path = None
+    if select_views is not None and not args.skip_clip:
+        try:
+            va = select_views(cloth_dir)
+            view_assignment_path = write_view_assignment_json(va, image_info_dir / "view_assignment.json")
+            if va.front:
+                primary_image = Path(va.front)
+            if va.back:
+                back_image = Path(va.back)
+            photo = next((p for p in va.to_dict().get("photos", [])
+                          if Path(p.get("path", "")) == primary_image), {})
+            if photo.get("view") == "back" and back_image is None:
+                main_view = "back"          # e.g. a single photo that shows the back
+            presentation = photo.get("presentation")
+            view_info = {"method": va.method, "front": va.front, "back": va.back,
+                         "main_photo_view": main_view, "presentation": presentation,
+                         "outliers": list(va.outliers), "notes": list(va.notes)}
+            print(f"  View assignment    : front={primary_image.name} back={back_image.name if back_image else None} "
+                  f"main view={main_view} presentation={presentation} ({va.method})")
+        except Exception as err:  # noqa: BLE001 - never block the pipeline on view selection
+            print(f"  View assignment skipped: {type(err).__name__}: {err}")
+
+    print("\n[2/6] Segmentation")
+    segmentation_result, transparent_bg_ok = run_segmentation(primary_image)
+    back_rgba = None
+    back_mask = None
+    if back_image is not None:
+        back_seg, back_ok = run_segmentation(back_image)
+        if back_seg.is_valid and back_seg.rgba_image is not None:
+            back_rgba = back_seg.rgba_image
+            back_mask = back_seg.mask
+            print(f"  Back photo segmented: {back_image.name}")
     image_outputs = {
         "base_garment": None,
         "colors_json": None,
@@ -319,7 +397,7 @@ def run_product_ingestion(args) -> int:
             image_outputs["segmentation_quality"] = str(quality_path)
             print(f"  Quality score      : {segmentation_result.quality_score:.3f}")
 
-        print("\n[3/5] Colour extraction")
+        print("\n[3/6] Colour extraction")
         colour_result, colour_hex_ok = extract_colours(segmentation_result.rgba_image)
         if colour_result.success:
             colors_json_path = write_colors_json(image_info_dir / "colors.json", colour_result)
@@ -329,8 +407,13 @@ def run_product_ingestion(args) -> int:
         else:
             print(f"  Colour extraction failed: {colour_result.message}")
 
-        print("\n[4/5] Design extraction")
+        print("\n[4/6] Design extraction")
         design_result = extract_design(segmentation_result.rgba_image)
+        try:  # free the SigLIP 2 region labeller (P15b) before the attribute models load
+            import cv_design_regions as _cvd
+            _cvd.release_labeller()
+        except Exception:  # noqa: BLE001
+            pass
         graphic_path = image_info_dir / "graphic_diffuse.png"
         if design_result.has_design and design_result.graphic_image is not None:
             Image.fromarray(design_result.graphic_image).save(graphic_path)
@@ -339,9 +422,46 @@ def run_product_ingestion(args) -> int:
             Image.fromarray(make_empty_graphic_like(segmentation_result.rgba_image)).save(graphic_path)
             print(f"  Wrote empty diffuse: {graphic_path.name}")
         image_outputs["graphic_diffuse"] = str(graphic_path)
+        regions = getattr(design_result, "regions", None)
+        if regions:
+            print(f"  Design regions     : {len(regions)}")
         image_status = "success"
+
+        # Shape from the outline (P06): landmarks, sleeve class, ratios. Reliable on flat photos only.
+        if garment_landmarks is not None and segmentation_result.mask is not None:
+            try:
+                shape = garment_landmarks(segmentation_result.mask)
+                shape["presentation"] = presentation
+                shape["note"] = ("Outline measurements are reliable on flat product photos; "
+                                 "on photos of a person, arms and pose distort them.")
+                shape_path = image_info_dir / "shape.json"
+                shape_path.write_text(json.dumps(_json_safe(shape), indent=2), encoding="utf-8")
+                image_outputs["shape"] = str(shape_path)
+                print(f"  Shape              : sleeve={shape.get('sleeve_class')} ok={shape.get('ok')}")
+            except Exception as err:  # noqa: BLE001
+                print(f"  Shape skipped: {type(err).__name__}: {err}")
+
+        # Trained attribute models (P07): pattern, sleeve length, neckline.
+        if predict_attributes is not None and not args.no_attributes:
+            try:
+                attrs = predict_attributes(str(base_garment_path))
+                attrs_path = image_info_dir / "attributes.json"
+                attrs_path.write_text(json.dumps(_json_safe(attrs), indent=2), encoding="utf-8")
+                image_outputs["attributes"] = str(attrs_path)
+                short = {g: attrs[g]["label"] for g in attrs if isinstance(attrs.get(g), dict) and "label" in attrs[g]}
+                print(f"  Attributes         : {short}")
+            except Exception as err:  # noqa: BLE001
+                print(f"  Attributes skipped: {type(err).__name__}: {err}")
+            finally:
+                try:
+                    release_models()
+                except Exception:  # noqa: BLE001
+                    pass
     else:
         print(f"  Segmentation failed: {segmentation_result.message}")
+
+    if view_assignment_path is not None:
+        image_outputs["view_assignment"] = str(view_assignment_path)
 
     extraction_metadata_path = write_extraction_metadata(
         image_info_dir / "extraction_metadata.json",
@@ -355,10 +475,11 @@ def run_product_ingestion(args) -> int:
         colour_hex_ok=colour_hex_ok,
         design_result=design_result,
         generated_files=image_outputs,
+        view_info=view_info,
     )
     image_outputs["extraction_metadata"] = str(extraction_metadata_path)
 
-    print("\n[5/5] Panel generation")
+    print("\n[5/6] Panel generation")
     measurements = GarmentMeasurements.from_sizes_db(size_id)
     panel_result = generate_panels(measurements, panels_dir, size_label=size_id)
 
@@ -381,12 +502,18 @@ def run_product_ingestion(args) -> int:
 
         textures_dir = panels_dir / "textures"
         design_type = design_result.design_type if design_result is not None else ""
+        # P19 per-panel pixel maps (v1): hard mask, view of the main photo, the other photo if any.
         texture_result = project_textures(
             garment_rgba=garment_for_texture,
             layouts=panel_result.layouts,
             textures_dir=textures_dir,
             graphic_rgba=graphic_rgba,
             design_type=design_type,
+            garment_mask=segmentation_result.mask,
+            view=main_view,
+            back_rgba=back_rgba,
+            back_mask=back_mask,
+            on_person=(presentation == "person"),
         )
         if texture_result.success:
             print(f"  Projected {len(texture_result.textures)} panel texture(s) → {textures_dir.name}/")
@@ -405,6 +532,11 @@ def run_product_ingestion(args) -> int:
         image_status=image_status,
         texture_result=texture_result,
     )
+    # The photo actually used (may differ from the first-pass selection when several photos are given).
+    run_summary["selected_image"] = str(primary_image)
+    run_summary["back_image"] = str(back_image) if back_image else None
+    run_summary["main_photo_view"] = main_view
+    run_summary["presentation"] = presentation
     run_summary_path = run_dir / "run_summary.json"
     run_summary_path.write_text(json.dumps(run_summary, indent=2, default=str), encoding="utf-8")
 
@@ -461,7 +593,12 @@ Expected input:
     parser.add_argument(
         "--skip-clip",
         action="store_true",
-        help="Skip CLIP view selection and use the first image in the cloth folder.",
+        help="Skip view selection (no view model) and use the first image in the cloth folder.",
+    )
+    parser.add_argument(
+        "--no-attributes",
+        action="store_true",
+        help="Skip the trained attribute models (pattern, sleeve length, neckline); saves time and memory.",
     )
     return parser
 

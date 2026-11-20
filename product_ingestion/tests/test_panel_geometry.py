@@ -28,8 +28,8 @@ for _p in (str(_PRODUCT_INGESTION), str(_ROOT)):
 
 from garment_measurements import GarmentMeasurements  # noqa: E402
 from clo_block import CloTShirtDraft, CloBlockMeasurements  # noqa: E402
-from clo_block.clo_draft import _arc_length  # noqa: E402
-from panel_generation_clo import (  # noqa: E402
+from clo_block.step_05_2_clo_draft import _arc_length  # noqa: E402
+from step_05_0_panel_generation_clo import (  # noqa: E402
     garment_to_clo_block,
     generate_panels,
     recommend_bicep_width_cm,

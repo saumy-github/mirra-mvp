@@ -1,0 +1,19 @@
+area,role,label,masks,summary.pipeline_score,summary.outline_score,summary.colour_score,summary.design_score,summary.view_score,mask.iou,mask.boundary_f@1.0%,mask.leakage,colour.palette_de,colour.base_colour_de,colour.all_fabric_colours_found_de,design.f1@0.3,design.pixel_iou,design.type_accuracy_matched,design.false_positive_on_plain,design.colour_block_found,view.correct,view.presentation_correct
+pipeline (end to end),before,v0_current_pipeline_final_scoring,v0 pipeline,0.4067,0.6584,0.8081,0.1603,0.0,0.7,0.6167,0.2998,5.7572,1.5271,1.5271,0.1333,0.3475,0.0,1.0,0.0,0.0,
+pipeline (end to end),after (first pass),p10_final_pipeline,first new pipeline (P10),0.9111,0.9188,0.9512,0.7743,1.0,0.9065,0.9312,0.0012,1.4647,13.8374,1.4377,0.6476,0.8003,0.875,0.0,0.0,1.0,1.0
+pipeline (end to end),after (final),p10_final_pipeline_v2,"final pipeline (P10 after P15a, P15b)",0.9599,0.9741,0.9622,0.9032,1.0,0.9821,0.9661,0.013,1.1341,0.5082,0.6637,0.8476,0.862,1.0,0.0,1.0,1.0,1.0
+outline,before,p01_pipeline_v0,-,,0.6584,,,,0.7,0.6167,0.2998,,,,,,,,,,
+outline,after (first default v1),p01_pipeline_v1,-,,0.9188,,,,0.9065,0.9312,0.0012,,,,,,,,,,
+outline,after (variant v1_all),p01_pipeline_v1_all,-,,0.9739,,,,0.9818,0.9661,0.0129,,,,,,,,,,
+outline,"after (v1, live run)",p15a_v1,-,,0.9188,,,,0.9065,0.9312,0.0012,,,,,,,,,,
+outline,"after (final default v1_auto, live run)",p15a_default,-,,0.9741,,,,0.9821,0.9661,0.013,,,,,,,,,,
+colour,before,p04_oracle__v0,reference masks,,,0.9312,,,,,,2.0641,1.13,1.1759,,,,,,,
+colour,after,p04_oracle__v1_default_v2,reference masks,,,0.9611,,,,,,1.1668,0.5127,0.7014,,,,,,,
+colour,before,p04_v0__v0,v0 masks,,,0.8075,,,,,,5.7736,1.5271,1.5271,,,,,,,
+colour,after,p04_v0__v1_default_v2,v0 masks,,,0.8383,,,,,,4.8506,6.8144,0.8181,,,,,,,
+design,before,p05_try_02_v0_oracle,reference masks,,1.0,,0.2031,,1.0,1.0,0.0,,,,0.2133,0.3961,0.0,1.0,0.0,,
+design,after (P05 default v3_combo),p05_try_03_v3_combo_oracle,reference masks,,1.0,,0.7924,,1.0,1.0,0.0,,,,0.5905,0.7867,1.0,0.0,1.0,,
+design,after (final default v4_relabel),p15b_v4_relabel_oracle,reference masks,,1.0,,0.8954,,1.0,1.0,0.0,,,,0.8267,0.8595,1.0,0.0,1.0,,
+design,before,p15b_v0_v1,P01 v1 masks,,0.9188,,0.2147,,0.9065,0.9312,0.0012,,,,0.2133,0.4307,0.0,1.0,0.0,,
+design,after (P05 default v3_combo),p15b_v3_combo_v1,P01 v1 masks,,0.9188,,0.774,,0.9065,0.9312,0.0012,,,,0.6476,0.7994,0.875,0.0,0.0,,
+design,after (final default v4_relabel),p15b_v4_relabel_v1,P01 v1 masks,,0.9188,,0.9039,,0.9065,0.9312,0.0012,,,,0.8476,0.8641,1.0,0.0,0.0,,

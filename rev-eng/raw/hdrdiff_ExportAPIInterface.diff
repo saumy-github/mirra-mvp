@@ -1,0 +1,127 @@
+--- /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.224_Win/CLOAPIInterface/include/ExportAPIInterface.h	2026-09-12 19:23:49.885996700 +0530
++++ /c/Users/Saumy/Downloads/CLO_SDK_v2026.1.336_Win/CLOAPIInterface/include/ExportAPIInterface.h	2026-10-29 15:05:00.361380200 +0530
+@@ -123,10 +123,14 @@
+ 		}
+ 
+ 		/// @ingroup EXPORT_API
+-		/// @fn ExportGLTF(const string& _filePath, const Marvelous::ImportExportOption& _options)
+-		///	@brief Export GLTF
++		/// @fn ExportGLTF(const string& _filePath, const Marvelous::ImportExportOption& _options, bool _bGLBinary)
++		///	@brief Export GLTF. The export can be restricted to specific components through the component selection lists
++		///	       on _options (patternList / buttonList / graphicList / zipperList): when at least one of them is set,
++		///	       ONLY the listed components are written, so a project holding several garments can be exported one file
++		///	       per garment. With every list empty (the default) the whole scene is exported, as before.
+ 		///	@param options: If "options" is given, it exports GLTF according to options, not allowing user for selecting options in Export Dialog.
+-		///	@return Output file paths. 
++		///	@param _bGLBinary: if true, export binary glTF (.glb); otherwise text glTF.
++		///	@return Output file paths.
+ 		virtual std::vector<std::string> ExportGLTF(const std::string& _filePath, const Marvelous::ImportExportOption& _options, bool _bGLBinary)
+ 		{
+ 			std::vector<std::string> interface_vector;
+@@ -134,10 +138,11 @@
+ 		}
+ 
+ 		/// @ingroup EXPORT_API
+-		/// @fn ExportGLTFW(const wstring& _filePath, const Marvelous::ImportExportOption& _options)
+-		///	@brief Export GLTFW
++		/// @fn ExportGLTFW(const wstring& _filePath, const Marvelous::ImportExportOption& _options, bool _bGLBinary)
++		///	@brief Wide-char variant of ExportGLTF. Honours the same component selection lists on _options (all empty = whole scene).
+ 		///	@param options: If "options" is given, it exports GLTF according to options, not allowing user for selecting options in Export Dialog.
+-		///	@return Output file paths. 
++		///	@param _bGLBinary: if true, export binary glTF (.glb); otherwise text glTF.
++		///	@return Output file paths.
+ 		virtual std::vector<std::wstring> ExportGLTFW(const std::wstring& _filePath, const Marvelous::ImportExportOption& _options, bool _bGLBinary)
+ 		{
+ 			std::vector<std::wstring> interface_vector;
+@@ -244,6 +249,13 @@
+ 		virtual std::wstring ExportThumbnail3DW(const std::wstring& _filePath) { return L""; }
+ 
+ 		/// @ingroup EXPORT_API
++		/// @fn ExportThumbnail2D(const std::string& _filePath)
++		/// @brief Capture the 2D window exactly as it is displayed (current camera, zoom and view size) and save it as an image. Unlike ExportSnapshot2D it does not enter the snapshot mode and does not re-frame the patterns, so the image matches what the user sees.
++		/// @param _filePath: output file path to save the screenshot (PNG or JPEG chosen by the extension)
++		/// @return Output file path. If an error occurs, return empty string. Needs the 2D window, so it returns an empty string in headless mode.
++		virtual std::string ExportThumbnail2D(const std::string& _filePath) { return ""; }
++
++		/// @ingroup EXPORT_API
+ 		/// @fn ExportMaskSnapshot3D(const std::string& _filePath, const Marvelous::ExportTechpackOption& _exportOption)
+ 		/// @brief Export mask snapshot of the current scene in the 3D windows. only for H&M.
+ 		/// @param _filePath: output file path to save the screenshot.
+@@ -946,6 +958,18 @@
+ 		virtual std::string ExportStdViewImage(int _viewIndex, const std::string& _outputFolderPath, int _colorwayIndex, int _width, int _height) { return ""; }
+ 
+ 		/// @ingroup EXPORT_API
++		/// @fn ExportStdViewImage(int _viewIndex, const std::string& _outputFolderPath, int _colorwayIndex, int _width, int _height, bool _bFitAllObjects)
++		/// @brief ExportStdViewImage : Exports the image for the given standard view index with a framing choice. By default (and in the 5-argument overload) the camera is fitted to the garment patterns only; pass _bFitAllObjects=true to fit the whole scene including the avatar. Standard view indexes: 0=Bottom, 1=FrontRight, 2=Front, 3=FrontLeft, 4=Right, 5=Top, 6=Left, 7=Custom, 8=Back.
++		/// @param _viewIndex: standard view index (0=Bottom, 1=FrontRight, 2=Front, 3=FrontLeft, 4=Right, 5=Top, 6=Left, 7=Custom, 8=Back)
++		/// @param _outputFolderPath: output file path including the image extension
++		/// @param _colorwayIndex: colorway index to export
++		/// @param _width: image width for the snapshot
++		/// @param _height: image height for the snapshot
++		/// @param _bFitAllObjects: true = frame the whole scene (avatar + garment); false = frame the garment patterns only (same as the 5-argument overload)
++		/// @return Output file path along with the selected colorway name. If an error occurs, return error message string.
++		virtual std::string ExportStdViewImage(int _viewIndex, const std::string& _outputFolderPath, int _colorwayIndex, int _width, int _height, bool _bFitAllObjects) { return ""; }
++
++		/// @ingroup EXPORT_API
+ 		/// @fn ExportStdViewImageForAllColorways(int _viewIndex, const std::string& _outputFolderPath, int _width, int _height)
+ 		/// @brief ExportStdViewImageForAllColorways : Exports The Image based on the given Standard image view index for all Colorways.
+ 		/// @param : 
+@@ -1075,5 +1099,58 @@
+ 		/// @return Output file path list. If an error occurs, return empty string.
+ 		virtual std::string ExportTopStitchStyle(const std::string& _filePath, unsigned int _topStitchIndex) = 0;
+ 
++		// ---------------------------------------------------------------------------------------------------------
++		// Single Custom View production render. ExportRenderingImage always renders every Custom View configured for
++		// the project; these render exactly ONE Custom View for exactly ONE colorway. They drive the same V-Ray
++		// production-render path as ExportRenderingImage (same camera, display state, quality and render settings) -
++		// the render is merely scoped to one view, so there is no separate or degraded code path.
++		//
++		// Render settings other than the view and the colorway (resolution, format, light preset, background, ...)
++		// are the project's current render properties, exactly as with ExportRenderingImage. Added as non-pure
++		// virtuals at the END of the interface so existing implementers / ABI consumers are unaffected.
++		// ---------------------------------------------------------------------------------------------------------
++
++		/// @ingroup EXPORT_API
++		/// @fn ExportRenderingImageForCustomView(const std::string& _filePath, int _customViewIndex, int _colorwayIndex)
++		/// @brief Renders and exports exactly ONE Custom View - addressed by its index in the project's Custom View
++		///        list - for exactly ONE colorway. No other configured output view of the project is rendered and no
++		///        other file is written.
++		/// @param _filePath: output image path including the extension (.png / .jpg), e.g. "C:/out/front.png".
++		/// @param _customViewIndex: Custom View index, 0 to (number of Custom Views - 1). See GetCustomViewInformation().
++		/// @param _colorwayIndex: colorway index (0 to n-1). -1, or any out-of-range index, uses the current colorway.
++		/// @return The written image path, or an empty string on failure - index out of range, no Custom View exists,
++		///         no colorway, a render already in progress, or a build without the V-Ray renderer. Nothing is
++		///         rendered and no file is written in any of those cases.
++		/// @note The image is written to _filePath exactly as given - unlike ExportRenderingImage, the Custom View
++		///       name is NOT appended to the file name. The returned path is still the authoritative one.
++		virtual std::string ExportRenderingImageForCustomView(const std::string& _filePath, int _customViewIndex, int _colorwayIndex) { return std::string(); }
++
++		/// @ingroup EXPORT_API
++		/// @fn ExportRenderingImageForCustomView(const std::string& _filePath, const std::string& _customViewName, int _colorwayIndex)
++		/// @brief Overload of ExportRenderingImageForCustomView that addresses the Custom View by NAME instead of by
++		///        index. The first view whose name matches exactly (case-sensitive) is rendered; everything else is
++		///        identical to the index overload.
++		/// @param _filePath: output image path including the extension (.png / .jpg).
++		/// @param _customViewName: Custom View name as reported by GetCustomViewInformation(), e.g. "Custom_View_2".
++		/// @param _colorwayIndex: colorway index (0 to n-1). -1, or any out-of-range index, uses the current colorway.
++		/// @return The written image path, or an empty string when no Custom View carries that name (or on render failure).
++		virtual std::string ExportRenderingImageForCustomView(const std::string& _filePath, const std::string& _customViewName, int _colorwayIndex) { return std::string(); }
++
++		/// @ingroup EXPORT_API
++		/// @fn ExportRenderingImageForZcmrFile(const std::string& _filePath, const std::string& _zcmrFilePath, int _colorwayIndex)
++		/// @brief Renders and exports one view taken from an external .zcmr camera file, for exactly ONE colorway.
++		///        The .zcmr does not have to correspond to any Custom View saved in the project, so this also works on
++		///        a project that has no Custom Views at all. As with ExportRenderingImageForCustomView, no other
++		///        configured output view is rendered and no other file is written.
++		/// @param _filePath: output image path including the extension (.png / .jpg).
++		/// @param _zcmrFilePath: path to the .zcmr camera file.
++		/// @param _colorwayIndex: colorway index (0 to n-1). -1, or any out-of-range index, uses the current colorway.
++		/// @return The written image path, or an empty string when the .zcmr is missing or unreadable (or on render failure).
++		/// @note The .zcmr is loaded AS a Custom View so that its saved display state (.cds) is applied exactly as it
++		///       would be for a view already in the project - rendering a view from its .zcmr therefore matches
++		///       rendering the same view by index or name. The temporary view is removed before returning, leaving the
++		///       project's Custom View list unchanged.
++		virtual std::string ExportRenderingImageForZcmrFile(const std::string& _filePath, const std::string& _zcmrFilePath, int _colorwayIndex) { return std::string(); }
++
+ 	};
+ }

@@ -1,0 +1,71 @@
+141D97E00  mov      qword ptr [rsp+8],rbx                    ; 
+141D97E05  mov      qword ptr [rsp+10h],rsi                  ; 
+141D97E0A  push     rdi                                      ; 
+141D97E0B  sub      rsp,0C0h                                 ; 
+141D97E12  mov      rbx,r8                                   ; 
+141D97E15  mov      rsi,rdx                                  ; 
+141D97E18  mov      rdi,rcx                                  ; 
+141D97E1B  cmp      qword ptr [000000014A2ABF10h],0          ; .data a2abf10
+141D97E23  jne      0000000141D97E2C                         ; 
+141D97E25  xor      al,al                                    ; 
+141D97E27  jmp      0000000141D97EF8                         ; 
+141D97E2C  lea      rcx,[rsp+20h]                            ; 
+141D97E31  call     0000000145C2C1F0                         ; call 0x5c2c1f0
+141D97E36  nop                                               ; 
+141D97E37  movss    xmm0,dword ptr [rbx+8]                   ; 
+141D97E3C  movss    dword ptr [rsp+3Ch],xmm0                 ; 
+141D97E42  movzx    eax,byte ptr [rbx]                       ; 
+141D97E45  mov      byte ptr [rsp+28h],al                    ; 
+141D97E49  movzx    eax,byte ptr [rbx+10h]                   ; 
+141D97E4D  mov      byte ptr [rsp+2Ch],al                    ; 
+141D97E51  movzx    eax,byte ptr [rbx+1]                     ; 
+141D97E55  mov      byte ptr [rsp+2Eh],al                    ; 
+141D97E59  movzx    eax,byte ptr [rbx+0Dh]                   ; 
+141D97E5D  mov      byte ptr [rsp+29h],al                    ; 
+141D97E61  movzx    eax,byte ptr [rbx+12h]                   ; 
+141D97E65  mov      byte ptr [rsp+31h],al                    ; 
+141D97E69  movzx    eax,byte ptr [rbx+0Ch]                   ; 
+141D97E6D  mov      byte ptr [rsp+2Fh],al                    ; 
+141D97E71  movzx    eax,byte ptr [rbx+0Fh]                   ; 
+141D97E75  mov      byte ptr [rsp+0000000000000094h],al      ; 
+141D97E7C  movzx    eax,byte ptr [rbx+11h]                   ; 
+141D97E80  mov      byte ptr [rsp+2Dh],al                    ; 
+141D97E84  movzx    eax,byte ptr [rbx+13h]                   ; 
+141D97E88  mov      byte ptr [rsp+0000000000000095h],al      ; 
+141D97E8F  movss    xmm0,dword ptr [rbx+4]                   ; 
+141D97E94  movss    dword ptr [rsp+38h],xmm0                 ; 
+141D97E9A  movzx    eax,byte ptr [rbx+0Eh]                   ; 
+141D97E9E  mov      byte ptr [rsp+2Ah],al                    ; 
+141D97EA2  mov      rdx,rsi                                  ; 
+141D97EA5  lea      rcx,[rsp+48h]                            ; 
+141D97EAA  call     00000001466650B0                         ; call 0x66650b0
+141D97EAF  mov      byte ptr [rsp+2Bh],0                     ; 
+141D97EB4  mov      dword ptr [rsp+34h],1                    ; 
+141D97EBC  movzx    eax,byte ptr [rbx+15h]                   ; 
+141D97EC0  mov      byte ptr [rsp+00000000000000A3h],al      ; 
+141D97EC7  mov      eax,2                                    ; 
+141D97ECC  cmp      dword ptr [rbx+18h],eax                  ; 
+141D97ECF  cmovbe   eax,dword ptr [rbx+18h]                  ; 
+141D97ED3  mov      dword ptr [rsp+00000000000000A4h],eax    ; 
+141D97EDA  mov      rax,qword ptr [rdi]                      ; 
+141D97EDD  lea      rdx,[rsp+20h]                            ; 
+141D97EE2  mov      rcx,rdi                                  ; 
+141D97EE5  call     qword ptr [rax+0000000000000218h]        ; 
+141D97EEB  nop                                               ; 
+141D97EEC  lea      rcx,[rsp+20h]                            ; 
+141D97EF1  call     0000000145C2D580                         ; call 0x5c2d580
+141D97EF6  mov      al,1                                     ; 
+141D97EF8  lea      r11,[rsp+00000000000000C0h]              ; 
+141D97F00  mov      rbx,qword ptr [r11+10h]                  ; 
+141D97F04  mov      rsi,qword ptr [r11+18h]                  ; 
+141D97F08  mov      rsp,r11                                  ; 
+141D97F0B  pop      rdi                                      ; 
+141D97F0C  ret                                               ; 
+== 63 instructions, ends 141D97F0C
+== strings
+== calls (rva: count, thunk)
+  5c2c1f0: x1 
+  5c2d580: x1 
+  66650b0: x1 
+== data refs
+  a2abf10 .data x1

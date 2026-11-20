@@ -33,19 +33,20 @@ for _p in (REPO_ROOT, BACKEND_ROOT):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
-from clo_avatar_generation.avatar_runtime.context import Step1Context  # noqa: E402
+from clo_avatar_generation.avatar_runtime.context import DEFAULT_APPLY_MODE, Step1Context  # noqa: E402
 from clo_avatar_generation.avatar_runtime.field_contract import get_default_base_avatar  # noqa: E402
 from clo_avatar_generation.avatar_runtime.pipeline import run_pipeline as run_avatar_pipeline  # noqa: E402
-from clo_avatar_generation.avatar_runtime.run_manifest import get_next_run_number  # noqa: E402
+from clo_avatar_generation.avatar_runtime.run_manifest import reserve_run_number  # noqa: E402
 from clo_vto.native_vto.pipeline import run_pipeline as run_vto_pipeline  # noqa: E402
 from src.avatars import service as avatars_service  # noqa: E402
-from src.avatars.models import AvatarJobDocument  # noqa: E402
+from src.avatars.models import AVATAR_PIPELINE_VERSION, AvatarJobDocument  # noqa: E402
 from src.db import avatar_jobs_col, avatar_profiles_col, tryon_renders_col  # noqa: E402
 from src.tryon.models import TryonRenderDocument  # noqa: E402
 
 from product_ingestion.run_manifest import get_latest_product_run_dir  # noqa: E402
 
 from .live_upload import save_avatar_version, save_render_version  # noqa: E402
+from .slots import clo_base_url, exclusive  # noqa: E402
 
 logger = logging.getLogger("mirra.worker")
 
@@ -95,18 +96,23 @@ async def _run_avatar_job(job_id: str) -> None:
     await avatar_jobs_col().update_one({"_id": job_id}, {"$set": {"state": "processing"}})
 
     try:
-        run_number = get_next_run_number(job.user_id)
+        # Claimed atomically: other workers may be generating for the same user.
+        run_number = reserve_run_number(job.user_id)
         ctx = Step1Context(
             user_id=job.user_id,
             requested_run_number=run_number,
             base_avatar_path_input=str(_resolve_default_base_avatar().resolve()),
-            measurement_file_input=None,
-            measurement_apply_mode_input="avt_patch",
+            # The job's saved snapshot, not a fresh database read.
+            measurement_doc_input=dict(job.measurement_snapshot),
+            measurement_apply_mode_input=DEFAULT_APPLY_MODE,
             enable_legacy_route=False,
             active_field_filters=[],
             interactive=False,
         )
-        logger.info("run_avatar_job %s: starting live pipeline (user_id=%s run=%03d)", job_id, job.user_id, run_number)
+        logger.info(
+            "run_avatar_job %s: starting live pipeline (user_id=%s run=%03d clo=%s)",
+            job_id, job.user_id, run_number, clo_base_url(),
+        )
         ctx = run_avatar_pipeline(ctx)
     except Exception as exc:  # CLO unreachable, import error, anything unexpected
         logger.exception("run_avatar_job %s: unhandled error", job_id)
@@ -136,6 +142,7 @@ async def _run_avatar_job(job_id: str) -> None:
                 "$set": {
                     "clo_avatar_avt_path": str(saved.avt_path) if saved.avt_path else None,
                     "avatar_glb_path": saved.glb_relative_path,
+                    "pipeline_version": AVATAR_PIPELINE_VERSION,
                     "generated_at": now,
                     "clo_run_id": run_id,
                     "updated_at": now,
@@ -181,6 +188,14 @@ def run_tryon_render(render_id: str) -> None:
 
 
 async def _run_tryon_render(render_id: str) -> None:
+    # clo_vto writes every run into the single shared clo_vto/output/ folder,
+    # so with several workers only one try-on may be between "pipeline start"
+    # and "artifacts copied out" at a time. Avatar jobs are not affected.
+    with exclusive("clo_vto_output"):
+        await _run_tryon_render_locked(render_id)
+
+
+async def _run_tryon_render_locked(render_id: str) -> None:
     raw = await tryon_renders_col().find_one({"_id": render_id})
     if not raw:
         logger.error("run_tryon_render: render %s not found, nothing to do", render_id)

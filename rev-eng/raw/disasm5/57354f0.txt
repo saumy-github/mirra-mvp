@@ -1,0 +1,615 @@
+1457354F0  push     rbp                                      ; 
+1457354F2  push     rbx                                      ; 
+1457354F3  push     rsi                                      ; 
+1457354F4  push     rdi                                      ; 
+1457354F5  push     r12                                      ; 
+1457354F7  push     r13                                      ; 
+1457354F9  push     r14                                      ; 
+1457354FB  push     r15                                      ; 
+1457354FD  lea      rbp,[rsp+FFFFFFFFFFFFA668h]              ; 
+145735505  mov      eax,5B18h                                ; 
+14573550A  call     00000001470D9720                         ; call 0x70d9720
+14573550F  sub      rsp,rax                                  ; 
+145735512  movaps   xmmword ptr [rsp+0000000000005B00h],xmm6 ; 
+14573551A  mov      rax,qword ptr [000000014A172D40h]        ; stack cookie
+145735521  xor      rax,rsp                                  ; 
+145735524  mov      qword ptr [rbp+0000000000005970h],rax    ; 
+14573552B  mov      r15,r9                                   ; 
+14573552E  mov      qword ptr [rbp-48h],r9                   ; 
+145735532  mov      rbx,rdx                                  ; 
+145735535  mov      qword ptr [rbp-50h],rdx                  ; 
+145735539  mov      r12,rcx                                  ; 
+14573553C  mov      qword ptr [rbp-40h],rcx                  ; 
+145735540  mov      dword ptr [rbp-78h],r8d                  ; 
+145735544  xor      esi,esi                                  ; 
+145735546  mov      r13d,esi                                 ; 
+145735549  mov      dword ptr [rbp-70h],esi                  ; 
+14573554C  mov      dword ptr [rbp-80h],esi                  ; 
+14573554F  mov      dword ptr [rbp-68h],esi                  ; 
+145735552  call     0000000141BE0EC0                         ; call 0x1be0ec0
+145735557  mov      rcx,rax                                  ; 
+14573555A  call     00000001461548A0                         ; call 0x61548a0
+14573555F  mov      qword ptr [rbp+00000000000000F0h],rax    ; 
+145735566  test     rax,rax                                  ; 
+145735569  je       000000014573A22A                         ; 
+14573556F  mov      eax,dword ptr [r15+14h]                  ; 
+145735573  cmp      eax,3                                    ; 
+145735576  jne      0000000145735590                         ; 
+145735578  mov      r8d,404Fh                                ; 
+14573557E  lea      rdx,[0000000148933CF0h]                  ; .rdata 8933cf0 -> 'A:D:\\work\\24f977aa179b3ca8\\Marvelous\\Source\\CloScene\\Interface\\Editor\\PatternEditor.cpp'
+145735585  xor      ecx,ecx                                  ; 
+145735587  call     0000000144B7BD50                         ; call 0x4b7bd50
+14573558C  mov      eax,dword ptr [r15+14h]                  ; 
+145735590  xorps    xmm0,xmm0                                ; 
+145735593  movdqu   xmmword ptr [rbp+0000000000000390h],xmm0 ; 
+14573559B  mov      qword ptr [rbp+00000000000003A0h],rsi    ; 
+1457355A2  movdqu   xmmword ptr [rbp+0000000000000298h],xmm0 ; 
+1457355AA  mov      qword ptr [rbp+00000000000002A8h],rsi    ; 
+1457355B1  cmp      byte ptr [r15+8],0                       ; 
+1457355B6  jne      00000001457355BC                         ; 
+1457355B8  test     eax,eax                                  ; 
+1457355BA  je       00000001457355D0                         ; 
+1457355BC  call     0000000141C23000                         ; call 0x1c23000
+1457355C1  lea      rdx,[rbp+0000000000000390h]              ; 
+1457355C8  mov      rcx,rax                                  ; 
+1457355CB  call     0000000145D54720                         ; call 0x5d54720
+1457355D0  call     0000000141C23000                         ; call 0x1c23000
+1457355D5  mov      rcx,rax                                  ; 
+1457355D8  call     0000000145D52120                         ; call 0x5d52120
+1457355DD  mov      dword ptr [rbp+24h],esi                  ; 
+1457355E0  cmp      byte ptr [r15+8],0                       ; 
+1457355E5  je       00000001457355FC                         ; 
+1457355E7  mov      edx,15h                                  ; 
+1457355EC  xor      r9d,r9d                                  ; 
+1457355EF  mov      r8b,1                                    ; 
+1457355F2  mov      rcx,r12                                  ; 
+1457355F5  call     00000001457D0E10                         ; call 0x57d0e10
+1457355FA  jmp      000000014573563C                         ; 
+1457355FC  mov      eax,dword ptr [r15+14h]                  ; 
+145735600  dec      eax                                      ; 
+145735602  cmp      eax,1                                    ; 
+145735605  ja       000000014573563C                         ; 
+145735607  call     0000000141C5FB60                         ; call 0x1c5fb60
+14573560C  mov      rbx,rax                                  ; 
+14573560F  lea      rcx,[r15+28h]                            ; 
+145735613  lea      rdx,[rbp+0000000000005860h]              ; 
+14573561A  call     0000000146668370                         ; call 0x6668370
+14573561F  nop                                               ; 
+145735620  mov      rdx,rax                                  ; 
+145735623  mov      rcx,rbx                                  ; 
+145735626  call     0000000145D828F0                         ; call 0x5d828f0
+14573562B  nop                                               ; 
+14573562C  lea      rcx,[rbp+0000000000005860h]              ; 
+145735633  call     0000000141BAA170                         ; call 0x1baa170
+145735638  mov      rbx,qword ptr [rbp-50h]                  ; 
+14573563C  lea      rcx,[rbp+0000000000000498h]              ; 
+145735643  call     0000000143DEA0D0                         ; call 0x3dea0d0
+145735648  nop                                               ; 
+145735649  call     0000000141C22C90                         ; call 0x1c22c90
+14573564E  lea      rdx,[rbp+0000000000000498h]              ; 
+145735655  mov      rcx,rax                                  ; 
+145735658  call     0000000145CFAF30                         ; call 0x5cfaf30
+14573565D  lea      rcx,[rbp+00000000000000C8h]              ; 
+145735664  call     0000000143DEA0D0                         ; call 0x3dea0d0
+145735669  nop                                               ; 
+14573566A  mov      dword ptr [rbp+10h],esi                  ; 
+14573566D  xor      edx,edx                                  ; 
+14573566F  lea      rcx,[rbp+00000000000005D8h]              ; 
+145735676  call     0000000144C75B70                         ; call 0x4c75b70
+14573567B  nop                                               ; 
+14573567C  call     0000000141C22B90                         ; call 0x1c22b90
+145735681  lea      rdx,[rbp+00000000000005D8h]              ; 
+145735688  mov      rcx,rax                                  ; 
+14573568B  call     0000000145CF9B30                         ; call 0x5cf9b30
+145735690  xor      edx,edx                                  ; 
+145735692  lea      rcx,[rbp+0000000000000598h]              ; 
+145735699  call     0000000144C75B70                         ; call 0x4c75b70
+14573569E  nop                                               ; 
+14573569F  mov      dword ptr [rbp+0Ch],esi                  ; 
+1457356A2  xor      edx,edx                                  ; 
+1457356A4  lea      rcx,[rbp+00000000000005B8h]              ; 
+1457356AB  call     0000000144C75DF0                         ; call 0x4c75df0
+1457356B0  nop                                               ; 
+1457356B1  call     0000000141C22C10                         ; call 0x1c22c10
+1457356B6  lea      rdx,[rbp+00000000000005B8h]              ; 
+1457356BD  mov      rcx,rax                                  ; 
+1457356C0  call     0000000145CF9BB0                         ; call 0x5cf9bb0
+1457356C5  xor      edx,edx                                  ; 
+1457356C7  lea      rcx,[rbp+0000000000000538h]              ; 
+1457356CE  call     0000000144C75DF0                         ; call 0x4c75df0
+1457356D3  nop                                               ; 
+1457356D4  mov      dword ptr [rbp+8],esi                    ; 
+1457356D7  xor      r8d,r8d                                  ; 
+1457356DA  xor      edx,edx                                  ; 
+1457356DC  lea      rcx,[rbp+0000000000000470h]              ; 
+1457356E3  call     00000001449D0710                         ; call 0x49d0710
+1457356E8  nop                                               ; 
+1457356E9  xor      r8d,r8d                                  ; 
+1457356EC  xor      edx,edx                                  ; 
+1457356EE  lea      rcx,[rbp+00000000000000A0h]              ; 
+1457356F5  call     00000001449D0710                         ; call 0x49d0710
+1457356FA  nop                                               ; 
+1457356FB  call     0000000141C23100                         ; call 0x1c23100
+145735700  lea      rdx,[rax+10h]                            ; 
+145735704  lea      rcx,[rbp+0000000000000470h]              ; 
+14573570B  call     00000001455AE980                         ; call 0x55ae980
+145735710  call     0000000141C23100                         ; call 0x1c23100
+145735715  mov      dword ptr [rax+70h],esi                  ; 
+145735718  xor      edx,edx                                  ; 
+14573571A  lea      rcx,[rbp+0000000000000510h]              ; 
+145735721  call     00000001449D0570                         ; call 0x49d0570
+145735726  nop                                               ; 
+145735727  xor      edx,edx                                  ; 
+145735729  lea      rcx,[rbp+0000000000000400h]              ; 
+145735730  call     00000001449D0570                         ; call 0x49d0570
+145735735  nop                                               ; 
+145735736  call     0000000141C22F10                         ; call 0x1c22f10
+14573573B  lea      rdx,[rax+10h]                            ; 
+14573573F  lea      rcx,[rbp+0000000000000510h]              ; 
+145735746  call     00000001455AE930                         ; call 0x55ae930
+14573574B  call     0000000141C22F10                         ; call 0x1c22f10
+145735750  mov      dword ptr [rax+70h],esi                  ; 
+145735753  lea      rcx,[rbp+0000000000000748h]              ; 
+14573575A  call     0000000144BBC9E0                         ; call 0x4bbc9e0
+14573575F  nop                                               ; 
+145735760  lea      rcx,[rbp+0000000000000628h]              ; 
+145735767  call     0000000144BBC9E0                         ; call 0x4bbc9e0
+14573576C  nop                                               ; 
+14573576D  call     0000000141C22E10                         ; call 0x1c22e10
+145735772  lea      rdx,[rbp+0000000000000748h]              ; 
+145735779  mov      rcx,rax                                  ; 
+14573577C  call     0000000145CFA120                         ; call 0x5cfa120
+145735781  lea      rcx,[rbp+0000000000000728h]              ; 
+145735788  call     0000000144B13CB0                         ; call 0x4b13cb0
+14573578D  nop                                               ; 
+14573578E  lea      rcx,[rbp+0000000000000708h]              ; 
+145735795  call     0000000144B13CB0                         ; call 0x4b13cb0
+14573579A  nop                                               ; 
+14573579B  call     0000000141C23180                         ; call 0x1c23180
+1457357A0  lea      rdx,[rbp+0000000000000728h]              ; 
+1457357A7  mov      rcx,rax                                  ; 
+1457357AA  call     0000000145CFA820                         ; call 0x5cfa820
+1457357AF  mov      ecx,38h                                  ; 
+1457357B4  call     00000001470D91B8                         ; call 0x70d91b8
+1457357B9  mov      rdi,rax                                  ; 
+1457357BC  mov      qword ptr [rbp-58h],rax                  ; 
+1457357C0  test     rax,rax                                  ; 
+1457357C3  je       00000001457357FF                         ; 
+1457357C5  lea      rdx,[rbp+0000000000000E90h]              ; 
+1457357CC  mov      rcx,r12                                  ; 
+1457357CF  call     00000001456F4680                         ; call 0x56f4680
+1457357D4  nop                                               ; 
+1457357D5  mov      r13d,1                                   ; 
+1457357DB  mov      dword ptr [rbp-70h],r13d                 ; 
+1457357DF  mov      dword ptr [rbp-80h],r13d                 ; 
+1457357E3  mov      rdx,rax                                  ; 
+1457357E6  lea      rcx,[rbp+0000000000000EA0h]              ; 
+1457357ED  call     0000000145573830                         ; call 0x5573830
+1457357F2  mov      rdx,rax                                  ; 
+1457357F5  mov      rcx,rdi                                  ; 
+1457357F8  call     0000000145477BD0                         ; call 0x5477bd0
+1457357FD  jmp      0000000145735802                         ; 
+1457357FF  mov      rax,rsi                                  ; 
+145735802  mov      qword ptr [rbp-20h],rax                  ; 
+145735806  mov      qword ptr [rbp+0000000000000240h],rax    ; 
+14573580D  test     r13b,1                                   ; 
+145735811  je       000000014573582B                         ; 
+145735813  and      r13d,0FFFFFFFEh                          ; 
+145735817  mov      dword ptr [rbp-70h],r13d                 ; 
+14573581B  mov      dword ptr [rbp-80h],r13d                 ; 
+14573581F  lea      rcx,[rbp+0000000000000E90h]              ; 
+145735826  call     0000000141BF4E40                         ; call 0x1bf4e40
+14573582B  mov      rdx,r12                                  ; 
+14573582E  lea      rcx,[rbp+00000000000013A0h]              ; 
+145735835  call     0000000142862FC0                         ; call 0x2862fc0
+14573583A  nop                                               ; 
+14573583B  xorps    xmm0,xmm0                                ; 
+14573583E  movdqu   xmmword ptr [rbp+0000000000000178h],xmm0 ; 
+145735846  mov      qword ptr [rbp+0000000000000188h],rsi    ; 
+14573584D  movdqu   xmmword ptr [rbp+0000000000000160h],xmm0 ; 
+145735855  mov      qword ptr [rbp+0000000000000170h],rsi    ; 
+14573585C  movdqu   xmmword ptr [rbp+00000000000003A8h],xmm0 ; 
+145735864  mov      qword ptr [rbp+00000000000003B8h],rsi    ; 
+14573586B  mov      eax,dword ptr [r15+14h]                  ; 
+14573586F  test     eax,eax                                  ; 
+145735871  jne      000000014573745E                         ; 
+145735877  lea      rcx,[rbp+0000000000000340h]              ; 
+14573587E  call     0000000146665010                         ; call 0x6665010
+145735883  nop                                               ; 
+145735884  lea      rcx,[r15+28h]                            ; 
+145735888  lea      rdx,[rbp+0000000000000340h]              ; 
+14573588F  call     000000014625D850                         ; call 0x625d850
+145735894  cmp      byte ptr [r15+8],0                       ; 
+145735899  je       00000001457358CA                         ; 
+14573589B  lea      rcx,[rbp+0000000000005880h]              ; 
+1457358A2  call     00000001448E96B0                         ; call 0x48e96b0
+1457358A7  nop                                               ; 
+1457358A8  mov      r8d,dword ptr [rbp-78h]                  ; 
+1457358AC  mov      rdx,rbx                                  ; 
+1457358AF  lea      rcx,[rbp+0000000000005880h]              ; 
+1457358B6  call     00000001448EA950                         ; call 0x48ea950
+1457358BB  nop                                               ; 
+1457358BC  lea      rcx,[rbp+0000000000005880h]              ; 
+1457358C3  call     00000001448E9810                         ; call 0x48e9810
+1457358C8  jmp      00000001457358F1                         ; 
+1457358CA  mov      rcx,r12                                  ; 
+1457358CD  call     00000001456CA440                         ; call 0x56ca440
+1457358D2  mov      r8d,dword ptr [rbp-78h]                  ; 
+1457358D6  mov      rdx,rbx                                  ; 
+1457358D9  mov      rcx,rax                                  ; 
+1457358DC  call     00000001448EA950                         ; call 0x48ea950
+1457358E1  mov      rcx,r12                                  ; 
+1457358E4  call     00000001456CA460                         ; call 0x56ca460
+1457358E9  mov      rcx,rax                                  ; 
+1457358EC  call     00000001448EAD90                         ; call 0x48ead90
+1457358F1  cmp      dword ptr [rbp-78h],0F9h                 ; 
+1457358F8  jb       000000014573591B                         ; 
+1457358FA  call     00000001449FFD90                         ; call 0x49ffd90
+1457358FF  movzx    ecx,byte ptr [r15+8]                     ; 
+145735904  mov      byte ptr [rsp+20h],cl                    ; 
+145735908  lea      r9,[rbp+24h]                             ; 
+14573590C  mov      r8d,dword ptr [rbp-78h]                  ; 
+145735910  mov      rdx,rbx                                  ; 
+145735913  mov      rcx,rax                                  ; 
+145735916  call     0000000144A1F980                         ; call 0x4a1f980
+14573591B  cmp      byte ptr [r15+8],0                       ; 
+145735920  jne      000000014573592A                         ; 
+145735922  mov      rcx,r12                                  ; 
+145735925  call     0000000145790000                         ; call 0x5790000
+14573592A  cmp      dword ptr [rbp-78h],0CAh                 ; 
+145735931  jb       000000014573596C                         ; 
+145735933  call     0000000141C22C90                         ; call 0x1c22c90
+145735938  movzx    ecx,byte ptr [r15+8]                     ; 
+14573593D  mov      byte ptr [rsp+30h],cl                    ; 
+145735941  lea      rcx,[rbp+10h]                            ; 
+145735945  mov      qword ptr [rsp+28h],rcx                  ; 
+14573594A  lea      rcx,[rbp+00000000000000C8h]              ; 
+145735951  mov      qword ptr [rsp+20h],rcx                  ; 
+145735956  mov      r9d,dword ptr [rbp-78h]                  ; 
+14573595A  lea      r8,[rbp+0000000000000340h]               ; 
+145735961  mov      rdx,rbx                                  ; 
+145735964  mov      rcx,rax                                  ; 
+145735967  call     0000000145D12C80                         ; call 0x5d12c80
+14573596C  call     0000000141C22C90                         ; call 0x1c22c90
+145735971  mov      rcx,rax                                  ; 
+145735974  call     0000000145CFB410                         ; call 0x5cfb410
+145735979  test     eax,eax                                  ; 
+14573597B  jne      000000014573598A                         ; 
+14573597D  call     0000000141C22C90                         ; call 0x1c22c90
+145735982  mov      rcx,rax                                  ; 
+145735985  call     0000000145CEB7D0                         ; call 0x5ceb7d0
+14573598A  call     0000000141C22C90                         ; call 0x1c22c90
+14573598F  mov      rcx,rax                                  ; 
+145735992  mov      rax,qword ptr [rax+18h]                  ; 
+145735996  sub      rax,qword ptr [rcx+10h]                  ; 
+14573599A  cmp      rax,10h                                  ; 
+14573599E  jb       00000001457359D2                         ; 
+1457359A0  call     0000000141C22C90                         ; call 0x1c22c90
+1457359A5  mov      rbx,rax                                  ; 
+1457359A8  call     0000000141C22C90                         ; call 0x1c22c90
+1457359AD  mov      rdx,qword ptr [rax+10h]                  ; 
+1457359B1  lea      rcx,[rbp+0000000000000428h]              ; 
+1457359B8  call     0000000142D77710                         ; call 0x2d77710
+1457359BD  xor      r9d,r9d                                  ; 
+1457359C0  xor      r8d,r8d                                  ; 
+1457359C3  mov      rdx,rax                                  ; 
+1457359C6  mov      rcx,rbx                                  ; 
+1457359C9  call     0000000145D25110                         ; call 0x5d25110
+1457359CE  mov      rbx,qword ptr [rbp-50h]                  ; 
+1457359D2  mov      eax,dword ptr [rbp-78h]                  ; 
+1457359D5  cmp      eax,0F3h                                 ; 
+1457359DA  jb       0000000145735A51                         ; 
+1457359DC  call     0000000141C22B90                         ; call 0x1c22b90
+1457359E1  movzx    ecx,byte ptr [r15+8]                     ; 
+1457359E6  mov      byte ptr [rsp+30h],cl                    ; 
+1457359EA  lea      rcx,[rbp+0Ch]                            ; 
+1457359EE  mov      qword ptr [rsp+28h],rcx                  ; 
+1457359F3  lea      rcx,[rbp+0000000000000598h]              ; 
+1457359FA  mov      qword ptr [rsp+20h],rcx                  ; 
+1457359FF  mov      r9d,dword ptr [rbp-78h]                  ; 
+145735A03  lea      r8,[rbp+0000000000000340h]               ; 
+145735A0A  mov      rdx,rbx                                  ; 
+145735A0D  mov      rcx,rax                                  ; 
+145735A10  call     0000000145D10920                         ; call 0x5d10920
+145735A15  call     0000000141C22C10                         ; call 0x1c22c10
+145735A1A  movzx    ecx,byte ptr [r15+8]                     ; 
+145735A1F  mov      byte ptr [rsp+30h],cl                    ; 
+145735A23  lea      rcx,[rbp+8]                              ; 
+145735A27  mov      qword ptr [rsp+28h],rcx                  ; 
+145735A2C  lea      rcx,[rbp+0000000000000538h]              ; 
+145735A33  mov      qword ptr [rsp+20h],rcx                  ; 
+145735A38  mov      r9d,dword ptr [rbp-78h]                  ; 
+145735A3C  lea      r8,[rbp+0000000000000340h]               ; 
+145735A43  mov      rdx,rbx                                  ; 
+145735A46  mov      rcx,rax                                  ; 
+145735A49  call     0000000145D11DC0                         ; call 0x5d11dc0
+145735A4E  mov      eax,dword ptr [rbp-78h]                  ; 
+145735A51  cmp      eax,0E4h                                 ; 
+145735A56  jb       0000000145735A8B                         ; 
+145735A58  call     0000000141C23100                         ; call 0x1c23100
+145735A5D  movzx    ecx,byte ptr [r15+8]                     ; 
+145735A62  mov      byte ptr [rsp+28h],cl                    ; 
+145735A66  lea      rcx,[rbp+00000000000000A0h]              ; 
+145735A6D  mov      qword ptr [rsp+20h],rcx                  ; 
+145735A72  mov      r9d,dword ptr [rbp-78h]                  ; 
+145735A76  lea      r8,[rbp+0000000000000340h]               ; 
+145735A7D  mov      rdx,rbx                                  ; 
+145735A80  mov      rcx,rax                                  ; 
+145735A83  call     0000000145D184E0                         ; call 0x5d184e0
+145735A88  mov      eax,dword ptr [rbp-78h]                  ; 
+145735A8B  cmp      eax,115h                                 ; 
+145735A90  jb       0000000145735AC2                         ; 
+145735A92  call     0000000141C22F10                         ; call 0x1c22f10
+145735A97  movzx    ecx,byte ptr [r15+8]                     ; 
+145735A9C  mov      byte ptr [rsp+28h],cl                    ; 
+145735AA0  lea      rcx,[rbp+0000000000000400h]              ; 
+145735AA7  mov      qword ptr [rsp+20h],rcx                  ; 
+145735AAC  mov      r9d,dword ptr [rbp-78h]                  ; 
+145735AB0  lea      r8,[rbp+0000000000000340h]               ; 
+145735AB7  mov      rdx,rbx                                  ; 
+145735ABA  mov      rcx,rax                                  ; 
+145735ABD  call     0000000145D16650                         ; call 0x5d16650
+145735AC2  call     0000000141C22B90                         ; call 0x1c22b90
+145735AC7  mov      rcx,rax                                  ; 
+145735ACA  call     0000000145614710                         ; call 0x5614710
+145735ACF  call     0000000141C22C10                         ; call 0x1c22c10
+145735AD4  mov      rcx,rax                                  ; 
+145735AD7  call     0000000145614740                         ; call 0x5614740
+145735ADC  mov      eax,dword ptr [rbp-78h]                  ; 
+145735ADF  add      eax,0FFFFFFB4h                           ; 
+145735AE2  cmp      eax,97h                                  ; 
+145735AE7  ja       0000000145735AFF                         ; 
+145735AE9  cmp      byte ptr [rbp+0000000000005A00h],0       ; 
+145735AF0  je       0000000145735AFF                         ; 
+145735AF2  call     0000000141C23100                         ; call 0x1c23100
+145735AF7  mov      rcx,rax                                  ; 
+145735AFA  call     0000000145D26920                         ; call 0x5d26920
+145735AFF  xorps    xmm0,xmm0                                ; 
+145735B02  movdqu   xmmword ptr [rbp+00000000000004F8h],xmm0 ; 
+145735B0A  mov      qword ptr [rbp+0000000000000508h],rsi    ; 
+145735B11  call     0000000141BF5D20                         ; call 0x1bf5d20
+145735B16  lea      rdx,[rbp+00000000000004F8h]              ; 
+145735B1D  mov      rcx,rax                                  ; 
+145735B20  call     00000001450DE2C0                         ; call 0x50de2c0
+145735B25  mov      rax,qword ptr [rbp+0000000000000500h]    ; 
+145735B2C  sub      rax,qword ptr [rbp+00000000000004F8h]    ; 
+145735B33  sar      rax,4                                    ; 
+145735B37  mov      qword ptr [rbp-60h],rax                  ; 
+145735B3B  lea      r13,[r12+00000000000005B8h]              ; 
+145735B43  mov      edi,dword ptr [rbp+8]                    ; 
+145735B46  mov      esi,dword ptr [rbp+0Ch]                  ; 
+145735B49  mov      r15d,dword ptr [rbp+10h]                 ; 
+145735B4D  mov      rbx,qword ptr [rbp-48h]                  ; 
+145735B51  movzx    r12d,byte ptr [rbx+8]                    ; 
+145735B56  lea      rcx,[rbp+00000000000013A0h]              ; 
+145735B5D  call     0000000144D34050                         ; call 0x4d34050
+145735B62  mov      r14,qword ptr [rax+10h]                  ; 
+145735B66  sub      r14,qword ptr [rax+8]                    ; 
+145735B6A  sar      r14,4                                    ; 
+145735B6E  lea      rdx,[rbp+0000000000001118h]              ; 
+145735B75  lea      rcx,[rbx+28h]                            ; 
+145735B79  call     00000001466684C0                         ; call 0x66684c0
+145735B7E  nop                                               ; 
+145735B7F  mov      rcx,rax                                  ; 
+145735B82  call     0000000146668FD0                         ; call 0x6668fd0
+145735B87  mov      rbx,rax                                  ; 
+145735B8A  lea      rdx,[rbp+0000000000000250h]              ; 
+145735B91  mov      rcx,qword ptr [rbp-40h]                  ; 
+145735B95  call     00000001456F4680                         ; call 0x56f4680
+145735B9A  movzx    ecx,byte ptr [rbp+0000000000005A00h]     ; 
+145735BA1  mov      byte ptr [rsp+70h],cl                    ; 
+145735BA5  mov      dword ptr [rsp+68h],edi                  ; 
+145735BA9  mov      dword ptr [rsp+60h],esi                  ; 
+145735BAD  lea      rcx,[rbp+00000000000000A8h]              ; 
+145735BB4  mov      qword ptr [rsp+58h],rcx                  ; 
+145735BB9  mov      dword ptr [rsp+50h],r15d                 ; 
+145735BBE  lea      rcx,[rbp+00000000000000C8h]              ; 
+145735BC5  mov      qword ptr [rsp+48h],rcx                  ; 
+145735BCA  mov      byte ptr [rsp+40h],r12b                  ; 
+145735BCF  xor      esi,esi                                  ; 
+145735BD1  mov      dword ptr [rsp+38h],esi                  ; 
+145735BD5  mov      rcx,qword ptr [rbp-60h]                  ; 
+145735BD9  mov      dword ptr [rsp+30h],ecx                  ; 
+145735BDD  mov      dword ptr [rsp+28h],r14d                 ; 
+145735BE2  mov      qword ptr [rsp+20h],rbx                  ; 
+145735BE7  mov      r9,rax                                   ; 
+145735BEA  mov      r8d,dword ptr [rbp-78h]                  ; 
+145735BEE  mov      rdx,qword ptr [rbp-50h]                  ; 
+145735BF2  mov      rcx,r13                                  ; 
+145735BF5  call     000000014475DD10                         ; call 0x475dd10
+145735BFA  nop                                               ; 
+145735BFB  lea      rcx,[rbp+0000000000001118h]              ; 
+145735C02  call     0000000146668B90                         ; call 0x6668b90
+145735C07  mov      r12,qword ptr [rbp-40h]                  ; 
+145735C0B  lea      rcx,[rbp+00000000000013A0h]              ; 
+145735C12  call     0000000144D34050                         ; call 0x4d34050
+145735C17  mov      rdx,qword ptr [rax+10h]                  ; 
+145735C1B  sub      rdx,qword ptr [rax+8]                    ; 
+145735C1F  sar      rdx,4                                    ; 
+145735C23  lea      rcx,[r12+70h]                            ; 
+145735C28  call     0000000144858800                         ; call 0x4858800
+145735C2D  mov      rcx,r12                                  ; 
+145735C30  call     000000014585D8C0                         ; call 0x585d8c0
+145735C35  lea      rdx,[rbp+0000000000000628h]              ; 
+145735C3C  mov      rcx,r12                                  ; 
+145735C3F  call     00000001458471B0                         ; call 0x58471b0
+145735C44  lea      rdx,[rbp+0000000000000708h]              ; 
+145735C4B  mov      rcx,r12                                  ; 
+145735C4E  call     0000000145849C30                         ; call 0x5849c30
+145735C53  mov      ecx,dword ptr [rbp-78h]                  ; 
+145735C56  cmp      ecx,0CAh                                 ; 
+145735C5C  jb       0000000145735EE5                         ; 
+145735C62  cmp      ecx,0D3h                                 ; 
+145735C68  jae      0000000145735EB4                         ; 
+145735C6E  call     0000000141C22C90                         ; call 0x1c22c90
+145735C73  lea      rcx,[rax+8]                              ; 
+145735C77  call     00000001449A8950                         ; call 0x49a8950
+145735C7C  lea      rcx,[rbp+60h]                            ; 
+145735C80  call     0000000143DEA0D0                         ; call 0x3dea0d0
+145735C85  nop                                               ; 
+145735C86  mov      rbx,qword ptr [rbp+00000000000000D0h]    ; 
+145735C8D  mov      r14,qword ptr [rbp+00000000000000D8h]    ; 
+145735C94  cmp      rbx,r14                                  ; 
+145735C97  je       0000000145735CDF                         ; 
+145735C99  nop      dword ptr [rax+0000000000000000h]        ; 
+145735CA0  mov      rcx,qword ptr [rbx]                      ; 
+145735CA3  call     0000000144993250                         ; call 0x4993250
+145735CA8  test     al,al                                    ; 
+145735CAA  jne      0000000145735CC3                         ; 
+145735CAC  mov      rcx,qword ptr [rbx]                      ; 
+145735CAF  add      rcx,5A0h                                 ; 
+145735CB6  mov      rax,qword ptr [rcx]                      ; 
+145735CB9  call     qword ptr [rax+0000000000000228h]        ; 
+145735CBF  test     al,al                                    ; 
+145735CC1  jne      0000000145735CCF                         ; 
+145735CC3  mov      rdx,rbx                                  ; 
+145735CC6  lea      rcx,[rbp+68h]                            ; 
+145735CCA  call     00000001420EDFE0                         ; call 0x20edfe0
+145735CCF  add      rbx,10h                                  ; 
+145735CD3  cmp      rbx,r14                                  ; 
+145735CD6  jne      0000000145735CA0                         ; 
+145735CD8  mov      r14,qword ptr [rbp+00000000000000D8h]    ; 
+145735CDF  mov      rdi,qword ptr [rbp+68h]                  ; 
+145735CE3  mov      r13,qword ptr [rbp+70h]                  ; 
+145735CE7  cmp      rdi,r13                                  ; 
+145735CEA  je       0000000145735EA8                         ; 
+145735CF0  mov      ecx,dword ptr [000000014A35EA20h]        ; .data a35ea20
+145735CF6  mov      rax,qword ptr gs:[0000000000000058h]     ; 
+145735CFF  mov      r15,qword ptr [rax+rcx*8]                ; 
+145735D03  xor      r12d,r12d                                ; 
+145735D06  nop      word ptr [rax+rax+0000000000000000h]     ; 
+145735D10  cmp      qword ptr [rbp+00000000000000D0h],r14    ; 
+145735D17  je       0000000145735DD3                         ; 
+145735D1D  nop      dword ptr [rax]                          ; 
+145735D20  mov      rsi,qword ptr [rbp+00000000000000D0h]    ; 
+145735D27  cmp      rsi,r14                                  ; 
+145735D2A  je       0000000145735DD3                         ; 
+145735D30  mov      rdx,rdi                                  ; 
+145735D33  mov      rcx,rsi                                  ; 
+145735D36  call     0000000141D68B80                         ; call 0x1d68b80
+145735D3B  test     al,al                                    ; 
+145735D3D  jne      0000000145735D48                         ; 
+145735D3F  add      rsi,10h                                  ; 
+145735D43  cmp      rsi,r14                                  ; 
+145735D46  jne      0000000145735D30                         ; 
+145735D48  cmp      rsi,r14                                  ; 
+145735D4B  je       0000000145735DD3                         ; 
+145735D51  lea      rbx,[rsi+10h]                            ; 
+145735D55  cmp      rbx,r14                                  ; 
+145735D58  je       0000000145735DA8                         ; 
+145735D5A  nop      word ptr [rax+rax]                       ; 
+145735D60  mov      rax,qword ptr [rbx]                      ; 
+145735D63  mov      qword ptr [rbp+00000000000001B0h],rax    ; 
+145735D6A  mov      rax,qword ptr [rbx+8]                    ; 
+145735D6E  mov      qword ptr [rbp+00000000000001B8h],rax    ; 
+145735D75  mov      qword ptr [rbx],r12                      ; 
+145735D78  mov      qword ptr [rbx+8],r12                    ; 
+145735D7C  lea      rdx,[rbx-10h]                            ; 
+145735D80  lea      rcx,[rbp+00000000000001B0h]              ; 
+145735D87  call     000000014588CAD0                         ; call 0x588cad0
+145735D8C  lea      rcx,[rbp+00000000000001B0h]              ; 
+145735D93  call     0000000141C0F0B0                         ; call 0x1c0f0b0
+145735D98  add      rbx,10h                                  ; 
+145735D9C  cmp      rbx,r14                                  ; 
+145735D9F  jne      0000000145735D60                         ; 
+145735DA1  mov      r14,qword ptr [rbp+00000000000000D8h]    ; 
+145735DA8  lea      rdx,[r14-10h]                            ; 
+145735DAC  lea      rcx,[rbp+00000000000000D0h]              ; 
+145735DB3  call     00000001449CBC90                         ; call 0x49cbc90
+145735DB8  mov      r14,qword ptr [rbp+00000000000000D8h]    ; 
+145735DBF  sub      r14,10h                                  ; 
+145735DC3  mov      qword ptr [rbp+00000000000000D8h],r14    ; 
+145735DCA  cmp      rsi,r14                                  ; 
+145735DCD  jne      0000000145735D20                         ; 
+145735DD3  call     0000000141C22C90                         ; call 0x1c22c90
+145735DD8  mov      rbx,qword ptr [rax+10h]                  ; 
+145735DDC  mov      r14d,0B8B8h                              ; 
+145735DE2  nop      dword ptr [rax]                          ; 
+145735DE6  nop      word ptr [rax+rax+0000000000000000h]     ; 
+145735DF0  43                                                ; 
+== 529 instructions, ends 145735DF0
+== strings
+  14573557E  ref 8933cf0  A:D:\work\24f977aa179b3ca8\Marvelous\Source\CloScene\Interface\Editor\PatternEditor.cpp
+== calls (rva: count, thunk)
+  1baa170: x1 
+  1be0ec0: x1 
+  1bf4e40: x1 
+  1bf5d20: x1 
+  1c0f0b0: x1 
+  1c22b90: x3 
+  1c22c10: x3 
+  1c22c90: x9 
+  1c22e10: x1 
+  1c22f10: x3 
+  1c23000: x2 
+  1c23100: x4 
+  1c23180: x1 
+  1c5fb60: x1 
+  1d68b80: x1 
+  20edfe0: x1 
+  2862fc0: x1 
+  2d77710: x1 
+  3dea0d0: x3 
+  475dd10: x1 
+  4858800: x1 
+  48e96b0: x1 
+  48e9810: x1 
+  48ea950: x2 
+  48ead90: x1 
+  4993250: x1 
+  49a8950: x1 
+  49cbc90: x1 
+  49d0570: x2 
+  49d0710: x2 
+  49ffd90: x1 
+  4a1f980: x1 
+  4b13cb0: x2 
+  4b7bd50: x1 
+  4bbc9e0: x2 
+  4c75b70: x2 
+  4c75df0: x2 
+  4d34050: x2 
+  50de2c0: x1 
+  5477bd0: x1 
+  5573830: x1 
+  55ae930: x1 
+  55ae980: x1 
+  5614710: x1 
+  5614740: x1 
+  56ca440: x1 
+  56ca460: x1 
+  56f4680: x2 
+  5790000: x1 
+  57d0e10: x1 
+  58471b0: x1 
+  5849c30: x1 
+  585d8c0: x1 
+  588cad0: x1 
+  5ceb7d0: x1 
+  5cf9b30: x1 
+  5cf9bb0: x1 
+  5cfa120: x1 
+  5cfa820: x1 
+  5cfaf30: x1 
+  5cfb410: x1 
+  5d10920: x1 
+  5d11dc0: x1 
+  5d12c80: x1 
+  5d16650: x1 
+  5d184e0: x1 
+  5d25110: x1 
+  5d26920: x1 
+  5d52120: x1 
+  5d54720: x1 
+  5d828f0: x1 
+  61548a0: x1 
+  625d850: x1 
+  6665010: x1 
+  6668370: x1 
+  66684c0: x1 
+  6668b90: x1 
+  6668fd0: x1 
+  70d91b8: x1 
+  70d9720: x1 
+== data refs
+  a35ea20 .data x1

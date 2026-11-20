@@ -1,0 +1,153 @@
+﻿1451918C0  mov      r11,rsp                                  ; 
+1451918C3  push     rsi                                      ; 
+1451918C4  push     r14                                      ; 
+1451918C6  sub      rsp,88h                                  ; 
+1451918CD  mov      rax,qword ptr [rcx+28h]                  ; 
+1451918D1  mov      r14d,edx                                 ; 
+1451918D4  mov      rsi,rcx                                  ; 
+1451918D7  cmp      dword ptr [rax+00000000000000ECh],0      ; 
+1451918DE  je       0000000145191B4C                         ; 
+1451918E4  movsxd   rax,dword ptr [rcx+18h]                  ; 
+1451918E8  lea      r8,[rsi+0000000000062410h]               ; 
+1451918EF  mov      qword ptr [r11+8],rbx                    ; 
+1451918F3  mov      qword ptr [r11+10h],rbp                  ; 
+1451918F7  xor      ebp,ebp                                  ; 
+1451918F9  mov      qword ptr [r11+18h],rdi                  ; 
+1451918FD  mov      edi,1                                    ; 
+145191902  mov      qword ptr [r11-18h],r15                  ; 
+145191906  movaps   xmmword ptr [rsp+70h],xmm6               ; 
+14519190B  movss    xmm6,dword ptr [00000001482703D8h]       ; .rdata 82703d8
+145191913  movaps   xmmword ptr [rsp+60h],xmm7               ; 
+145191918  movss    xmm7,dword ptr [00000001482703E8h]       ; .rdata 82703e8
+145191920  imul     rcx,rax,8F20h                            ; 
+145191927  movaps   xmmword ptr [r11-48h],xmm8               ; 
+14519192C  movaps   xmm8,xmm7                                ; 
+145191930  movaps   xmmword ptr [r11-68h],xmm10              ; 
+145191935  movaps   xmmword ptr [r11-78h],xmm11              ; 
+14519193A  add      r8,rcx                                   ; 
+14519193D  add      rcx,62440h                               ; 
+145191944  add      rcx,rsi                                  ; 
+145191947  cmp      rcx,r8                                   ; 
+14519194A  je       0000000145191978                         ; 
+14519194C  mov      r9,qword ptr [r8]                        ; 
+14519194F  mov      rax,2AAAAAAAAAAAAAABh                    ; 
+145191959  mov      r8,qword ptr [r8+8]                      ; 
+14519195D  sub      r8,r9                                    ; 
+145191960  imul     r8                                       ; 
+145191963  sar      rdx,1                                    ; 
+145191966  mov      r8,rdx                                   ; 
+145191969  shr      r8,3Fh                                   ; 
+14519196D  add      r8,rdx                                   ; 
+145191970  mov      rdx,r9                                   ; 
+145191973  call     000000014394CBA0                         ; call 0x394cba0
+145191978  movsxd   rax,dword ptr [rsi+18h]                  ; 
+14519197C  movaps   xmm1,xmm7                                ; 
+14519197F  imul     rcx,rax,8F20h                            ; 
+145191986  add      rcx,597D8h                               ; 
+14519198D  add      rcx,rsi                                  ; 
+145191990  call     0000000145140C90                         ; call 0x5140c90
+145191995  movsxd   rax,dword ptr [rsi+18h]                  ; 
+145191999  movzx    r8d,dil                                  ; 
+14519199D  imul     rcx,rax,8F20h                            ; 
+1451919A4  mov      edx,r14d                                 ; 
+1451919A7  add      rcx,597D8h                               ; 
+1451919AE  add      rcx,rsi                                  ; 
+1451919B1  call     00000001450A0D80                         ; call 0x50a0d80
+1451919B6  movsxd   rax,dword ptr [rsi+18h]                  ; 
+1451919BA  mov      edx,3Bh                                  ; 
+1451919BF  imul     rcx,rax,8F20h                            ; 
+1451919C6  add      rcx,597D8h                               ; 
+1451919CD  add      rcx,rsi                                  ; 
+1451919D0  call     0000000145143350                         ; call 0x5143350
+1451919D5  movsxd   r15,dword ptr [rsi+18h]                  ; 
+1451919D9  mov      rcx,rsi                                  ; 
+1451919DC  movss    xmm1,dword ptr [rsi+0000000000086A58h]   ; 
+1451919E4  imul     rbx,r15,8F20h                            ; 
+1451919EB  mov      r8d,dword ptr [rbx+rsi+0000000000061368h] ; 
+1451919F3  call     000000014516B8F0                         ; call 0x516b8f0
+1451919F8  movss    xmm10,dword ptr [00000001482704A0h]      ; .rdata 82704a0
+145191A01  movaps   xmm2,xmm0                                ; 
+145191A04  subss    xmm2,dword ptr [rbx+rsi+0000000000061374h] ; 
+145191A0D  movss    xmm11,dword ptr [0000000148333580h]      ; .rdata 8333580
+145191A16  movaps   xmm1,xmm2                                ; 
+145191A19  andps    xmm1,xmm10                               ; 
+145191A1D  comiss   xmm11,xmm1                               ; 
+145191A21  ja       0000000145191B10                         ; 
+145191A27  movaps   xmmword ptr [rsp+40h],xmm9               ; 
+145191A2D  xorps    xmm9,xmm9                                ; 
+145191A31  comiss   xmm2,xmm9                                ; 
+145191A35  jbe      0000000145191A46                         ; 
+145191A37  test     edi,edi                                  ; 
+145191A39  jns      0000000145191A3F                         ; 
+145191A3B  mulss    xmm6,xmm7                                ; 
+145191A3F  mov      edi,1                                    ; 
+145191A44  jmp      0000000145191A53                         ; 
+145191A46  test     edi,edi                                  ; 
+145191A48  jle      0000000145191A4E                         ; 
+145191A4A  mulss    xmm6,xmm7                                ; 
+145191A4E  mov      edi,0FFFFFFFFh                           ; 
+145191A53  movd     xmm0,edi                                 ; 
+145191A57  inc      ebp                                      ; 
+145191A59  cvtdq2ps xmm0,xmm0                                ; 
+145191A5C  mulss    xmm0,xmm6                                ; 
+145191A60  addss    xmm8,xmm0                                ; 
+145191A65  cmp      ebp,64h                                  ; 
+145191A68  jg       0000000145191B0A                         ; 
+145191A6E  movsxd   rax,r15d                                 ; 
+145191A71  movaps   xmm1,xmm8                                ; 
+145191A75  imul     rcx,rax,8F20h                            ; 
+145191A7C  add      rcx,597D8h                               ; 
+145191A83  add      rcx,rsi                                  ; 
+145191A86  call     0000000145140C90                         ; call 0x5140c90
+145191A8B  movsxd   rax,dword ptr [rsi+18h]                  ; 
+145191A8F  mov      r8b,1                                    ; 
+145191A92  imul     rcx,rax,8F20h                            ; 
+145191A99  mov      edx,r14d                                 ; 
+145191A9C  add      rcx,597D8h                               ; 
+145191AA3  add      rcx,rsi                                  ; 
+145191AA6  call     00000001450A0D80                         ; call 0x50a0d80
+145191AAB  movsxd   rax,dword ptr [rsi+18h]                  ; 
+145191AAF  mov      edx,3Bh                                  ; 
+145191AB4  imul     rcx,rax,8F20h                            ; 
+145191ABB  add      rcx,597D8h                               ; 
+145191AC2  add      rcx,rsi                                  ; 
+145191AC5  call     0000000145143350                         ; call 0x5143350
+145191ACA  movsxd   r15,dword ptr [rsi+18h]                  ; 
+145191ACE  mov      rcx,rsi                                  ; 
+145191AD1  movss    xmm1,dword ptr [rsi+0000000000086A58h]   ; 
+145191AD9  imul     rbx,r15,8F20h                            ; 
+145191AE0  mov      r8d,dword ptr [rbx+rsi+0000000000061368h] ; 
+145191AE8  call     000000014516B8F0                         ; call 0x516b8f0
+145191AED  movaps   xmm2,xmm0                                ; 
+145191AF0  subss    xmm2,dword ptr [rbx+rsi+0000000000061374h] ; 
+145191AF9  movaps   xmm0,xmm2                                ; 
+145191AFC  andps    xmm0,xmm10                               ; 
+145191B00  comiss   xmm11,xmm0                               ; 
+145191B04  jbe      0000000145191A31                         ; 
+145191B0A  movaps   xmm9,xmmword ptr [rsp+40h]               ; 
+145191B10  movaps   xmm10,xmmword ptr [rsp+30h]              ; 
+145191B16  movaps   xmm8,xmmword ptr [rsp+50h]               ; 
+145191B1C  movaps   xmm7,xmmword ptr [rsp+60h]               ; 
+145191B21  movaps   xmm6,xmmword ptr [rsp+70h]               ; 
+145191B26  mov      r15,qword ptr [rsp+0000000000000080h]    ; 
+145191B2E  mov      rdi,qword ptr [rsp+00000000000000B0h]    ; 
+145191B36  mov      rbp,qword ptr [rsp+00000000000000A8h]    ; 
+145191B3E  mov      rbx,qword ptr [rsp+00000000000000A0h]    ; 
+145191B46  movaps   xmm11,xmmword ptr [rsp+20h]              ; 
+145191B4C  add      rsp,88h                                  ; 
+145191B53  pop      r14                                      ; 
+145191B55  pop      rsi                                      ; 
+145191B56  ret                                               ; 
+== 140 instructions, ends 145191B56
+== strings
+== calls (rva: count, thunk)
+  394cba0: x1 
+  50a0d80: x2 
+  5140c90: x2 
+  5143350: x2 
+  516b8f0: x2 
+== data refs
+  82703d8 .rdata x1
+  82703e8 .rdata x1
+  82704a0 .rdata x1
+  8333580 .rdata x1

@@ -1,0 +1,47 @@
+﻿14518F430  mov      qword ptr [rsp+18h],rbx                  ; 
+14518F435  mov      dword ptr [rsp+10h],edx                  ; 
+14518F439  push     rdi                                      ; 
+14518F43A  sub      rsp,30h                                  ; 
+14518F43E  movsxd   rax,edx                                  ; 
+14518F441  lea      r9,[rsp+40h]                             ; 
+14518F446  mov      qword ptr [rsp+28h],rcx                  ; 
+14518F44B  mov      edi,r8d                                  ; 
+14518F44E  mov      rbx,rcx                                  ; 
+14518F451  lea      r8,[000000014518F1B0h]                   ; .text 518f1b0 -> 'L..SATAVH..PIc@.'
+14518F458  lea      rdx,[rax+rax*2]                          ; 
+14518F45C  mov      rax,qword ptr [rcx+rdx*8+0000000000086808h] ; 
+14518F464  sub      rax,qword ptr [rcx+rdx*8+0000000000086800h] ; 
+14518F46C  mov      edx,3                                    ; 
+14518F471  sar      rax,2                                    ; 
+14518F475  mov      dword ptr [rsp+40h],eax                  ; 
+14518F479  nop                                               ; 
+14518F47A  lea      rax,[rsp+48h]                            ; 
+14518F47F  lea      ecx,[rdx-2]                              ; 
+14518F482  mov      qword ptr [rsp+20h],rax                  ; 
+14518F487  call     00000001470DE8E6                         ; call 0x70de8e6 (jmp[iat 148236b78]->9fb4358)
+14518F48C  nop                                               ; 
+14518F48D  cmp      dword ptr [rbx+18h],1                    ; 
+14518F491  jne      000000014518F4A6                         ; 
+14518F493  cmp      edi,1                                    ; 
+14518F496  jne      000000014518F49E                         ; 
+14518F498  cmp      byte ptr [rbx+20h],0                     ; 
+14518F49C  jne      000000014518F4A6                         ; 
+14518F49E  mov      rcx,rbx                                  ; 
+14518F4A1  call     000000014518EF60                         ; call 0x518ef60
+14518F4A6  movsxd   rax,dword ptr [rbx+18h]                  ; 
+14518F4AA  add      rbx,597D8h                               ; 
+14518F4B1  imul     rcx,rax,8F20h                            ; 
+14518F4B8  add      rcx,rbx                                  ; 
+14518F4BB  call     0000000145139130                         ; call 0x5139130
+14518F4C0  mov      rbx,qword ptr [rsp+50h]                  ; 
+14518F4C5  add      rsp,30h                                  ; 
+14518F4C9  pop      rdi                                      ; 
+14518F4CA  ret                                               ; 
+== 39 instructions, ends 14518F4CA
+== strings
+  14518F451  ref 518f1b0  L..SATAVH..PIc@.
+== calls (rva: count, thunk)
+  5139130: x1 
+  518ef60: x1 
+  70de8e6: x1 jmp[iat 148236b78]->9fb4358
+== data refs

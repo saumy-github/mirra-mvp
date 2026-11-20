@@ -1,0 +1,34 @@
+{
+ "backbone": "siglip2",
+ "pre": "none",
+ "clf": "lr",
+ "params": {
+  "back_threshold": 0.5,
+  "usability_weight": 0.0,
+  "other_threshold": 0.6
+ },
+ "selection": {
+  "view": {
+   "backbone": "marqo",
+   "pre": "lda",
+   "clf": "nb",
+   "val_macro_f1": 0.6154264796862929,
+   "test_acc": 0.6632739609838847,
+   "test_macro_f1": 0.6247246398273625
+  },
+  "view_by_backbone": {
+   "marqo": {
+    "pre": "lda",
+    "clf": "nb",
+    "val_macro_f1": 0.6154264796862929,
+    "test_macro_f1": 0.6247246398273625
+   },
+   "siglip2": {
+    "pre": "none",
+    "clf": "mlp",
+    "val_macro_f1": 0.5952988023646036,
+    "test_macro_f1": 0.6312825036753511
+   }
+  }
+ }
+}

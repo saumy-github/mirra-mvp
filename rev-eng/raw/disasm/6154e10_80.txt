@@ -1,0 +1,60 @@
+
+Dump of file C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe
+
+File Type: EXECUTABLE IMAGE
+
+  0000000146154E10: mov         rcx,qword ptr [rcx+10h]
+  0000000146154E14: test        rcx,rcx
+  0000000146154E17: je          0000000146154E20
+  0000000146154E19: mov         rax,qword ptr [rcx]
+  0000000146154E1C: jmp         qword ptr [rax+20h]
+  0000000146154E20: xor         al,al
+  0000000146154E22: ret
+  0000000146154E23: int         3
+  0000000146154E24: int         3
+  0000000146154E25: int         3
+  0000000146154E26: int         3
+  0000000146154E27: int         3
+  0000000146154E28: int         3
+  0000000146154E29: int         3
+  0000000146154E2A: int         3
+  0000000146154E2B: int         3
+  0000000146154E2C: int         3
+  0000000146154E2D: int         3
+  0000000146154E2E: int         3
+  0000000146154E2F: int         3
+  0000000146154E30: push        rsi
+  0000000146154E32: sub         rsp,20h
+  0000000146154E36: mov         r8,qword ptr [rdx]
+  0000000146154E39: mov         rsi,rcx
+  0000000146154E3C: mov         rcx,qword ptr [rcx+50h]
+  0000000146154E40: and         rcx,r8
+  0000000146154E43: shl         rcx,4
+  0000000146154E47: add         rcx,qword ptr [rsi+38h]
+  0000000146154E4B: mov         rdx,qword ptr [rsi+28h]
+  0000000146154E4F: mov         rax,qword ptr [rcx+8]
+  0000000146154E53: cmp         rax,rdx
+  0000000146154E56: je          0000000146154E72
+  0000000146154E58: mov         rcx,qword ptr [rcx]
+  0000000146154E5B: cmp         r8,qword ptr [rax+10h]
+  0000000146154E5F: je          0000000146154E74
+  0000000146154E61: cmp         rax,rcx
+  0000000146154E64: je          0000000146154E72
+  0000000146154E66: mov         rax,qword ptr [rax+8]
+  0000000146154E6A: cmp         r8,qword ptr [rax+10h]
+  0000000146154E6E: jne         0000000146154E61
+  0000000146154E70: jmp         0000000146154E74
+  0000000146154E72: xor         eax,eax
+  0000000146154E74: test        rax,rax
+  0000000146154E77: cmove       rax,rdx
+  0000000146154E7B: cmp         rax,rdx
+  0000000146154E7E: je          0000000146154F3E
+  0000000146154E84: mov         qword ptr [rsp+30h],rbx
+  0000000146154E89: mov         rbx,qword ptr [rax+18h]
+  0000000146154E8D: 48
+  0000000146154E8E: 89
+  0000000146154E8F: jl          0000000146154EB5
+
+  Summary
+
+     822A000 .text

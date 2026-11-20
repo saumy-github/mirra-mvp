@@ -20,7 +20,11 @@ def run(ctx: Step1Context) -> bool:
         "user_id": ctx.user_id,
         "requested_run_number": run_number,
         "base_avatar_path_input": ctx.base_avatar_path_input,
-        "measurement_source_requested": "json_file" if ctx.measurement_file_input else "auto",
+        "measurement_source_requested": (
+            "job_snapshot" if ctx.measurement_doc_input is not None
+            else "json_file" if ctx.measurement_file_input
+            else "mongodb"
+        ),
         "measurement_file_input": ctx.measurement_file_input,
         "measurement_apply_mode_requested": ctx.measurement_apply_mode_input,
         "active_field_filters": list(ctx.active_field_filters),

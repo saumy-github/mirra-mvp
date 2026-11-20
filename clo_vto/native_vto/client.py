@@ -1,5 +1,6 @@
 """REST client wrapper for CLO automation plugin."""
 
+import os
 from pathlib import Path
 import time
 import requests
@@ -7,8 +8,10 @@ import requests
 
 class CLORestClient:
     """Client for CLO REST Plugin API."""
-    def __init__(self, base_url="http://localhost:50505", timeout=30):
-        self.base_url = base_url
+    def __init__(self, base_url=None, timeout=30):
+        # CLO_BASE_URL lets each worker process target its own CLO session
+        # (one plugin port per session); unset keeps the single-session default.
+        self.base_url = base_url or os.environ.get("CLO_BASE_URL") or "http://localhost:50505"
         self.timeout = timeout
 
     def _post(self, endpoint, data):
@@ -159,15 +162,37 @@ class CLORestClient:
     def get_status(self):
         return self._get("/status")
 
+    def _wait_for_event_or_sleep(self, status, poll_interval):
+        """Wake as soon as the plugin reports any completion event.
+
+        Plugins with the event feed put `event_seq` in /status; /events is a
+        long-poll that returns the moment something newer than that happens
+        (command_done, queue_idle). Older plugins just get the fixed sleep.
+        """
+        seq = status.get("event_seq")
+        if seq is None:
+            time.sleep(poll_interval)
+            return
+        try:
+            requests.get(
+                f"{self.base_url}/events",
+                params={"since": seq, "timeout_ms": 1000},
+                timeout=self.timeout + 2,
+            )
+        except requests.exceptions.RequestException:
+            time.sleep(poll_interval)
+
     def wait_for_queue(self, timeout=30, poll_interval=0.3):
         deadline = time.time() + timeout
         last_trigger = 0.0
         while time.time() < deadline:
             status = self.get_status()
             if status.get("queue_size", 1) == 0 and not status.get("queue_processing", True):
-                # Small pause so CLO finishes writing results to last_results
-                # before the caller reads get_status() again.
-                time.sleep(0.4)
+                # Older plugins: small pause so CLO finishes writing results to
+                # last_results before the caller reads get_status() again. With
+                # the event feed the result is recorded before queue_idle fires.
+                if status.get("event_seq") is None:
+                    time.sleep(0.4)
                 return status
 
             if (
@@ -178,7 +203,7 @@ class CLORestClient:
                 self._post("/execute", {})
                 last_trigger = time.time()
 
-            time.sleep(poll_interval)
+            self._wait_for_event_or_sleep(status, poll_interval)
 
         raise TimeoutError(
             f"CLO queue did not drain within {timeout}s. Last status: {self.get_status()}"

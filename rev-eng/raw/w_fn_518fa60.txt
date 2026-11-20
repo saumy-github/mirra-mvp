@@ -1,0 +1,36 @@
+﻿14518FA60  push     rbx                                      ; 
+14518FA62  sub      rsp,20h                                  ; 
+14518FA66  mov      rax,qword ptr [rcx+28h]                  ; 
+14518FA6A  mov      rbx,rcx                                  ; 
+14518FA6D  cmp      dword ptr [rax+00000000000000F0h],0      ; 
+14518FA74  je       000000014518FAF3                         ; 
+14518FA76  movss    xmm0,dword ptr [rcx+0000000000086950h]   ; 
+14518FA7E  lea      rdx,[rsp+30h]                            ; 
+14518FA83  movsxd   rax,dword ptr [rcx+18h]                  ; 
+14518FA87  divss    xmm0,dword ptr [0000000148270478h]       ; .rdata 8270478
+14518FA8F  imul     rcx,rax,8F20h                            ; 
+14518FA96  movss    dword ptr [rsp+30h],xmm0                 ; 
+14518FA9C  add      rcx,597D8h                               ; 
+14518FAA3  add      rcx,rbx                                  ; 
+14518FAA6  call     00000001451404C0                         ; call 0x51404c0
+14518FAAB  movsxd   rax,dword ptr [rbx+18h]                  ; 
+14518FAAF  imul     rcx,rax,8F20h                            ; 
+14518FAB6  mov      eax,dword ptr [rbx+0000000000086950h]    ; 
+14518FABC  mov      dword ptr [rcx+rbx+00000000000613D0h],eax ; 
+14518FAC3  movsxd   rax,dword ptr [rbx+18h]                  ; 
+14518FAC7  imul     rcx,rax,8F20h                            ; 
+14518FACE  mov      eax,dword ptr [rbx+0000000000086950h]    ; 
+14518FAD4  mov      dword ptr [rcx+rbx+0000000000061584h],eax ; 
+14518FADB  movsxd   rax,dword ptr [rbx+18h]                  ; 
+14518FADF  imul     rcx,rax,8F20h                            ; 
+14518FAE6  mov      eax,dword ptr [rbx+0000000000086950h]    ; 
+14518FAEC  mov      dword ptr [rcx+rbx+0000000000061588h],eax ; 
+14518FAF3  add      rsp,20h                                  ; 
+14518FAF7  pop      rbx                                      ; 
+14518FAF8  ret                                               ; 
+== 30 instructions, ends 14518FAF8
+== strings
+== calls (rva: count, thunk)
+  51404c0: x1 
+== data refs
+  8270478 .rdata x1

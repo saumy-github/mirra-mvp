@@ -15,30 +15,46 @@ from ..core.security import new_id
 from ..db import avatar_jobs_col, avatar_profiles_col
 from ..user_measurements.service import get_for_user as get_measurements
 from . import engine
-from .models import AvatarJobDocument, AvatarProfileDocument
+from .models import AVATAR_PIPELINE_VERSION, AvatarJobDocument, AvatarProfileDocument
 
 
 def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-async def start_generation(user_id: str) -> AvatarJobDocument:
+async def _fresh_profile(user_id: str, measurements_version: int | None) -> AvatarProfileDocument | None:
+    """The user's stored avatar if it already matches the current measurements and pipeline."""
+    raw = await avatar_profiles_col().find_one({"user_id": user_id})
+    if not raw or not raw.get("avatar_glb_path"):
+        return None
+    if raw.get("pipeline_version") != AVATAR_PIPELINE_VERSION:
+        return None
+    if raw.get("source_measurements_version") != measurements_version:
+        return None
+    glb = get_settings().avatars_upload_root.resolve() / raw["avatar_glb_path"]
+    return AvatarProfileDocument.model_validate(raw) if glb.is_file() else None
+
+
+async def start_generation(user_id: str, force: bool = False) -> AvatarJobDocument:
     measurements = await get_measurements(user_id)  # 404s if none stored
+    fresh = None if force else await _fresh_profile(user_id, measurements.measurements_version)
+    now = _now()
     job = AvatarJobDocument(
         id=new_id("aj"),
         user_id=user_id,
         measurement_snapshot=measurements.model_dump(exclude_none=True),
-        state="queued",
+        state="ready" if fresh else "queued",
         failure_reason=None,
-        avatar_profile_id=None,
-        created_at=_now(),
-        completed_at=None,
+        avatar_profile_id=fresh.id if fresh else None,
+        created_at=now,
+        completed_at=now if fresh else None,
     )
     # Insert before enqueueing: an idle worker can otherwise read the job
     # before its document exists, log "not found" and drop it, leaving the
     # job stuck in `queued` forever (doc 13 section 43).
     await avatar_jobs_col().insert_one(job.to_mongo())
-    engine.start_job(job)  # hands off to the CLO worker via Redis
+    if not fresh:
+        engine.start_job(job)  # hands off to the CLO worker via Redis
     return await get_job(job.id, user_id)
 
 
@@ -89,6 +105,7 @@ class ResolvedAvatarGlb:
     path: Path
     # None when staleness cannot be determined.
     is_stale: bool | None
+    etag: str
 
 
 async def get_profile_glb(user_id: str) -> ResolvedAvatarGlb:
@@ -121,4 +138,5 @@ async def get_profile_glb(user_id: str) -> ResolvedAvatarGlb:
         else:
             is_stale = current_measurements.measurements_version != source_version
 
-    return ResolvedAvatarGlb(path=resolved_path, is_stale=is_stale)
+    etag = f"{profile.get('clo_run_id') or 'run'}-{resolved_path.stat().st_size}"
+    return ResolvedAvatarGlb(path=resolved_path, is_stale=is_stale, etag=etag)

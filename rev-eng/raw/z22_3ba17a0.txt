@@ -1,0 +1,22 @@
+143BA17A0  mov      qword ptr [rsp+8],rcx                    ; 
+143BA17A5  push     rbx                                      ; 
+143BA17A6  sub      rsp,20h                                  ; 
+143BA17AA  mov      rbx,rcx                                  ; 
+143BA17AD  call     0000000143BA2250                         ; call 0x3ba2250
+143BA17B2  nop                                               ; 
+143BA17B3  lea      rax,[000000014884BBE8h]                  ; .rdata 884bbe8
+143BA17BA  mov      qword ptr [rbx],rax                      ; 
+143BA17BD  mov      rcx,rbx                                  ; 
+143BA17C0  call     0000000143C277A0                         ; call 0x3c277a0
+143BA17C5  nop                                               ; 
+143BA17C6  mov      rax,rbx                                  ; 
+143BA17C9  add      rsp,20h                                  ; 
+143BA17CD  pop      rbx                                      ; 
+143BA17CE  ret                                               ; 
+== 15 instructions, ends 143BA17CE
+== strings
+== calls (rva: count, thunk)
+  3ba2250: x1 
+  3c277a0: x1 
+== data refs
+  884bbe8 .rdata x1

@@ -1,0 +1,2181 @@
+
+Dump of file C:\Program Files\CLO Standalone OnlineAuth\CLO_Standalone_OnlineAuth_x64.exe
+
+File Type: EXECUTABLE IMAGE
+
+  0000000145CC1DA0: mov         qword ptr [rsp+10h],rbx
+  0000000145CC1DA5: mov         qword ptr [rsp+18h],rbp
+  0000000145CC1DAA: push        rsi
+  0000000145CC1DAB: push        rdi
+  0000000145CC1DAC: push        r14
+  0000000145CC1DAE: sub         rsp,0A0h
+  0000000145CC1DB5: mov         rsi,rcx
+  0000000145CC1DB8: xor         eax,eax
+  0000000145CC1DBA: mov         dword ptr [rsp+00000000000000C0h],eax
+  0000000145CC1DC1: mov         qword ptr [rcx],rax
+  0000000145CC1DC4: mov         dword ptr [rcx+8],eax
+  0000000145CC1DC7: mov         qword ptr [rcx+10h],rax
+  0000000145CC1DCB: mov         qword ptr [rcx+18h],rax
+  0000000145CC1DCF: mov         qword ptr [rcx+20h],rax
+  0000000145CC1DD3: mov         qword ptr [rcx+28h],rax
+  0000000145CC1DD7: mov         dword ptr [rcx+30h],eax
+  0000000145CC1DDA: call        0000000141C23080
+  0000000145CC1DDF: lea         rdx,[rsp+68h]
+  0000000145CC1DE4: mov         rcx,rax
+  0000000145CC1DE7: call        0000000145CBB4B0
+  0000000145CC1DEC: nop
+  0000000145CC1DED: mov         ebx,1
+  0000000145CC1DF2: mov         dword ptr [rsp+00000000000000C0h],ebx
+  0000000145CC1DF9: cmp         qword ptr [rax],0
+  0000000145CC1DFD: je          0000000145CC1E2F
+  0000000145CC1DFF: call        0000000141C23080
+  0000000145CC1E04: lea         rdx,[rsp+58h]
+  0000000145CC1E09: mov         rcx,rax
+  0000000145CC1E0C: call        0000000145CBB4B0
+  0000000145CC1E11: nop
+  0000000145CC1E12: mov         ebx,3
+  0000000145CC1E17: mov         dword ptr [rsp+00000000000000C0h],ebx
+  0000000145CC1E1E: mov         rcx,qword ptr [rax]
+  0000000145CC1E21: call        0000000143F40E60
+  0000000145CC1E26: test        al,al
+  0000000145CC1E28: je          0000000145CC1E2F
+  0000000145CC1E2A: mov         r14b,1
+  0000000145CC1E2D: jmp         0000000145CC1E32
+  0000000145CC1E2F: xor         r14b,r14b
+  0000000145CC1E32: mov         ebp,0FFFFFFFFh
+  0000000145CC1E37: test        bl,2
+  0000000145CC1E3A: je          0000000145CC1E80
+  0000000145CC1E3C: and         ebx,0FFFFFFFDh
+  0000000145CC1E3F: mov         dword ptr [rsp+00000000000000C0h],ebx
+  0000000145CC1E46: mov         rdi,qword ptr [rsp+60h]
+  0000000145CC1E4B: test        rdi,rdi
+  0000000145CC1E4E: je          0000000145CC1E80
+  0000000145CC1E50: mov         eax,ebp
+  0000000145CC1E52: lock xadd   dword ptr [rdi+8],eax
+  0000000145CC1E57: cmp         eax,1
+  0000000145CC1E5A: jne         0000000145CC1E79
+  0000000145CC1E5C: mov         rax,qword ptr [rdi]
+  0000000145CC1E5F: mov         rcx,rdi
+  0000000145CC1E62: call        qword ptr [rax]
+  0000000145CC1E64: mov         eax,ebp
+  0000000145CC1E66: lock xadd   dword ptr [rdi+0Ch],eax
+  0000000145CC1E6B: cmp         eax,1
+  0000000145CC1E6E: jne         0000000145CC1E79
+  0000000145CC1E70: mov         rax,qword ptr [rdi]
+  0000000145CC1E73: mov         rcx,rdi
+  0000000145CC1E76: call        qword ptr [rax+8]
+  0000000145CC1E79: mov         ebx,dword ptr [rsp+00000000000000C0h]
+  0000000145CC1E80: test        bl,1
+  0000000145CC1E83: je          0000000145CC1EB6
+  0000000145CC1E85: mov         rbx,qword ptr [rsp+70h]
+  0000000145CC1E8A: test        rbx,rbx
+  0000000145CC1E8D: je          0000000145CC1EB6
+  0000000145CC1E8F: mov         eax,ebp
+  0000000145CC1E91: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC1E96: cmp         eax,1
+  0000000145CC1E99: jne         0000000145CC1EB6
+  0000000145CC1E9B: mov         rax,qword ptr [rbx]
+  0000000145CC1E9E: mov         rcx,rbx
+  0000000145CC1EA1: call        qword ptr [rax]
+  0000000145CC1EA3: lock xadd   dword ptr [rbx+0Ch],ebp
+  0000000145CC1EA8: cmp         ebp,1
+  0000000145CC1EAB: jne         0000000145CC1EB6
+  0000000145CC1EAD: mov         rax,qword ptr [rbx]
+  0000000145CC1EB0: mov         rcx,rbx
+  0000000145CC1EB3: call        qword ptr [rax+8]
+  0000000145CC1EB6: test        r14b,r14b
+  0000000145CC1EB9: je          0000000145CC1F7B
+  0000000145CC1EBF: lea         rcx,[rsp+78h]
+  0000000145CC1EC4: call        00000001468223D0
+  0000000145CC1EC9: lea         rcx,[rsp+78h]
+  0000000145CC1ECE: call        0000000146822210
+  0000000145CC1ED3: lea         rcx,[rsp+20h]
+  0000000145CC1ED8: call        000000014538A120
+  0000000145CC1EDD: nop
+  0000000145CC1EDE: lea         rdx,[rsp+20h]
+  0000000145CC1EE3: mov         rcx,rsi
+  0000000145CC1EE6: call        0000000145CBFDA0
+  0000000145CC1EEB: lea         rcx,[rsp+78h]
+  0000000145CC1EF0: call        0000000146822210
+  0000000145CC1EF5: xorps       xmm1,xmm1
+  0000000145CC1EF8: cvtsd2ss    xmm1,xmm0
+  0000000145CC1EFC: movss       dword ptr [rsi],xmm1
+  0000000145CC1F00: call        0000000141C23080
+  0000000145CC1F05: mov         rcx,rax
+  0000000145CC1F08: call        0000000145CBB480
+  0000000145CC1F0D: mov         rcx,qword ptr [rax]
+  0000000145CC1F10: mov         r8,qword ptr [rcx+0000000000000108h]
+  0000000145CC1F17: lea         rdx,[rsp+30h]
+  0000000145CC1F1C: mov         rcx,rax
+  0000000145CC1F1F: call        r8
+  0000000145CC1F22: movsd       xmm0,mmword ptr [rsp+30h]
+  0000000145CC1F28: cvtpd2ps    xmm0,xmm0
+  0000000145CC1F2C: movss       dword ptr [rsi+4],xmm0
+  0000000145CC1F31: movsd       xmm1,mmword ptr [rsp+38h]
+  0000000145CC1F37: cvtpd2ps    xmm1,xmm1
+  0000000145CC1F3B: movss       dword ptr [rsi+8],xmm1
+  0000000145CC1F40: movsd       xmm0,mmword ptr [rsp+40h]
+  0000000145CC1F46: cvtpd2ps    xmm0,xmm0
+  0000000145CC1F4A: movss       dword ptr [rsi+0Ch],xmm0
+  0000000145CC1F4F: movsd       xmm1,mmword ptr [rsp+48h]
+  0000000145CC1F55: cvtpd2ps    xmm1,xmm1
+  0000000145CC1F59: movss       dword ptr [rsi+14h],xmm1
+  0000000145CC1F5E: movsd       xmm0,mmword ptr [rsp+50h]
+  0000000145CC1F64: cvtpd2ps    xmm0,xmm0
+  0000000145CC1F68: movss       dword ptr [rsi+10h],xmm0
+  0000000145CC1F6D: lea         rcx,[rsp+20h]
+  0000000145CC1F72: call        000000014538B460
+  0000000145CC1F77: mov         al,1
+  0000000145CC1F79: jmp         0000000145CC1F9F
+  0000000145CC1F7B: call        0000000145CBAE00
+  0000000145CC1F80: mov         rcx,rax
+  0000000145CC1F83: call        0000000145CBBD70
+  0000000145CC1F88: test        al,al
+  0000000145CC1F8A: je          0000000145CC1F9D
+  0000000145CC1F8C: call        0000000141C22B10
+  0000000145CC1F91: mov         rcx,rax
+  0000000145CC1F94: call        0000000145CBEE80
+  0000000145CC1F99: mov         al,1
+  0000000145CC1F9B: jmp         0000000145CC1F9F
+  0000000145CC1F9D: xor         al,al
+  0000000145CC1F9F: lea         r11,[rsp+00000000000000A0h]
+  0000000145CC1FA7: mov         rbx,qword ptr [r11+28h]
+  0000000145CC1FAB: mov         rbp,qword ptr [r11+30h]
+  0000000145CC1FAF: mov         rsp,r11
+  0000000145CC1FB2: pop         r14
+  0000000145CC1FB4: pop         rdi
+  0000000145CC1FB5: pop         rsi
+  0000000145CC1FB6: ret
+  0000000145CC1FB7: int         3
+  0000000145CC1FB8: int         3
+  0000000145CC1FB9: int         3
+  0000000145CC1FBA: int         3
+  0000000145CC1FBB: int         3
+  0000000145CC1FBC: int         3
+  0000000145CC1FBD: int         3
+  0000000145CC1FBE: int         3
+  0000000145CC1FBF: int         3
+  0000000145CC1FC0: mov         qword ptr [rsp+8],rbx
+  0000000145CC1FC5: mov         qword ptr [rsp+10h],rbp
+  0000000145CC1FCA: mov         qword ptr [rsp+18h],rsi
+  0000000145CC1FCF: push        rdi
+  0000000145CC1FD0: sub         rsp,60h
+  0000000145CC1FD4: call        0000000141C22B10
+  0000000145CC1FD9: lea         rdx,[rsp+40h]
+  0000000145CC1FDE: mov         rcx,rax
+  0000000145CC1FE1: call        0000000145CB9DD0
+  0000000145CC1FE6: mov         rcx,qword ptr [rax]
+  0000000145CC1FE9: lea         rsi,[000000014827F760h]
+  0000000145CC1FF0: mov         qword ptr [rsp+30h],rsi
+  0000000145CC1FF5: movsd       xmm0,mmword ptr [rcx+00000000000002B8h]
+  0000000145CC1FFD: movsd       mmword ptr [rsp+38h],xmm0
+  0000000145CC2003: mov         edi,0FFFFFFFFh
+  0000000145CC2008: mov         rbx,qword ptr [rsp+48h]
+  0000000145CC200D: test        rbx,rbx
+  0000000145CC2010: je          0000000145CC203B
+  0000000145CC2012: mov         eax,edi
+  0000000145CC2014: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC2019: cmp         eax,1
+  0000000145CC201C: jne         0000000145CC203B
+  0000000145CC201E: mov         rax,qword ptr [rbx]
+  0000000145CC2021: mov         rcx,rbx
+  0000000145CC2024: call        qword ptr [rax]
+  0000000145CC2026: mov         eax,edi
+  0000000145CC2028: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC202D: cmp         eax,1
+  0000000145CC2030: jne         0000000145CC203B
+  0000000145CC2032: mov         rax,qword ptr [rbx]
+  0000000145CC2035: mov         rcx,rbx
+  0000000145CC2038: call        qword ptr [rax+8]
+  0000000145CC203B: call        0000000145CBAE80
+  0000000145CC2040: mov         rcx,rax
+  0000000145CC2043: call        0000000145CC1DA0
+  0000000145CC2048: movzx       ebp,al
+  0000000145CC204B: call        0000000141C22B10
+  0000000145CC2050: lea         rdx,[rsp+50h]
+  0000000145CC2055: mov         rcx,rax
+  0000000145CC2058: call        0000000145CB9DD0
+  0000000145CC205D: nop
+  0000000145CC205E: mov         rcx,qword ptr [rax]
+  0000000145CC2061: mov         qword ptr [rsp+20h],rsi
+  0000000145CC2066: movsd       xmm0,mmword ptr [rcx+00000000000002B8h]
+  0000000145CC206E: movsd       mmword ptr [rsp+28h],xmm0
+  0000000145CC2074: lea         rdx,[rsp+20h]
+  0000000145CC2079: lea         rcx,[rsp+30h]
+  0000000145CC207E: call        000000014538BA40
+  0000000145CC2083: movzx       esi,al
+  0000000145CC2086: lea         rcx,[rsp+20h]
+  0000000145CC208B: call        000000014538B460
+  0000000145CC2090: nop
+  0000000145CC2091: mov         rbx,qword ptr [rsp+58h]
+  0000000145CC2096: test        rbx,rbx
+  0000000145CC2099: je          0000000145CC20C2
+  0000000145CC209B: mov         edx,edi
+  0000000145CC209D: lock xadd   dword ptr [rbx+8],edx
+  0000000145CC20A2: cmp         edx,1
+  0000000145CC20A5: jne         0000000145CC20C2
+  0000000145CC20A7: mov         rax,qword ptr [rbx]
+  0000000145CC20AA: mov         rcx,rbx
+  0000000145CC20AD: call        qword ptr [rax]
+  0000000145CC20AF: lock xadd   dword ptr [rbx+0Ch],edi
+  0000000145CC20B4: cmp         edi,1
+  0000000145CC20B7: jne         0000000145CC20C2
+  0000000145CC20B9: mov         rax,qword ptr [rbx]
+  0000000145CC20BC: mov         rcx,rbx
+  0000000145CC20BF: call        qword ptr [rax+8]
+  0000000145CC20C2: test        sil,sil
+  0000000145CC20C5: je          0000000145CC20E5
+  0000000145CC20C7: call        0000000141BE0EC0
+  0000000145CC20CC: cmp         qword ptr [rax+30h],0
+  0000000145CC20D1: je          0000000145CC20E5
+  0000000145CC20D3: call        0000000141BE0EC0
+  0000000145CC20D8: mov         rcx,qword ptr [rax+68h]
+  0000000145CC20DC: mov         rax,qword ptr [rcx]
+  0000000145CC20DF: xor         edx,edx
+  0000000145CC20E1: call        qword ptr [rax+8]
+  0000000145CC20E4: nop
+  0000000145CC20E5: lea         rcx,[rsp+30h]
+  0000000145CC20EA: call        000000014538B460
+  0000000145CC20EF: movzx       eax,bpl
+  0000000145CC20F3: mov         rbx,qword ptr [rsp+70h]
+  0000000145CC20F8: mov         rbp,qword ptr [rsp+78h]
+  0000000145CC20FD: mov         rsi,qword ptr [rsp+0000000000000080h]
+  0000000145CC2105: add         rsp,60h
+  0000000145CC2109: pop         rdi
+  0000000145CC210A: ret
+  0000000145CC210B: int         3
+  0000000145CC210C: int         3
+  0000000145CC210D: int         3
+  0000000145CC210E: int         3
+  0000000145CC210F: int         3
+  0000000145CC2110: cmp         byte ptr [rcx+0000000000000698h],0
+  0000000145CC2117: sete        al
+  0000000145CC211A: mov         byte ptr [rcx+0000000000000698h],al
+  0000000145CC2120: ret
+  0000000145CC2121: int         3
+  0000000145CC2122: int         3
+  0000000145CC2123: int         3
+  0000000145CC2124: int         3
+  0000000145CC2125: int         3
+  0000000145CC2126: int         3
+  0000000145CC2127: int         3
+  0000000145CC2128: int         3
+  0000000145CC2129: int         3
+  0000000145CC212A: int         3
+  0000000145CC212B: int         3
+  0000000145CC212C: int         3
+  0000000145CC212D: int         3
+  0000000145CC212E: int         3
+  0000000145CC212F: int         3
+  0000000145CC2130: mov         qword ptr [rsp+10h],rbx
+  0000000145CC2135: mov         qword ptr [rsp+18h],rbp
+  0000000145CC213A: push        rsi
+  0000000145CC213B: push        rdi
+  0000000145CC213C: push        r14
+  0000000145CC213E: sub         rsp,50h
+  0000000145CC2142: mov         rsi,rdx
+  0000000145CC2145: mov         rbx,rcx
+  0000000145CC2148: mov         r8,rdx
+  0000000145CC214B: mov         rdx,qword ptr [rcx+48h]
+  0000000145CC214F: mov         rcx,qword ptr [rcx+40h]
+  0000000145CC2153: call        0000000145CB5510
+  0000000145CC2158: mov         rdx,qword ptr [rbx+48h]
+  0000000145CC215C: cmp         rax,rdx
+  0000000145CC215F: je          0000000145CC22BB
+  0000000145CC2165: lea         rcx,[rax+8]
+  0000000145CC2169: mov         r8,rax
+  0000000145CC216C: call        000000014506F5C0
+  0000000145CC2171: add         qword ptr [rbx+48h],0FFFFFFFFFFFFFFF8h
+  0000000145CC2176: mov         byte ptr [rsi+000000000000010Ah],0
+  0000000145CC217D: call        0000000141BE0DC0
+  0000000145CC2182: lea         rdx,[rsp+30h]
+  0000000145CC2187: mov         rcx,rax
+  0000000145CC218A: call        0000000145CBA300
+  0000000145CC218F: mov         r14,qword ptr [rax]
+  0000000145CC2192: mov         ebp,0FFFFFFFFh
+  0000000145CC2197: mov         rdi,qword ptr [rsp+38h]
+  0000000145CC219C: test        rdi,rdi
+  0000000145CC219F: je          0000000145CC21CA
+  0000000145CC21A1: mov         eax,ebp
+  0000000145CC21A3: lock xadd   dword ptr [rdi+8],eax
+  0000000145CC21A8: cmp         eax,1
+  0000000145CC21AB: jne         0000000145CC21CA
+  0000000145CC21AD: mov         rax,qword ptr [rdi]
+  0000000145CC21B0: mov         rcx,rdi
+  0000000145CC21B3: call        qword ptr [rax]
+  0000000145CC21B5: mov         eax,ebp
+  0000000145CC21B7: lock xadd   dword ptr [rdi+0Ch],eax
+  0000000145CC21BC: cmp         eax,1
+  0000000145CC21BF: jne         0000000145CC21CA
+  0000000145CC21C1: mov         rax,qword ptr [rdi]
+  0000000145CC21C4: mov         rcx,rdi
+  0000000145CC21C7: call        qword ptr [rax+8]
+  0000000145CC21CA: test        r14,r14
+  0000000145CC21CD: je          0000000145CC221F
+  0000000145CC21CF: call        0000000141BE0DC0
+  0000000145CC21D4: lea         rdx,[rsp+40h]
+  0000000145CC21D9: mov         rcx,rax
+  0000000145CC21DC: call        0000000145CBA300
+  0000000145CC21E1: nop
+  0000000145CC21E2: mov         rdx,rsi
+  0000000145CC21E5: mov         rcx,qword ptr [rax]
+  0000000145CC21E8: call        0000000143F04E90
+  0000000145CC21ED: nop
+  0000000145CC21EE: mov         rdi,qword ptr [rsp+48h]
+  0000000145CC21F3: test        rdi,rdi
+  0000000145CC21F6: je          0000000145CC221F
+  0000000145CC21F8: mov         eax,ebp
+  0000000145CC21FA: lock xadd   dword ptr [rdi+8],eax
+  0000000145CC21FF: cmp         eax,1
+  0000000145CC2202: jne         0000000145CC221F
+  0000000145CC2204: mov         rax,qword ptr [rdi]
+  0000000145CC2207: mov         rcx,rdi
+  0000000145CC220A: call        qword ptr [rax]
+  0000000145CC220C: lock xadd   dword ptr [rdi+0Ch],ebp
+  0000000145CC2211: cmp         ebp,1
+  0000000145CC2214: jne         0000000145CC221F
+  0000000145CC2216: mov         rax,qword ptr [rdi]
+  0000000145CC2219: mov         rcx,rdi
+  0000000145CC221C: call        qword ptr [rax+8]
+  0000000145CC221F: xor         edi,edi
+  0000000145CC2221: mov         dword ptr [rsp+20h],edi
+  0000000145CC2225: lea         r9,[000000014A18F438h]
+  0000000145CC222C: lea         r8,[000000014A18F3A0h]
+  0000000145CC2233: xor         edx,edx
+  0000000145CC2235: mov         rcx,rsi
+  0000000145CC2238: call        00000001470DEA0E
+  0000000145CC223D: test        rax,rax
+  0000000145CC2240: je          0000000145CC226B
+  0000000145CC2242: lea         rcx,[rbx+10h]
+  0000000145CC2246: mov         qword ptr [rsp+70h],rsi
+  0000000145CC224B: mov         rdx,qword ptr [rbx+18h]
+  0000000145CC224F: cmp         rdx,qword ptr [rbx+20h]
+  0000000145CC2253: je          0000000145CC225F
+  0000000145CC2255: mov         qword ptr [rdx],rsi
+  0000000145CC2258: add         qword ptr [rbx+18h],8
+  0000000145CC225D: jmp         0000000145CC22B3
+  0000000145CC225F: lea         r8,[rsp+70h]
+  0000000145CC2264: call        0000000145CB5050
+  0000000145CC2269: jmp         0000000145CC22B3
+  0000000145CC226B: mov         dword ptr [rsp+20h],edi
+  0000000145CC226F: lea         r9,[000000014A18F3C8h]
+  0000000145CC2276: lea         r8,[000000014A18F3A0h]
+  0000000145CC227D: xor         edx,edx
+  0000000145CC227F: mov         rcx,rsi
+  0000000145CC2282: call        00000001470DEA0E
+  0000000145CC2287: test        rax,rax
+  0000000145CC228A: je          0000000145CC22BB
+  0000000145CC228C: lea         rcx,[rbx+28h]
+  0000000145CC2290: mov         qword ptr [rsp+70h],rsi
+  0000000145CC2295: mov         rdx,qword ptr [rbx+30h]
+  0000000145CC2299: cmp         rdx,qword ptr [rbx+38h]
+  0000000145CC229D: je          0000000145CC22A9
+  0000000145CC229F: mov         qword ptr [rdx],rsi
+  0000000145CC22A2: add         qword ptr [rbx+30h],8
+  0000000145CC22A7: jmp         0000000145CC22B3
+  0000000145CC22A9: lea         r8,[rsp+70h]
+  0000000145CC22AE: call        0000000145CB51A0
+  0000000145CC22B3: mov         rcx,rbx
+  0000000145CC22B6: call        0000000145CC3770
+  0000000145CC22BB: mov         rbx,qword ptr [rsp+78h]
+  0000000145CC22C0: mov         rbp,qword ptr [rsp+0000000000000080h]
+  0000000145CC22C8: add         rsp,50h
+  0000000145CC22CC: pop         r14
+  0000000145CC22CE: pop         rdi
+  0000000145CC22CF: pop         rsi
+  0000000145CC22D0: ret
+  0000000145CC22D1: int         3
+  0000000145CC22D2: int         3
+  0000000145CC22D3: int         3
+  0000000145CC22D4: int         3
+  0000000145CC22D5: int         3
+  0000000145CC22D6: int         3
+  0000000145CC22D7: int         3
+  0000000145CC22D8: int         3
+  0000000145CC22D9: int         3
+  0000000145CC22DA: int         3
+  0000000145CC22DB: int         3
+  0000000145CC22DC: int         3
+  0000000145CC22DD: int         3
+  0000000145CC22DE: int         3
+  0000000145CC22DF: int         3
+  0000000145CC22E0: mov         rax,rsp
+  0000000145CC22E3: mov         qword ptr [rax+8],rbx
+  0000000145CC22E7: mov         qword ptr [rax+10h],rbp
+  0000000145CC22EB: mov         qword ptr [rax+18h],rsi
+  0000000145CC22EF: push        rdi
+  0000000145CC22F0: sub         rsp,0A0h
+  0000000145CC22F7: movaps      xmmword ptr [rax-18h],xmm6
+  0000000145CC22FB: movaps      xmmword ptr [rax-28h],xmm7
+  0000000145CC22FF: mov         rbp,rcx
+  0000000145CC2302: add         rcx,10h
+  0000000145CC2306: call        0000000146822210
+  0000000145CC230B: xorps       xmm7,xmm7
+  0000000145CC230E: cvtsd2ss    xmm7,xmm0
+  0000000145CC2312: xorps       xmm1,xmm1
+  0000000145CC2315: ucomiss     xmm7,xmm1
+  0000000145CC2318: jp          0000000145CC2324
+  0000000145CC231A: jne         0000000145CC2324
+  0000000145CC231C: movss       xmm7,dword ptr [00000001482703C0h]
+  0000000145CC2324: call        0000000141C22B10
+  0000000145CC2329: lea         rdx,[rsp+50h]
+  0000000145CC232E: mov         rcx,rax
+  0000000145CC2331: call        0000000145CB9DD0
+  0000000145CC2336: nop
+  0000000145CC2337: mov         rcx,qword ptr [rax]
+  0000000145CC233A: call        000000014539CD90
+  0000000145CC233F: movzx       esi,al
+  0000000145CC2342: mov         edi,0FFFFFFFFh
+  0000000145CC2347: mov         rbx,qword ptr [rsp+58h]
+  0000000145CC234C: test        rbx,rbx
+  0000000145CC234F: je          0000000145CC237A
+  0000000145CC2351: mov         edx,edi
+  0000000145CC2353: lock xadd   dword ptr [rbx+8],edx
+  0000000145CC2358: cmp         edx,1
+  0000000145CC235B: jne         0000000145CC237A
+  0000000145CC235D: mov         rdx,qword ptr [rbx]
+  0000000145CC2360: mov         rcx,rbx
+  0000000145CC2363: call        qword ptr [rdx]
+  0000000145CC2365: mov         eax,edi
+  0000000145CC2367: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC236C: cmp         eax,1
+  0000000145CC236F: jne         0000000145CC237A
+  0000000145CC2371: mov         rax,qword ptr [rbx]
+  0000000145CC2374: mov         rcx,rbx
+  0000000145CC2377: call        qword ptr [rax+8]
+  0000000145CC237A: test        sil,sil
+  0000000145CC237D: je          0000000145CC24C8
+  0000000145CC2383: call        0000000141C22B10
+  0000000145CC2388: lea         rdx,[rsp+60h]
+  0000000145CC238D: mov         rcx,rax
+  0000000145CC2390: call        0000000145CB9DD0
+  0000000145CC2395: mov         rcx,qword ptr [rax]
+  0000000145CC2398: lea         rsi,[000000014827F760h]
+  0000000145CC239F: mov         qword ptr [rsp+40h],rsi
+  0000000145CC23A4: movsd       xmm0,mmword ptr [rcx+00000000000002B8h]
+  0000000145CC23AC: movsd       mmword ptr [rsp+48h],xmm0
+  0000000145CC23B2: mov         rbx,qword ptr [rsp+68h]
+  0000000145CC23B7: test        rbx,rbx
+  0000000145CC23BA: je          0000000145CC23E5
+  0000000145CC23BC: mov         eax,edi
+  0000000145CC23BE: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC23C3: cmp         eax,1
+  0000000145CC23C6: jne         0000000145CC23E5
+  0000000145CC23C8: mov         rax,qword ptr [rbx]
+  0000000145CC23CB: mov         rcx,rbx
+  0000000145CC23CE: call        qword ptr [rax]
+  0000000145CC23D0: mov         eax,edi
+  0000000145CC23D2: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC23D7: cmp         eax,1
+  0000000145CC23DA: jne         0000000145CC23E5
+  0000000145CC23DC: mov         rax,qword ptr [rbx]
+  0000000145CC23DF: mov         rcx,rbx
+  0000000145CC23E2: call        qword ptr [rax+8]
+  0000000145CC23E5: call        0000000141C22B10
+  0000000145CC23EA: lea         rdx,[rsp+70h]
+  0000000145CC23EF: mov         rcx,rax
+  0000000145CC23F2: call        0000000145CB9DD0
+  0000000145CC23F7: mov         rcx,qword ptr [rax]
+  0000000145CC23FA: mov         qword ptr [rsp+30h],rsi
+  0000000145CC23FF: movsd       xmm0,mmword ptr [rcx+00000000000002A8h]
+  0000000145CC2407: movsd       mmword ptr [rsp+38h],xmm0
+  0000000145CC240D: mov         rbx,qword ptr [rsp+78h]
+  0000000145CC2412: test        rbx,rbx
+  0000000145CC2415: je          0000000145CC243E
+  0000000145CC2417: mov         eax,edi
+  0000000145CC2419: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC241E: cmp         eax,1
+  0000000145CC2421: jne         0000000145CC243E
+  0000000145CC2423: mov         rax,qword ptr [rbx]
+  0000000145CC2426: mov         rcx,rbx
+  0000000145CC2429: call        qword ptr [rax]
+  0000000145CC242B: lock xadd   dword ptr [rbx+0Ch],edi
+  0000000145CC2430: cmp         edi,1
+  0000000145CC2433: jne         0000000145CC243E
+  0000000145CC2435: mov         rax,qword ptr [rbx]
+  0000000145CC2438: mov         rcx,rbx
+  0000000145CC243B: call        qword ptr [rax+8]
+  0000000145CC243E: lea         rcx,[rsp+30h]
+  0000000145CC2443: call        00000001453A1530
+  0000000145CC2448: movaps      xmm6,xmm0
+  0000000145CC244B: lea         rcx,[rsp+40h]
+  0000000145CC2450: call        00000001453A1530
+  0000000145CC2455: subsd       xmm6,xmm0
+  0000000145CC2459: cvttsd2si   eax,xmm6
+  0000000145CC245D: movd        xmm1,eax
+  0000000145CC2461: cvtdq2ps    xmm1,xmm1
+  0000000145CC2464: mulss       xmm1,xmm7
+  0000000145CC2468: cvttss2si   r9,xmm1
+  0000000145CC246D: mov         eax,91A2B3C5h
+  0000000145CC2472: mul         eax,r9d
+  0000000145CC2475: mov         r8d,edx
+  0000000145CC2478: shr         r8d,0Bh
+  0000000145CC247C: imul        eax,r8d,0E10h
+  0000000145CC2483: sub         r9d,eax
+  0000000145CC2486: mov         eax,88888889h
+  0000000145CC248B: mul         eax,r9d
+  0000000145CC248E: shr         edx,5
+  0000000145CC2491: imul        eax,edx,3Ch
+  0000000145CC2494: sub         r9d,eax
+  0000000145CC2497: lea         rcx,[rbp+0000000000000160h]
+  0000000145CC249E: mov         dword ptr [rsp+20h],r9d
+  0000000145CC24A3: mov         r9d,edx
+  0000000145CC24A6: lea         rdx,[000000014895F6A0h]
+  0000000145CC24AD: call        00000001444063B0
+  0000000145CC24B2: nop
+  0000000145CC24B3: lea         rcx,[rsp+30h]
+  0000000145CC24B8: call        000000014538B460
+  0000000145CC24BD: nop
+  0000000145CC24BE: lea         rcx,[rsp+40h]
+  0000000145CC24C3: call        000000014538B460
+  0000000145CC24C8: lea         r11,[rsp+00000000000000A0h]
+  0000000145CC24D0: mov         rbx,qword ptr [r11+10h]
+  0000000145CC24D4: mov         rbp,qword ptr [r11+18h]
+  0000000145CC24D8: mov         rsi,qword ptr [r11+20h]
+  0000000145CC24DC: movaps      xmm6,xmmword ptr [r11-10h]
+  0000000145CC24E1: movaps      xmm7,xmmword ptr [r11-20h]
+  0000000145CC24E6: mov         rsp,r11
+  0000000145CC24E9: pop         rdi
+  0000000145CC24EA: ret
+  0000000145CC24EB: int         3
+  0000000145CC24EC: int         3
+  0000000145CC24ED: int         3
+  0000000145CC24EE: int         3
+  0000000145CC24EF: int         3
+  0000000145CC24F0: mov         qword ptr [rsp+18h],rbx
+  0000000145CC24F5: mov         qword ptr [rsp+20h],rbp
+  0000000145CC24FA: mov         qword ptr [rsp+10h],rdx
+  0000000145CC24FF: push        rsi
+  0000000145CC2500: push        rdi
+  0000000145CC2501: push        r14
+  0000000145CC2503: sub         rsp,50h
+  0000000145CC2507: mov         r14,rdx
+  0000000145CC250A: mov         rbp,rcx
+  0000000145CC250D: xor         esi,esi
+  0000000145CC250F: mov         r8,qword ptr [rcx+00000000000006C0h]
+  0000000145CC2516: mov         rax,qword ptr [rcx+00000000000006C8h]
+  0000000145CC251D: sub         rax,r8
+  0000000145CC2520: sar         rax,4
+  0000000145CC2524: test        rax,rax
+  0000000145CC2527: je          0000000145CC25CB
+  0000000145CC252D: mov         edi,esi
+  0000000145CC252F: nop
+  0000000145CC2530: mov         rbx,qword ptr [rdi+r8]
+  0000000145CC2534: lea         rdx,[000000014827F770h]
+  0000000145CC253B: lea         rcx,[rsp+30h]
+  0000000145CC2540: call        0000000146664F70
+  0000000145CC2545: nop
+  0000000145CC2546: xor         r8d,r8d
+  0000000145CC2549: lea         rdx,[rsp+30h]
+  0000000145CC254E: lea         rcx,[rbx+00000000000002A0h]
+  0000000145CC2555: call        0000000146666560
+  0000000145CC255A: mov         ebx,eax
+  0000000145CC255C: lea         rcx,[rsp+30h]
+  0000000145CC2561: call        0000000146665040
+  0000000145CC2566: test        ebx,ebx
+  0000000145CC2568: jne         0000000145CC25A6
+  0000000145CC256A: mov         rax,qword ptr [rbp+00000000000006C0h]
+  0000000145CC2571: mov         rcx,qword ptr [rdi+rax]
+  0000000145CC2575: xorps       xmm0,xmm0
+  0000000145CC2578: movdqu      xmmword ptr [rsp+20h],xmm0
+  0000000145CC257E: mov         rax,qword ptr [r14+8]
+  0000000145CC2582: test        rax,rax
+  0000000145CC2585: je          0000000145CC258B
+  0000000145CC2587: lock inc    dword ptr [rax+8]
+  0000000145CC258B: mov         rax,qword ptr [r14]
+  0000000145CC258E: mov         qword ptr [rsp+20h],rax
+  0000000145CC2593: mov         rax,qword ptr [r14+8]
+  0000000145CC2597: mov         qword ptr [rsp+28h],rax
+  0000000145CC259C: lea         rdx,[rsp+20h]
+  0000000145CC25A1: call        0000000143A5BC50
+  0000000145CC25A6: inc         rsi
+  0000000145CC25A9: add         rdi,10h
+  0000000145CC25AD: mov         r8,qword ptr [rbp+00000000000006C0h]
+  0000000145CC25B4: mov         rax,qword ptr [rbp+00000000000006C8h]
+  0000000145CC25BB: sub         rax,r8
+  0000000145CC25BE: sar         rax,4
+  0000000145CC25C2: cmp         rsi,rax
+  0000000145CC25C5: jb          0000000145CC2530
+  0000000145CC25CB: mov         rbx,qword ptr [r14+8]
+  0000000145CC25CF: test        rbx,rbx
+  0000000145CC25D2: je          0000000145CC2600
+  0000000145CC25D4: mov         edi,0FFFFFFFFh
+  0000000145CC25D9: mov         eax,edi
+  0000000145CC25DB: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC25E0: cmp         eax,1
+  0000000145CC25E3: jne         0000000145CC2600
+  0000000145CC25E5: mov         rax,qword ptr [rbx]
+  0000000145CC25E8: mov         rcx,rbx
+  0000000145CC25EB: call        qword ptr [rax]
+  0000000145CC25ED: lock xadd   dword ptr [rbx+0Ch],edi
+  0000000145CC25F2: cmp         edi,1
+  0000000145CC25F5: jne         0000000145CC2600
+  0000000145CC25F7: mov         rax,qword ptr [rbx]
+  0000000145CC25FA: mov         rcx,rbx
+  0000000145CC25FD: call        qword ptr [rax+8]
+  0000000145CC2600: lea         r11,[rsp+50h]
+  0000000145CC2605: mov         rbx,qword ptr [r11+30h]
+  0000000145CC2609: mov         rbp,qword ptr [r11+38h]
+  0000000145CC260D: mov         rsp,r11
+  0000000145CC2610: pop         r14
+  0000000145CC2612: pop         rdi
+  0000000145CC2613: pop         rsi
+  0000000145CC2614: ret
+  0000000145CC2615: int         3
+  0000000145CC2616: int         3
+  0000000145CC2617: int         3
+  0000000145CC2618: int         3
+  0000000145CC2619: int         3
+  0000000145CC261A: int         3
+  0000000145CC261B: int         3
+  0000000145CC261C: int         3
+  0000000145CC261D: int         3
+  0000000145CC261E: int         3
+  0000000145CC261F: int         3
+  0000000145CC2620: push        rbx
+  0000000145CC2622: push        rdi
+  0000000145CC2623: push        r14
+  0000000145CC2625: sub         rsp,120h
+  0000000145CC262C: mov         rdi,rcx
+  0000000145CC262F: movaps      xmmword ptr [rsp+00000000000000B0h],xmm12
+  0000000145CC2638: add         rcx,38h
+  0000000145CC263C: mov         qword ptr [rsp+0000000000000150h],rbp
+  0000000145CC2644: call        00000001468222E0
+  0000000145CC2649: lea         rcx,[rdi+10h]
+  0000000145CC264D: call        0000000146822210
+  0000000145CC2652: xorps       xmm12,xmm12
+  0000000145CC2656: xorps       xmm1,xmm1
+  0000000145CC2659: cvtsd2ss    xmm12,xmm0
+  0000000145CC265E: ucomiss     xmm12,xmm1
+  0000000145CC2662: jp          0000000145CC266F
+  0000000145CC2664: jne         0000000145CC266F
+  0000000145CC2666: movss       xmm12,dword ptr [00000001482703C0h]
+  0000000145CC266F: call        0000000141BE0DC0
+  0000000145CC2674: lea         rdx,[rsp+70h]
+  0000000145CC2679: mov         rcx,rax
+  0000000145CC267C: call        0000000145CBA300
+  0000000145CC2681: mov         rbx,qword ptr [rsp+78h]
+  0000000145CC2686: mov         rbp,qword ptr [rax]
+  0000000145CC2689: test        rbx,rbx
+  0000000145CC268C: je          0000000145CC26CA
+  0000000145CC268E: mov         qword ptr [rsp+0000000000000158h],rsi
+  0000000145CC2696: mov         esi,0FFFFFFFFh
+  0000000145CC269B: mov         eax,esi
+  0000000145CC269D: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC26A2: cmp         eax,1
+  0000000145CC26A5: jne         0000000145CC26C2
+  0000000145CC26A7: mov         rax,qword ptr [rbx]
+  0000000145CC26AA: mov         rcx,rbx
+  0000000145CC26AD: call        qword ptr [rax]
+  0000000145CC26AF: lock xadd   dword ptr [rbx+0Ch],esi
+  0000000145CC26B4: cmp         esi,1
+  0000000145CC26B7: jne         0000000145CC26C2
+  0000000145CC26B9: mov         rax,qword ptr [rbx]
+  0000000145CC26BC: mov         rcx,rbx
+  0000000145CC26BF: call        qword ptr [rax+8]
+  0000000145CC26C2: mov         rsi,qword ptr [rsp+0000000000000158h]
+  0000000145CC26CA: test        rbp,rbp
+  0000000145CC26CD: mov         rbp,qword ptr [rsp+0000000000000150h]
+  0000000145CC26D5: je          0000000145CC2D14
+  0000000145CC26DB: mov         eax,dword ptr [rdi+0000000000000264h]
+  0000000145CC26E1: movaps      xmmword ptr [rsp+0000000000000110h],xmm6
+  0000000145CC26E9: movaps      xmmword ptr [rsp+0000000000000100h],xmm7
+  0000000145CC26F1: movaps      xmmword ptr [rsp+00000000000000F0h],xmm8
+  0000000145CC26FA: movaps      xmmword ptr [rsp+00000000000000E0h],xmm9
+  0000000145CC2703: movaps      xmmword ptr [rsp+00000000000000D0h],xmm10
+  0000000145CC270C: movaps      xmmword ptr [rsp+00000000000000C0h],xmm11
+  0000000145CC2715: cmp         dword ptr [rdi+0000000000000260h],eax
+  0000000145CC271B: jae         0000000145CC2B19
+  0000000145CC2721: lea         rcx,[rdi+38h]
+  0000000145CC2725: call        00000001468223C0
+  0000000145CC272A: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC2730: xorps       xmm1,xmm1
+  0000000145CC2733: cvtss2sd    xmm1,xmm0
+  0000000145CC2737: movsd       mmword ptr [rdi+rax*8+0000000000000328h],xmm1
+  0000000145CC2740: call        0000000145CBAE80
+  0000000145CC2745: movss       xmm0,dword ptr [rax+4]
+  0000000145CC274A: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC2750: cvtps2pd    xmm0,xmm0
+  0000000145CC2753: movsd       mmword ptr [rdi+rax*8+0000000000000378h],xmm0
+  0000000145CC275C: call        0000000145CBAE80
+  0000000145CC2761: movss       xmm0,dword ptr [rax+8]
+  0000000145CC2766: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC276C: cvtps2pd    xmm0,xmm0
+  0000000145CC276F: movsd       mmword ptr [rdi+rax*8+00000000000003C8h],xmm0
+  0000000145CC2778: call        0000000145CBAE80
+  0000000145CC277D: movss       xmm0,dword ptr [rax+0Ch]
+  0000000145CC2782: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC2788: cvtps2pd    xmm0,xmm0
+  0000000145CC278B: movsd       mmword ptr [rdi+rax*8+0000000000000418h],xmm0
+  0000000145CC2794: call        0000000145CBAE80
+  0000000145CC2799: movss       xmm0,dword ptr [rax+10h]
+  0000000145CC279E: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC27A4: cvtps2pd    xmm0,xmm0
+  0000000145CC27A7: movsd       mmword ptr [rdi+rax*8+0000000000000468h],xmm0
+  0000000145CC27B0: call        0000000145CBAE80
+  0000000145CC27B5: movss       xmm0,dword ptr [rax+14h]
+  0000000145CC27BA: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC27C0: cvtps2pd    xmm0,xmm0
+  0000000145CC27C3: movsd       mmword ptr [rdi+rax*8+00000000000004B8h],xmm0
+  0000000145CC27CC: call        0000000145CBAE80
+  0000000145CC27D1: movss       xmm0,dword ptr [rax+1Ch]
+  0000000145CC27D6: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC27DC: cvtps2pd    xmm0,xmm0
+  0000000145CC27DF: movsd       mmword ptr [rdi+rax*8+0000000000000508h],xmm0
+  0000000145CC27E8: call        0000000145CBAE80
+  0000000145CC27ED: movaps      xmm0,xmm12
+  0000000145CC27F1: subss       xmm0,dword ptr [rax]
+  0000000145CC27F5: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC27FB: cvtps2pd    xmm1,xmm0
+  0000000145CC27FE: subsd       xmm1,mmword ptr [rdi+0000000000000268h]
+  0000000145CC2806: movsd       mmword ptr [rdi+rax*8+0000000000000558h],xmm1
+  0000000145CC280F: mov         ecx,dword ptr [rdi+0000000000000260h]
+  0000000145CC2815: mov         rax,qword ptr [rdi+0000000000000268h]
+  0000000145CC281C: mov         qword ptr [rdi+rcx*8+00000000000005A8h],rax
+  0000000145CC2824: mov         ecx,dword ptr [rdi+0000000000000260h]
+  0000000145CC282A: mov         rax,qword ptr [rdi+0000000000000270h]
+  0000000145CC2831: mov         qword ptr [rdi+rcx*8+00000000000005F8h],rax
+  0000000145CC2839: call        0000000145CBAE80
+  0000000145CC283E: movss       xmm11,dword ptr [rax]
+  0000000145CC2843: call        0000000145CBAE80
+  0000000145CC2848: movss       xmm10,dword ptr [rax+8]
+  0000000145CC284E: call        0000000145CBAE80
+  0000000145CC2853: movss       xmm9,dword ptr [rax+0Ch]
+  0000000145CC2859: call        0000000145CBAE80
+  0000000145CC285E: movss       xmm8,dword ptr [rax+10h]
+  0000000145CC2864: call        0000000145CBAE80
+  0000000145CC2869: movss       xmm7,dword ptr [rax+14h]
+  0000000145CC286E: call        0000000145CBAE80
+  0000000145CC2873: movss       xmm6,dword ptr [rax+1Ch]
+  0000000145CC2878: call        0000000145CBAE80
+  0000000145CC287D: subss       xmm11,dword ptr [rax+4]
+  0000000145CC2883: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC2889: subss       xmm11,xmm10
+  0000000145CC288E: subss       xmm11,xmm9
+  0000000145CC2893: subss       xmm11,xmm8
+  0000000145CC2898: subss       xmm11,xmm7
+  0000000145CC289D: subss       xmm11,xmm6
+  0000000145CC28A2: cvtps2pd    xmm0,xmm11
+  0000000145CC28A6: movsd       mmword ptr [rdi+rax*8+0000000000000648h],xmm0
+  0000000145CC28AF: inc         dword ptr [rdi+0000000000000260h]
+  0000000145CC28B5: mov         eax,dword ptr [rdi+0000000000000260h]
+  0000000145CC28BB: cmp         eax,dword ptr [rdi+0000000000000264h]
+  0000000145CC28C1: jne         0000000145CC2B19
+  0000000145CC28C7: lea         rcx,[rdi+0000000000000280h]
+  0000000145CC28CE: call        00000001470D130B
+  0000000145CC28D3: test        eax,eax
+  0000000145CC28D5: jne         0000000145CC2E19
+  0000000145CC28DB: mov         eax,dword ptr [rdi+00000000000002CCh]
+  0000000145CC28E1: cmp         eax,7FFFFFFFh
+  0000000145CC28E6: je          0000000145CC2E06
+  0000000145CC28EC: mov         ecx,dword ptr [rdi+0000000000000264h]
+  0000000145CC28F2: xor         r8d,r8d
+  0000000145CC28F5: mov         qword ptr [rdi+00000000000002D0h],r8
+  0000000145CC28FC: xorps       xmm1,xmm1
+  0000000145CC28FF: mov         qword ptr [rdi+00000000000002D8h],r8
+  0000000145CC2906: xorps       xmm2,xmm2
+  0000000145CC2909: mov         qword ptr [rdi+00000000000002E0h],r8
+  0000000145CC2910: xorps       xmm3,xmm3
+  0000000145CC2913: mov         qword ptr [rdi+00000000000002E8h],r8
+  0000000145CC291A: xorps       xmm4,xmm4
+  0000000145CC291D: mov         qword ptr [rdi+00000000000002F0h],r8
+  0000000145CC2924: xorps       xmm5,xmm5
+  0000000145CC2927: mov         qword ptr [rdi+00000000000002F8h],r8
+  0000000145CC292E: xorps       xmm6,xmm6
+  0000000145CC2931: mov         qword ptr [rdi+0000000000000300h],r8
+  0000000145CC2938: xorps       xmm7,xmm7
+  0000000145CC293B: mov         qword ptr [rdi+0000000000000308h],r8
+  0000000145CC2942: xorps       xmm8,xmm8
+  0000000145CC2946: mov         qword ptr [rdi+0000000000000310h],r8
+  0000000145CC294D: xorps       xmm9,xmm9
+  0000000145CC2951: mov         qword ptr [rdi+0000000000000318h],r8
+  0000000145CC2958: xorps       xmm10,xmm10
+  0000000145CC295C: mov         qword ptr [rdi+0000000000000320h],r8
+  0000000145CC2963: xorps       xmm11,xmm11
+  0000000145CC2967: test        ecx,ecx
+  0000000145CC2969: jle         0000000145CC2A42
+  0000000145CC296F: xorps       xmm0,xmm0
+  0000000145CC2972: lea         rax,[rdi+0000000000000378h]
+  0000000145CC2979: mov         edx,ecx
+  0000000145CC297B: nop         dword ptr [rax+rax]
+  0000000145CC2980: movaps      xmm1,xmm0
+  0000000145CC2983: addsd       xmm1,mmword ptr [rax-50h]
+  0000000145CC2988: movsd       mmword ptr [rdi+00000000000002D0h],xmm1
+  0000000145CC2990: movaps      xmm0,xmm1
+  0000000145CC2993: addsd       xmm2,mmword ptr [rax]
+  0000000145CC2997: movsd       mmword ptr [rdi+00000000000002D8h],xmm2
+  0000000145CC299F: addsd       xmm3,mmword ptr [rax+50h]
+  0000000145CC29A4: movsd       mmword ptr [rdi+00000000000002E0h],xmm3
+  0000000145CC29AC: addsd       xmm4,mmword ptr [rax+00000000000000A0h]
+  0000000145CC29B4: movsd       mmword ptr [rdi+00000000000002E8h],xmm4
+  0000000145CC29BC: addsd       xmm5,mmword ptr [rax+00000000000000F0h]
+  0000000145CC29C4: movsd       mmword ptr [rdi+00000000000002F0h],xmm5
+  0000000145CC29CC: addsd       xmm6,mmword ptr [rax+0000000000000140h]
+  0000000145CC29D4: movsd       mmword ptr [rdi+00000000000002F8h],xmm6
+  0000000145CC29DC: addsd       xmm7,mmword ptr [rax+0000000000000190h]
+  0000000145CC29E4: movsd       mmword ptr [rdi+0000000000000300h],xmm7
+  0000000145CC29EC: addsd       xmm8,mmword ptr [rax+00000000000001E0h]
+  0000000145CC29F5: movsd       mmword ptr [rdi+0000000000000308h],xmm8
+  0000000145CC29FE: addsd       xmm9,mmword ptr [rax+0000000000000230h]
+  0000000145CC2A07: movsd       mmword ptr [rdi+0000000000000310h],xmm9
+  0000000145CC2A10: addsd       xmm10,mmword ptr [rax+0000000000000280h]
+  0000000145CC2A19: movsd       mmword ptr [rdi+0000000000000318h],xmm10
+  0000000145CC2A22: addsd       xmm11,mmword ptr [rax+00000000000002D0h]
+  0000000145CC2A2B: add         rax,8
+  0000000145CC2A2F: movsd       mmword ptr [rdi+0000000000000320h],xmm11
+  0000000145CC2A38: sub         rdx,1
+  0000000145CC2A3C: jne         0000000145CC2980
+  0000000145CC2A42: xorps       xmm0,xmm0
+  0000000145CC2A45: mov         dword ptr [rdi+0000000000000260h],r8d
+  0000000145CC2A4C: cvtsi2sd    xmm0,rcx
+  0000000145CC2A51: lea         rcx,[rdi+0000000000000280h]
+  0000000145CC2A58: divsd       xmm1,xmm0
+  0000000145CC2A5C: divsd       xmm2,xmm0
+  0000000145CC2A60: divsd       xmm3,xmm0
+  0000000145CC2A64: divsd       xmm4,xmm0
+  0000000145CC2A68: divsd       xmm5,xmm0
+  0000000145CC2A6C: divsd       xmm6,xmm0
+  0000000145CC2A70: divsd       xmm7,xmm0
+  0000000145CC2A74: divsd       xmm8,xmm0
+  0000000145CC2A79: divsd       xmm9,xmm0
+  0000000145CC2A7E: divsd       xmm10,xmm0
+  0000000145CC2A83: divsd       xmm11,xmm0
+  0000000145CC2A88: movss       xmm0,dword ptr [00000001482703E8h]
+  0000000145CC2A90: divss       xmm0,xmm12
+  0000000145CC2A95: movsd       mmword ptr [rdi+00000000000002D0h],xmm1
+  0000000145CC2A9D: movss       xmm1,dword ptr [00000001482703F8h]
+  0000000145CC2AA5: maxss       xmm1,xmm0
+  0000000145CC2AA9: movsd       mmword ptr [rdi+00000000000002D8h],xmm2
+  0000000145CC2AB1: movss       xmm0,dword ptr [0000000148269B44h]
+  0000000145CC2AB9: movsd       mmword ptr [rdi+00000000000002E0h],xmm3
+  0000000145CC2AC1: movsd       mmword ptr [rdi+00000000000002E8h],xmm4
+  0000000145CC2AC9: movsd       mmword ptr [rdi+00000000000002F0h],xmm5
+  0000000145CC2AD1: minss       xmm0,xmm1
+  0000000145CC2AD5: movsd       mmword ptr [rdi+00000000000002F8h],xmm6
+  0000000145CC2ADD: movsd       mmword ptr [rdi+0000000000000300h],xmm7
+  0000000145CC2AE5: movsd       mmword ptr [rdi+0000000000000308h],xmm8
+  0000000145CC2AEE: movsd       mmword ptr [rdi+0000000000000310h],xmm9
+  0000000145CC2AF7: movsd       mmword ptr [rdi+0000000000000318h],xmm10
+  0000000145CC2B00: cvttss2si   rax,xmm0
+  0000000145CC2B05: movsd       mmword ptr [rdi+0000000000000320h],xmm11
+  0000000145CC2B0E: mov         dword ptr [rdi+0000000000000264h],eax
+  0000000145CC2B14: call        00000001470D1311
+  0000000145CC2B19: cmp         byte ptr [rdi+0000000000000698h],1
+  0000000145CC2B20: jne         0000000145CC2DDD
+  0000000145CC2B26: movaps      xmmword ptr [rsp+00000000000000A0h],xmm13
+  0000000145CC2B2F: movaps      xmmword ptr [rsp+0000000000000090h],xmm14
+  0000000145CC2B38: movaps      xmmword ptr [rsp+0000000000000080h],xmm15
+  0000000145CC2B41: call        00000001451967A0
+  0000000145CC2B46: movsd       xmm2,mmword ptr [0000000148270448h]
+  0000000145CC2B4E: xorps       xmm0,xmm0
+  0000000145CC2B51: movsd       xmm1,mmword ptr [rdi+0000000000000308h]
+  0000000145CC2B59: lea         rcx,[rdi+60h]
+  0000000145CC2B5D: movsd       xmm13,mmword ptr [rdi+00000000000002E0h]
+  0000000145CC2B66: movsd       xmm7,mmword ptr [rdi+00000000000002D8h]
+  0000000145CC2B6E: movsd       xmm3,mmword ptr [rdi+0000000000000310h]
+  0000000145CC2B76: movsd       xmm4,mmword ptr [rdi+0000000000000320h]
+  0000000145CC2B7E: movsd       xmm5,mmword ptr [rdi+0000000000000300h]
+  0000000145CC2B86: movsd       xmm6,mmword ptr [rdi+00000000000002F8h]
+  0000000145CC2B8E: movsd       xmm14,mmword ptr [rdi+00000000000002F0h]
+  0000000145CC2B97: movsd       xmm15,mmword ptr [rdi+00000000000002E8h]
+  0000000145CC2BA0: mulsd       xmm1,xmm2
+  0000000145CC2BA4: mulsd       xmm13,xmm2
+  0000000145CC2BA9: mulsd       xmm7,xmm2
+  0000000145CC2BAD: mulsd       xmm3,xmm2
+  0000000145CC2BB1: movsd       mmword ptr [rsp+0000000000000148h],xmm13
+  0000000145CC2BBB: movsd       mmword ptr [rsp+0000000000000140h],xmm7
+  0000000145CC2BC4: mulsd       xmm4,xmm2
+  0000000145CC2BC8: mulsd       xmm5,xmm2
+  0000000145CC2BCC: mulsd       xmm6,xmm2
+  0000000145CC2BD0: mulsd       xmm14,xmm2
+  0000000145CC2BD5: mulsd       xmm15,xmm2
+  0000000145CC2BDA: cvtss2sd    xmm0,xmm12
+  0000000145CC2BDF: cvtpd2ps    xmm1,xmm1
+  0000000145CC2BE3: mulsd       xmm0,xmm2
+  0000000145CC2BE7: cvtpd2ps    xmm0,xmm0
+  0000000145CC2BEB: cmp         al,1
+  0000000145CC2BED: jne         0000000145CC2D29
+  0000000145CC2BF3: cvtps2pd    xmm13,xmm0
+  0000000145CC2BF7: lea         rdx,[000000014895F5C0h]
+  0000000145CC2BFE: cvtps2pd    xmm12,xmm1
+  0000000145CC2C02: movsd       xmm1,mmword ptr [rdi+0000000000000318h]
+  0000000145CC2C0A: movsd       mmword ptr [rsp+68h],xmm13
+  0000000145CC2C11: mulsd       xmm1,xmm2
+  0000000145CC2C15: movsd       mmword ptr [rsp+60h],xmm12
+  0000000145CC2C1C: cvtpd2ps    xmm0,xmm3
+  0000000145CC2C20: cvtps2pd    xmm11,xmm0
+  0000000145CC2C24: cvtpd2ps    xmm0,xmm1
+  0000000145CC2C28: movsd       mmword ptr [rsp+58h],xmm11
+  0000000145CC2C2F: cvtps2pd    xmm10,xmm0
+  0000000145CC2C33: cvtpd2ps    xmm0,xmm5
+  0000000145CC2C37: movsd       mmword ptr [rsp+50h],xmm10
+  0000000145CC2C3E: cvtps2pd    xmm8,xmm0
+  0000000145CC2C42: cvtpd2ps    xmm1,xmm4
+  0000000145CC2C46: cvtpd2ps    xmm0,xmm14
+  0000000145CC2C4B: cvtps2pd    xmm9,xmm1
+  0000000145CC2C4F: cvtpd2ps    xmm1,xmm6
+  0000000145CC2C53: cvtps2pd    xmm6,xmm0
+  0000000145CC2C56: movsd       xmm0,mmword ptr [rsp+0000000000000148h]
+  0000000145CC2C5F: movsd       mmword ptr [rsp+48h],xmm9
+  0000000145CC2C66: cvtps2pd    xmm7,xmm1
+  0000000145CC2C69: movsd       mmword ptr [rsp+40h],xmm8
+  0000000145CC2C70: cvtpd2ps    xmm0,xmm0
+  0000000145CC2C74: movsd       mmword ptr [rsp+38h],xmm7
+  0000000145CC2C7A: cvtps2pd    xmm4,xmm0
+  0000000145CC2C7D: movsd       xmm0,mmword ptr [rdi+00000000000002D0h]
+  0000000145CC2C85: cvtpd2ps    xmm1,xmm15
+  0000000145CC2C8A: movsd       mmword ptr [rsp+30h],xmm6
+  0000000145CC2C90: cvtps2pd    xmm5,xmm1
+  0000000145CC2C93: movsd       xmm1,mmword ptr [rsp+0000000000000140h]
+  0000000145CC2C9C: cvtpd2ps    xmm0,xmm0
+  0000000145CC2CA0: cvtpd2ps    xmm1,xmm1
+  0000000145CC2CA4: cvtps2pd    xmm2,xmm0
+  0000000145CC2CA7: cvtps2pd    xmm3,xmm1
+  0000000145CC2CAA: movsd       mmword ptr [rsp+28h],xmm5
+  0000000145CC2CB0: movq        r8,xmm2
+  0000000145CC2CB5: movq        r9,xmm3
+  0000000145CC2CBA: movsd       mmword ptr [rsp+20h],xmm4
+  0000000145CC2CC0: call        00000001444063B0
+  0000000145CC2CC5: movaps      xmm14,xmmword ptr [rsp+0000000000000090h]
+  0000000145CC2CCE: movaps      xmm13,xmmword ptr [rsp+00000000000000A0h]
+  0000000145CC2CD7: movaps      xmm15,xmmword ptr [rsp+0000000000000080h]
+  0000000145CC2CE0: movaps      xmm10,xmmword ptr [rsp+00000000000000D0h]
+  0000000145CC2CE9: movaps      xmm9,xmmword ptr [rsp+00000000000000E0h]
+  0000000145CC2CF2: movaps      xmm8,xmmword ptr [rsp+00000000000000F0h]
+  0000000145CC2CFB: movaps      xmm7,xmmword ptr [rsp+0000000000000100h]
+  0000000145CC2D03: movaps      xmm6,xmmword ptr [rsp+0000000000000110h]
+  0000000145CC2D0B: movaps      xmm11,xmmword ptr [rsp+00000000000000C0h]
+  0000000145CC2D14: movaps      xmm12,xmmword ptr [rsp+00000000000000B0h]
+  0000000145CC2D1D: add         rsp,120h
+  0000000145CC2D24: pop         r14
+  0000000145CC2D26: pop         rdi
+  0000000145CC2D27: pop         rbx
+  0000000145CC2D28: ret
+  0000000145CC2D29: cvtps2pd    xmm12,xmm0
+  0000000145CC2D2D: lea         rdx,[000000014895F630h]
+  0000000145CC2D34: cvtps2pd    xmm11,xmm1
+  0000000145CC2D38: movsd       mmword ptr [rsp+60h],xmm12
+  0000000145CC2D3F: movsd       mmword ptr [rsp+58h],xmm11
+  0000000145CC2D46: cvtpd2ps    xmm0,xmm3
+  0000000145CC2D4A: cvtpd2ps    xmm1,xmm4
+  0000000145CC2D4E: cvtps2pd    xmm10,xmm0
+  0000000145CC2D52: cvtps2pd    xmm9,xmm1
+  0000000145CC2D56: movsd       mmword ptr [rsp+50h],xmm10
+  0000000145CC2D5D: movsd       mmword ptr [rsp+48h],xmm9
+  0000000145CC2D64: cvtpd2ps    xmm0,xmm5
+  0000000145CC2D68: cvtpd2ps    xmm1,xmm6
+  0000000145CC2D6C: cvtps2pd    xmm8,xmm0
+  0000000145CC2D70: cvtps2pd    xmm7,xmm1
+  0000000145CC2D73: movsd       mmword ptr [rsp+40h],xmm8
+  0000000145CC2D7A: cvtpd2ps    xmm0,xmm14
+  0000000145CC2D7F: movsd       mmword ptr [rsp+38h],xmm7
+  0000000145CC2D85: cvtps2pd    xmm6,xmm0
+  0000000145CC2D88: cvtpd2ps    xmm0,xmm13
+  0000000145CC2D8D: cvtpd2ps    xmm1,xmm15
+  0000000145CC2D92: cvtps2pd    xmm4,xmm0
+  0000000145CC2D95: movsd       xmm0,mmword ptr [rdi+00000000000002D0h]
+  0000000145CC2D9D: cvtps2pd    xmm5,xmm1
+  0000000145CC2DA0: movsd       xmm1,mmword ptr [rsp+0000000000000140h]
+  0000000145CC2DA9: movsd       mmword ptr [rsp+30h],xmm6
+  0000000145CC2DAF: cvtpd2ps    xmm0,xmm0
+  0000000145CC2DB3: cvtpd2ps    xmm1,xmm1
+  0000000145CC2DB7: cvtps2pd    xmm2,xmm0
+  0000000145CC2DBA: cvtps2pd    xmm3,xmm1
+  0000000145CC2DBD: movsd       mmword ptr [rsp+28h],xmm5
+  0000000145CC2DC3: movq        r8,xmm2
+  0000000145CC2DC8: movq        r9,xmm3
+  0000000145CC2DCD: movsd       mmword ptr [rsp+20h],xmm4
+  0000000145CC2DD3: call        00000001444063B0
+  0000000145CC2DD8: jmp         0000000145CC2CC5
+  0000000145CC2DDD: movsd       xmm0,mmword ptr [rdi+00000000000002D0h]
+  0000000145CC2DE5: lea         rcx,[rdi+60h]
+  0000000145CC2DE9: cvtpd2ps    xmm0,xmm0
+  0000000145CC2DED: lea         rdx,[000000014895F690h]
+  0000000145CC2DF4: cvtps2pd    xmm2,xmm0
+  0000000145CC2DF7: movq        r8,xmm2
+  0000000145CC2DFC: call        00000001444063B0
+  0000000145CC2E01: jmp         0000000145CC2CE0
+  0000000145CC2E06: dec         eax
+  0000000145CC2E08: mov         ecx,6
+  0000000145CC2E0D: mov         dword ptr [rdi+00000000000002CCh],eax
+  0000000145CC2E13: call        00000001470D1317
+  0000000145CC2E18: int         3
+  0000000145CC2E19: mov         ecx,5
+  0000000145CC2E1E: call        00000001470D1317
+  0000000145CC2E23: int         3
+  0000000145CC2E24: int         3
+  0000000145CC2E25: int         3
+  0000000145CC2E26: int         3
+  0000000145CC2E27: int         3
+  0000000145CC2E28: int         3
+  0000000145CC2E29: int         3
+  0000000145CC2E2A: int         3
+  0000000145CC2E2B: int         3
+  0000000145CC2E2C: int         3
+  0000000145CC2E2D: int         3
+  0000000145CC2E2E: int         3
+  0000000145CC2E2F: int         3
+  0000000145CC2E30: movsd       mmword ptr [rcx+0000000000000268h],xmm1
+  0000000145CC2E38: ret
+  0000000145CC2E39: int         3
+  0000000145CC2E3A: int         3
+  0000000145CC2E3B: int         3
+  0000000145CC2E3C: int         3
+  0000000145CC2E3D: int         3
+  0000000145CC2E3E: int         3
+  0000000145CC2E3F: int         3
+  0000000145CC2E40: movsd       mmword ptr [rcx+0000000000000270h],xmm1
+  0000000145CC2E48: ret
+  0000000145CC2E49: int         3
+  0000000145CC2E4A: int         3
+  0000000145CC2E4B: int         3
+  0000000145CC2E4C: int         3
+  0000000145CC2E4D: int         3
+  0000000145CC2E4E: int         3
+  0000000145CC2E4F: int         3
+  0000000145CC2E50: mov         qword ptr [rsp+8],rbx
+  0000000145CC2E55: push        rbp
+  0000000145CC2E56: push        rsi
+  0000000145CC2E57: push        rdi
+  0000000145CC2E58: push        r12
+  0000000145CC2E5A: push        r13
+  0000000145CC2E5C: push        r14
+  0000000145CC2E5E: push        r15
+  0000000145CC2E60: lea         rbp,[rsp+FFFFFFFFFFFFFEA0h]
+  0000000145CC2E68: sub         rsp,260h
+  0000000145CC2E6F: mov         r13,rcx
+  0000000145CC2E72: mov         dword ptr [rbp+00000000000001A8h],0
+  0000000145CC2E7C: mov         edx,4
+  0000000145CC2E81: lea         r8d,[rdx-3]
+  0000000145CC2E85: lea         rcx,[rbp+70h]
+  0000000145CC2E89: call        00000001440EFB60
+  0000000145CC2E8E: nop
+  0000000145CC2E8F: lea         rdx,[rbp+70h]
+  0000000145CC2E93: lea         rcx,[rbp+0000000000000120h]
+  0000000145CC2E9A: call        0000000146673FC0
+  0000000145CC2E9F: nop
+  0000000145CC2EA0: lea         rcx,[rsp+58h]
+  0000000145CC2EA5: call        000000014666B740
+  0000000145CC2EAA: nop
+  0000000145CC2EAB: lea         rdx,[000000014895F728h]
+  0000000145CC2EB2: lea         rcx,[rbp+0000000000000090h]
+  0000000145CC2EB9: call        0000000146664F70
+  0000000145CC2EBE: nop
+  0000000145CC2EBF: lea         rdx,[rbp+0000000000000090h]
+  0000000145CC2EC6: lea         rcx,[rbp+00000000000000C8h]
+  0000000145CC2ECD: call        000000014666B650
+  0000000145CC2ED2: nop
+  0000000145CC2ED3: mov         r15d,0FFFFFFFFh
+  0000000145CC2ED9: mov         dword ptr [rsp+20h],r15d
+  0000000145CC2EDE: lea         r9d,[r15+3]
+  0000000145CC2EE2: mov         r8,rax
+  0000000145CC2EE5: lea         rdx,[rbp+00000000000000B0h]
+  0000000145CC2EEC: lea         rcx,[rbp+0000000000000120h]
+  0000000145CC2EF3: call        0000000146674850
+  0000000145CC2EF8: mov         rdi,rax
+  0000000145CC2EFB: lea         rax,[rsp+58h]
+  0000000145CC2F00: cmp         rax,rdi
+  0000000145CC2F03: je          0000000145CC2FB7
+  0000000145CC2F09: mov         rbx,qword ptr [rsp+58h]
+  0000000145CC2F0E: test        rbx,rbx
+  0000000145CC2F11: je          0000000145CC2F86
+  0000000145CC2F13: mov         rsi,qword ptr [rsp+60h]
+  0000000145CC2F18: cmp         rbx,rsi
+  0000000145CC2F1B: je          0000000145CC2F38
+  0000000145CC2F1D: nop         dword ptr [rax]
+  0000000145CC2F20: mov         rax,qword ptr [rbx]
+  0000000145CC2F23: xor         edx,edx
+  0000000145CC2F25: mov         rcx,rbx
+  0000000145CC2F28: call        qword ptr [rax]
+  0000000145CC2F2A: add         rbx,20h
+  0000000145CC2F2E: cmp         rbx,rsi
+  0000000145CC2F31: jne         0000000145CC2F20
+  0000000145CC2F33: mov         rbx,qword ptr [rsp+58h]
+  0000000145CC2F38: mov         rdx,qword ptr [rsp+68h]
+  0000000145CC2F3D: sub         rdx,rbx
+  0000000145CC2F40: and         rdx,0FFFFFFFFFFFFFFE0h
+  0000000145CC2F44: mov         rax,rbx
+  0000000145CC2F47: cmp         rdx,1000h
+  0000000145CC2F4E: jb          0000000145CC2F6C
+  0000000145CC2F50: add         rdx,27h
+  0000000145CC2F54: mov         rbx,qword ptr [rbx-8]
+  0000000145CC2F58: sub         rax,rbx
+  0000000145CC2F5B: add         rax,0FFFFFFFFFFFFFFF8h
+  0000000145CC2F5F: cmp         rax,1Fh
+  0000000145CC2F63: jbe         0000000145CC2F6C
+  0000000145CC2F65: call        qword ptr [0000000148237590h]
+  0000000145CC2F6B: int         3
+  0000000145CC2F6C: mov         rcx,rbx
+  0000000145CC2F6F: call        00000001470D91F4
+  0000000145CC2F74: xorps       xmm0,xmm0
+  0000000145CC2F77: movdqu      xmmword ptr [rsp+58h],xmm0
+  0000000145CC2F7D: mov         qword ptr [rsp+68h],0
+  0000000145CC2F86: mov         rax,qword ptr [rdi]
+  0000000145CC2F89: mov         qword ptr [rsp+58h],rax
+  0000000145CC2F8E: mov         rax,qword ptr [rdi+8]
+  0000000145CC2F92: mov         qword ptr [rsp+60h],rax
+  0000000145CC2F97: mov         rax,qword ptr [rdi+10h]
+  0000000145CC2F9B: mov         qword ptr [rsp+68h],rax
+  0000000145CC2FA0: mov         qword ptr [rdi],0
+  0000000145CC2FA7: mov         qword ptr [rdi+8],0
+  0000000145CC2FAF: mov         qword ptr [rdi+10h],0
+  0000000145CC2FB7: lea         rcx,[rbp+00000000000000B0h]
+  0000000145CC2FBE: call        0000000141C07BD0
+  0000000145CC2FC3: nop
+  0000000145CC2FC4: lea         rcx,[rbp+00000000000000C8h]
+  0000000145CC2FCB: call        0000000141C07BD0
+  0000000145CC2FD0: nop
+  0000000145CC2FD1: lea         rcx,[rbp+0000000000000090h]
+  0000000145CC2FD8: call        0000000146665040
+  0000000145CC2FDD: mov         qword ptr [rsp+48h],0
+  0000000145CC2FE6: mov         qword ptr [rsp+50h],0
+  0000000145CC2FEF: mov         ecx,50h
+  0000000145CC2FF4: call        00000001470D91B8
+  0000000145CC2FF9: mov         qword ptr [rax],rax
+  0000000145CC2FFC: mov         qword ptr [rax+8],rax
+  0000000145CC3000: mov         qword ptr [rax+10h],rax
+  0000000145CC3004: mov         word ptr [rax+18h],101h
+  0000000145CC300A: mov         qword ptr [rsp+48h],rax
+  0000000145CC300F: xor         r12d,r12d
+  0000000145CC3012: lea         rcx,[rsp+58h]
+  0000000145CC3017: call        000000014666CF00
+  0000000145CC301C: test        eax,eax
+  0000000145CC301E: jle         0000000145CC33EA
+  0000000145CC3024: lea         rbx,[0000000148298308h]
+  0000000145CC302B: nop         dword ptr [rax+rax]
+  0000000145CC3030: mov         ecx,2E8h
+  0000000145CC3035: call        00000001470D91B8
+  0000000145CC303A: mov         qword ptr [rbp+00000000000001B0h],rax
+  0000000145CC3041: test        rax,rax
+  0000000145CC3044: je          0000000145CC3058
+  0000000145CC3046: mov         edx,1
+  0000000145CC304B: mov         rcx,rax
+  0000000145CC304E: call        0000000143A289A0
+  0000000145CC3053: mov         rdi,rax
+  0000000145CC3056: jmp         0000000145CC305A
+  0000000145CC3058: xor         edi,edi
+  0000000145CC305A: xorps       xmm0,xmm0
+  0000000145CC305D: movdqu      xmmword ptr [rbp-70h],xmm0
+  0000000145CC3062: mov         qword ptr [rbp+00000000000001B8h],rdi
+  0000000145CC3069: mov         ecx,18h
+  0000000145CC306E: call        00000001470D91B8
+  0000000145CC3073: mov         rsi,rax
+  0000000145CC3076: mov         qword ptr [rbp-8],rax
+  0000000145CC307A: test        rax,rax
+  0000000145CC307D: je          0000000145CC309C
+  0000000145CC307F: xorps       xmm0,xmm0
+  0000000145CC3082: movups      xmmword ptr [rax],xmm0
+  0000000145CC3085: mov         dword ptr [rax+8],1
+  0000000145CC308C: mov         dword ptr [rax+0Ch],1
+  0000000145CC3093: mov         qword ptr [rax],rbx
+  0000000145CC3096: mov         qword ptr [rax+10h],rdi
+  0000000145CC309A: jmp         0000000145CC309E
+  0000000145CC309C: xor         esi,esi
+  0000000145CC309E: mov         qword ptr [rbp-70h],rdi
+  0000000145CC30A2: mov         qword ptr [rbp-68h],rsi
+  0000000145CC30A6: test        rdi,rdi
+  0000000145CC30A9: je          0000000145CC3157
+  0000000145CC30AF: mov         rax,qword ptr [rdi+8]
+  0000000145CC30B3: movsxd      rcx,dword ptr [rax+4]
+  0000000145CC30B7: mov         rax,qword ptr [rcx+rdi+18h]
+  0000000145CC30BC: test        rax,rax
+  0000000145CC30BF: je          0000000145CC30CB
+  0000000145CC30C1: cmp         dword ptr [rax+8],0
+  0000000145CC30C5: jne         0000000145CC3157
+  0000000145CC30CB: test        rsi,rsi
+  0000000145CC30CE: je          0000000145CC30F0
+  0000000145CC30D0: lock inc    dword ptr [rsi+8]
+  0000000145CC30D4: mov         rax,qword ptr [rdi+8]
+  0000000145CC30D8: movsxd      rcx,dword ptr [rax+4]
+  0000000145CC30DC: add         rcx,rdi
+  0000000145CC30DF: lea         rax,[rcx+10h]
+  0000000145CC30E3: add         rcx,8
+  0000000145CC30E7: lock inc    dword ptr [rsi+0Ch]
+  0000000145CC30EB: mov         rdx,rsi
+  0000000145CC30EE: jmp         0000000145CC3103
+  0000000145CC30F0: mov         rax,qword ptr [rdi+8]
+  0000000145CC30F4: movsxd      rax,dword ptr [rax+4]
+  0000000145CC30F8: add         rax,10h
+  0000000145CC30FC: add         rax,rdi
+  0000000145CC30FF: xor         ecx,ecx
+  0000000145CC3101: xor         edx,edx
+  0000000145CC3103: mov         qword ptr [rax],rcx
+  0000000145CC3106: mov         rcx,qword ptr [rax+8]
+  0000000145CC310A: mov         qword ptr [rax+8],rdx
+  0000000145CC310E: test        rcx,rcx
+  0000000145CC3111: je          0000000145CC3126
+  0000000145CC3113: mov         eax,r15d
+  0000000145CC3116: lock xadd   dword ptr [rcx+0Ch],eax
+  0000000145CC311B: cmp         eax,1
+  0000000145CC311E: jne         0000000145CC3126
+  0000000145CC3120: mov         rax,qword ptr [rcx]
+  0000000145CC3123: call        qword ptr [rax+8]
+  0000000145CC3126: test        rsi,rsi
+  0000000145CC3129: je          0000000145CC3157
+  0000000145CC312B: mov         eax,r15d
+  0000000145CC312E: lock xadd   dword ptr [rsi+8],eax
+  0000000145CC3133: cmp         eax,1
+  0000000145CC3136: jne         0000000145CC3157
+  0000000145CC3138: mov         rax,qword ptr [rsi]
+  0000000145CC313B: mov         rcx,rsi
+  0000000145CC313E: call        qword ptr [rax]
+  0000000145CC3140: mov         eax,r15d
+  0000000145CC3143: lock xadd   dword ptr [rsi+0Ch],eax
+  0000000145CC3148: cmp         eax,1
+  0000000145CC314B: jne         0000000145CC3157
+  0000000145CC314D: mov         rax,qword ptr [rsi]
+  0000000145CC3150: mov         rcx,rsi
+  0000000145CC3153: call        qword ptr [rax+8]
+  0000000145CC3156: nop
+  0000000145CC3157: or          dword ptr [rbp+00000000000001A8h],1
+  0000000145CC315E: lea         rdx,[rbp-70h]
+  0000000145CC3162: lea         rcx,[rbp-80h]
+  0000000145CC3166: call        0000000141DD3A10
+  0000000145CC316B: nop
+  0000000145CC316C: xor         edx,edx
+  0000000145CC316E: lea         rcx,[rbp-80h]
+  0000000145CC3172: call        0000000141C09870
+  0000000145CC3177: test        al,al
+  0000000145CC3179: je          0000000145CC3185
+  0000000145CC317B: mov         rcx,qword ptr [rbp-80h]
+  0000000145CC317F: mov         rax,qword ptr [rcx]
+  0000000145CC3182: call        qword ptr [rax]
+  0000000145CC3184: nop
+  0000000145CC3185: mov         rcx,qword ptr [rbp-78h]
+  0000000145CC3189: test        rcx,rcx
+  0000000145CC318C: je          0000000145CC31BE
+  0000000145CC318E: mov         eax,r15d
+  0000000145CC3191: lock xadd   dword ptr [rcx+8],eax
+  0000000145CC3196: cmp         eax,1
+  0000000145CC3199: jne         0000000145CC31BE
+  0000000145CC319B: mov         rbx,qword ptr [rbp-78h]
+  0000000145CC319F: mov         rax,qword ptr [rbx]
+  0000000145CC31A2: mov         rcx,rbx
+  0000000145CC31A5: call        qword ptr [rax]
+  0000000145CC31A7: mov         eax,r15d
+  0000000145CC31AA: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC31AF: cmp         eax,1
+  0000000145CC31B2: jne         0000000145CC31BE
+  0000000145CC31B4: mov         rcx,qword ptr [rbp-78h]
+  0000000145CC31B8: mov         rax,qword ptr [rcx]
+  0000000145CC31BB: call        qword ptr [rax+8]
+  0000000145CC31BE: movsxd      rbx,r12d
+  0000000145CC31C1: shl         rbx,5
+  0000000145CC31C5: add         rbx,qword ptr [rsp+58h]
+  0000000145CC31CA: lea         r8,[0000000148268AECh]
+  0000000145CC31D1: lea         rdx,[rbp+70h]
+  0000000145CC31D5: lea         rcx,[rbp+0000000000000100h]
+  0000000145CC31DC: call        00000001466655A0
+  0000000145CC31E1: nop
+  0000000145CC31E2: mov         r8,rbx
+  0000000145CC31E5: mov         rdx,rax
+  0000000145CC31E8: lea         rcx,[rbp+00000000000000E0h]
+  0000000145CC31EF: call        0000000146665500
+  0000000145CC31F4: nop
+  0000000145CC31F5: mov         rdx,rax
+  0000000145CC31F8: mov         rcx,rdi
+  0000000145CC31FB: call        0000000143A454E0
+  0000000145CC3200: nop
+  0000000145CC3201: lea         rcx,[rbp+00000000000000E0h]
+  0000000145CC3208: call        0000000146665040
+  0000000145CC320D: nop
+  0000000145CC320E: lea         rcx,[rbp+0000000000000100h]
+  0000000145CC3215: call        0000000146665040
+  0000000145CC321A: lea         rdx,[rdi+00000000000002A0h]
+  0000000145CC3221: lea         rcx,[rbp-38h]
+  0000000145CC3225: call        0000000146664E10
+  0000000145CC322A: xorps       xmm0,xmm0
+  0000000145CC322D: movdqu      xmmword ptr [rbp-18h],xmm0
+  0000000145CC3232: test        rsi,rsi
+  0000000145CC3235: je          0000000145CC323B
+  0000000145CC3237: lock inc    dword ptr [rsi+8]
+  0000000145CC323B: mov         qword ptr [rbp-18h],rdi
+  0000000145CC323F: mov         qword ptr [rbp-10h],rsi
+  0000000145CC3243: or          dword ptr [rbp+00000000000001A8h],2
+  0000000145CC324A: mov         r14,qword ptr [rsp+48h]
+  0000000145CC324F: mov         rbx,qword ptr [r14+8]
+  0000000145CC3253: mov         qword ptr [rbp-50h],rbx
+  0000000145CC3257: mov         dword ptr [rbp-48h],0
+  0000000145CC325E: mov         rdi,r14
+  0000000145CC3261: cmp         byte ptr [rbx+19h],0
+  0000000145CC3265: jne         0000000145CC32AA
+  0000000145CC3267: nop         word ptr [rax+rax+0000000000000000h]
+  0000000145CC3270: mov         qword ptr [rbp-50h],rbx
+  0000000145CC3274: lea         rcx,[rbx+20h]
+  0000000145CC3278: lea         rdx,[rbp-38h]
+  0000000145CC327C: call        00000001466656A0
+  0000000145CC3281: test        al,al
+  0000000145CC3283: je          0000000145CC3292
+  0000000145CC3285: mov         dword ptr [rbp-48h],0
+  0000000145CC328C: mov         rbx,qword ptr [rbx+10h]
+  0000000145CC3290: jmp         0000000145CC329F
+  0000000145CC3292: mov         dword ptr [rbp-48h],1
+  0000000145CC3299: mov         rdi,rbx
+  0000000145CC329C: mov         rbx,qword ptr [rbx]
+  0000000145CC329F: cmp         byte ptr [rbx+19h],0
+  0000000145CC32A3: je          0000000145CC3270
+  0000000145CC32A5: mov         r14,qword ptr [rsp+48h]
+  0000000145CC32AA: cmp         byte ptr [rdi+19h],0
+  0000000145CC32AE: jne         0000000145CC32CA
+  0000000145CC32B0: lea         rdx,[rdi+20h]
+  0000000145CC32B4: lea         rcx,[rbp-38h]
+  0000000145CC32B8: call        00000001466656A0
+  0000000145CC32BD: test        al,al
+  0000000145CC32BF: je          0000000145CC3359
+  0000000145CC32C5: mov         r14,qword ptr [rsp+48h]
+  0000000145CC32CA: mov         rax,333333333333333h
+  0000000145CC32D4: cmp         qword ptr [rsp+50h],rax
+  0000000145CC32D9: je          0000000145CC3766
+  0000000145CC32DF: lea         rax,[rsp+48h]
+  0000000145CC32E4: mov         qword ptr [rbp-60h],rax
+  0000000145CC32E8: mov         qword ptr [rbp-58h],0
+  0000000145CC32F0: mov         ecx,50h
+  0000000145CC32F5: call        00000001470D91B8
+  0000000145CC32FA: mov         rdi,rax
+  0000000145CC32FD: mov         qword ptr [rbp-58h],rax
+  0000000145CC3301: lea         rdx,[rbp-38h]
+  0000000145CC3305: lea         rcx,[rax+20h]
+  0000000145CC3309: call        0000000146664E10
+  0000000145CC330E: mov         rcx,qword ptr [rbp-18h]
+  0000000145CC3312: mov         qword ptr [rdi+40h],rcx
+  0000000145CC3316: mov         rcx,qword ptr [rbp-10h]
+  0000000145CC331A: mov         qword ptr [rdi+48h],rcx
+  0000000145CC331E: xorps       xmm0,xmm0
+  0000000145CC3321: movdqu      xmmword ptr [rbp-18h],xmm0
+  0000000145CC3326: mov         qword ptr [rdi],r14
+  0000000145CC3329: mov         qword ptr [rdi+8],r14
+  0000000145CC332D: mov         qword ptr [rdi+10h],r14
+  0000000145CC3331: mov         word ptr [rdi+18h],0
+  0000000145CC3337: mov         qword ptr [rbp-58h],0
+  0000000145CC333F: movups      xmm0,xmmword ptr [rbp-50h]
+  0000000145CC3343: movaps      xmmword ptr [rbp],xmm0
+  0000000145CC3347: mov         r8,rdi
+  0000000145CC334A: lea         rdx,[rbp]
+  0000000145CC334E: lea         rcx,[rsp+48h]
+  0000000145CC3353: call        0000000145CC4180
+  0000000145CC3358: nop
+  0000000145CC3359: mov         rbx,qword ptr [rbp-10h]
+  0000000145CC335D: test        rbx,rbx
+  0000000145CC3360: je          0000000145CC338D
+  0000000145CC3362: mov         eax,r15d
+  0000000145CC3365: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC336A: cmp         eax,1
+  0000000145CC336D: jne         0000000145CC338D
+  0000000145CC336F: mov         rax,qword ptr [rbx]
+  0000000145CC3372: mov         rcx,rbx
+  0000000145CC3375: call        qword ptr [rax]
+  0000000145CC3377: mov         eax,r15d
+  0000000145CC337A: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC337F: cmp         eax,1
+  0000000145CC3382: jne         0000000145CC338D
+  0000000145CC3384: mov         rax,qword ptr [rbx]
+  0000000145CC3387: mov         rcx,rbx
+  0000000145CC338A: call        qword ptr [rax+8]
+  0000000145CC338D: lea         rcx,[rbp-38h]
+  0000000145CC3391: call        0000000146665040
+  0000000145CC3396: and         dword ptr [rbp+00000000000001A8h],0FFFFFFFEh
+  0000000145CC339D: test        rsi,rsi
+  0000000145CC33A0: je          0000000145CC33CD
+  0000000145CC33A2: mov         eax,r15d
+  0000000145CC33A5: lock xadd   dword ptr [rsi+8],eax
+  0000000145CC33AA: cmp         eax,1
+  0000000145CC33AD: jne         0000000145CC33CD
+  0000000145CC33AF: mov         rax,qword ptr [rsi]
+  0000000145CC33B2: mov         rcx,rsi
+  0000000145CC33B5: call        qword ptr [rax]
+  0000000145CC33B7: mov         eax,r15d
+  0000000145CC33BA: lock xadd   dword ptr [rsi+0Ch],eax
+  0000000145CC33BF: cmp         eax,1
+  0000000145CC33C2: jne         0000000145CC33CD
+  0000000145CC33C4: mov         rax,qword ptr [rsi]
+  0000000145CC33C7: mov         rcx,rsi
+  0000000145CC33CA: call        qword ptr [rax+8]
+  0000000145CC33CD: inc         r12d
+  0000000145CC33D0: lea         rcx,[rsp+58h]
+  0000000145CC33D5: call        000000014666CF00
+  0000000145CC33DA: cmp         r12d,eax
+  0000000145CC33DD: lea         rbx,[0000000148298308h]
+  0000000145CC33E4: jl          0000000145CC3030
+  0000000145CC33EA: xorps       xmm0,xmm0
+  0000000145CC33ED: movdqu      xmmword ptr [rsp+30h],xmm0
+  0000000145CC33F3: mov         qword ptr [rsp+40h],0
+  0000000145CC33FC: lea         rdx,[0000000148323D48h]
+  0000000145CC3403: lea         rcx,[rbp+10h]
+  0000000145CC3407: call        0000000146664F70
+  0000000145CC340C: nop
+  0000000145CC340D: mov         rax,qword ptr [rsp+38h]
+  0000000145CC3412: cmp         rax,qword ptr [rsp+40h]
+  0000000145CC3417: je          0000000145CC342D
+  0000000145CC3419: lea         rdx,[rbp+10h]
+  0000000145CC341D: mov         rcx,rax
+  0000000145CC3420: call        0000000146664E10
+  0000000145CC3425: add         qword ptr [rsp+38h],20h
+  0000000145CC342B: jmp         0000000145CC343F
+  0000000145CC342D: lea         r8,[rbp+10h]
+  0000000145CC3431: mov         rdx,rax
+  0000000145CC3434: lea         rcx,[rsp+30h]
+  0000000145CC3439: call        0000000141D6E120
+  0000000145CC343E: nop
+  0000000145CC343F: lea         rcx,[rbp+10h]
+  0000000145CC3443: call        0000000146665040
+  0000000145CC3448: lea         rdx,[00000001483CC368h]
+  0000000145CC344F: lea         rcx,[rbp+30h]
+  0000000145CC3453: call        0000000146664F70
+  0000000145CC3458: nop
+  0000000145CC3459: mov         rax,qword ptr [rsp+38h]
+  0000000145CC345E: cmp         rax,qword ptr [rsp+40h]
+  0000000145CC3463: je          0000000145CC3479
+  0000000145CC3465: lea         rdx,[rbp+30h]
+  0000000145CC3469: mov         rcx,rax
+  0000000145CC346C: call        0000000146664E10
+  0000000145CC3471: add         qword ptr [rsp+38h],20h
+  0000000145CC3477: jmp         0000000145CC348B
+  0000000145CC3479: lea         r8,[rbp+30h]
+  0000000145CC347D: mov         rdx,rax
+  0000000145CC3480: lea         rcx,[rsp+30h]
+  0000000145CC3485: call        0000000141D6E120
+  0000000145CC348A: nop
+  0000000145CC348B: lea         rcx,[rbp+30h]
+  0000000145CC348F: call        0000000146665040
+  0000000145CC3494: lea         rdx,[000000014883F868h]
+  0000000145CC349B: lea         rcx,[rbp+50h]
+  0000000145CC349F: call        0000000146664F70
+  0000000145CC34A4: nop
+  0000000145CC34A5: mov         rax,qword ptr [rsp+38h]
+  0000000145CC34AA: cmp         rax,qword ptr [rsp+40h]
+  0000000145CC34AF: je          0000000145CC34C5
+  0000000145CC34B1: lea         rdx,[rbp+50h]
+  0000000145CC34B5: mov         rcx,rax
+  0000000145CC34B8: call        0000000146664E10
+  0000000145CC34BD: add         qword ptr [rsp+38h],20h
+  0000000145CC34C3: jmp         0000000145CC34D7
+  0000000145CC34C5: lea         r8,[rbp+50h]
+  0000000145CC34C9: mov         rdx,rax
+  0000000145CC34CC: lea         rcx,[rsp+30h]
+  0000000145CC34D1: call        0000000141D6E120
+  0000000145CC34D6: nop
+  0000000145CC34D7: lea         rcx,[rbp+50h]
+  0000000145CC34DB: call        0000000146665040
+  0000000145CC34E0: mov         r14,qword ptr [rsp+38h]
+  0000000145CC34E5: mov         rsi,qword ptr [rsp+30h]
+  0000000145CC34EA: cmp         rsi,r14
+  0000000145CC34ED: je          0000000145CC35B0
+  0000000145CC34F3: nop         dword ptr [rax]
+  0000000145CC34F7: nop         word ptr [rax+rax+0000000000000000h]
+  0000000145CC3500: mov         rdi,qword ptr [rsp+48h]
+  0000000145CC3505: mov         rbx,qword ptr [rdi+8]
+  0000000145CC3509: cmp         byte ptr [rbx+19h],0
+  0000000145CC350D: jne         0000000145CC3532
+  0000000145CC350F: nop
+  0000000145CC3510: lea         rcx,[rbx+20h]
+  0000000145CC3514: mov         rdx,rsi
+  0000000145CC3517: call        00000001466656A0
+  0000000145CC351C: test        al,al
+  0000000145CC351E: je          0000000145CC3526
+  0000000145CC3520: mov         rbx,qword ptr [rbx+10h]
+  0000000145CC3524: jmp         0000000145CC352C
+  0000000145CC3526: mov         rdi,rbx
+  0000000145CC3529: mov         rbx,qword ptr [rbx]
+  0000000145CC352C: cmp         byte ptr [rbx+19h],0
+  0000000145CC3530: je          0000000145CC3510
+  0000000145CC3532: cmp         byte ptr [rdi+19h],0
+  0000000145CC3536: jne         0000000145CC35A3
+  0000000145CC3538: lea         rdx,[rdi+20h]
+  0000000145CC353C: mov         rcx,rsi
+  0000000145CC353F: call        00000001466656A0
+  0000000145CC3544: test        al,al
+  0000000145CC3546: jne         0000000145CC35A3
+  0000000145CC3548: cmp         qword ptr [rsp+48h],rdi
+  0000000145CC354D: je          0000000145CC35A3
+  0000000145CC354F: lea         rcx,[r13+00000000000006C0h]
+  0000000145CC3556: lea         r8,[rdi+40h]
+  0000000145CC355A: mov         rdx,qword ptr [r13+00000000000006C8h]
+  0000000145CC3561: cmp         rdx,qword ptr [r13+00000000000006D0h]
+  0000000145CC3568: je          0000000145CC359E
+  0000000145CC356A: mov         qword ptr [rdx],0
+  0000000145CC3571: mov         qword ptr [rdx+8],0
+  0000000145CC3579: mov         rax,qword ptr [r8+8]
+  0000000145CC357D: test        rax,rax
+  0000000145CC3580: je          0000000145CC3586
+  0000000145CC3582: lock inc    dword ptr [rax+8]
+  0000000145CC3586: mov         rax,qword ptr [r8]
+  0000000145CC3589: mov         qword ptr [rdx],rax
+  0000000145CC358C: mov         rax,qword ptr [r8+8]
+  0000000145CC3590: mov         qword ptr [rdx+8],rax
+  0000000145CC3594: add         qword ptr [r13+00000000000006C8h],10h
+  0000000145CC359C: jmp         0000000145CC35A3
+  0000000145CC359E: call        0000000142226910
+  0000000145CC35A3: add         rsi,20h
+  0000000145CC35A7: cmp         rsi,r14
+  0000000145CC35AA: jne         0000000145CC3500
+  0000000145CC35B0: lea         rcx,[rsp+70h]
+  0000000145CC35B5: call        0000000141DD0680
+  0000000145CC35BA: nop
+  0000000145CC35BB: mov         rcx,qword ptr [rsp+70h]
+  0000000145CC35C0: add         rcx,2A0h
+  0000000145CC35C7: lea         rdx,[000000014827F770h]
+  0000000145CC35CE: call        00000001466651A0
+  0000000145CC35D3: mov         rcx,qword ptr [rsp+70h]
+  0000000145CC35D8: mov         rax,qword ptr [rcx]
+  0000000145CC35DB: call        qword ptr [rax+0000000000000270h]
+  0000000145CC35E1: lea         rcx,[r13+00000000000006C0h]
+  0000000145CC35E8: mov         rdx,qword ptr [r13+00000000000006C8h]
+  0000000145CC35EF: cmp         rdx,qword ptr [r13+00000000000006D0h]
+  0000000145CC35F6: je          0000000145CC3630
+  0000000145CC35F8: mov         qword ptr [rdx],0
+  0000000145CC35FF: mov         qword ptr [rdx+8],0
+  0000000145CC3607: mov         rax,qword ptr [rsp+78h]
+  0000000145CC360C: test        rax,rax
+  0000000145CC360F: je          0000000145CC3615
+  0000000145CC3611: lock inc    dword ptr [rax+8]
+  0000000145CC3615: mov         rax,qword ptr [rsp+70h]
+  0000000145CC361A: mov         qword ptr [rdx],rax
+  0000000145CC361D: mov         rax,qword ptr [rsp+78h]
+  0000000145CC3622: mov         qword ptr [rdx+8],rax
+  0000000145CC3626: add         qword ptr [r13+00000000000006C8h],10h
+  0000000145CC362E: jmp         0000000145CC363A
+  0000000145CC3630: lea         r8,[rsp+70h]
+  0000000145CC3635: call        0000000142226910
+  0000000145CC363A: mov         byte ptr [r13+00000000000006D8h],0
+  0000000145CC3642: mov         rbx,qword ptr [rsp+78h]
+  0000000145CC3647: test        rbx,rbx
+  0000000145CC364A: je          0000000145CC3677
+  0000000145CC364C: mov         eax,r15d
+  0000000145CC364F: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC3654: cmp         eax,1
+  0000000145CC3657: jne         0000000145CC3677
+  0000000145CC3659: mov         rax,qword ptr [rbx]
+  0000000145CC365C: mov         rcx,rbx
+  0000000145CC365F: call        qword ptr [rax]
+  0000000145CC3661: lock xadd   dword ptr [rbx+0Ch],r15d
+  0000000145CC3667: cmp         r15d,1
+  0000000145CC366B: jne         0000000145CC3677
+  0000000145CC366D: mov         rax,qword ptr [rbx]
+  0000000145CC3670: mov         rcx,rbx
+  0000000145CC3673: call        qword ptr [rax+8]
+  0000000145CC3676: nop
+  0000000145CC3677: mov         rbx,qword ptr [rsp+30h]
+  0000000145CC367C: test        rbx,rbx
+  0000000145CC367F: je          0000000145CC36F6
+  0000000145CC3681: mov         rdi,qword ptr [rsp+38h]
+  0000000145CC3686: cmp         rbx,rdi
+  0000000145CC3689: je          0000000145CC36A8
+  0000000145CC368B: nop         dword ptr [rax+rax]
+  0000000145CC3690: mov         rax,qword ptr [rbx]
+  0000000145CC3693: xor         edx,edx
+  0000000145CC3695: mov         rcx,rbx
+  0000000145CC3698: call        qword ptr [rax]
+  0000000145CC369A: add         rbx,20h
+  0000000145CC369E: cmp         rbx,rdi
+  0000000145CC36A1: jne         0000000145CC3690
+  0000000145CC36A3: mov         rbx,qword ptr [rsp+30h]
+  0000000145CC36A8: mov         rdx,qword ptr [rsp+40h]
+  0000000145CC36AD: sub         rdx,rbx
+  0000000145CC36B0: and         rdx,0FFFFFFFFFFFFFFE0h
+  0000000145CC36B4: mov         rax,rbx
+  0000000145CC36B7: cmp         rdx,1000h
+  0000000145CC36BE: jb          0000000145CC36DC
+  0000000145CC36C0: add         rdx,27h
+  0000000145CC36C4: mov         rbx,qword ptr [rbx-8]
+  0000000145CC36C8: sub         rax,rbx
+  0000000145CC36CB: add         rax,0FFFFFFFFFFFFFFF8h
+  0000000145CC36CF: cmp         rax,1Fh
+  0000000145CC36D3: jbe         0000000145CC36DC
+  0000000145CC36D5: call        qword ptr [0000000148237590h]
+  0000000145CC36DB: int         3
+  0000000145CC36DC: mov         rcx,rbx
+  0000000145CC36DF: call        00000001470D91F4
+  0000000145CC36E4: xorps       xmm0,xmm0
+  0000000145CC36E7: movdqu      xmmword ptr [rsp+30h],xmm0
+  0000000145CC36ED: mov         qword ptr [rsp+40h],0
+  0000000145CC36F6: mov         r8,qword ptr [rsp+48h]
+  0000000145CC36FB: mov         r8,qword ptr [r8+8]
+  0000000145CC36FF: lea         rdx,[rsp+48h]
+  0000000145CC3704: lea         rcx,[rsp+48h]
+  0000000145CC3709: call        0000000145CB52F0
+  0000000145CC370E: mov         edx,50h
+  0000000145CC3713: mov         rcx,qword ptr [rsp+48h]
+  0000000145CC3718: call        00000001470D91F4
+  0000000145CC371D: nop
+  0000000145CC371E: lea         rcx,[rsp+58h]
+  0000000145CC3723: call        0000000141C07BD0
+  0000000145CC3728: nop
+  0000000145CC3729: lea         rcx,[rbp+0000000000000140h]
+  0000000145CC3730: call        0000000141C07BD0
+  0000000145CC3735: lea         rcx,[rbp+0000000000000120h]
+  0000000145CC373C: call        0000000146665040
+  0000000145CC3741: nop
+  0000000145CC3742: lea         rcx,[rbp+70h]
+  0000000145CC3746: call        0000000146665040
+  0000000145CC374B: mov         rbx,qword ptr [rsp+00000000000002A0h]
+  0000000145CC3753: add         rsp,260h
+  0000000145CC375A: pop         r15
+  0000000145CC375C: pop         r14
+  0000000145CC375E: pop         r13
+  0000000145CC3760: pop         r12
+  0000000145CC3762: pop         rdi
+  0000000145CC3763: pop         rsi
+  0000000145CC3764: pop         rbp
+  0000000145CC3765: ret
+  0000000145CC3766: call        0000000141BB0DE0
+  0000000145CC376B: nop
+  0000000145CC376C: int         3
+  0000000145CC376D: int         3
+  0000000145CC376E: int         3
+  0000000145CC376F: int         3
+  0000000145CC3770: mov         qword ptr [rsp+8],rbx
+  0000000145CC3775: mov         qword ptr [rsp+18h],rbp
+  0000000145CC377A: mov         qword ptr [rsp+20h],rsi
+  0000000145CC377F: push        rdi
+  0000000145CC3780: sub         rsp,50h
+  0000000145CC3784: mov         dword ptr [rsp+68h],0
+  0000000145CC378C: call        0000000141C23080
+  0000000145CC3791: lea         rdx,[rsp+30h]
+  0000000145CC3796: mov         rcx,rax
+  0000000145CC3799: call        0000000145CBB4B0
+  0000000145CC379E: nop
+  0000000145CC379F: mov         ebx,1
+  0000000145CC37A4: mov         dword ptr [rsp+68h],ebx
+  0000000145CC37A8: cmp         qword ptr [rax],0
+  0000000145CC37AC: je          0000000145CC37DB
+  0000000145CC37AE: call        0000000141C23080
+  0000000145CC37B3: lea         rdx,[rsp+20h]
+  0000000145CC37B8: mov         rcx,rax
+  0000000145CC37BB: call        0000000145CBB4B0
+  0000000145CC37C0: nop
+  0000000145CC37C1: mov         ebx,3
+  0000000145CC37C6: mov         dword ptr [rsp+68h],ebx
+  0000000145CC37CA: mov         rcx,qword ptr [rax]
+  0000000145CC37CD: call        0000000143F3FAB0
+  0000000145CC37D2: test        al,al
+  0000000145CC37D4: je          0000000145CC37DB
+  0000000145CC37D6: mov         bpl,1
+  0000000145CC37D9: jmp         0000000145CC37DE
+  0000000145CC37DB: xor         bpl,bpl
+  0000000145CC37DE: mov         esi,0FFFFFFFFh
+  0000000145CC37E3: test        bl,2
+  0000000145CC37E6: je          0000000145CC3826
+  0000000145CC37E8: and         ebx,0FFFFFFFDh
+  0000000145CC37EB: mov         dword ptr [rsp+68h],ebx
+  0000000145CC37EF: mov         rdi,qword ptr [rsp+28h]
+  0000000145CC37F4: test        rdi,rdi
+  0000000145CC37F7: je          0000000145CC3826
+  0000000145CC37F9: mov         eax,esi
+  0000000145CC37FB: lock xadd   dword ptr [rdi+8],eax
+  0000000145CC3800: cmp         eax,1
+  0000000145CC3803: jne         0000000145CC3822
+  0000000145CC3805: mov         rax,qword ptr [rdi]
+  0000000145CC3808: mov         rcx,rdi
+  0000000145CC380B: call        qword ptr [rax]
+  0000000145CC380D: mov         eax,esi
+  0000000145CC380F: lock xadd   dword ptr [rdi+0Ch],eax
+  0000000145CC3814: cmp         eax,1
+  0000000145CC3817: jne         0000000145CC3822
+  0000000145CC3819: mov         rax,qword ptr [rdi]
+  0000000145CC381C: mov         rcx,rdi
+  0000000145CC381F: call        qword ptr [rax+8]
+  0000000145CC3822: mov         ebx,dword ptr [rsp+68h]
+  0000000145CC3826: test        bl,1
+  0000000145CC3829: je          0000000145CC385E
+  0000000145CC382B: mov         rbx,qword ptr [rsp+38h]
+  0000000145CC3830: test        rbx,rbx
+  0000000145CC3833: je          0000000145CC385E
+  0000000145CC3835: mov         eax,esi
+  0000000145CC3837: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC383C: cmp         eax,1
+  0000000145CC383F: jne         0000000145CC385E
+  0000000145CC3841: mov         rax,qword ptr [rbx]
+  0000000145CC3844: mov         rcx,rbx
+  0000000145CC3847: call        qword ptr [rax]
+  0000000145CC3849: mov         eax,esi
+  0000000145CC384B: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC3850: cmp         eax,1
+  0000000145CC3853: jne         0000000145CC385E
+  0000000145CC3855: mov         rax,qword ptr [rbx]
+  0000000145CC3858: mov         rcx,rbx
+  0000000145CC385B: call        qword ptr [rax+8]
+  0000000145CC385E: test        bpl,bpl
+  0000000145CC3861: je          0000000145CC38B0
+  0000000145CC3863: call        0000000141C23080
+  0000000145CC3868: lea         rdx,[rsp+40h]
+  0000000145CC386D: mov         rcx,rax
+  0000000145CC3870: call        0000000145CBB4B0
+  0000000145CC3875: nop
+  0000000145CC3876: mov         rcx,qword ptr [rax]
+  0000000145CC3879: call        0000000143F08D90
+  0000000145CC387E: nop
+  0000000145CC387F: mov         rbx,qword ptr [rsp+48h]
+  0000000145CC3884: test        rbx,rbx
+  0000000145CC3887: je          0000000145CC38B0
+  0000000145CC3889: mov         eax,esi
+  0000000145CC388B: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC3890: cmp         eax,1
+  0000000145CC3893: jne         0000000145CC38B0
+  0000000145CC3895: mov         rax,qword ptr [rbx]
+  0000000145CC3898: mov         rcx,rbx
+  0000000145CC389B: call        qword ptr [rax]
+  0000000145CC389D: lock xadd   dword ptr [rbx+0Ch],esi
+  0000000145CC38A2: cmp         esi,1
+  0000000145CC38A5: jne         0000000145CC38B0
+  0000000145CC38A7: mov         rax,qword ptr [rbx]
+  0000000145CC38AA: mov         rcx,rbx
+  0000000145CC38AD: call        qword ptr [rax+8]
+  0000000145CC38B0: mov         rbx,qword ptr [rsp+60h]
+  0000000145CC38B5: mov         rbp,qword ptr [rsp+70h]
+  0000000145CC38BA: mov         rsi,qword ptr [rsp+78h]
+  0000000145CC38BF: add         rsp,50h
+  0000000145CC38C3: pop         rdi
+  0000000145CC38C4: ret
+  0000000145CC38C5: int         3
+  0000000145CC38C6: int         3
+  0000000145CC38C7: int         3
+  0000000145CC38C8: int         3
+  0000000145CC38C9: int         3
+  0000000145CC38CA: int         3
+  0000000145CC38CB: int         3
+  0000000145CC38CC: int         3
+  0000000145CC38CD: int         3
+  0000000145CC38CE: int         3
+  0000000145CC38CF: int         3
+  0000000145CC38D0: mov         qword ptr [rsp+8],rbx
+  0000000145CC38D5: mov         qword ptr [rsp+10h],rsi
+  0000000145CC38DA: push        rdi
+  0000000145CC38DB: sub         rsp,60h
+  0000000145CC38DF: call        0000000141C22F90
+  0000000145CC38E4: mov         byte ptr [rsp+20h],1
+  0000000145CC38E9: xor         r9d,r9d
+  0000000145CC38EC: xor         r8d,r8d
+  0000000145CC38EF: mov         dl,1
+  0000000145CC38F1: mov         rcx,rax
+  0000000145CC38F4: call        0000000145CD0220
+  0000000145CC38F9: call        0000000141BE0DC0
+  0000000145CC38FE: lea         rdx,[rsp+30h]
+  0000000145CC3903: mov         rcx,rax
+  0000000145CC3906: call        0000000145CBA300
+  0000000145CC390B: xor         edx,edx
+  0000000145CC390D: mov         rcx,rax
+  0000000145CC3910: call        0000000141C097F0
+  0000000145CC3915: movzx       esi,al
+  0000000145CC3918: mov         edi,0FFFFFFFFh
+  0000000145CC391D: mov         rbx,qword ptr [rsp+38h]
+  0000000145CC3922: test        rbx,rbx
+  0000000145CC3925: je          0000000145CC3950
+  0000000145CC3927: mov         edx,edi
+  0000000145CC3929: lock xadd   dword ptr [rbx+8],edx
+  0000000145CC392E: cmp         edx,1
+  0000000145CC3931: jne         0000000145CC3950
+  0000000145CC3933: mov         rdx,qword ptr [rbx]
+  0000000145CC3936: mov         rcx,rbx
+  0000000145CC3939: call        qword ptr [rdx]
+  0000000145CC393B: mov         eax,edi
+  0000000145CC393D: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC3942: cmp         eax,1
+  0000000145CC3945: jne         0000000145CC3950
+  0000000145CC3947: mov         rax,qword ptr [rbx]
+  0000000145CC394A: mov         rcx,rbx
+  0000000145CC394D: call        qword ptr [rax+8]
+  0000000145CC3950: test        sil,sil
+  0000000145CC3953: je          0000000145CC39F7
+  0000000145CC3959: call        0000000141BE0DC0
+  0000000145CC395E: lea         rdx,[rsp+40h]
+  0000000145CC3963: mov         rcx,rax
+  0000000145CC3966: call        0000000145CBA300
+  0000000145CC396B: nop
+  0000000145CC396C: mov         rcx,qword ptr [rax]
+  0000000145CC396F: call        0000000143F8C4D0
+  0000000145CC3974: nop
+  0000000145CC3975: mov         rbx,qword ptr [rsp+48h]
+  0000000145CC397A: test        rbx,rbx
+  0000000145CC397D: je          0000000145CC39A8
+  0000000145CC397F: mov         eax,edi
+  0000000145CC3981: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC3986: cmp         eax,1
+  0000000145CC3989: jne         0000000145CC39A8
+  0000000145CC398B: mov         rax,qword ptr [rbx]
+  0000000145CC398E: mov         rcx,rbx
+  0000000145CC3991: call        qword ptr [rax]
+  0000000145CC3993: mov         eax,edi
+  0000000145CC3995: lock xadd   dword ptr [rbx+0Ch],eax
+  0000000145CC399A: cmp         eax,1
+  0000000145CC399D: jne         0000000145CC39A8
+  0000000145CC399F: mov         rax,qword ptr [rbx]
+  0000000145CC39A2: mov         rcx,rbx
+  0000000145CC39A5: call        qword ptr [rax+8]
+  0000000145CC39A8: call        0000000141BE0DC0
+  0000000145CC39AD: lea         rdx,[rsp+50h]
+  0000000145CC39B2: mov         rcx,rax
+  0000000145CC39B5: call        0000000145CBA300
+  0000000145CC39BA: nop
+  0000000145CC39BB: xor         edx,edx
+  0000000145CC39BD: mov         rcx,qword ptr [rax]
+  0000000145CC39C0: call        0000000143F6AD80
+  0000000145CC39C5: nop
+  0000000145CC39C6: mov         rbx,qword ptr [rsp+58h]
+  0000000145CC39CB: test        rbx,rbx
+  0000000145CC39CE: je          0000000145CC39F7
+  0000000145CC39D0: mov         eax,edi
+  0000000145CC39D2: lock xadd   dword ptr [rbx+8],eax
+  0000000145CC39D7: cmp         eax,1
+  0000000145CC39DA: jne         0000000145CC39F7
+  0000000145CC39DC: mov         rax,qword ptr [rbx]
+  0000000145CC39DF: mov         rcx,rbx
+  0000000145CC39E2: call        qword ptr [rax]
+  0000000145CC39E4: lock xadd   dword ptr [rbx+0Ch],edi
+  0000000145CC39E9: cmp         edi,1
+  0000000145CC39EC: jne         0000000145CC39F7
+  0000000145CC39EE: mov         rax,qword ptr [rbx]
+  0000000145CC39F1: mov         rcx,rbx
+  0000000145CC39F4: call        qword ptr [rax+8]
+  0000000145CC39F7: mov         rbx,qword ptr [rsp+70h]
+  0000000145CC39FC: mov         rsi,qword ptr [rsp+78h]
+  0000000145CC3A01: add         rsp,60h
+  0000000145CC3A05: pop         rdi
+  0000000145CC3A06: ret
+  0000000145CC3A07: int         3
+  0000000145CC3A08: int         3
+  0000000145CC3A09: int         3
+  0000000145CC3A0A: int         3
+  0000000145CC3A0B: int         3
+  0000000145CC3A0C: int         3
+  0000000145CC3A0D: int         3
+  0000000145CC3A0E: int         3
+  0000000145CC3A0F: int         3
+  0000000145CC3A10: push        rdi
+  0000000145CC3A12: sub         rsp,20h
+  0000000145CC3A16: mov         rax,1FFFFFFFFFFFFFFFh
+  0000000145CC3A20: mov         rdi,rcx
+  0000000145CC3A23: cmp         rdx,rax
+  0000000145CC3A26: ja          0000000145CC3A72
+  0000000145CC3A28: mov         qword ptr [rsp+30h],rbx
+  0000000145CC3A2D: lea         rbx,[rdx*8+0000000000000000h]
+  0000000145CC3A35: cmp         rbx,1000h
+  0000000145CC3A3C: jb          0000000145CC3A48
+  0000000145CC3A3E: mov         rcx,rbx
+  0000000145CC3A41: call        0000000141BA0D10
+  0000000145CC3A46: jmp         0000000145CC3A59
+  0000000145CC3A48: test        rbx,rbx
+  0000000145CC3A4B: je          0000000145CC3A57
+  0000000145CC3A4D: mov         rcx,rbx
+  0000000145CC3A50: call        00000001470D91B8
+  0000000145CC3A55: jmp         0000000145CC3A59
+  0000000145CC3A57: xor         eax,eax
+  0000000145CC3A59: mov         qword ptr [rdi],rax
+  0000000145CC3A5C: mov         qword ptr [rdi+8],rax
+  0000000145CC3A60: add         rax,rbx
+  0000000145CC3A63: mov         rbx,qword ptr [rsp+30h]
+  0000000145CC3A68: mov         qword ptr [rdi+10h],rax
+  0000000145CC3A6C: add         rsp,20h
+  0000000145CC3A70: pop         rdi
+  0000000145CC3A71: ret
+  0000000145CC3A72: call        0000000141BB0DC0
+  0000000145CC3A77: int         3
+  0000000145CC3A78: int         3
+  0000000145CC3A79: int         3
+  0000000145CC3A7A: int         3
+  0000000145CC3A7B: int         3
+  0000000145CC3A7C: int         3
+  0000000145CC3A7D: int         3
+  0000000145CC3A7E: int         3
+  0000000145CC3A7F: int         3
+  0000000145CC3A80: mov         qword ptr [rsp+8],rbx
+  0000000145CC3A85: mov         qword ptr [rsp+10h],rbp
+  0000000145CC3A8A: mov         qword ptr [rsp+18h],rsi
+  0000000145CC3A8F: push        rdi
+  0000000145CC3A90: sub         rsp,20h
+  0000000145CC3A94: mov         rbx,rcx
+  0000000145CC3A97: mov         rsi,r9
+  0000000145CC3A9A: mov         rcx,qword ptr [rcx]
+  0000000145CC3A9D: mov         rbp,r8
+  0000000145CC3AA0: mov         rdi,rdx
+  0000000145CC3AA3: test        rcx,rcx
+  0000000145CC3AA6: je          0000000145CC3AD9
+  0000000145CC3AA8: mov         rdx,qword ptr [rbx+10h]
+  0000000145CC3AAC: sub         rdx,rcx
+  0000000145CC3AAF: and         rdx,0FFFFFFFFFFFFFFF8h
+  0000000145CC3AB3: cmp         rdx,1000h
+  0000000145CC3ABA: jb          0000000145CC3AD4
+  0000000145CC3ABC: mov         r8,qword ptr [rcx-8]
+  0000000145CC3AC0: add         rdx,27h
+  0000000145CC3AC4: sub         rcx,r8
+  0000000145CC3AC7: lea         rax,[rcx-8]
+  0000000145CC3ACB: cmp         rax,1Fh
+  0000000145CC3ACF: ja          0000000145CC3B01
+  0000000145CC3AD1: mov         rcx,r8
+  0000000145CC3AD4: call        00000001470D91F4
+  0000000145CC3AD9: lea         rax,[rdi+rbp*8]
+  0000000145CC3ADD: mov         qword ptr [rbx],rdi
+  0000000145CC3AE0: mov         rbp,qword ptr [rsp+38h]
+  0000000145CC3AE5: mov         qword ptr [rbx+8],rax
+  0000000145CC3AE9: lea         rax,[rdi+rsi*8]
+  0000000145CC3AED: mov         rsi,qword ptr [rsp+40h]
+  0000000145CC3AF2: mov         qword ptr [rbx+10h],rax
+  0000000145CC3AF6: mov         rbx,qword ptr [rsp+30h]
+  0000000145CC3AFB: add         rsp,20h
+  0000000145CC3AFF: pop         rdi
+  0000000145CC3B00: ret
+  0000000145CC3B01: call        qword ptr [0000000148237590h]
+  0000000145CC3B07: int         3
+  0000000145CC3B08: int         3
+  0000000145CC3B09: int         3
+  0000000145CC3B0A: int         3
+  0000000145CC3B0B: int         3
+  0000000145CC3B0C: int         3
+  0000000145CC3B0D: int         3
+  0000000145CC3B0E: int         3
+  0000000145CC3B0F: int         3
+  0000000145CC3B10: mov         qword ptr [rsp+8],rbx
+  0000000145CC3B15: mov         qword ptr [rsp+10h],rbp
+  0000000145CC3B1A: mov         qword ptr [rsp+18h],rsi
+  0000000145CC3B1F: push        rdi
+  0000000145CC3B20: sub         rsp,20h
+  0000000145CC3B24: mov         rbx,rcx
+  0000000145CC3B27: mov         rsi,r9
+  0000000145CC3B2A: mov         rcx,qword ptr [rcx]
+  0000000145CC3B2D: mov         rbp,r8
+  0000000145CC3B30: mov         rdi,rdx
+  0000000145CC3B33: test        rcx,rcx
+  0000000145CC3B36: je          0000000145CC3B69
+  0000000145CC3B38: mov         rdx,qword ptr [rbx+10h]
+  0000000145CC3B3C: sub         rdx,rcx
+  0000000145CC3B3F: and         rdx,0FFFFFFFFFFFFFFF8h
+  0000000145CC3B43: cmp         rdx,1000h
+  0000000145CC3B4A: jb          0000000145CC3B64
+  0000000145CC3B4C: mov         r8,qword ptr [rcx-8]
+  0000000145CC3B50: add         rdx,27h
+  0000000145CC3B54: sub         rcx,r8
+  0000000145CC3B57: lea         rax,[rcx-8]
+  0000000145CC3B5B: cmp         rax,1Fh
+  0000000145CC3B5F: ja          0000000145CC3B91
+  0000000145CC3B61: mov         rcx,r8
+  0000000145CC3B64: call        00000001470D91F4
+  0000000145CC3B69: lea         rax,[rdi+rbp*8]
+  0000000145CC3B6D: mov         qword ptr [rbx],rdi
+  0000000145CC3B70: mov         rbp,qword ptr [rsp+38h]
+  0000000145CC3B75: mov         qword ptr [rbx+8],rax
+  0000000145CC3B79: lea         rax,[rdi+rsi*8]
+  0000000145CC3B7D: mov         rsi,qword ptr [rsp+40h]
+  0000000145CC3B82: mov         qword ptr [rbx+10h],rax
+  0000000145CC3B86: mov         rbx,qword ptr [rsp+30h]
+  0000000145CC3B8B: add         rsp,20h
+  0000000145CC3B8F: pop         rdi
+  0000000145CC3B90: ret
+  0000000145CC3B91: call        qword ptr [0000000148237590h]
+  0000000145CC3B97: int         3
+  0000000145CC3B98: int         3
+  0000000145CC3B99: int         3
+  0000000145CC3B9A: int         3
+  0000000145CC3B9B: int         3
+  0000000145CC3B9C: int         3
+  0000000145CC3B9D: int         3
+  0000000145CC3B9E: int         3
+  0000000145CC3B9F: int         3
+  0000000145CC3BA0: mov         qword ptr [rsp+8],rbx
+  0000000145CC3BA5: mov         qword ptr [rsp+10h],rbp
+  0000000145CC3BAA: mov         qword ptr [rsp+18h],rsi
+  0000000145CC3BAF: push        rdi
+  0000000145CC3BB0: sub         rsp,20h
+  0000000145CC3BB4: mov         rbx,rcx
+  0000000145CC3BB7: mov         rsi,r9
+  0000000145CC3BBA: mov         rcx,qword ptr [rcx]
+  0000000145CC3BBD: mov         rbp,r8
+  0000000145CC3BC0: mov         rdi,rdx
+  0000000145CC3BC3: test        rcx,rcx
+  0000000145CC3BC6: je          0000000145CC3C17
+  0000000145CC3BC8: mov         r10,qword ptr [rbx+10h]
+  0000000145CC3BCC: mov         rax,0EA0EA0EA0EA0EA1h
+  0000000145CC3BD6: sub         r10,rcx
+  0000000145CC3BD9: imul        r10
+  0000000145CC3BDC: sar         rdx,4
+  0000000145CC3BE0: mov         rax,rdx
+  0000000145CC3BE3: shr         rax,3Fh
+  0000000145CC3BE7: add         rdx,rax
+  0000000145CC3BEA: imul        rdx,rdx,118h
+  0000000145CC3BF1: cmp         rdx,1000h
+  0000000145CC3BF8: jb          0000000145CC3C12
+  0000000145CC3BFA: mov         r8,qword ptr [rcx-8]
+  0000000145CC3BFE: add         rdx,27h
+  0000000145CC3C02: sub         rcx,r8
+  0000000145CC3C05: lea         rax,[rcx-8]
+  0000000145CC3C09: cmp         rax,1Fh
+  0000000145CC3C0D: ja          0000000145CC3C4B
+  0000000145CC3C0F: mov         rcx,r8
+  0000000145CC3C12: call        00000001470D91F4
+  0000000145CC3C17: imul        rax,rbp,118h
+  0000000145CC3C1E: mov         rbp,qword ptr [rsp+38h]
+  0000000145CC3C23: add         rax,rdi
+  0000000145CC3C26: mov         qword ptr [rbx],rdi
+  0000000145CC3C29: mov         qword ptr [rbx+8],rax
+  0000000145CC3C2D: imul        rax,rsi,118h
+  0000000145CC3C34: mov         rsi,qword ptr [rsp+40h]
+  0000000145CC3C39: add         rax,rdi
+  0000000145CC3C3C: mov         qword ptr [rbx+10h],rax
+  0000000145CC3C40: mov         rbx,qword ptr [rsp+30h]
+  0000000145CC3C45: add         rsp,20h
+  0000000145CC3C49: pop         rdi
+  0000000145CC3C4A: ret
+  0000000145CC3C4B: call        qword ptr [0000000148237590h]
+  0000000145CC3C51: int         3
+  0000000145CC3C52: int         3
+  0000000145CC3C53: int         3
+  0000000145CC3C54: int         3
+  0000000145CC3C55: int         3
+  0000000145CC3C56: int         3
+  0000000145CC3C57: int         3
+  0000000145CC3C58: int         3
+  0000000145CC3C59: int         3
+  0000000145CC3C5A: int         3
+  0000000145CC3C5B: int         3
+  0000000145CC3C5C: int         3
+  0000000145CC3C5D: int         3
+  0000000145CC3C5E: int         3
+  0000000145CC3C5F: int         3
+  0000000145CC3C60: test        rcx,rcx
+  0000000145CC3C63: je          0000000145CC3C71
+  0000000145CC3C65: mov         rax,qword ptr [rcx]
+  0000000145CC3C68: mov         edx,1
+  0000000145CC3C6D: jmp         qword ptr [rax+10h]
+  0000000145CC3C71: ret
+  0000000145CC3C72: int         3
+  0000000145CC3C73: int         3
+  0000000145CC3C74: int         3
+  0000000145CC3C75: int         3
+  0000000145CC3C76: int         3
+  0000000145CC3C77: int         3
+  0000000145CC3C78: int         3
+  0000000145CC3C79: int         3
+  0000000145CC3C7A: int         3
+  0000000145CC3C7B: int         3
+  0000000145CC3C7C: int         3
+  0000000145CC3C7D: int         3
+  0000000145CC3C7E: int         3
+  0000000145CC3C7F: int         3
+  0000000145CC3C80: test        rcx,rcx
+  0000000145CC3C83: je          0000000145CC3C91
+  0000000145CC3C85: mov         rax,qword ptr [rcx]
+  0000000145CC3C88: mov         edx,1
+  0000000145CC3C8D: jmp         qword ptr [rax+10h]
+  0000000145CC3C91: ret
+  0000000145CC3C92: int         3
+  0000000145CC3C93: int         3
+  0000000145CC3C94: int         3
+  0000000145CC3C95: int         3
+  0000000145CC3C96: int         3
+  0000000145CC3C97: int         3
+  0000000145CC3C98: int         3
+  0000000145CC3C99: int         3
+  0000000145CC3C9A: int         3
+  0000000145CC3C9B: int         3
+  0000000145CC3C9C: int         3
+  0000000145CC3C9D: int         3
+  0000000145CC3C9E: int         3
+  0000000145CC3C9F: int         3
+  0000000145CC3CA0: test        rcx,rcx
+  0000000145CC3CA3: je          0000000145CC3CB1
+  0000000145CC3CA5: mov         rax,qword ptr [rcx]
+  0000000145CC3CA8: mov         edx,1
+  0000000145CC3CAD: jmp         qword ptr [rax+10h]
+  0000000145CC3CB1: ret
+  0000000145CC3CB2: int         3
+  0000000145CC3CB3: int         3
+  0000000145CC3CB4: int         3
+  0000000145CC3CB5: int         3
+  0000000145CC3CB6: int         3
+  0000000145CC3CB7: int         3
+  0000000145CC3CB8: int         3
+  0000000145CC3CB9: int         3
+  0000000145CC3CBA: int         3
+  0000000145CC3CBB: int         3
+  0000000145CC3CBC: int         3
+  0000000145CC3CBD: int         3
+  0000000145CC3CBE: int         3
+  0000000145CC3CBF: int         3
+  0000000145CC3CC0: mov         rdx,qword ptr [rcx+10h]
+  0000000145CC3CC4: test        rdx,rdx
+  0000000145CC3CC7: je          0000000145CC3CE3
+  0000000145CC3CC9: mov         rax,qword ptr [rdx+8]
+  0000000145CC3CCD: movsxd      rcx,dword ptr [rax+4]
+  0000000145CC3CD1: add         rcx,8
+  0000000145CC3CD5: add         rcx,rdx
+  0000000145CC3CD8: mov         edx,1
+  0000000145CC3CDD: mov         rax,qword ptr [rcx]
+  0000000145CC3CE0: jmp         qword ptr [rax]
+  0000000145CC3CE3: ret
+  0000000145CC3CE4: int         3
+  0000000145CC3CE5: int         3
+  0000000145CC3CE6: int         3
+  0000000145CC3CE7: int         3
+  0000000145CC3CE8: int         3
+  0000000145CC3CE9: int         3
+  0000000145CC3CEA: int         3
+  0000000145CC3CEB: int         3
+  0000000145CC3CEC: int         3
+  0000000145CC3CED: int         3
+  0000000145CC3CEE: int         3
+  0000000145CC3CEF: int         3
+  0000000145CC3CF0: mov         rcx,qword ptr [rcx+10h]
+  0000000145CC3CF4: test        rcx,rcx
+  0000000145CC3CF7: je          0000000145CC3D0B
+  0000000145CC3CF9: add         rcx,240h
+  0000000145CC3D00: mov         edx,1
+  0000000145CC3D05: mov         rax,qword ptr [rcx]
+  0000000145CC3D08: jmp         qword ptr [rax]
+  0000000145CC3D0B: ret
+  0000000145CC3D0C: int         3
+  0000000145CC3D0D: int         3
+  0000000145CC3D0E: int         3
+  0000000145CC3D0F: int         3
+  0000000145CC3D10: mov         rcx,qword ptr [rcx+10h]
+  0000000145CC3D14: test        rcx,rcx
+  0000000145CC3D17: je          0000000145CC3D24
+  0000000145CC3D19: mov         rax,qword ptr [rcx]
+  0000000145CC3D1C: mov         edx,1
+  0000000145CC3D21: jmp         qword ptr [rax]
+  0000000145CC3D24: ret
+  0000000145CC3D25: int         3
+  0000000145CC3D26: int         3
+  0000000145CC3D27: int         3
+  0000000145CC3D28: int         3
+  0000000145CC3D29: int         3
+  0000000145CC3D2A: int         3
+  0000000145CC3D2B: int         3
+  0000000145CC3D2C: int         3
+  0000000145CC3D2D: int         3
+  0000000145CC3D2E: int         3
+  0000000145CC3D2F: int         3
+  0000000145CC3D30: mov         qword ptr [rsp+8],rbx
+  0000000145CC3D35: push        rdi
+  0000000145CC3D36: sub         rsp,20h
+  0000000145CC3D3A: mov         rbx,qword ptr [rdx+10h]
+  0000000145CC3D3E: mov         r8,rcx
+  0000000145CC3D41: mov         rax,rdx
+  0000000145CC3D44: cmp         byte ptr [rbx+19h],0
+  0000000145CC3D48: je          0000000145CC3D69
+  0000000145CC3D4A: mov         rbx,qword ptr [rdx+8]
+  0000000145CC3D4E: cmp         byte ptr [rbx+19h],0
+  0000000145CC3D52: jne         0000000145CC3D8F
+  0000000145CC3D54: cmp         rax,qword ptr [rbx+10h]
+  0000000145CC3D58: jne         0000000145CC3D8F
+  0000000145CC3D5A: mov         rax,rbx
+  0000000145CC3D5D: mov         rbx,qword ptr [rbx+8]
+  0000000145CC3D61: cmp         byte ptr [rbx+19h],0
+  0000000145CC3D65: je          0000000145CC3D54
+  0000000145CC3D67: jmp         0000000145CC3D8F
+  0000000145CC3D69: mov         rcx,qword ptr [rbx]
+  0000000145CC3D6C: cmp         byte ptr [rcx+19h],0
+  0000000145CC3D70: jne         0000000145CC3D8F
+  0000000145CC3D72: nop         dword ptr [rax]
+  0000000145CC3D76: nop         word ptr [rax+rax+0000000000000000h]
+  0000000145CC3D80: mov         rax,qword ptr [rcx]
+  0000000145CC3D83: mov         rbx,rcx
+  0000000145CC3D86: mov         rcx,rax
+  0000000145CC3D89: cmp         byte ptr [rax+19h],0
+  0000000145CC3D8D: je          0000000145CC3D80
+  0000000145CC3D8F: mov         rcx,r8
+  0000000145CC3D92: call        0000000145CC3DE0
+  0000000145CC3D97: mov         rdi,rax
+  0000000145CC3D9A: mov         rcx,qword ptr [rax+28h]
+  0000000145CC3D9E: test        rcx,rcx
+
+  Summary
+
+     822A000 .text

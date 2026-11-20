@@ -1,0 +1,556 @@
+450FD780 mov    r15,qword ptr [rdi]                          ; 
+450FD783 mov    rcx,r15                                      ; 
+450FD786 call   00000001450F2010                             ; call 0x50f2010
+450FD78B test   al,al                                        ; 
+450FD78D je     00000001450FD7C1                             ; 
+450FD78F lea    rdx,[rbp+0000000000000380h]                  ; 
+450FD796 mov    rcx,r15                                      ; 
+450FD799 call   00000001450CA3B0                             ; call 0x50ca3b0
+450FD79E nop                                                 ; 
+450FD79F or     ebx,2                                        ; 
+450FD7A2 mov    dword ptr [rsp+44h],ebx                      ; 
+450FD7A6 lea    r8,[rbp+00000000000000A0h]                   ; 
+450FD7AD mov    rdx,rax                                      ; 
+450FD7B0 mov    rcx,r13                                      ; 
+450FD7B3 call   00000001450F2660                             ; call 0x50f2660
+450FD7B8 test   al,al                                        ; 
+450FD7BA je     00000001450FD7C1                             ; 
+450FD7BC xor    r15b,r15b                                    ; 
+450FD7BF jmp    00000001450FD7C4                             ; 
+450FD7C1 mov    r15b,1                                       ; 
+450FD7C4 test   bl,2                                         ; 
+450FD7C7 je     00000001450FD7DC                             ; 
+450FD7C9 and    ebx,0FFFFFFFDh                               ; 
+450FD7CC mov    dword ptr [rsp+44h],ebx                      ; 
+450FD7D0 lea    rcx,[rbp+0000000000000380h]                  ; 
+450FD7D7 call   0000000146665040                             ; call 0x6665040
+450FD7DC test   r15b,r15b                                    ; 
+450FD7DF jne    00000001450FDA73                             ; 
+450FD7E5 add    rdi,10h                                      ; 
+450FD7E9 cmp    rdi,rsi                                      ; 
+450FD7EC jne    00000001450FD780                             ; 
+450FD7EE mov    ecx,68h                                      ; 
+450FD7F3 call   00000001470D91B8                             ; call 0x70d91b8
+450FD7F8 mov    rsi,rax                                      ; 
+450FD7FB mov    qword ptr [rbp-30h],rax                      ; 
+450FD7FF mov    rdi,0FFFFFFFFFFFFFFFFh                       ; 
+450FD806 test   rax,rax                                      ; 
+450FD809 je     00000001450FD8F5                             ; 
+450FD80F mov    rax,qword ptr [rbp-40h]                      ; 
+450FD813 mov    r9d,edi                                      ; 
+450FD816 xor    r8d,r8d                                      ; 
+450FD819 cmp    byte ptr [rax],r8b                           ; 
+450FD81C je     00000001450FD860                             ; 
+450FD81E lea    rdx,[000000014890F140h]                      ; 890f140 'A:Reset Avatar Size'
+450FD825 lea    rcx,[rbp+00000000000001D8h]                  ; 
+450FD82C call   qword ptr [0000000148230078h]                ; 8230078 
+450FD832 nop                                                 ; 
+450FD833 or     ebx,4                                        ; 
+450FD836 lea    rcx,[0000000148260728h]                      ; 8260728 
+450FD83D mov    qword ptr [rbp+0000000000000158h],rcx        ; 
+450FD844 mov    rdx,rax                                      ; 
+450FD847 lea    rcx,[rbp+0000000000000160h]                  ; 
+450FD84E call   qword ptr [00000001482300E8h]                ; 82300e8 
+450FD854 lea    r14,[rbp+0000000000000158h]                  ; 
+450FD85B or     ebx,8                                        ; 
+450FD85E jmp    00000001450FD8A0                             ; 
+450FD860 lea    rdx,[000000014890F158h]                      ; 890f158 'A:Load Avatar Size'
+450FD867 lea    rcx,[rbp+00000000000001C0h]                  ; 
+450FD86E call   qword ptr [0000000148230078h]                ; 8230078 
+450FD874 nop                                                 ; 
+450FD875 or     ebx,10h                                      ; 
+450FD878 lea    rcx,[0000000148260728h]                      ; 8260728 
+450FD87F mov    qword ptr [rbp+0000000000000138h],rcx        ; 
+450FD886 mov    rdx,rax                                      ; 
+450FD889 lea    rcx,[rbp+0000000000000140h]                  ; 
+450FD890 call   qword ptr [00000001482300E8h]                ; 82300e8 
+450FD896 lea    r14,[rbp+0000000000000138h]                  ; 
+450FD89D or     ebx,20h                                      ; 
+450FD8A0 mov    dword ptr [rsp+44h],ebx                      ; 
+450FD8A4 call   0000000141BF5E20                             ; call 0x1bf5e20
+450FD8A9 lea    rdx,[rbp+0000000000000128h]                  ; 
+450FD8B0 mov    rcx,rax                                      ; 
+450FD8B3 call   0000000145CFE9F0                             ; call 0x5cfe9f0
+450FD8B8 nop                                                 ; 
+450FD8B9 or     ebx,40h                                      ; 
+450FD8BC mov    dword ptr [rsp+44h],ebx                      ; 
+450FD8C0 xorps  xmm0,xmm0                                    ; 
+450FD8C3 movdqu xmmword ptr [rbp],xmm0                       ; 
+450FD8C8 mov    rcx,qword ptr [rax]                          ; 
+450FD8CB mov    qword ptr [rbp],rcx                          ; 
+450FD8CF mov    rcx,qword ptr [rax+8]                        ; 
+450FD8D3 mov    qword ptr [rbp+8],rcx                        ; 
+450FD8D7 xor    r13d,r13d                                    ; 
+450FD8DA mov    qword ptr [rax],r13                          ; 
+450FD8DD mov    qword ptr [rax+8],r13                        ; 
+450FD8E1 mov    r8,r14                                       ; 
+450FD8E4 lea    rdx,[rbp]                                    ; 
+450FD8E8 mov    rcx,rsi                                      ; 
+450FD8EB call   00000001454A86B0                             ; call 0x54a86b0
+450FD8F0 mov    r15,rax                                      ; 
+450FD8F3 jmp    00000001450FD8FB                             ; 
+450FD8F5 xor    r13d,r13d                                    ; 
+450FD8F8 mov    r15d,r13d                                    ; 
+450FD8FB test   bl,40h                                       ; 
+450FD8FE je     00000001450FD93E                             ; 
+450FD900 and    ebx,0FFFFFFBFh                               ; 
+450FD903 mov    dword ptr [rsp+44h],ebx                      ; 
+450FD907 mov    rsi,qword ptr [rbp+0000000000000130h]        ; 
+450FD90E test   rsi,rsi                                      ; 
+450FD911 je     00000001450FD93E                             ; 
+450FD913 mov    eax,edi                                      ; 
+450FD915 lock   xadd   dword ptr [rsi+8],eax                 ; 
+450FD91A cmp    eax,1                                        ; 
+450FD91D jne    00000001450FD93A                             ; 
+450FD91F mov    rax,qword ptr [rsi]                          ; 
+450FD922 mov    rcx,rsi                                      ; 
+450FD925 call   qword ptr [rax]                              ; 
+450FD927 lock   xadd   dword ptr [rsi+0Ch],edi               ; 
+450FD92C cmp    edi,1                                        ; 
+450FD92F jne    00000001450FD93A                             ; 
+450FD931 mov    rax,qword ptr [rsi]                          ; 
+450FD934 mov    rcx,rsi                                      ; 
+450FD937 call   qword ptr [rax+8]                            ; 
+450FD93A mov    ebx,dword ptr [rsp+44h]                      ; 
+450FD93E test   bl,20h                                       ; 
+450FD941 je     00000001450FD953                             ; 
+450FD943 and    ebx,0FFFFFFDFh                               ; 
+450FD946 lea    rcx,[rbp+0000000000000138h]                  ; 
+450FD94D call   0000000146665040                             ; call 0x6665040
+450FD952 nop                                                 ; 
+450FD953 test   bl,10h                                       ; 
+450FD956 je     00000001450FD969                             ; 
+450FD958 and    ebx,0FFFFFFEFh                               ; 
+450FD95B lea    rcx,[rbp+00000000000001C0h]                  ; 
+450FD962 call   qword ptr [00000001482300E0h]                ; 82300e0 
+450FD968 nop                                                 ; 
+450FD969 test   bl,8                                         ; 
+450FD96C je     00000001450FD97E                             ; 
+450FD96E and    ebx,0FFFFFFF7h                               ; 
+450FD971 lea    rcx,[rbp+0000000000000158h]                  ; 
+450FD978 call   0000000146665040                             ; call 0x6665040
+450FD97D nop                                                 ; 
+450FD97E test   bl,4                                         ; 
+450FD981 je     00000001450FD990                             ; 
+450FD983 lea    rcx,[rbp+00000000000001D8h]                  ; 
+450FD98A call   qword ptr [00000001482300E0h]                ; 82300e0 
+450FD990 call   0000000141BF5D20                             ; call 0x1bf5d20
+450FD995 mov    rbx,rax                                      ; 
+450FD998 lea    rdx,[rsp+50h]                                ; 
+450FD99D lea    rcx,[rbp-70h]                                ; 
+450FD9A1 call   00000001435780F0                             ; call 0x35780f0
+450FD9A6 mov    rdx,rax                                      ; 
+450FD9A9 mov    rcx,rbx                                      ; 
+450FD9AC call   00000001450A8710                             ; call 0x50a8710
+450FD9B1 mov    r14,qword ptr [rsp+50h]                      ; 
+450FD9B6 mov    rsi,qword ptr [rsp+58h]                      ; 
+450FD9BB test   al,al                                        ; 
+450FD9BD je     00000001450FDA6B                             ; 
+450FD9C3 mov    rbx,r14                                      ; 
+450FD9C6 cmp    r14,rsi                                      ; 
+450FD9C9 je     00000001450FDA6B                             ; 
+450FD9CF mov    byte ptr [rsp+40h],1                         ; 
+450FD9D4 nop    dword ptr [rax]                              ; 
+450FD9D8 nop    dword ptr [rax+rax+0000000000000000h]        ; 
+450FD9E0 mov    r9b,1                                        ; 
+450FD9E3 lea    r8,[rbp+60h]                                 ; 
+450FD9E7 lea    rdx,[rbp+0000000000000230h]                  ; 
+450FD9EE mov    rcx,qword ptr [rbx]                          ; 
+450FD9F1 call   000000014510CD70                             ; call 0x510cd70
+450FD9F6 nop                                                 ; 
+450FD9F7 mov    r9,r15                                       ; 
+450FD9FA lea    r8,[rbp+0000000000000230h]                   ; 
+450FDA01 xor    edx,edx                                      ; 
+450FDA03 mov    rcx,qword ptr [rbx]                          ; 
+450FDA06 call   000000014511A1B0                             ; call 0x511a1b0
+450FDA0B nop                                                 ; 
+450FDA0C lea    rcx,[rbp+0000000000000230h]                  ; 
+450FDA13 call   0000000145092E60                             ; call 0x5092e60
+450FDA18 add    rbx,10h                                      ; 
+450FDA1C cmp    rbx,rsi                                      ; 
+450FDA1F jne    00000001450FD9E0                             ; 
+450FDA21 mov    rax,qword ptr [rbp-8]                        ; 
+450FDA25 test   rax,rax                                      ; 
+450FDA28 je     00000001450FDA40                             ; 
+450FDA2A mov    rdx,r15                                      ; 
+450FDA2D mov    rcx,rax                                      ; 
+450FDA30 call   0000000145507700                             ; call 0x5507700
+450FDA35 movzx  r15d,byte ptr [rsp+40h]                      ; 
+450FDA3B jmp    00000001450FDBAE                             ; 
+450FDA40 call   0000000143B24020                             ; call 0x3b24020
+450FDA45 mov    byte ptr [rsp+28h],1                         ; 
+450FDA4A mov    byte ptr [rsp+20h],0                         ; 
+450FDA4F xor    r9d,r9d                                      ; 
+450FDA52 xor    r8d,r8d                                      ; 
+450FDA55 mov    rdx,r15                                      ; 
+450FDA58 mov    rcx,rax                                      ; 
+450FDA5B call   0000000143B24740                             ; call 0x3b24740
+450FDA60 movzx  r15d,byte ptr [rsp+40h]                      ; 
+450FDA66 jmp    00000001450FDBAE                             ; 
+450FDA6B xor    r15b,r15b                                    ; 
+450FDA6E jmp    00000001450FDBAE                             ; 
+450FDA73 mov    rdi,0FFFFFFFFFFFFFFFFh                       ; 
+450FDA7A mov    r9d,edi                                      ; 
+450FDA7D xor    r8d,r8d                                      ; 
+450FDA80 lea    rdx,[0000000148383520h]                      ; 8383520 'A:No matching Avatar.'
+450FDA87 lea    rcx,[rbp-70h]                                ; 
+450FDA8B call   qword ptr [0000000148230078h]                ; 8230078 
+450FDA91 nop                                                 ; 
+450FDA92 lea    rcx,[0000000148260728h]                      ; 8260728 
+450FDA99 mov    qword ptr [rsp+70h],rcx                      ; 
+450FDA9E mov    rdx,rax                                      ; 
+450FDAA1 lea    rcx,[rsp+78h]                                ; 
+450FDAA6 call   qword ptr [00000001482300E8h]                ; 82300e8 
+450FDAAC nop                                                 ; 
+450FDAAD mov    rdx,rdi                                      ; 
+450FDAB0 xor    r8d,r8d                                      ; 
+450FDAB3 lea    rcx,[rsp+70h]                                ; 
+450FDAB8 call   0000000144B78600                             ; call 0x4b78600
+450FDABD nop                                                 ; 
+450FDABE lea    rcx,[rsp+70h]                                ; 
+450FDAC3 call   0000000146665040                             ; call 0x6665040
+450FDAC8 nop                                                 ; 
+450FDAC9 lea    rcx,[rbp-70h]                                ; 
+450FDACD call   qword ptr [00000001482300E0h]                ; 82300e0 
+450FDAD3 nop                                                 ; 
+450FDAD4 mov    rcx,qword ptr [rbp+78h]                      ; 
+450FDAD8 test   rcx,rcx                                      ; 
+450FDADB je     00000001450FDB31                             ; 
+450FDADD mov    rax,qword ptr [rbp+0000000000000088h]        ; 
+450FDAE4 sub    rax,rcx                                      ; 
+450FDAE7 sar    rax,3                                        ; 
+450FDAEB lea    rdx,[rax*8+0000000000000000h]                ; 
+450FDAF3 mov    rax,rcx                                      ; 
+450FDAF6 cmp    rdx,1000h                                    ; 
+450FDAFD jb     00000001450FDB18                             ; 
+450FDAFF add    rdx,27h                                      ; 
+450FDB03 mov    rcx,qword ptr [rcx-8]                        ; 
+450FDB07 sub    rax,rcx                                      ; 
+450FDB0A add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+450FDB0E cmp    rax,1Fh                                      ; 
+450FDB12 ja     00000001450FDBEE                             ; 
+450FDB18 call   00000001470D91F4                             ; call 0x70d91f4
+450FDB1D xor    r13d,r13d                                    ; 
+450FDB20 mov    qword ptr [rbp+78h],r13                      ; 
+450FDB24 xorps  xmm0,xmm0                                    ; 
+450FDB27 movdqa xmmword ptr [rbp+0000000000000080h],xmm0     ; 
+450FDB2F jmp    00000001450FDB34                             ; 
+450FDB31 xor    r13d,r13d                                    ; 
+450FDB34 lea    rcx,[rbp+68h]                                ; 
+450FDB38 call   0000000141D11370                             ; call 0x1d11370
+450FDB3D nop                                                 ; 
+450FDB3E lea    rcx,[rbp+00000000000000A0h]                  ; 
+450FDB45 call   0000000146665040                             ; call 0x6665040
+450FDB4A nop                                                 ; 
+450FDB4B mov    rcx,qword ptr [rbp+38h]                      ; 
+450FDB4F test   rcx,rcx                                      ; 
+450FDB52 je     00000001450FDB9D                             ; 
+450FDB54 mov    rax,qword ptr [rbp+48h]                      ; 
+450FDB58 sub    rax,rcx                                      ; 
+450FDB5B sar    rax,3                                        ; 
+450FDB5F lea    rdx,[rax*8+0000000000000000h]                ; 
+450FDB67 mov    rax,rcx                                      ; 
+450FDB6A cmp    rdx,1000h                                    ; 
+450FDB71 jb     00000001450FDB8C                             ; 
+450FDB73 add    rdx,27h                                      ; 
+450FDB77 mov    rcx,qword ptr [rcx-8]                        ; 
+450FDB7B sub    rax,rcx                                      ; 
+450FDB7E add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+450FDB82 cmp    rax,1Fh                                      ; 
+450FDB86 ja     00000001450FDC5D                             ; 
+450FDB8C call   00000001470D91F4                             ; call 0x70d91f4
+450FDB91 mov    qword ptr [rbp+38h],r13                      ; 
+450FDB95 xorps  xmm0,xmm0                                    ; 
+450FDB98 movdqa xmmword ptr [rbp+40h],xmm0                   ; 
+450FDB9D lea    rcx,[rbp+28h]                                ; 
+450FDBA1 call   0000000141D11370                             ; call 0x1d11370
+450FDBA6 jmp    00000001450FDECE                             ; 
+450FDBAB xor    r13d,r13d                                    ; 
+450FDBAE mov    rcx,qword ptr [rbp+78h]                      ; 
+450FDBB2 test   rcx,rcx                                      ; 
+450FDBB5 je     00000001450FDC09                             ; 
+450FDBB7 mov    rax,qword ptr [rbp+0000000000000088h]        ; 
+450FDBBE sub    rax,rcx                                      ; 
+450FDBC1 sar    rax,3                                        ; 
+450FDBC5 lea    rdx,[rax*8+0000000000000000h]                ; 
+450FDBCD mov    rax,rcx                                      ; 
+450FDBD0 cmp    rdx,1000h                                    ; 
+450FDBD7 jb     00000001450FDBF5                             ; 
+450FDBD9 add    rdx,27h                                      ; 
+450FDBDD mov    rcx,qword ptr [rcx-8]                        ; 
+450FDBE1 sub    rax,rcx                                      ; 
+450FDBE4 add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+450FDBE8 cmp    rax,1Fh                                      ; 
+450FDBEC jbe    00000001450FDBF5                             ; 
+450FDBEE call   qword ptr [0000000148237590h]                ; 8237590 
+450FDBF4 int    3                                            ; 
+450FDBF5 call   00000001470D91F4                             ; call 0x70d91f4
+450FDBFA mov    qword ptr [rbp+78h],r13                      ; 
+450FDBFE xorps  xmm0,xmm0                                    ; 
+450FDC01 movdqa xmmword ptr [rbp+0000000000000080h],xmm0     ; 
+450FDC09 lea    rcx,[rbp+68h]                                ; 
+450FDC0D call   0000000141D11370                             ; call 0x1d11370
+450FDC12 nop                                                 ; 
+450FDC13 lea    rcx,[rbp+00000000000000A0h]                  ; 
+450FDC1A call   0000000146665040                             ; call 0x6665040
+450FDC1F nop                                                 ; 
+450FDC20 mov    rcx,qword ptr [rbp+38h]                      ; 
+450FDC24 test   rcx,rcx                                      ; 
+450FDC27 je     00000001450FDC75                             ; 
+450FDC29 mov    rax,qword ptr [rbp+48h]                      ; 
+450FDC2D sub    rax,rcx                                      ; 
+450FDC30 sar    rax,3                                        ; 
+450FDC34 lea    rdx,[rax*8+0000000000000000h]                ; 
+450FDC3C mov    rax,rcx                                      ; 
+450FDC3F cmp    rdx,1000h                                    ; 
+450FDC46 jb     00000001450FDC64                             ; 
+450FDC48 add    rdx,27h                                      ; 
+450FDC4C mov    rcx,qword ptr [rcx-8]                        ; 
+450FDC50 sub    rax,rcx                                      ; 
+450FDC53 add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+450FDC57 cmp    rax,1Fh                                      ; 
+450FDC5B jbe    00000001450FDC64                             ; 
+450FDC5D call   qword ptr [0000000148237590h]                ; 8237590 
+450FDC63 int    3                                            ; 
+450FDC64 call   00000001470D91F4                             ; call 0x70d91f4
+450FDC69 mov    qword ptr [rbp+38h],r13                      ; 
+450FDC6D xorps  xmm0,xmm0                                    ; 
+450FDC70 movdqa xmmword ptr [rbp+40h],xmm0                   ; 
+450FDC75 lea    rcx,[rbp+28h]                                ; 
+450FDC79 call   0000000141D11370                             ; call 0x1d11370
+450FDC7E test   r15b,r15b                                    ; 
+450FDC81 je     00000001450FDED1                             ; 
+450FDC87 lea    rcx,[rbp+0000000000000320h]                  ; 
+450FDC8E call   0000000146665010                             ; call 0x6665010
+450FDC93 nop                                                 ; 
+450FDC94 lea    rdx,[rbp+0000000000000320h]                  ; 
+450FDC9B mov    r13,qword ptr [rbp+10h]                      ; 
+450FDC9F mov    rcx,r13                                      ; 
+450FDCA2 call   000000014625D850                             ; call 0x625d850
+450FDCA7 lea    rdx,[00000001483CAB00h]                      ; 83cab00 'A:LastAvatarSizingFilePath'
+450FDCAE lea    rcx,[rbp+00000000000000C0h]                  ; 
+450FDCB5 call   0000000146664F70                             ; call 0x6664f70
+450FDCBA nop                                                 ; 
+450FDCBB lea    rdx,[0000000148268B00h]                      ; 8268b00 'A:Path'
+450FDCC2 lea    rcx,[rbp+0000000000000360h]                  ; 
+450FDCC9 call   0000000146664F70                             ; call 0x6664f70
+450FDCCE nop                                                 ; 
+450FDCCF lea    rdx,[rbp+0000000000000328h]                  ; 
+450FDCD6 lea    rcx,[rbp-20h]                                ; 
+450FDCDA call   qword ptr [00000001482300E8h]                ; 82300e8 
+450FDCE0 nop                                                 ; 
+450FDCE1 lea    rdx,[rbp-20h]                                ; 
+450FDCE5 lea    rcx,[rbp+0000000000000380h]                  ; 
+450FDCEC call   qword ptr [000000014822FD18h]                ; 822fd18 
+450FDCF2 nop                                                 ; 
+450FDCF3 mov    r8,rax                                       ; 
+450FDCF6 lea    rdx,[rbp+00000000000000C0h]                  ; 
+450FDCFD lea    rcx,[rbp+0000000000000360h]                  ; 
+450FDD04 call   0000000144B753F0                             ; call 0x4b753f0
+450FDD09 nop                                                 ; 
+450FDD0A lea    rcx,[rbp+0000000000000380h]                  ; 
+450FDD11 call   qword ptr [000000014822FD38h]                ; 822fd38 
+450FDD17 nop                                                 ; 
+450FDD18 lea    rcx,[rbp-20h]                                ; 
+450FDD1C call   qword ptr [00000001482300E0h]                ; 82300e0 
+450FDD22 nop                                                 ; 
+450FDD23 lea    rcx,[rbp+0000000000000360h]                  ; 
+450FDD2A call   0000000146665040                             ; call 0x6665040
+450FDD2F nop                                                 ; 
+450FDD30 lea    rcx,[rbp+00000000000000C0h]                  ; 
+450FDD37 call   0000000146665040                             ; call 0x6665040
+450FDD3C call   0000000141C5FB60                             ; call 0x1c5fb60
+450FDD41 mov    rbx,rax                                      ; 
+450FDD44 lea    rdx,[rbp+0000000000000360h]                  ; 
+450FDD4B mov    rcx,r13                                      ; 
+450FDD4E call   0000000146668370                             ; call 0x6668370
+450FDD53 nop                                                 ; 
+450FDD54 mov    rdx,rax                                      ; 
+450FDD57 mov    rcx,rbx                                      ; 
+450FDD5A call   0000000145D828B0                             ; call 0x5d828b0
+450FDD5F nop                                                 ; 
+450FDD60 mov    rdx,qword ptr [rbp+0000000000000378h]        ; 
+450FDD67 cmp    rdx,0Fh                                      ; 
+450FDD6B jbe    00000001450FDDA4                             ; 
+450FDD6D inc    rdx                                          ; 
+450FDD70 mov    rcx,qword ptr [rbp+0000000000000360h]        ; 
+450FDD77 mov    rax,rcx                                      ; 
+450FDD7A cmp    rdx,1000h                                    ; 
+450FDD81 jb     00000001450FDD9F                             ; 
+450FDD83 add    rdx,27h                                      ; 
+450FDD87 mov    rcx,qword ptr [rcx-8]                        ; 
+450FDD8B sub    rax,rcx                                      ; 
+450FDD8E add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+450FDD92 cmp    rax,1Fh                                      ; 
+450FDD96 jbe    00000001450FDD9F                             ; 
+450FDD98 call   qword ptr [0000000148237590h]                ; 8237590 
+450FDD9E int    3                                            ; 
+450FDD9F call   00000001470D91F4                             ; call 0x70d91f4
+450FDDA4 mov    rbx,qword ptr [r12]                          ; 
+450FDDA8 test   rbx,rbx                                      ; 
+450FDDAB je     00000001450FDDE5                             ; 
+450FDDAD mov    rdx,r13                                      ; 
+450FDDB0 lea    rcx,[rbp+0000000000000380h]                  ; 
+450FDDB7 call   00000001440ECCC0                             ; call 0x40eccc0
+450FDDBC nop                                                 ; 
+450FDDBD mov    rdx,rax                                      ; 
+450FDDC0 mov    rcx,rbx                                      ; 
+450FDDC3 call   000000014512B870                             ; call 0x512b870
+450FDDC8 nop                                                 ; 
+450FDDC9 lea    rcx,[rbp+0000000000000380h]                  ; 
+450FDDD0 call   0000000146665040                             ; call 0x6665040
+450FDDD5 lea    rdx,[rbp+0000000000000320h]                  ; 
+450FDDDC mov    rcx,qword ptr [r12]                          ; 
+450FDDE0 call   000000014512B860                             ; call 0x512b860
+450FDDE5 mov    rbx,r14                                      ; 
+450FDDE8 cmp    r14,rsi                                      ; 
+450FDDEB je     00000001450FDE38                             ; 
+450FDDED nop    dword ptr [rax]                              ; 
+450FDDF0 mov    rdi,qword ptr [rbx]                          ; 
+450FDDF3 test   rdi,rdi                                      ; 
+450FDDF6 je     00000001450FDE2F                             ; 
+450FDDF8 mov    rdx,r13                                      ; 
+450FDDFB lea    rcx,[rbp+0000000000000380h]                  ; 
+450FDE02 call   00000001440ECCC0                             ; call 0x40eccc0
+450FDE07 nop                                                 ; 
+450FDE08 mov    rdx,rax                                      ; 
+450FDE0B mov    rcx,rdi                                      ; 
+450FDE0E call   000000014512B870                             ; call 0x512b870
+450FDE13 nop                                                 ; 
+450FDE14 lea    rcx,[rbp+0000000000000380h]                  ; 
+450FDE1B call   0000000146665040                             ; call 0x6665040
+450FDE20 lea    rdx,[rbp+0000000000000320h]                  ; 
+450FDE27 mov    rcx,qword ptr [rbx]                          ; 
+450FDE2A call   000000014512B860                             ; call 0x512b860
+450FDE2F add    rbx,10h                                      ; 
+450FDE33 cmp    rbx,rsi                                      ; 
+450FDE36 jne    00000001450FDDF0                             ; 
+450FDE38 call   0000000141BE1040                             ; call 0x1be1040
+450FDE3D mov    rcx,rax                                      ; 
+450FDE40 call   0000000145CCD3A0                             ; call 0x5ccd3a0
+450FDE45 nop                                                 ; 
+450FDE46 lea    rcx,[rbp+0000000000000320h]                  ; 
+450FDE4D call   0000000146665040                             ; call 0x6665040
+450FDE52 jmp    00000001450FDED1                             ; 
+450FDE54 mov    rdi,0FFFFFFFFFFFFFFFFh                       ; 
+450FDE5B mov    r9d,edi                                      ; 
+450FDE5E xor    r8d,r8d                                      ; 
+450FDE61 lea    rdx,[00000001483CAB80h]                      ; 83cab80 'A:Failed to load the Avatar Size file. The file was created in a lower version.'
+450FDE68 lea    rcx,[rbp-70h]                                ; 
+450FDE6C call   qword ptr [0000000148230078h]                ; 8230078 
+450FDE72 nop                                                 ; 
+450FDE73 lea    rcx,[0000000148260728h]                      ; 8260728 
+450FDE7A mov    qword ptr [rsp+70h],rcx                      ; 
+450FDE7F mov    rdx,rax                                      ; 
+450FDE82 lea    rcx,[rsp+78h]                                ; 
+450FDE87 call   qword ptr [00000001482300E8h]                ; 82300e8 
+450FDE8D nop                                                 ; 
+450FDE8E mov    rdx,rdi                                      ; 
+450FDE91 xor    r8d,r8d                                      ; 
+450FDE94 lea    rcx,[rsp+70h]                                ; 
+450FDE99 call   0000000144B78600                             ; call 0x4b78600
+450FDE9E nop                                                 ; 
+450FDE9F lea    rcx,[rsp+70h]                                ; 
+450FDEA4 call   0000000146665040                             ; call 0x6665040
+450FDEA9 nop                                                 ; 
+450FDEAA lea    rcx,[rbp-70h]                                ; 
+450FDEAE call   qword ptr [00000001482300E0h]                ; 82300e0 
+450FDEB4 mov    rcx,qword ptr [rsp+48h]                      ; 
+450FDEB9 test   rcx,rcx                                      ; 
+450FDEBC je     00000001450FDEC4                             ; 
+450FDEBE call   qword ptr [0000000148237738h]                ; 8237738 
+450FDEC4 mov    rsi,qword ptr [rsp+58h]                      ; 
+450FDEC9 mov    r14,qword ptr [rsp+50h]                      ; 
+450FDECE xor    r15b,r15b                                    ; 
+450FDED1 mov    rcx,qword ptr [rbp-50h]                      ; 
+450FDED5 test   rcx,rcx                                      ; 
+450FDED8 je     00000001450FDEE5                             ; 
+450FDEDA mov    rax,qword ptr [rcx]                          ; 
+450FDEDD mov    edx,1                                        ; 
+450FDEE2 call   qword ptr [rax]                              ; 
+450FDEE4 nop                                                 ; 
+450FDEE5 test   r14,r14                                      ; 
+450FDEE8 je     00000001450FDF9F                             ; 
+450FDEEE lea    r8,[rsp+50h]                                 ; 
+450FDEF3 mov    rdx,rsi                                      ; 
+450FDEF6 mov    rcx,r14                                      ; 
+450FDEF9 call   0000000141BF1F00                             ; call 0x1bf1f00
+450FDEFE mov    rdx,qword ptr [rsp+60h]                      ; 
+450FDF03 sub    rdx,r14                                      ; 
+450FDF06 and    rdx,0FFFFFFFFFFFFFFF0h                       ; 
+450FDF0A mov    rax,r14                                      ; 
+450FDF0D cmp    rdx,1000h                                    ; 
+450FDF14 jb     00000001450FDF32                             ; 
+450FDF16 add    rdx,27h                                      ; 
+450FDF1A mov    r14,qword ptr [r14-8]                        ; 
+450FDF1E sub    rax,r14                                      ; 
+450FDF21 add    rax,0FFFFFFFFFFFFFFF8h                       ; 
+450FDF25 cmp    rax,1Fh                                      ; 
+450FDF29 jbe    00000001450FDF32                             ; 
+450FDF2B call   qword ptr [0000000148237590h]                ; 8237590 
+450FDF31 int    3                                            ; 
+450FDF32 mov    rcx,r14                                      ; 
+450FDF35 call   00000001470D91F4                             ; call 0x70d91f4
+450FDF3A jmp    00000001450FDF9F                             ; 
+450FDF3C mov    rdi,0FFFFFFFFFFFFFFFFh                       ; 
+450FDF43 mov    r9d,edi                                      ; 
+450FDF46 xor    r8d,r8d                                      ; 
+450FDF49 lea    rdx,[00000001483CAB40h]                      ; 83cab40 'A:Failed to load the Avatar Size file. Invalid file path.'
+450FDF50 lea    rcx,[rbp-70h]                                ; 
+450FDF54 call   qword ptr [0000000148230078h]                ; 8230078 
+450FDF5A nop                                                 ; 
+450FDF5B lea    rcx,[0000000148260728h]                      ; 8260728 
+450FDF62 mov    qword ptr [rsp+70h],rcx                      ; 
+450FDF67 mov    rdx,rax                                      ; 
+450FDF6A lea    rcx,[rsp+78h]                                ; 
+450FDF6F call   qword ptr [00000001482300E8h]                ; 82300e8 
+450FDF75 nop                                                 ; 
+450FDF76 mov    rdx,rdi                                      ; 
+450FDF79 xor    r8d,r8d                                      ; 
+450FDF7C lea    rcx,[rsp+70h]                                ; 
+450FDF81 call   0000000144B78600                             ; call 0x4b78600
+450FDF86 nop                                                 ; 
+450FDF87 lea    rcx,[rsp+70h]                                ; 
+450FDF8C call   0000000146665040                             ; call 0x6665040
+450FDF91 nop                                                 ; 
+450FDF92 lea    rcx,[rbp-70h]                                ; 
+450FDF96 call   qword ptr [00000001482300E0h]                ; 82300e0 
+450FDF9C xor    r15b,r15b                                    ; 
+450FDF9F lea    rcx,[rbp+0000000000000178h]                  ; 
+450FDFA6 call   0000000146672040                             ; call 0x6672040
+450FDFAB movzx  eax,r15b                                     ; 
+450FDFAF mov    rcx,qword ptr [rbp+00000000000003A0h]        ; 
+450FDFB6 xor    rcx,rsp                                      ; 
+450FDFB9 call   00000001470D9780                             ; call 0x70d9780
+450FDFBE mov    rbx,qword ptr [rsp+0000000000000508h]        ; 
+450FDFC6 add    rsp,4B0h                                     ; 
+450FDFCD pop    r15                                          ; 
+450FDFCF pop    r14                                          ; 
+450FDFD1 pop    r13                                          ; 
+450FDFD3 pop    r12                                          ; 
+450FDFD5 pop    rdi                                          ; 
+450FDFD6 pop    rsi                                          ; 
+450FDFD7 pop    rbp                                          ; 
+450FDFD8 ret                                                 ; 
+450FDFD9 int    3                                            ; 
+450FDFDA int    3                                            ; 
+450FDFDB int    3                                            ; 
+450FDFDC int    3                                            ; 
+450FDFDD int    3                                            ; 
+450FDFDE int    3                                            ; 
+450FDFDF int    3                                            ; 
+450FDFE0 mov    qword ptr [rsp+18h],rbx                      ; 
+450FDFE5 push   rbp                                          ; 
+450FDFE6 push   rsi                                          ; 
+450FDFE7 push   rdi                                          ; 
+450FDFE8 push   r12                                          ; 
+450FDFEA push   r13                                          ; 
+450FDFEC push   r14                                          ; 
+450FDFEE push   r15                                          ; 
+450FDFF0 lea    rbp,[rsp-60h]                                ; 
+450FDFF5 sub    rsp,160h                                     ; 
+450FDFFC 48                                                  ; 
+450FDFFD 8B                                                  ; 
+450FDFFE 05                                                  ; 
+450FDFFF 3D                                                  ; 
+450FE000 4D                                                  ; 
